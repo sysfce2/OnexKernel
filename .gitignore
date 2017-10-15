@@ -1,0 +1,17 @@
+.*.sw?
+CMakeFiles/
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+bin/
+doc/
+,*
+.gradle
+.idea
+*.iml
+build/
+ndkBuild/
+local.properties
+*.a
+.git-snapshots
+.gitignore-snapshots
