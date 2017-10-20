@@ -1,0 +1,110 @@
+#ifndef MICRO_BIT_BOARD_H
+#define MICRO_BIT_BOARD_H
+
+#define LEDS_NUMBER   12
+#define LEDS_LIST    { 4,5,6,7,8,9,10,11,12,13,14,15 }
+#define LEDS_MASK    ((1<<4) | (1<<5) | (1<<6) | (1<<7) | (1<<8) | (1<<9) | (1<<10) | (1<<11) | (1<<12) | (1<<13) | (1<<14) | (1<<15))
+
+#define BUTTONS_NUMBER 2
+#define BUTTON_A       17
+#define BUTTON_B       26
+#define BUTTONS_LIST { BUTTON_A BUTTON_B }
+
+#define RX_PIN_NUMBER  25
+#define TX_PIN_NUMBER  24
+#define CTS_PIN_NUMBER 10
+#define RTS_PIN_NUMBER 8
+#define HWFC           true
+
+#define PIN_SPI_SS     16
+#define PIN_SPI_MOSI   15
+#define PIN_SPI_MISO   14
+#define PIN_SPI_SCLK   13
+
+#define PIN_WIRE_SDA   20
+#define PIN_WIRE_SCL   19
+
+/*
+//PADS
+PAD3 = p1,
+PAD2 = p2,
+PAD1 = p3,
+
+//LED MATRIX COLS
+COL1 = p4,
+COL2 = p5,
+COL3 = p6,
+COL4 = p7,
+COL5 = p8,
+COL6 = p9,
+COL7 = p10,
+COL8 = p11,
+COL9 = p12,
+
+//LED MATRIX ROWS
+ROW1 = p13,
+ROW2 = p14,
+ROW3 = p15,
+
+//NORMAL PIN (NO SPECIFIED FUNCTIONALITY)
+//PIN_16
+
+// BUTTON A
+BUTTON_A = p17,
+
+//NORMAL PIN (NO SPECIFIED FUNCTIONALITY)
+//PIN_18
+
+//TARGET RESET
+TGT_NRESET = p19,
+
+//NORMAL PIN (NO SPECIFIED FUNCTIONALITY)
+//PIN_20
+
+//MASTER OUT SLAVE IN
+MOSI = p21,
+
+//MASTER IN SLAVE OUT
+MISO = p22,
+
+//SERIAL CLOCK
+SCK = p23,
+
+// RX AND TX PINS
+TGT_TX = p24,
+TGT_RX = p25,
+
+//BUTTON B
+BUTTON_B = p26,
+
+//ACCEL INTERRUPT PINS (MMA8653FC)
+ACCEL_INT2 = p27,
+ACCEL_INT1 = p28,
+
+//MAGENETOMETER INTERRUPT PIN (MAG3110)
+MAG_INT1 = p29,
+
+// Not connected
+NC = (int)0xFFFFFFFF,
+
+RX_PIN_NUMBER = TGT_RX,
+TX_PIN_NUMBER = TGT_TX,
+CTS_PIN_NUMBER = 31, //unused  ** REQUIRES A PROPER FIX **
+RTS_PIN_NUMBER = 31, //unused 
+
+// mBed interface Pins
+USBTX = TX_PIN_NUMBER,
+USBRX = RX_PIN_NUMBER,
+
+LED1    = PAD1,
+LED2    = PAD2,
+LED3    = PAD3,
+LED4    = P0_16,
+
+//SDA (SERIAL DATA LINE)
+I2C_SDA0 = p30,
+
+//SCL (SERIAL CLOCK LINE)
+I2C_SCL0 = p0
+*/
+#endif
