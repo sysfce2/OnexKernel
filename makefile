@@ -60,10 +60,13 @@ NRF51_SYS_C_OBJECTS = \
 ASM_SOURCE_FILES = src/platforms/nrf51/gcc_startup_nrf51.s
 
 
-TESTS_OBJECTS = \
+LIB_OBJECTS = \
 ./src/lib/properties.c \
 ./src/onp/onp.c \
 ./src/onf/onf.c \
+
+
+TESTS_OBJECTS = \
 ./tests/assert.c \
 ./tests/test-properties.c \
 ./tests/test-onf.c \
@@ -86,36 +89,31 @@ BUTTON_OBJECTS = \
 
 ############################################################################################
 
+libOnexKernel.a: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
+libOnexKernel.a: CC=/usr/bin/gcc
+libOnexKernel.a: LD=/usr/bin/gcc
+libOnexKernel.a: AR=/usr/bin/ar
+libOnexKernel.a: TARGET=TARGET_LINUX
+libOnexKernel.a: $(UNIX_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o}
+	$(AR) rcs $@ $^
+
 tests.linux: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
 tests.linux: CC=/usr/bin/gcc
 tests.linux: LD=/usr/bin/gcc
 tests.linux: TARGET=TARGET_LINUX
-tests.linux: $(UNIX_C_SOURCE_FILES:.c=.o) ${TESTS_OBJECTS:.c=.o}
-	$(LD) $^ -o $@
-
-linux.tests: tests.linux
-	./tests.linux
+tests.linux: libOnexKernel.a ${TESTS_OBJECTS:.c=.o}
+	$(LD) -static ${TESTS_OBJECTS:.c=.o} -L. -lOnexKernel -o $@
 
 tests.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
 tests.microbit.elf: TARGET=TARGET_MICRO_BIT
-tests.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) $(TESTS_OBJECTS:.c=.o)
+tests.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) $(LIB_OBJECTS:.c=.o) $(TESTS_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
-
-
-microbit.tests: tests.microbit.hex
-	cp $< /media/duncan/MICROBIT/
-
 
 light.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
 light.microbit.elf: TARGET=TARGET_MICRO_BIT
 light.microbit.elf: CHANNELS=-DONP_CHANNEL_SERIAL
 light.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) $(LIGHT_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
-
-
-microbit.light: light.microbit.hex
-	cp $< /media/duncan/MICROBIT/
-
 
 button.linux: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
 button.linux: CC=/usr/bin/gcc
@@ -125,8 +123,23 @@ button.linux: CHANNELS=-DONP_CHANNEL_SERIAL
 button.linux: $(UNIX_C_SOURCE_FILES:.c=.o) ${BUTTON_OBJECTS:.c=.o}
 	$(LD) $^ -o $@
 
+#############################:
+
+linux.tests: tests.linux
+	./tests.linux
+
+microbit.tests: tests.microbit.hex
+	cp $< /media/duncan/MICROBIT/
+
+
 linux.button: button.linux
 	./button.linux
+
+microbit.light: light.microbit.hex
+	cp $< /media/duncan/MICROBIT/
+
+linux.library: libOnexKernel.a
+
 
 ############################################################################################
 
@@ -218,6 +231,8 @@ $(BUILD_DIRECTORY)/%.o: %.s
 	$(CC) $(ASMFLAGS) $(NRF51_INCLUDES) -c -o $@ $<
 
 ############################################################################################
+
+#############################:
 
 clean:
 	-find src tests -name '*.o' -o -name '*.d' | xargs rm -f
