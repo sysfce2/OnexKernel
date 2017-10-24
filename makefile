@@ -132,6 +132,11 @@ button.linux: $(UNIX_C_SOURCE_FILES:.c=.o) ${BUTTON_OBJECTS:.c=.o}
 linux.tests: tests.linux
 	./tests.linux
 
+android.tests: android.library
+	adb -d uninstall network.object.onexkernel
+	adb -d install android/onexkernel/build/outputs/apk/onexkernel-debug.apk
+	adb logcat OnexApp:D *:S
+
 microbit.tests: tests.microbit.hex
 	cp $< /media/duncan/MICROBIT/
 
@@ -144,6 +149,7 @@ microbit.light: light.microbit.hex
 
 linux.library: libOnexKernel.a
 
+android.library: libOnexAndroidKernel.a
 
 ############################################################################################
 
