@@ -97,6 +97,10 @@ libOnexKernel.a: TARGET=TARGET_LINUX
 libOnexKernel.a: $(UNIX_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o}
 	$(AR) rcs $@ $^
 
+libOnexAndroidKernel.a:
+	(cd android; ./gradlew build)
+	cp android/onexkernel/build/intermediates/ndkBuild/debug/obj/local/armeabi-v7a/libOnexAndroidKernel.a .
+
 tests.linux: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
 tests.linux: CC=/usr/bin/gcc
 tests.linux: LD=/usr/bin/gcc
@@ -242,9 +246,9 @@ clean:
 	@echo "------------------------------"
 
 cleanx: clean
-	rm -f *.linux
-	rm -f *.hex
+	rm -f *.linux *.hex *.a
 	rm -rf $(BUILD_DIRECTORY)
+	rm -rf android/build android/onexkernel/build android/onexkernel/.externalNativeBuild/ android/.gradle/3.3/taskArtifacts/
 
 ############################################################################################
 
