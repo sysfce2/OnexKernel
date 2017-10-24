@@ -7,8 +7,8 @@
 
 // -----------------------------------------------------------------------
 
-int success=0;
-int failure=0;
+static uint16_t success=0;
+static uint16_t failure=0;
 
 bool onex_assert_i(bool condition, const char* fail_message, char* actual, char* expected)
 {
@@ -42,7 +42,7 @@ int onex_assert_summary()
   char s[128];
   if(!failure) sprintf(s, "---------------------\nTests done: %d OK, no failures\n---------------------\n", success);
   else         sprintf(s, "---------------------\nTests done: %d OK, %d FAILED\n-----------------------\n", success, failure);
-  serial_printf(s);
+  serial_printf("%s", s);
   return failure;
 }
 

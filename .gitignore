@@ -1,7 +1,11 @@
 .*.sw?
 doc/local
+android/doc
 ,*
 build/
+ndkBuild/
+.gradle
+local.properties
 *.o
 *.hex
 *.elf
