@@ -6,7 +6,7 @@
 #include "onp.h"
 
 #include <lib/properties.h>
-#include <onex-kernel/serial.h>
+#include <onex-kernel/log.h>
 #include <onf.h>
 
 // ---------------------------------------------------------------------------------
@@ -231,12 +231,12 @@ void notify_observers(object* o)
 
 void show_notifies(object* o)
 {
-  serial_printf("notifies of %s\n", o->uid);
+  log_write("notifies of %s\n", o->uid);
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    if(o->notify[i]){ serial_printf("%s ", o->notify[i]); }
+    if(o->notify[i]){ log_write("%s ", o->notify[i]); }
   }
-  serial_printf("\n--------------\n");
+  log_write("\n--------------\n");
 }
 
 char* object_to_text(object* n, char* b, uint8_t s)

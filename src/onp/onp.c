@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include <onex-kernel/time.h>
-#include <onex-kernel/serial.h>
+#include <onex-kernel/log.h>
 
 #include "onp.h"
 
@@ -63,12 +63,12 @@ static void handle_recv(char* buff, int size, char* from, uint16_t* fromip)
   buff[size]=0;
 
 #ifdef ONP_DEBUG
-  serial_printf("ONP recv '%s'", buff);
-  if(from)    serial_printf(" from %s ", from);
+  log_write("ONP recv '%s'", buff);
+  if(from)    log_write(" from %s ", from);
 #ifdef ONP_CHANNEL_IPV6
-  if(fromip){ serial_printf(" from "); channel_ipv6_show_host_and_port(fromip); }
+  if(fromip){ log_write(" from "); channel_ipv6_show_host_and_port(fromip); }
 #endif
-  serial_printf(" (%d bytes)\n", size);
+  log_write(" (%d bytes)\n", size);
 #endif
 
   if(size>=5 && !strncmp(buff,"OBS: ",5)) recv_observe(buff);
@@ -108,13 +108,13 @@ static void send(char* buff)
 static void handle_send(char* buff, int size, char* to, uint16_t* toip)
 {
 #ifdef ONP_DEBUG
-  serial_printf("ONP send '%s'", buff);
-  if(to)    serial_printf(" to %s ", to);
+  log_write("ONP send '%s'", buff);
+  if(to)    log_write(" to %s ", to);
 #ifdef ONP_CHANNEL_IPV6
-  if(toip){ serial_printf(" to "); channel_ipv6_show_host_and_port(toip); }
+  if(toip){ log_write(" to "); channel_ipv6_show_host_and_port(toip); }
 #endif
-  if(size>=0) serial_printf(" (%d bytes)\n", size);
-  else        serial_printf(" (failed to send)\n");
+  if(size>=0) log_write(" (%d bytes)\n", size);
+  else        log_write(" (failed to send)\n");
 #endif
 }
 

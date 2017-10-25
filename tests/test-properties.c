@@ -1,7 +1,7 @@
 
 #include <stdio.h>
 #include <assert.h>
-#include <onex-kernel/serial.h>
+#include <onex-kernel/log.h>
 #include <lib/properties.h>
 
 // ---------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ void test_properties()
 
 void run_properties_tests()
 {
-  serial_printf("------properties tests-----\n");
+  log_write("------properties tests-----\n");
 
   test_properties();
 }

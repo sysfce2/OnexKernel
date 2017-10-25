@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <onex-kernel/serial.h>
+#include <onex-kernel/log.h>
 #include <assert.h>
 
 // -----------------------------------------------------------------------
@@ -14,14 +14,14 @@ bool onex_assert_i(bool condition, const char* fail_message, char* actual, char*
 {
   if(condition){
     success++;
-    serial_printf("%d (%s)\n",  success+failure, fail_message);
+    log_write("%d (%s)\n",  success+failure, fail_message);
   }
   else {
     failure++;
-    serial_printf("%d **** Failed to ensure %s\n",  success+failure, fail_message);
+    log_write("%d **** Failed to ensure %s\n",  success+failure, fail_message);
   }
-  if(expected) serial_printf("    Expected: [%s]\n",  expected);
-  if(actual  ) serial_printf("    Actual:   [%s]\n",  actual);
+  if(expected) log_write("    Expected: [%s]\n",  expected);
+  if(actual  ) log_write("    Actual:   [%s]\n",  actual);
   return condition;
 }
 
@@ -42,7 +42,7 @@ int onex_assert_summary()
   char s[128];
   if(!failure) sprintf(s, "---------------------\nTests done: %d OK, no failures\n---------------------\n", success);
   else         sprintf(s, "---------------------\nTests done: %d OK, %d FAILED\n-----------------------\n", success, failure);
-  serial_printf("%s", s);
+  log_write("%s", s);
   return failure;
 }
 

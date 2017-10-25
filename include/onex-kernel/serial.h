@@ -9,6 +9,7 @@ typedef void (*uart_rx_handler_t) (uint8_t byte);
 
 void serial_init(uart_rx_handler_t p_rx_handler, uint32_t baudrate);
 void serial_cb(uart_rx_handler_t p_rx_handler);
+int serial_recv(char* b, int l);
 #if !defined(__ANDROID__)
 int  serial_printf(const char* fmt, ...);
 #else

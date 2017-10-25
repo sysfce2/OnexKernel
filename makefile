@@ -24,25 +24,25 @@ NRF51_INCLUDES = \
 
 
 SYS_C_SOURCE_FILES = \
-src/platforms/nrf51/system_nrf51.c \
-src/platforms/nrf51/syscalls.c \
+./src/platforms/nrf51/system_nrf51.c \
+./src/platforms/nrf51/syscalls.c \
 
 
 NRF51_C_SOURCE_FILES = \
-src/platforms/nrf51/serial.c \
-src/platforms/nrf51/gpio.c \
-src/platforms/nrf51/time.c \
-src/platforms/nrf51/channel-serial.c \
+./src/platforms/nrf51/serial.c \
+./src/platforms/nrf51/log.c \
+./src/platforms/nrf51/gpio.c \
+./src/platforms/nrf51/time.c \
 
 
 UNIX_C_SOURCE_FILES = \
-src/platforms/unix/serial.c \
-src/platforms/unix/time.c \
-src/platforms/unix/channel-serial.c \
+./src/platforms/unix/serial.c \
+./src/platforms/unix/log.c \
+./src/platforms/unix/time.c \
 
 
 BLINKY_C_SOURCE_FILES = \
-src/ont-examples/microbit/blink.c \
+./src/ont-examples/microbit/blink.c \
 
 
 ALL_BLINKY_C_SOURCE_FILES = $(SYS_C_SOURCE_FILES) $(NRF51_C_SOURCE_FILES) $(BLINKY_C_SOURCE_FILES)
@@ -74,6 +74,7 @@ TESTS_OBJECTS = \
 
 
 LIGHT_OBJECTS = \
+./src/platforms/nrf51/channel-serial.c \
 ./src/lib/properties.c \
 ./src/onp/onp.c \
 ./src/onf/onf.c \
@@ -81,6 +82,7 @@ LIGHT_OBJECTS = \
 
 
 BUTTON_OBJECTS = \
+./src/platforms/unix/channel-serial.c \
 ./src/lib/properties.c \
 ./src/onp/onp.c \
 ./src/onf/onf.c \

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <onex-kernel/serial.h>
+#include <onex-kernel/log.h>
 #include <assert.h>
 #include <onf.h>
 
@@ -191,7 +191,7 @@ void test_from_text()
 
 void run_onf_tests()
 {
-  serial_printf("------ONF tests-----------\n");
+  log_write("------ONF tests-----------\n");
 
   test_object_set_up();
   test_local_state();

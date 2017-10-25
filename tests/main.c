@@ -3,7 +3,7 @@
 
 #include <onex-kernel/gpio.h>
 #include <onex-kernel/time.h>
-#include <onex-kernel/serial.h>
+#include <onex-kernel/log.h>
 #if defined(TARGET_MCU_NRF51822)
 #include <variant.h>
 #endif
@@ -25,13 +25,13 @@ void flash_led(int t)
 int main(void) {
 
   time_init();
-  serial_init(0, 9600);
+  log_init(115200);
 
 #if defined(TARGET_MCU_NRF51822)
   time_delay_s(1);
 #endif
 
-  serial_printf("-----------------OnexKernel tests---------------------------\n");
+  log_write("-----------------OnexKernel tests------------------------\n");
 
   run_properties_tests();
   run_onf_tests();
