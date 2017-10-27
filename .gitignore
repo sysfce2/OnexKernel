@@ -9,5 +9,4 @@ local.properties
 *.o
 *.hex
 *.elf
-tests.linux
-button.linux
+*.linux

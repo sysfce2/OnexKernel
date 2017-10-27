@@ -1,5 +1,7 @@
 
+#if defined(TARGET_MCU_NRF51822)
 #include <variant.h>
+#endif
 #include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
 #include <onf.h>
@@ -25,7 +27,7 @@ int main()
 
     onex_loop();
 
-    if(todo<90 && time_ms() >2000+2000*todo){  todo++;
+    if(todo<2 && time_ms() >2000+2000*todo){  todo++;
       onex_run_evaluators(light);
     }
   }
@@ -36,7 +38,7 @@ bool evaluate_light(object* light)
   bool buttonpressed=object_property_is(light, "button:state", "down");
   char* s=(char*)(buttonpressed? "on": "off");
   object_property_set(light, "light", s);
-  char b[128]; log_write("%s\n", object_to_text(light,b,128));
+  char b[128]; log_write("evaluate_light: %s\n", object_to_text(light,b,128));
   return true;
 }
 

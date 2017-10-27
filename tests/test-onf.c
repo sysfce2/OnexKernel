@@ -75,7 +75,7 @@ bool evaluate_local_state_3(object* n3)
   onex_assert(      object_property_is(n3, "n2:state", "good"),        "can see state prop of local object immediately");
   onex_assert(      object_property_is(n3, "self:UID", "uid-3"),       "can see through link to self");
   onex_assert(     !object_property(   n3, "n2:foo"),                  "can't find n2:foo");
-  onex_assert(     !object_property(   n3, "n4:UID"),                  "can't find n4:foo");
+  onex_assert(     !object_property(   n3, "n4:UID"),                  "can't find n4:UID");
   return true;
 }
 
@@ -173,18 +173,17 @@ void test_from_text()
   char* text="UID: uid-4 Notify: uid-1 uid-2 is: remote state n3: uid-3";
   object* n4=object_new_from(strdup(text));
 
-  onex_assert(      !!n4,                                             "input text was parsed into an object");
+  onex_assert(      !!n4,                                         "input text was parsed into an object");
   if(!n4) return;
 
   onex_assert_equal(object_to_text(n4,textbuff,TEXTBUFFLEN),text, "gives same text back from reconstruction");
 
-  onex_assert(      object_get_from_cache("uid-4")==n4,           "object_get_from_cache can find uid-4");
-  onex_assert(      object_property_is(n4, "UID", "uid-4"),       "object_new_from parses uid");
-
-  onex_assert_equal(object_property(   n4, "is"), "remote state", "object_new_from parses 'is'" );
-  onex_assert_equal(object_property(   n4, "n3"), "uid-3",        "object_new_from parses properties" );
+  onex_assert(      object_property_is( n4, "UID", "uid-4"),       "object_new_from parses uid");
+  onex_assert_equal(object_property(    n4, "is"), "remote state", "object_new_from parses 'is'" );
+  onex_assert_equal(object_property(    n4, "n3"), "uid-3",        "object_new_from parses properties" );
 
                     object_property_set(n4, "state", "good");
+  onex_assert(      object_property_is( n4, "state", "good"),      "object_new_from creates usable object");
 }
 
 // ---------------------------------------------------------------------------------
@@ -192,6 +191,8 @@ void test_from_text()
 void run_onf_tests()
 {
   log_write("------ONF tests-----------\n");
+
+  onex_init();
 
   test_object_set_up();
   test_local_state();

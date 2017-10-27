@@ -54,6 +54,9 @@ bool object_property_set(object* n, char* property, char* value);
 /** to text. Supply your own buffer, b, of length s */
 char* object_to_text(object* n, char* b, uint8_t s);
 
+/** log out the object */
+void object_log(object* n);
+
 // --------------------------------------------------------------------
 
 /** set things up like IPv6. */

@@ -11,37 +11,43 @@
 
 // ---------------------------------------------------------------------------------
 
-static char*       get_key(char** p);
-static char*       get_val(char** p);
-static void        add_to_cache(object* n);
+static char*   get_key(char** p);
+static char*   get_val(char** p);
+static void    add_to_cache(object* n);
 static object* find_object(char* uid, object* n);
-static char*       nested_property(object* n, char* property);
-static bool        is_uid(char* uid);
-static bool        add_observer(object* o, object* n);
-static void        set_observers(object* o, char* notify);
-static void        notify_observers(object* n);
-static void        show_notifies(object* o);
-static void        call_all_evaluators();
+static char*   nested_property(object* n, char* property);
+static bool    is_uid(char* uid);
+static bool    add_observer(object* o, char* notify);
+static void    set_observers(object* o, char* notify);
+static void    notify_observers(object* n);
+static void    show_notifies(object* o);
+static void    call_all_evaluators();
 
 // ---------------------------------
 
 typedef struct object {
-  char*              uid;
-  onex_evaluator     evaluator;
-  properties*   properties;
-  char*              notify[OBJECT_MAX_NOTIFIES];
-  struct object* next;
+  char*           uid;
+  onex_evaluator  evaluator;
+  properties*     properties;
+  char*           notify[OBJECT_MAX_NOTIFIES];
+  struct object*  next;
 } object;
 
 object* cache=0;
 
-object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
+object* new_object(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
 {
   object* n=(object*)calloc(1,sizeof(object));
   n->uid=uid;
   n->properties=properties_new(max_size);
   properties_set(n->properties, "is", is);
   n->evaluator=evaluator;
+  return n;
+}
+
+object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
+{
+  object* n=new_object(uid, is, evaluator, max_size);
   add_to_cache(n);
   return n;
 }
@@ -65,13 +71,27 @@ object* object_new_from(char* text)
     else {
       if(!n && !uid && !is) return 0;
       if(!n){
-        n=object_new(uid, is, 0, max_size);
+        n=new_object(uid, is, 0, max_size);
         set_observers(n, notify);
       }
       if(!properties_set(n->properties, key, val)) break;
     }
   }
   return n;
+}
+
+void object_new_shell(char* uid, char* notify)
+{
+  uint8_t max_size=4;
+  object* n=(object*)calloc(1,sizeof(object));
+  n->uid=uid;
+  add_to_cache(n);
+  set_observers(n, notify);
+}
+
+bool object_is_shell(object* o)
+{
+  return !object_property_size(o) && !o->evaluator;
 }
 
 char* get_key(char** p)
@@ -125,6 +145,18 @@ object* object_get_from_cache(char* uid)
   return 0;
 }
 
+void show_cache()
+{
+  log_write("+-----------cache dump------------\n");
+  char buff[128];
+  object* o=cache;
+  while(o){
+    log_write("| %s\n", object_to_text(o,buff,128));
+    o=o->next;
+  }
+  log_write("+---------------------------------\n");
+}
+
 void object_set_evaluator(object* n, onex_evaluator evaluator)
 {
   n->evaluator=evaluator;
@@ -155,9 +187,13 @@ object* find_object(char* uid, object* n)
 {
   if(!is_uid(uid)) return 0;
   object* o=object_get_from_cache(uid);
-  if(!o) onp_send_observe(uid);
-  else add_observer(o,n);
-  return o;
+  if(o && !object_is_shell(o)){
+    add_observer(o,n->uid);
+    return o;
+  }
+  if(!o) object_new_shell(uid, n->uid);
+  onp_send_observe(uid, "");
+  return 0;
 }
 
 bool is_uid(char* uid)
@@ -193,15 +229,17 @@ bool object_property_set(object* n, char* property, char* value)
   return ok;
 }
 
-bool add_observer(object* o, object* n)
+bool add_observer(object* o, char* notify)
 {
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    if(o->notify[i] && !strcmp(o->notify[i], n->uid)) return true;
+    if(o->notify[i] && !strcmp(o->notify[i], notify)) return true;
   }
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    if(!o->notify[i]){ o->notify[i]=n->uid; return true; }
+    if(!o->notify[i]){ o->notify[i]=notify; return true; }
   }
+  log_write("can't add observer %s to %s\n", notify, o->uid);
+  show_notifies(o);
   return false;
 }
 
@@ -224,8 +262,14 @@ void notify_observers(object* o)
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
     if(!o->notify[i]) continue;
-    object* n=object_get_from_cache(o->notify[i]);
-    if(n && n->evaluator) n->evaluator(n);
+    char* notify = o->notify[i];
+    if(is_uid(notify)){
+      object* n=object_get_from_cache(notify);
+      if(n && n->evaluator) n->evaluator(n);
+    }
+    else{
+      onp_send_object(o,notify);
+    }
   }
 }
 
@@ -241,23 +285,31 @@ void show_notifies(object* o)
 
 char* object_to_text(object* n, char* b, uint8_t s)
 {
+  if(!n){ *b = 0; return b; }
+
   int ln=0;
 
   ln+=snprintf(b+ln, s-ln, "UID: %s", n->uid);
-  if(ln>=s) return 0;
+  if(ln>=s){ *b = 0; return b; }
 
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
     if(n->notify[i]){
       ln+=snprintf(b+ln, s-ln, ((i==0)? " Notify: %s": " %s"), n->notify[i]);
-      if(ln>=s) return 0;
+      if(ln>=s){ *b = 0; return b; }
     }
   }
   for(i=1; i<=object_property_size(n); i++){
     ln+=snprintf(b+ln, s-ln, " %s: %s", object_property_key(n,i), object_property_val(n,i));
-    if(ln>=s) return 0;
+    if(ln>=s){ *b = 0; return b; }
   }
   return b;
+}
+
+void object_log(object* o)
+{
+  char buff[128];
+  log_write("{ %s }\n", object_to_text(o,buff,128));
 }
 
 // -----------------------------------------------------------------------
@@ -289,20 +341,25 @@ void call_all_evaluators()
   }
 }
 
-void recv_observe(char* b)
+void recv_observe(char* b, char* from)
 {
   char* uid=strchr(b,':')+2;
   char* nl= strchr(uid, '\n');
   if(nl) *nl=0;
   object* o=object_get_from_cache(uid);
   if(!o) return;
-  onp_send_object(o);
-  //add_observer(o,n);
+  add_observer(o,from);
+  onp_send_object(o,from);
 }
 
 void recv_object(char* text)
 {
   object* n=object_new_from(text);
+  if(!n) return;
+  object* s=object_get_from_cache(n->uid);
+  if(!s) return;
+  s->properties = n->properties;
+  notify_observers(s);
 }
 
 // -----------------------------------------------------------------------

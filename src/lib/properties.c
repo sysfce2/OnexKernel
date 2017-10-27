@@ -66,6 +66,7 @@ char* properties_get_val(properties* op, uint8_t index)
 
 uint8_t properties_size(properties* op)
 {
+  if(!op) return 0;
   return op->i;
 }
 

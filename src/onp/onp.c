@@ -23,7 +23,7 @@
 static void handle_recv(char* buff, int size, char* from, uint16_t* fromip);
 static void handle_send(char* buff, int size, char* to,   uint16_t* toip);
 
-void recv_observe(char* buff);
+void recv_observe(char* buff, char* source);
 void recv_object(char* text);
 
 void onp_init()
@@ -71,30 +71,31 @@ static void handle_recv(char* buff, int size, char* from, uint16_t* fromip)
   log_write(" (%d bytes)\n", size);
 #endif
 
-  if(size>=5 && !strncmp(buff,"OBS: ",5)) recv_observe(buff);
+  if(size>=5 && !strncmp(buff,"OBS: ",5)) recv_observe(buff, from);
   if(size>=5 && !strncmp(buff,"UID: ",5)) recv_object(strdup(buff));
 }
 
 char* object_to_text(object* n, char* b, uint8_t s);
-static void send(char* buff);
+static void send(char* buff, char* to);
 
-void onp_send_observe(char* uid)
+void onp_send_observe(char* uid, char* to)
 {
   char buff[128];
   sprintf(buff,"OBS: %s", uid);
-  send(buff);
+  send(buff, to);
 }
 
-void onp_send_object(object* o)
+void onp_send_object(object* o, char* to)
 {
   char buff[128];
   object_to_text(o,buff,128);
-  send(buff);
+  send(buff, to);
 }
 
-static void send(char* buff)
+static void send(char* buff, char* to)
 {
   int size=0;
+  log_write("TODO: use 'to': '%s'\n", to);
 #ifdef ONP_CHANNEL_SERIAL
   size = channel_serial_send(buff, strlen(buff));
   handle_send(buff,size,"Serial",0);

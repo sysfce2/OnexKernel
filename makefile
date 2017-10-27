@@ -116,6 +116,12 @@ tests.microbit.elf: TARGET=TARGET_MICRO_BIT
 tests.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) $(LIB_OBJECTS:.c=.o) $(TESTS_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
+button.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+button.microbit.elf: TARGET=TARGET_MICRO_BIT
+button.microbit.elf: CHANNELS=-DONP_CHANNEL_SERIAL
+button.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) $(BUTTON_OBJECTS:.c=.o)
+	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
+
 light.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
 light.microbit.elf: TARGET=TARGET_MICRO_BIT
 light.microbit.elf: CHANNELS=-DONP_CHANNEL_SERIAL
@@ -128,6 +134,14 @@ button.linux: LD=/usr/bin/gcc
 button.linux: TARGET=TARGET_LINUX
 button.linux: CHANNELS=-DONP_CHANNEL_SERIAL
 button.linux: $(UNIX_C_SOURCE_FILES:.c=.o) ${BUTTON_OBJECTS:.c=.o}
+	$(LD) $^ -o $@
+
+light.linux: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
+light.linux: CC=/usr/bin/gcc
+light.linux: LD=/usr/bin/gcc
+light.linux: TARGET=TARGET_LINUX
+light.linux: CHANNELS=-DONP_CHANNEL_SERIAL
+light.linux: $(UNIX_C_SOURCE_FILES:.c=.o) ${LIGHT_OBJECTS:.c=.o}
 	$(LD) $^ -o $@
 
 #############################:
@@ -148,6 +162,12 @@ microbit.tests: tests.microbit.hex
 
 linux.button: button.linux
 	./button.linux
+
+linux.light: light.linux
+	./light.linux
+
+microbit.button: button.microbit.hex
+	cp $< /media/duncan/MICROBIT/
 
 microbit.light: light.microbit.hex
 	cp $< /media/duncan/MICROBIT/
