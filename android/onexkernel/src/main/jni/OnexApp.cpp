@@ -1,15 +1,11 @@
 #include <android/native_activity.h>
 #include <android_native_app_glue.h>
+#include <android/log.h>
 #include <sys/system_properties.h>
 
-#include <android/log.h>
-
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO,  "OnexApp", __VA_ARGS__))
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN,  "OnexApp", __VA_ARGS__))
-#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, "OnexApp", __VA_ARGS__))
-#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, "OnexApp", __VA_ARGS__))
-
 extern "C" {
+#include <onex-kernel/log.h>
+#include <onex-kernel/time.h>
 #include <onf.h>
 #include <assert.h>
 extern void run_properties_tests();
@@ -17,6 +13,16 @@ extern void run_onf_tests();
 }
 
 android_app* androidApp;
+
+bool button_pressed=false;
+
+bool evaluate_button(object* button)
+{
+  char* s=(char*)(button_pressed? "down": "up");
+  object_property_set(button, (char*)"state", s);
+  char b[128]; log_write("%s\n", object_to_text(button,b,128));
+  return true;
+}
 
 class OnexApp
 {
@@ -36,26 +42,19 @@ public:
     switch (cmd)
     {
     case APP_CMD_SAVE_STATE:
-      LOGD("APP_CMD_SAVE_STATE");
+      log_write("APP_CMD_SAVE_STATE");
       break;
     case APP_CMD_INIT_WINDOW:
-      LOGD("APP_CMD_INIT_WINDOW");
-      if (androidApp->window != NULL)
-      {
-      }
-      else
-      {
-        LOGE("No window assigned!");
-      }
+      log_write("APP_CMD_INIT_WINDOW");
       break;
     case APP_CMD_LOST_FOCUS:
-      LOGD("APP_CMD_LOST_FOCUS");
+      log_write("APP_CMD_LOST_FOCUS");
       break;
     case APP_CMD_GAINED_FOCUS:
-      LOGD("APP_CMD_GAINED_FOCUS");
+      log_write("APP_CMD_GAINED_FOCUS");
       break;
     case APP_CMD_TERM_WINDOW:
-      LOGD("APP_CMD_TERM_WINDOW");
+      log_write("APP_CMD_TERM_WINDOW");
       break;
     }
   }
@@ -66,13 +65,36 @@ public:
     return 0;
   }
 
+  object* button;
+
   void run()
   {
-    LOGD("---------------OnexKernel tests----------------------\n");
+    log_init(0);
+    time_init();
+    onex_init();
+
+    log_write("---------------OnexKernel tests----------------------\n");
     run_properties_tests();
     run_onf_tests();
     int failures=onex_assert_summary();
-    LOGD("---------------%d failures---------------------------\n", failures);
+    log_write("---------------%d failures---------------------------\n", failures);
+
+    log_write("\n------Starting Button Test-----\n");
+
+    button=object_new((char*)"uid-1-2-3", (char*)"button", evaluate_button, 4);
+
+    int lasttime=0;
+
+    while(1){
+
+      onex_loop();
+
+      if(time_ms() > lasttime+1000){
+         lasttime=time_ms();
+         button_pressed=!button_pressed;
+         onex_run_evaluators(button);
+      }
+    }
   }
 };
 

@@ -3,7 +3,7 @@
 Onex Object Net C implementation: object graph API, persistence, notification (ONF),
 networking (ONP).
 
-Currently builds for Linux and BBC Micro:Bit.
+Currently builds for Linux, Android and BBC Micro:Bit.
 
 Type 'make' for a list of build targets.
 

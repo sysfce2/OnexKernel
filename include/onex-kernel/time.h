@@ -8,7 +8,7 @@ void     time_init();
 uint32_t time_ms();
 uint32_t time_us();
 
-#ifdef TARGET_LINUX
+#if defined(TARGET_LINUX) || defined(__ANDROID__)
 
  #include <unistd.h>
  #include <time.h>

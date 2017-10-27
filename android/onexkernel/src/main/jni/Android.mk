@@ -12,12 +12,15 @@ LOCAL_C_INCLUDES += $(LOCAL_PATH)/../src/
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../src/onp/
 
 LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/../src/platforms/android/*.c) \
+                   $(wildcard $(LOCAL_PATH)/../src/platforms/unix/channel-serial.c) \
+                   $(wildcard $(LOCAL_PATH)/../src/platforms/unix/time.c) \
                    $(wildcard $(LOCAL_PATH)/../src/lib/*.c) \
                    $(wildcard $(LOCAL_PATH)/../src/on[fp]/*.c) \
 
 LOCAL_CFLAGS := -std=c11
 LOCAL_CFLAGS += -D__STDC_LIMIT_MACROS
 LOCAL_CFLAGS += -DVK_USE_PLATFORM_ANDROID_KHR
+LOCAL_CFLAGS += -DONP_CHANNEL_SERIAL
 
 include $(BUILD_STATIC_LIBRARY)
 
