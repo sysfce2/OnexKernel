@@ -30,6 +30,7 @@ SYS_C_SOURCE_FILES = \
 
 NRF51_C_SOURCE_FILES = \
 ./src/platforms/nrf51/serial.c \
+./src/platforms/nrf51/channel-serial.c \
 ./src/platforms/nrf51/log.c \
 ./src/platforms/nrf51/gpio.c \
 ./src/platforms/nrf51/time.c \
@@ -37,6 +38,7 @@ NRF51_C_SOURCE_FILES = \
 
 UNIX_C_SOURCE_FILES = \
 ./src/platforms/unix/serial.c \
+./src/platforms/unix/channel-serial.c \
 ./src/platforms/unix/log.c \
 ./src/platforms/unix/time.c \
 
@@ -74,7 +76,6 @@ TESTS_OBJECTS = \
 
 
 LIGHT_OBJECTS = \
-./src/platforms/nrf51/channel-serial.c \
 ./src/lib/properties.c \
 ./src/onp/onp.c \
 ./src/onf/onf.c \
@@ -82,7 +83,6 @@ LIGHT_OBJECTS = \
 
 
 BUTTON_OBJECTS = \
-./src/platforms/unix/channel-serial.c \
 ./src/lib/properties.c \
 ./src/onp/onp.c \
 ./src/onf/onf.c \
@@ -96,6 +96,7 @@ libOnexKernel.a: CC=/usr/bin/gcc
 libOnexKernel.a: LD=/usr/bin/gcc
 libOnexKernel.a: AR=/usr/bin/ar
 libOnexKernel.a: TARGET=TARGET_LINUX
+libOnexKernel.a: CHANNELS=-DONP_CHANNEL_SERIAL
 libOnexKernel.a: $(UNIX_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o}
 	$(AR) rcs $@ $^
 
@@ -141,6 +142,8 @@ android.tests: android.library
 
 microbit.tests: tests.microbit.hex
 	cp $< /media/duncan/MICROBIT/
+	sleep 2
+	miniterm.py -e --eol CR /dev/ttyACM0 115200
 
 
 linux.button: button.linux
