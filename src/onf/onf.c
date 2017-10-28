@@ -11,17 +11,18 @@
 
 // ---------------------------------------------------------------------------------
 
-static char*   get_key(char** p);
-static char*   get_val(char** p);
-static void    add_to_cache(object* n);
-static object* find_object(char* uid, object* n);
-static char*   nested_property(object* n, char* property);
-static bool    is_uid(char* uid);
-static bool    add_observer(object* o, char* notify);
-static void    set_observers(object* o, char* notify);
-static void    notify_observers(object* n);
-static void    show_notifies(object* o);
-static void    call_all_evaluators();
+static char*       get_key(char** p);
+static char*       get_val(char** p);
+static void        add_to_cache(object* n);
+static object*     find_object(char* uid, object* n);
+static char*       nested_property(object* n, char* path);
+static properties* nested_properties(object* n, char* path);
+static bool        is_uid(char* uid);
+static bool        add_observer(object* o, char* notify);
+static void        set_observers(object* o, char* notify);
+static void        notify_observers(object* n);
+static void        show_notifies(object* o);
+static void        call_all_evaluators();
 
 // ---------------------------------
 
@@ -162,23 +163,44 @@ void object_set_evaluator(object* n, onex_evaluator evaluator)
   n->evaluator=evaluator;
 }
 
-char* object_property(object* n, char* property)
+char* object_property(object* n, char* path)
 {
-  if(!strcmp(property, "UID")) return n->uid;
-  char* c=strchr(property, ':');
-  if(!c) return properties_get(n->properties, property);
-  return nested_property(n, property);
+  if(!strcmp(path, "UID")) return n->uid;
+  char* c=strchr(path, ':');
+  if(!c) return properties_get(n->properties, path);
+  return nested_property(n, path);
 }
 
-char* nested_property(object* n, char* property)
+char* nested_property(object* n, char* path)
 {
-  char* p=strdup(property);
+  char* p=strdup(path);
   char* c=strchr(p, ':');
   *c=0; c++;
   char* uid=properties_get(n->properties, p);
   object* o=find_object(uid,n);
   if(!o) return 0;
   char* r=object_property(o, c);
+  free(p);
+  return r;
+}
+
+properties* object_properties(object* n, char* path)
+{
+  if(!strcmp(path, "" )) return n->properties;
+  if(!strcmp(path, ":")) return n->properties;
+  if(!strchr(path, ':')) return 0;
+  return nested_properties(n, path);
+}
+
+properties* nested_properties(object* n, char* path)
+{
+  char* p=strdup(path);
+  char* c=strchr(p, ':');
+  *c=0; c++;
+  char* uid=properties_get(n->properties, p);
+  object* o=find_object(uid,n);
+  if(!o) return 0;
+  properties* r=object_properties(o, c);
   free(p);
   return r;
 }
@@ -216,15 +238,15 @@ char* object_property_val(object* n, uint8_t index)
   return properties_get_val(n->properties, index-1);
 }
 
-bool object_property_is(object* n, char* property, char* expected)
+bool object_property_is(object* n, char* path, char* expected)
 {
-  char* v=object_property(n, property);
+  char* v=object_property(n, path);
   return v && !strcmp(v,expected);
 }
 
-bool object_property_set(object* n, char* property, char* value)
+bool object_property_set(object* n, char* path, char* value)
 {
-  bool ok=properties_set(n->properties, property, value);
+  bool ok=properties_set(n->properties, path, value);
   notify_observers(n);
   return ok;
 }

@@ -16,6 +16,7 @@ char*       properties_get(properties* op, char* key);
 char*       properties_get_key(properties* op, uint8_t index);
 char*       properties_get_val(properties* op, uint8_t index);
 uint8_t     properties_size(properties* op);
+void        properties_log(properties* op);
 
 // --------------------------------------------------------------------
 

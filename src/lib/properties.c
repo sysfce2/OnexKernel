@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <properties.h>
+#include <onex-kernel/log.h>
 
 /*
   properties for MCUs, not Linux, so move to src/platforms/nrf51
@@ -70,4 +71,12 @@ uint8_t properties_size(properties* op)
   return op->i;
 }
 
+void properties_log(properties* op)
+{
+  if(!op) return;
+  log_write("{\n");
+  int j;
+  for(j=0; j<op->i; j++) log_write("  %s: %s\n", op->keys[j], op->vals[j]);
+  log_write("}\n");
+}
 

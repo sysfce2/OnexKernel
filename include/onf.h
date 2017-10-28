@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <properties.h>
+
 // -----------------------------------------------------------------------
 
 #define OBJECT_MAX_NOTIFIES 4
@@ -34,7 +36,10 @@ object* object_get_from_cache(char* uid);
 void object_set_evaluator(object* n, onex_evaluator evaluator);
 
 /** return property value. */
-char* object_property(   object* n, char* property);
+char* object_property(object* n, char* path);
+
+/** return all properties at a path, or null if it's not that. */
+properties* object_properties(object* n, char* path);
 
 /** return how many properties there are. */
 uint8_t object_property_size(object* n);
@@ -46,10 +51,10 @@ char* object_property_key(object* n, uint8_t index);
 char* object_property_val(object* n, uint8_t index);
 
 /** return whether property value matches supplied string. */
-bool  object_property_is(object* n, char* property, char* expected);
+bool  object_property_is(object* n, char* path, char* expected);
 
 /** set property value. */
-bool object_property_set(object* n, char* property, char* value);
+bool object_property_set(object* n, char* path, char* value);
 
 /** to text. Supply your own buffer, b, of length s */
 char* object_to_text(object* n, char* b, uint8_t s);
