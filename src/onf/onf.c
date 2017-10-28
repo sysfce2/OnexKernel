@@ -344,8 +344,7 @@ void call_all_evaluators()
 void recv_observe(char* b, char* from)
 {
   char* uid=strchr(b,':')+2;
-  char* nl= strchr(uid, '\n');
-  if(nl) *nl=0;
+  char* u=uid; while(*u > ' ') u++; *u=0;
   object* o=object_get_from_cache(uid);
   if(!o) return;
   add_observer(o,from);

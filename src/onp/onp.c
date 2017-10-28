@@ -16,12 +16,10 @@
 #include <channel-ipv6.h>
 #endif
 
-#if !defined(TARGET_MCU_NRF51822) || !defined(ONP_CHANNEL_SERIAL)
 #define ONP_DEBUG 1
-#endif
 
 static void handle_recv(char* buff, int size, char* from, uint16_t* fromip);
-static void handle_send(char* buff, int size, char* to,   uint16_t* toip);
+static void handle_sent(char* buff, int size, char* to,   uint16_t* toip);
 
 void recv_observe(char* buff, char* source);
 void recv_object(char* text);
@@ -98,18 +96,18 @@ static void send(char* buff, char* to)
   log_write("TODO: use 'to': '%s'\n", to);
 #ifdef ONP_CHANNEL_SERIAL
   size = channel_serial_send(buff, strlen(buff));
-  handle_send(buff,size,"Serial",0);
+  handle_sent(buff,size,"Serial",0);
 #endif
 #ifdef ONP_CHANNEL_IPV6
   size = channel_ipv6_send(buff, strlen(buff), single_peer);
-  handle_send(buff,size,0,single_peer);
+  handle_sent(buff,size,0,single_peer);
 #endif
 }
 
-static void handle_send(char* buff, int size, char* to, uint16_t* toip)
+static void handle_sent(char* buff, int size, char* to, uint16_t* toip)
 {
 #ifdef ONP_DEBUG
-  log_write("ONP send '%s'", buff);
+  log_write("ONP sent '%s'", buff);
   if(to)    log_write(" to %s ", to);
 #ifdef ONP_CHANNEL_IPV6
   if(toip){ log_write(" to "); channel_ipv6_show_host_and_port(toip); }

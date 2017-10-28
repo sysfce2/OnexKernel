@@ -20,7 +20,7 @@ bool evaluate_button(object* button)
 {
   char* s=(char*)(button_pressed? "down": "up");
   object_property_set(button, (char*)"state", s);
-  char b[128]; log_write("%s\n", object_to_text(button,b,128));
+  log_write("evaluate_button: "); object_log(button);
   return true;
 }
 

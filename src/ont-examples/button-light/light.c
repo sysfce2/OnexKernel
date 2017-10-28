@@ -38,7 +38,7 @@ bool evaluate_light(object* light)
   bool buttonpressed=object_property_is(light, "button:state", "down");
   char* s=(char*)(buttonpressed? "on": "off");
   object_property_set(light, "light", s);
-  char b[128]; log_write("evaluate_light: %s\n", object_to_text(light,b,128));
+  log_write("evaluate_light: "); object_log(light);
   return true;
 }
 
