@@ -5,7 +5,7 @@
 
 #include "onp.h"
 
-#include <lib/properties.h>
+#include <properties.h>
 #include <onex-kernel/log.h>
 #include <onf.h>
 

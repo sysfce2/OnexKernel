@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <onex-kernel/log.h>
-#include <lib/properties.h>
+#include <properties.h>
 
 // ---------------------------------------------------------------------------------
 

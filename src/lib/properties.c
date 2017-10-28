@@ -1,7 +1,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <lib/properties.h>
+#include <properties.h>
 
 /*
   properties for MCUs, not Linux, so move to src/platforms/nrf51

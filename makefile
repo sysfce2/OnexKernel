@@ -277,7 +277,7 @@ clean:
 	@echo "------------------------------"
 
 cleanx: clean
-	rm -f *.linux *.hex *.a
+	rm -f *.linux *.hex
 	rm -rf $(BUILD_DIRECTORY)
 	rm -rf android/build android/onexkernel/build android/onexkernel/.externalNativeBuild/ android/.gradle/3.3/taskArtifacts/
 
