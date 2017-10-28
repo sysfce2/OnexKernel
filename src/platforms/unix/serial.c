@@ -70,7 +70,9 @@ int  ser_size=0;
 int serial_recv(char* b, int l)
 {
   if(!initialised) return -1;
-//ioctl(serialfd, FIONREAD, &bytes_available_for_reading);
+  int bytes_available_for_reading=0;
+  ioctl(serialfd, FIONREAD, &bytes_available_for_reading);
+  if(!bytes_available_for_reading) return -1;
   for(; read(serialfd, ser_buff+i, 1)==1; i++){
     if(i==SERIAL_MAX_LENGTH-1 || ser_buff[i]=='\n'){
       ser_buff[i]=0;
