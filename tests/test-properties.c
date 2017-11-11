@@ -39,6 +39,8 @@ void test_properties()
   onex_assert(     !properties_get_val(op,3),      "4th val is 0");
   onex_assert(     !properties_get_key(op,-1),     "-1th key is 0");
   onex_assert(     !properties_get_val(op,-1),     "-1th val is 0");
+
+                    properties_log(op);
 }
 
 void run_properties_tests()
