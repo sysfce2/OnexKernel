@@ -54,15 +54,15 @@ char* properties_get(properties* op, char* key)
 char* properties_get_key(properties* op, uint8_t index)
 {
   if(!op) return 0;
-  if(index>=op->i) return 0;
-  return op->keys[index];
+  if(index<=0 || index>op->i) return 0;
+  return op->keys[index-1];
 }
 
 char* properties_get_val(properties* op, uint8_t index)
 {
   if(!op) return 0;
-  if(index>=op->i) return 0;
-  return op->vals[index];
+  if(index<=0 || index>op->i) return 0;
+  return op->vals[index-1];
 }
 
 uint8_t properties_size(properties* op)

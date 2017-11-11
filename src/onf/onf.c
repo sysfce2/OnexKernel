@@ -230,12 +230,12 @@ uint8_t object_property_size(object* n)
 
 char* object_property_key(object* n, uint8_t index)
 {
-  return properties_get_key(n->properties, index-1);
+  return properties_get_key(n->properties, index);
 }
 
 char* object_property_val(object* n, uint8_t index)
 {
-  return properties_get_val(n->properties, index-1);
+  return properties_get_val(n->properties, index);
 }
 
 bool object_property_is(object* n, char* path, char* expected)

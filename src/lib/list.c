@@ -38,7 +38,6 @@ bool list_set(list* li, uint8_t index, char* val)
   if(!li) return false;
   if(index<=0 || index>li->i) return false;
   li->vals[index-1]=val;
-  if(index-1 > li->i) li->i++;
   return true;
 }
 

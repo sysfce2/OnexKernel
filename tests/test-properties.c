@@ -29,16 +29,16 @@ void test_properties()
   onex_assert(     !properties_set(op,"M","N"),   "shouldn't be able to add a fourth item");
   onex_assert(      properties_size(op)==3,       "size should still be 3");
 
-  onex_assert_equal(properties_get_key(op,0), "x", "1st key is 'x'");
-  onex_assert_equal(properties_get_val(op,0), "y", "1st val is 'y'");
-  onex_assert_equal(properties_get_key(op,1), "3", "2nd key is '3'");
-  onex_assert_equal(properties_get_val(op,1), "5", "2nd val is '5'");
-  onex_assert_equal(properties_get_key(op,2), "*", "3rd key is '*'");
-  onex_assert_equal(properties_get_val(op,2), "+", "3rd val is '+'");
-  onex_assert(     !properties_get_key(op,3),      "4th key is 0");
-  onex_assert(     !properties_get_val(op,3),      "4th val is 0");
-  onex_assert(     !properties_get_key(op,-1),     "-1th key is 0");
-  onex_assert(     !properties_get_val(op,-1),     "-1th val is 0");
+  onex_assert_equal(properties_get_key(op,1), "x", "1st key is 'x'");
+  onex_assert_equal(properties_get_val(op,1), "y", "1st val is 'y'");
+  onex_assert_equal(properties_get_key(op,2), "3", "2nd key is '3'");
+  onex_assert_equal(properties_get_val(op,2), "5", "2nd val is '5'");
+  onex_assert_equal(properties_get_key(op,3), "*", "3rd key is '*'");
+  onex_assert_equal(properties_get_val(op,3), "+", "3rd val is '+'");
+  onex_assert(     !properties_get_key(op,4),      "4th key is 0");
+  onex_assert(     !properties_get_val(op,4),      "4th val is 0");
+  onex_assert(     !properties_get_key(op,0),      "0th key is 0");
+  onex_assert(     !properties_get_val(op,0),      "0th val is 0");
 
                     properties_log(op);
 }
