@@ -24,6 +24,15 @@ bool evaluate_button(object* button)
   return true;
 }
 
+extern "C" {
+
+void serialSend(char* b)
+{
+  log_write("serialSend %s\n", b);
+}
+
+}
+
 class OnexApp
 {
 public:

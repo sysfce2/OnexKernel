@@ -12,7 +12,6 @@ LOCAL_C_INCLUDES += $(LOCAL_PATH)/../src/
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../src/onp/
 
 LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/../src/platforms/android/*.c) \
-                   $(wildcard $(LOCAL_PATH)/../src/platforms/unix/channel-serial.c) \
                    $(wildcard $(LOCAL_PATH)/../src/platforms/unix/time.c) \
                    $(wildcard $(LOCAL_PATH)/../src/lib/*.c) \
                    $(wildcard $(LOCAL_PATH)/../src/on[fp]/*.c) \

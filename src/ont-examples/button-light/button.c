@@ -22,6 +22,7 @@ int main()
   log_write("\n------Starting Button Test-----\n");
 
   button=object_new("uid-1-2-3", "button", evaluate_button, 4);
+  object_property_set(button, "name", "£€§");
 
   int lasttime=0;
 
