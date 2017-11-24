@@ -4,14 +4,27 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/serial.h>
 
+static bool initialised=false;
+
+static uart_rx_handler_t rx_handler;
+
 extern void serialSend(char* b);
 
-static bool initialised=false;
+void onSerialRecv(char* b)
+{
+  if(rx_handler) rx_handler(b);
+}
 
 void serial_init(uart_rx_handler_t cb, uint32_t baudrate)
 {
-  if(initialised) return;
-  initialised=true;
+  if(initialised) return; initialised=true;
+
+  rx_handler = cb;
+}
+
+void serial_cb(uart_rx_handler_t cb)
+{
+    rx_handler = cb;
 }
 
 int serial_recv(char* b, int l)

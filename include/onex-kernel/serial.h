@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-typedef void (*uart_rx_handler_t) (uint8_t byte);
+typedef void (*uart_rx_handler_t) (char*);
 
 void serial_init(uart_rx_handler_t cb, uint32_t baudrate);
 void serial_cb(uart_rx_handler_t cb);

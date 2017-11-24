@@ -9,6 +9,7 @@ extern "C" {
 #include <onf.h>
 #include <assert.h>
 extern void run_properties_tests();
+extern void run_list_tests();
 extern void run_onf_tests();
 }
 
@@ -83,9 +84,13 @@ public:
     onex_init();
 
     log_write("---------------OnexKernel tests----------------------\n");
+
     run_properties_tests();
+    run_list_tests();
     run_onf_tests();
+
     int failures=onex_assert_summary();
+
     log_write("---------------%d failures---------------------------\n", failures);
 
     log_write("\n------Starting Button Test-----\n");

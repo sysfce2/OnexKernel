@@ -104,7 +104,7 @@ libOnexKernel.a: CHANNELS=-DONP_CHANNEL_SERIAL
 libOnexKernel.a: $(UNIX_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o}
 	$(AR) rcs $@ $^
 
-libOnexAndroidKernel.a:
+libOnexAndroidKernel.a: android/onexkernel/src/main/jni/OnexApp.cpp
 	(cd android; ./gradlew build)
 	cp android/onexkernel/build/intermediates/ndkBuild/debug/obj/local/armeabi-v7a/libOnexAndroidKernel.a .
 

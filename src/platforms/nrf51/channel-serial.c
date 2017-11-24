@@ -12,10 +12,10 @@ int  i=0;
 char ser_buff[SERIAL_MAX_LENGTH];
 int  ser_size=0;
 
-void on_data(uint8_t ch)
+void on_data(char* ch)
 {
-  ser_buff[i++]=ch;
-  if(i==SERIAL_MAX_LENGTH-1 || ch=='\n'){
+  ser_buff[i++]=*ch;
+  if(i==SERIAL_MAX_LENGTH-1 || *ch=='\n'){
     ser_size = i;
     ser_buff[i]=0;
     i=0;

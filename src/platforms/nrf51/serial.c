@@ -17,7 +17,8 @@ static uart_rx_handler_t rx_handler;
 void UART0_IRQHandler(void)
 {
     NRF_UART0->EVENTS_RXDRDY = 0;
-    if(rx_handler) rx_handler(NRF_UART0->RXD);
+    char buf[1]={NRF_UART0->RXD};
+    if(rx_handler) rx_handler(buf);
 }
 
 void serial_init(uart_rx_handler_t cb, uint32_t baudrate)

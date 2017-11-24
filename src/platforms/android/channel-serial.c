@@ -1,13 +1,19 @@
 
 #include <onex-kernel/serial.h>
+#include <onex-kernel/log.h>
 #include <channel-serial.h>
 
 static bool initialised=false;
 
+void on_data(char* ch)
+{
+  log_write("android channel-serial on_data %s\n", ch);
+}
+
 void channel_serial_init()
 {
   if(initialised) return;
-  serial_init(0, 76800);
+  serial_init(on_data, 115200);
   initialised=true;
 }
 
