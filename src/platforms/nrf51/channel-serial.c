@@ -42,7 +42,6 @@ int channel_serial_recv(char* b, int l)
 int channel_serial_send(char* b, int n)
 {
   if(!initialised) return -1;
-  serial_printf("%s\n",b);
-  return n;
+  return serial_printf("%s\n", b);
 }
 
