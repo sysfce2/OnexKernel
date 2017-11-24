@@ -8,9 +8,9 @@ static bool initialised=false;
 
 static uart_rx_handler_t rx_handler;
 
-extern void serialSend(char* b);
+extern void serial_send(char* b);
 
-void onSerialRecv(char* b)
+void on_serial_recv(char* b)
 {
   if(rx_handler) rx_handler(b);
 }
@@ -40,7 +40,7 @@ int serial_printf(const char* fmt, ...)
   va_start(args, fmt);
   char b[256];
   int n=vsnprintf(b, 256, fmt, args);
-  serialSend(b);
+  serial_send(b);
   va_end(args);
   return strlen(b);
 }

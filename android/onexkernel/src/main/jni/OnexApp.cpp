@@ -27,9 +27,9 @@ bool evaluate_button(object* button)
 
 extern "C" {
 
-void serialSend(char* b)
+void serial_send(char* b)
 {
-  log_write("serialSend %s\n", b);
+  log_write("serial_send %s\n", b);
 }
 
 }
