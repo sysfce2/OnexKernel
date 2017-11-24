@@ -16,11 +16,33 @@
 
 int serialfd;
 
-static bool init_serial(char* devtty, int s){
+static bool init_serial(char* devtty, int b){
 
-    int speed=(s==115200? B115200: (s==57600? B57600: B9600));
+    int baud=B9600;
+    if(b==   1200) baud=   B1200; else
+    if(b==   1800) baud=   B1800; else // not available in nrf51
+    if(b==   2400) baud=   B2400; else
+    if(b==   4800) baud=   B4800; else
+    if(b==   9600) baud=   B9600; else
+    if(b==  19200) baud=  B19200; else
+    if(b==  38400) baud=  B38400; else
+    if(b==  57600) baud=  B57600; else
+    if(b== 115200) baud= B115200; else
+    if(b== 230400) baud= B230400; else
+    if(b== 460800) baud= B460800; else
+    if(b== 500000) baud= B500000; else // not available in nrf51
+    if(b== 576000) baud= B576000; else // not available in nrf51
+    if(b== 921600) baud= B921600; else
+    if(b==1000000) baud=B1000000; else
+    if(b==1152000) baud=B1152000; else // not available in nrf51
+    if(b==1500000) baud=B1500000; else // not available in nrf51
+    if(b==2000000) baud=B2000000; else // not available in nrf51
+    if(b==2500000) baud=B2500000; else // not available in nrf51
+    if(b==3000000) baud=B3000000; else // not available in nrf51
+    if(b==3500000) baud=B3500000; else // not available in nrf51
+    if(b==4000000) baud=B4000000; else log_write("speed %d not found: using default 9600 baud!\n", b);
 
-    log_write("opening %s @ %d\n", devtty, s);
+    log_write("opening %s @ %d\n", devtty, b);
 
     serialfd=open(devtty, O_RDWR | O_NOCTTY | O_SYNC | O_NDELAY);
     if(serialfd< 0){ log_write("error %d %s opening %s\n", errno, strerror(errno), devtty); return false; }
@@ -29,8 +51,8 @@ static bool init_serial(char* devtty, int s){
     memset(&tty, 0, sizeof tty);
     if(tcgetattr(serialfd, &tty)){ log_write("error %d %s in tcgetattr\n", errno, strerror(errno)); return false; }
 
-    cfsetospeed(&tty, speed);
-    cfsetispeed(&tty, speed);
+    cfsetospeed(&tty, baud);
+    cfsetispeed(&tty, baud);
 
     tty.c_iflag &= ~IGNBRK;
     tty.c_iflag &= ~(IXON | IXOFF | IXANY);

@@ -25,7 +25,7 @@ void on_data(uint8_t ch)
 void channel_serial_init()
 {
   if(initialised) return;
-  serial_init(on_data, 76800);
+  serial_init(on_data, 115200);
   initialised=true;
 }
 
