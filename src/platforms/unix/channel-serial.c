@@ -7,7 +7,7 @@ static bool initialised=false;
 void channel_serial_init()
 {
   if(initialised) return;
-  serial_init(0, 115200);
+  serial_init(0, 9600);
   initialised=true;
 }
 

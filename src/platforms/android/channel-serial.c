@@ -13,7 +13,7 @@ void on_data(char* ch)
 void channel_serial_init()
 {
   if(initialised) return;
-  serial_init(on_data, 115200);
+  serial_init(on_data, 9600);
   initialised=true;
 }
 
