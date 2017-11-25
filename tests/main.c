@@ -11,6 +11,7 @@
 
 extern void run_properties_tests();
 extern void run_list_tests();
+extern void run_value_tests();
 extern void run_onf_tests();
 
 #if defined(TARGET_MCU_NRF51822)
@@ -36,6 +37,7 @@ int main(void) {
 
   run_properties_tests();
   run_list_tests();
+  run_value_tests();
   run_onf_tests();
 
   int failures=onex_assert_summary();

@@ -1,7 +1,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <list.h>
+#include <items.h>
 #include <onex-kernel/log.h>
 
 /*
@@ -10,6 +10,7 @@
 */
 
 typedef struct list {
+  item_types type;
   uint8_t max_size;
   char**  vals;
   uint8_t i;
@@ -18,6 +19,7 @@ typedef struct list {
 list* list_new(uint8_t max_size)
 {
   list* li=(list*)calloc(1,sizeof(list));
+  li->type=ITEM_LIST;
   li->max_size=max_size;
   li->vals=(char**)calloc(max_size,sizeof(char*));
   li->i=0;

@@ -1,7 +1,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <properties.h>
+#include <items.h>
 #include <onex-kernel/log.h>
 
 /*
@@ -10,6 +10,7 @@
 */
 
 typedef struct properties {
+  item_types type;
   uint8_t max_size;
   char**  keys;
   char**  vals;
@@ -19,6 +20,7 @@ typedef struct properties {
 properties* properties_new(uint8_t max_size)
 {
   properties* op=(properties*)calloc(1,sizeof(properties));
+  op->type=ITEM_PROPERTIES;
   op->max_size=max_size;
   op->keys=(char**)calloc(max_size,sizeof(char*));
   op->vals=(char**)calloc(max_size,sizeof(char*));

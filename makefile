@@ -65,6 +65,7 @@ ASM_SOURCE_FILES = src/platforms/nrf51/gcc_startup_nrf51.s
 LIB_OBJECTS = \
 ./src/lib/properties.c \
 ./src/lib/list.c \
+./src/lib/value.c \
 ./src/onp/onp.c \
 ./src/onf/onf.c \
 
@@ -73,6 +74,7 @@ TESTS_OBJECTS = \
 ./tests/assert.c \
 ./tests/test-properties.c \
 ./tests/test-list.c \
+./tests/test-value.c \
 ./tests/test-onf.c \
 ./tests/main.c \
 
@@ -80,6 +82,7 @@ TESTS_OBJECTS = \
 LIGHT_OBJECTS = \
 ./src/lib/properties.c \
 ./src/lib/list.c \
+./src/lib/value.c \
 ./src/onp/onp.c \
 ./src/onf/onf.c \
 ./src/ont-examples/button-light/light.c \
@@ -88,6 +91,7 @@ LIGHT_OBJECTS = \
 BUTTON_OBJECTS = \
 ./src/lib/properties.c \
 ./src/lib/list.c \
+./src/lib/value.c \
 ./src/onp/onp.c \
 ./src/onf/onf.c \
 ./src/ont-examples/button-light/button.c \

@@ -17,6 +17,16 @@ bool evaluate_setup(object* n1)
   return true;
 }
 
+void test_items()
+{
+  properties* op=properties_new(3);
+  list*       li=list_new(3);
+  value*      va=value_new("banana");
+  onex_assert(item_type(op)==ITEM_PROPERTIES, "properties has the right type");
+  onex_assert(item_type(li)==ITEM_LIST,       "list has the right type");
+  onex_assert(item_type(va)==ITEM_VALUE,      "value has the right type");
+}
+
 void test_object_set_up()
 {
   object* n1=object_new("uid-1", "setup", evaluate_setup, 4);
@@ -198,6 +208,7 @@ void run_onf_tests()
 
   onex_init();
 
+  test_items();
   test_object_set_up();
   test_local_state();
 
