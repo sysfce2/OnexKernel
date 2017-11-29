@@ -8,7 +8,7 @@
 */
 
 typedef struct value {
-  item_types type;
+  item_type type;
   char*  val;
 } value;
 
@@ -24,6 +24,14 @@ char* value_get(value* v)
 {
   if(!v) return 0;
   return v->val;
+}
+
+char* value_to_text(value* v, char* b, uint8_t s)
+{
+  if(!v){ *b = 0; return b; }
+  int ln=snprintf(b,s,"%s",v->val);
+  if(ln>=s){ *b = 0; return b; }
+  return b;
 }
 
 void value_log(value* v)

@@ -38,7 +38,7 @@ void test_list()
   onex_assert(      list_size(li)==3,     "size should still be 3");
 
   char buf[128];
-  onex_assert_equal(list_to_text(li, buf, 128), "y 5 +", "serialise to string works");
+  onex_assert_equal(item_to_text(li, buf, 128), "y 5 +", "serialise to string works");
 
                     list_log(li);
 }

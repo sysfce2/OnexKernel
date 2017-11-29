@@ -6,6 +6,16 @@
 
 // ---------------------------------------------------------------------------------
 
+void test_items()
+{
+  properties* op=properties_new(3);
+  list*       li=list_new(3);
+  value*      va=value_new("banana");
+  onex_assert(item_is_type(op, ITEM_PROPERTIES), "properties has the right type");
+  onex_assert(item_is_type(li, ITEM_LIST),       "list has the right type");
+  onex_assert(item_is_type(va, ITEM_VALUE),      "value has the right type");
+}
+
 void test_properties()
 {
   properties* op=properties_new(3);
@@ -40,6 +50,31 @@ void test_properties()
   onex_assert(     !properties_get_key(op,0),      "0th key is 0");
   onex_assert(     !properties_get_val(op,0),      "0th val is 0");
 
+  char buf[128];
+  onex_assert_equal(item_to_text(op, buf, 128), "{\n  x: y\n  3: 5\n  *: +\n}\n", "serialise to string works");
+
+                    value* v=value_new("i");
+                    properties_set_item(op,"x",(item*)v);
+
+  onex_assert(      properties_type(op,"x")==ITEM_VALUE, "x is a value");
+  onex_assert_equal(properties_get(op,"x"), "i",         "x now returns i");
+
+                    v=value_new("v");
+                    properties_set_value(op,"x",v);
+
+  onex_assert(      properties_type(op,"x")==ITEM_VALUE, "x is a value");
+  onex_assert_equal(properties_get(op,"x"), "v",         "x now returns v");
+
+/*
+                    list* li=list_new(3); list_add(li,"l"); list_add(li,"m");
+                    properties_set_list(op,"3",li);
+  onex_assert_equal(properties_type(op,"3"), ITEM_LIST, "x is a list");
+
+                    properties_set_properties(op,"*",);
+  onex_assert_equal(properties_type(op,"*"), ITEM_PROPERTIES, "x is a properties");
+*/
+  onex_assert_equal(item_to_text(op, buf, 128), "{\n  x: v\n  3: 5\n  *: +\n}\n", "serialise to string works");
+
                     properties_log(op);
 }
 
@@ -47,6 +82,7 @@ void run_properties_tests()
 {
   log_write("------properties tests-----\n");
 
+  test_items();
   test_properties();
 }
 

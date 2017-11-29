@@ -10,7 +10,7 @@
 */
 
 typedef struct list {
-  item_types type;
+  item_type type;
   uint8_t max_size;
   char**  vals;
   uint8_t i;
