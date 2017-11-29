@@ -39,7 +39,6 @@ typedef struct value      value;
 
 properties* properties_new(uint8_t max_size);
 bool        properties_set_item(properties* op, char* key, item* i);
-bool        properties_set_value(properties* op, char* key, value* val);
 item_type   properties_type(properties* op, char* key);
 bool        properties_set(properties* op, char* key, char* val);
 char*       properties_get(properties* op, char* key);

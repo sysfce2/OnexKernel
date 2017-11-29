@@ -30,32 +30,24 @@ properties* properties_new(uint8_t max_size)
 
 bool properties_set_item(properties* op, char* key, item* i)
 {
-  if(item_is_type(i, ITEM_VALUE)){
-    properties_set_value(op, key, (value*)i);
-  }
-  return true;
-}
-
-bool properties_set_value(properties* op, char* key, value* val)
-{
   if(!op) return false;
   int j;
   for(j=0; j<op->i; j++){
     if(!strcmp(op->keys[j], key)){
-      op->vals[j]=(item*)val;
+      op->vals[j]=i;
       return true;
     }
   }
   if(op->i==op->max_size) return false;
   op->keys[op->i]=key;
-  op->vals[op->i]=(item*)val;
+  op->vals[op->i]=i;
   op->i++;
   return true;
 }
 
 bool properties_set(properties* op, char* key, char* val)
 {
-  return properties_set_value(op, key, value_new(val));
+  return properties_set_item(op, key, (item*)value_new(val));
 }
 
 char* properties_get(properties* op, char* key)

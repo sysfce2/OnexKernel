@@ -59,21 +59,11 @@ void test_properties()
   onex_assert(      properties_type(op,"x")==ITEM_VALUE, "x is a value");
   onex_assert_equal(properties_get(op,"x"), "i",         "x now returns i");
 
-                    v=value_new("v");
-                    properties_set_value(op,"x",v);
-
-  onex_assert(      properties_type(op,"x")==ITEM_VALUE, "x is a value");
-  onex_assert_equal(properties_get(op,"x"), "v",         "x now returns v");
-
-/*
                     list* li=list_new(3); list_add(li,"l"); list_add(li,"m");
-                    properties_set_list(op,"3",li);
-  onex_assert_equal(properties_type(op,"3"), ITEM_LIST, "x is a list");
+                    properties_set_item(op,"3",(item*)li);
+  onex_assert(      properties_type(op,"3")==ITEM_LIST, "x is a list");
 
-                    properties_set_properties(op,"*",);
-  onex_assert_equal(properties_type(op,"*"), ITEM_PROPERTIES, "x is a properties");
-*/
-  onex_assert_equal(item_to_text(op, buf, 128), "{\n  x: v\n  3: 5\n  *: +\n}\n", "serialise to string works");
+  onex_assert_equal(item_to_text(op, buf, 128), "{\n  x: i\n  3: l m\n  *: +\n}\n", "serialise to string works");
 
                     properties_log(op);
 }
