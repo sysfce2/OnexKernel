@@ -112,6 +112,7 @@ void properties_log(properties* op)
   for(j=0; j<op->i; j++){
     log_write("  %s: ", op->keys[j]);
     item_log(op->vals[j]);
+    log_write("\n");
   }
   log_write("}\n");
 }

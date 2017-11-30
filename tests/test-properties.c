@@ -53,13 +53,12 @@ void test_properties()
   char buf[128];
   onex_assert_equal(item_to_text(op, buf, 128), "{\n  x: y\n  3: 5\n  *: +\n}\n", "serialise to string works");
 
-                    value* v=value_new("i");
-                    properties_set_item(op,"x",(item*)v);
+                    properties_set_item(op,"x",(item*)value_new("i"));
 
   onex_assert(      properties_type(op,"x")==ITEM_VALUE, "x is a value");
   onex_assert_equal(properties_get(op,"x"), "i",         "x now returns i");
 
-                    list* li=list_new(3); list_add(li,"l"); list_add(li,"m");
+                    list* li=list_new(3); list_add(li,(item*)value_new("l")); list_add(li,(item*)value_new("m"));
                     properties_set_item(op,"3",(item*)li);
   onex_assert(      properties_type(op,"3")==ITEM_LIST, "x is a list");
 

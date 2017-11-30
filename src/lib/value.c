@@ -37,7 +37,7 @@ char* value_to_text(value* v, char* b, uint8_t s)
 void value_log(value* v)
 {
   if(!v) return;
-  log_write("%s\n", v->val);
+  log_write("%s ", v->val);
 }
 
 

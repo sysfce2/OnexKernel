@@ -12,7 +12,7 @@
 typedef struct list {
   item_type type;
   uint8_t max_size;
-  char**  vals;
+  item**  vals;
   uint8_t i;
 } list;
 
@@ -21,12 +21,12 @@ list* list_new(uint8_t max_size)
   list* li=(list*)calloc(1,sizeof(list));
   li->type=ITEM_LIST;
   li->max_size=max_size;
-  li->vals=(char**)calloc(max_size,sizeof(char*));
+  li->vals=(item**)calloc(max_size,sizeof(item*));
   li->i=0;
   return li;
 }
 
-bool list_add(list* li, char* val)
+bool list_add(list* li, item* val)
 {
   if(!li) return false;
   if(li->i==li->max_size) return false;
@@ -35,7 +35,7 @@ bool list_add(list* li, char* val)
   return true;
 }
 
-bool list_set(list* li, uint8_t index, char* val)
+bool list_set(list* li, uint8_t index, item* val)
 {
   if(!li) return false;
   if(index<=0 || index>li->i) return false;
@@ -43,7 +43,7 @@ bool list_set(list* li, uint8_t index, char* val)
   return true;
 }
 
-char* list_get(list* li, uint8_t index)
+item* list_get(list* li, uint8_t index)
 {
   if(!li) return 0;
   if(index<=0 || index>li->i) return 0;
@@ -56,24 +56,24 @@ uint8_t list_size(list* li)
   return li->i;
 }
 
-void list_log(list* li)
-{
-  if(!li) return;
-  int j;
-  for(j=0; j<li->i; j++) log_write("%s ", li->vals[j]);
-  log_write("\n");
-}
-
 char* list_to_text(list* li, char* b, uint8_t s)
 {
   if(!li){ *b = 0; return b; }
   int ln=0;
   int j;
   for(j=0; j<li->i; j++){
-    ln+=snprintf(b+ln, s-ln, "%s", li->vals[j]);
+    ln+=strlen(item_to_text(li->vals[j], b+ln, s-ln));
     if(j!=li->i-1) ln+=snprintf(b+ln, s-ln, " ");
     if(ln>=s){ *b = 0; return b; }
   }
   return b;
+}
+
+void list_log(list* li)
+{
+  if(!li) return;
+  int j;
+  for(j=0; j<li->i; j++) item_log(li->vals[j]);
+  log_write("\n");
 }
 
