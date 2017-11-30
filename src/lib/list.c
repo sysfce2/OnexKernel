@@ -71,9 +71,7 @@ char* list_to_text(list* li, char* b, uint8_t s)
 
 void list_log(list* li)
 {
-  if(!li) return;
-  int j;
-  for(j=0; j<li->i; j++) item_log(li->vals[j]);
-  log_write("\n");
+  char buf[128];
+  log_write("%s\n", list_to_text(li,buf,128));
 }
 

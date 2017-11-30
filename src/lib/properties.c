@@ -106,14 +106,7 @@ char* properties_to_text(properties* op, char* b, uint8_t s)
 
 void properties_log(properties* op)
 {
-  if(!op) return;
-  log_write("{\n");
-  int j;
-  for(j=0; j<op->i; j++){
-    log_write("  %s: ", op->keys[j]);
-    item_log(op->vals[j]);
-    log_write("\n");
-  }
-  log_write("}\n");
+  char buf[128];
+  log_write("%s\n", properties_to_text(op,buf,128));
 }
 
