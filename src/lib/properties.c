@@ -45,16 +45,11 @@ bool properties_set_item(properties* op, char* key, item* i)
   return true;
 }
 
-bool properties_set(properties* op, char* key, char* val)
-{
-  return properties_set_item(op, key, (item*)value_new(val));
-}
-
-char* properties_get(properties* op, char* key)
+item* properties_get_item(properties* op, char* key)
 {
   if(!op) return 0;
   int j;
-  for(j=0; j<op->i; j++) if(!strcmp(op->keys[j], key) && item_is_type(op->vals[j], ITEM_VALUE)) return value_get((value*)(op->vals[j]));
+  for(j=0; j<op->i; j++) if(!strcmp(op->keys[j], key)) return op->vals[j];
   return 0;
 }
 
@@ -71,13 +66,6 @@ char* properties_get_key(properties* op, uint8_t index)
   if(!op) return 0;
   if(index<=0 || index>op->i) return 0;
   return op->keys[index-1];
-}
-
-char* properties_get_val(properties* op, uint8_t index)
-{
-  if(!op) return 0;
-  if(index<=0 || index > op->i || !item_is_type(op->vals[index-1], ITEM_VALUE)) return 0;
-  return value_get((value*)(op->vals[index-1]));
 }
 
 uint8_t properties_size(properties* op)
@@ -108,5 +96,28 @@ void properties_log(properties* op)
 {
   char buf[128];
   log_write("%s\n", properties_to_text(op,buf,128));
+}
+
+// deprecated
+bool properties_set(properties* op, char* key, char* val)
+{
+  return properties_set_item(op, key, (item*)value_new(val));
+}
+
+// deprecated
+char* properties_get(properties* op, char* key)
+{
+  if(!op) return 0;
+  int j;
+  for(j=0; j<op->i; j++) if(!strcmp(op->keys[j], key) && item_is_type(op->vals[j], ITEM_VALUE)) return value_get((value*)(op->vals[j]));
+  return 0;
+}
+
+// deprecated
+char* properties_get_val(properties* op, uint8_t index)
+{
+  if(!op) return 0;
+  if(index<=0 || index > op->i || !item_is_type(op->vals[index-1], ITEM_VALUE)) return 0;
+  return value_get((value*)(op->vals[index-1]));
 }
 

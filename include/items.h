@@ -38,15 +38,18 @@ typedef struct value      value;
 /* Assoc array/dictionary/map/hash. */
 
 properties* properties_new(uint8_t max_size);
-bool        properties_set_item(properties* op, char* key, item* i);
-item_type   properties_type(properties* op, char* key);
-bool        properties_set(properties* op, char* key, char* val);
-char*       properties_get(properties* op, char* key);
-char*       properties_get_key(properties* op, uint8_t index);
-char*       properties_get_val(properties* op, uint8_t index);
+bool        properties_set_item(properties* op, char* key, item* i); // rename to set/get
+item*       properties_get_item(properties* op, char* key);
+item_type   properties_type(properties* op, char* key); // not needed really - or do on list, too
+char*       properties_get_key(properties* op, uint8_t index); // nth_key/nth_val
 uint8_t     properties_size(properties* op);
 char*       properties_to_text(properties* op, char* b, uint8_t s);
 void        properties_log(properties* op);
+
+// deprecated.. :-)
+bool        properties_set(properties* op, char* key, char* val);
+char*       properties_get(properties* op, char* key);
+char*       properties_get_val(properties* op, uint8_t index);
 
 // --------------------------------------------------------------------
 
@@ -65,7 +68,7 @@ void    list_log(list* li);
 /* Value: numbers, words, etc. */
 
 value* value_new(char*);
-char*  value_get(value* v);
+char*  value_get(value* v);  // xxx
 void   value_log(value* v);
 char*  value_to_text(value* v, char* b, uint8_t s);
 

@@ -18,20 +18,22 @@ void test_items()
 
 void test_properties()
 {
+  char buf[128];
+
   properties* op=properties_new(3);
 
                     properties_set(op,"x","y");
                     properties_set(op,"3","4");
 
-  onex_assert(      properties_size(op)==2,       "size should be 2");
-  onex_assert_equal(properties_get(op,"x"), "y",  "x returns y");
-  onex_assert_equal(properties_get(op,"3"), "4",  "3 returns 4");
-  onex_assert(     !properties_get(op,"?"),       "? returns null");
+  onex_assert(      properties_size(op)==2,                                    "size should be 2");
+  onex_assert_equal(item_to_text(properties_get_item(op,"x"), buf, 128), "y",  "x returns y");
+  onex_assert_equal(item_to_text(properties_get_item(op,"3"), buf, 128), "4",  "3 returns 4");
+  onex_assert(     !properties_get_item(op,"?"),                               "? returns null");
 
                     properties_set(op,"3","5");
 
-  onex_assert(      properties_size(op)==2,       "size should still be 2");
-  onex_assert_equal(properties_get(op,"3"), "5",  "3 now returns 5");
+  onex_assert(      properties_size(op)==2,                                    "size should still be 2");
+  onex_assert_equal(item_to_text(properties_get_item(op,"3"), buf, 128), "5",  "3 now returns 5");
 
                     properties_set(op,"*","+");
 
@@ -50,13 +52,12 @@ void test_properties()
   onex_assert(     !properties_get_key(op,0),      "0th key is 0");
   onex_assert(     !properties_get_val(op,0),      "0th val is 0");
 
-  char buf[128];
   onex_assert_equal(item_to_text(op, buf, 128), "{\n  x: y\n  3: 5\n  *: +\n}\n", "serialise to string works");
 
                     properties_set_item(op,"x",(item*)value_new("i"));
 
-  onex_assert(      properties_type(op,"x")==ITEM_VALUE, "x is a value");
-  onex_assert_equal(properties_get(op,"x"), "i",         "x now returns i");
+  onex_assert(      properties_type(op,"x")==ITEM_VALUE,                              "x is a value");
+  onex_assert_equal(item_to_text(properties_get_item(op,"x"), buf, 128), "i",         "x now returns i");
 
                     list* li=list_new(3); list_add(li,(item*)value_new("l")); list_add(li,(item*)value_new("m"));
                     properties_set_item(op,"3",(item*)li);
