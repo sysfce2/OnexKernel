@@ -51,9 +51,7 @@ void test_object_set_up()
   onex_assert(     !object_property_key(n1, 0),              "key of 0th item is 0");
   onex_assert(     !object_property_val(n1, 0),              "val of 0th item is 0");
 
-  onex_assert(      object_property_size(n1)==4,             "there are four properties");
-  properties* p =   object_properties(   n1, ":");
-  onex_assert(      properties_size(p)==4,                   "there are four properties pulled by object_properties");
+  onex_assert(      object_properties_size(n1, ":")==4,        "there are four properties");
 }
 
 // ---------------------------------------------------------------------------------
@@ -75,8 +73,7 @@ bool evaluate_local_state_3(object* n3)
   onex_assert(      object_property_is(n3, "n2:UID",  "uid-2"),        "can see UID of local object immediately");
   onex_assert(      object_property_is(n3, "n2:is",   "local state"),  "can see 'is' of local object immediately");
   onex_assert(      object_property_is(n3, "n2:state", "good"),        "can see state prop of local object immediately");
-  properties* p =   object_properties( n3, "self:self:n2:");
-  onex_assert(      properties_size(p)==2,                             "there are four properties pulled by object_properties from n3:n2:");
+  onex_assert(      object_properties_size(n3, "self:self:n2:")==2,      "there are four properties at n3:n2:");
   onex_assert(      object_property_is(n3, "self:UID", "uid-3"),       "can see through link to self");
   onex_assert(     !object_property(   n3, "n2:foo"),                  "can't find n2:foo");
   onex_assert(     !object_property(   n3, "n4:UID"),                  "can't find n4:UID");

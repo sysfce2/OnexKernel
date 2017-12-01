@@ -9,6 +9,7 @@ LOCAL_MODULE := OnexAndroidKernel
 LOCAL_C_INCLUDES :=
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../include/
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../src/
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../src/lib/
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../src/onp/
 
 LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/../src/platforms/android/*.c) \
@@ -31,6 +32,7 @@ LOCAL_MODULE := onexkernel
 LOCAL_C_INCLUDES :=
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../include/
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../src/
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../src/lib/
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../tests/
 
 LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/../tests/assert.c) \

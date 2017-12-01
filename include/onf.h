@@ -4,8 +4,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <items.h>
-
 // -----------------------------------------------------------------------
 
 #define OBJECT_MAX_NOTIFIES 4
@@ -38,11 +36,8 @@ void object_set_evaluator(object* n, onex_evaluator evaluator);
 /** return property value. */
 char* object_property(object* n, char* path);
 
-/** return all properties at a path, or null if it's not that. */
-properties* object_properties(object* n, char* path);
-
-/** return how many properties there are. */
-uint8_t object_property_size(object* n);
+/** return how many properties there are at a path, -1 if not a properties. */
+uint8_t object_properties_size(object* n, char* path);
 
 /** return property key at index. */
 char* object_property_key(object* n, uint8_t index);

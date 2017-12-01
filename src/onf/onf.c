@@ -15,6 +15,7 @@ static char*       get_key(char** p);
 static char*       get_val(char** p);
 static void        add_to_cache(object* n);
 static object*     find_object(char* uid, object* n);
+static properties* object_properties(object* n, char* path);
 static char*       nested_property(object* n, char* path);
 static properties* nested_properties(object* n, char* path);
 static bool        is_uid(char* uid);
@@ -111,7 +112,7 @@ void object_new_shell(char* uid, char* notify)
 
 bool object_is_shell(object* o)
 {
-  return !object_property_size(o) && !o->evaluator;
+  return !object_properties_size(o, ":") && !o->evaluator;
 }
 
 char* get_key(char** p)
@@ -203,6 +204,12 @@ char* nested_property(object* n, char* path)
   return r;
 }
 
+uint8_t object_properties_size(object* n, char* path)
+{
+  properties* p=object_properties(n, path);
+  return p? properties_size(p): -1;
+}
+
 properties* object_properties(object* n, char* path)
 {
   if(!strcmp(path, "" )) return n->properties;
@@ -240,11 +247,6 @@ object* find_object(char* uid, object* n)
 bool is_uid(char* uid)
 {
   return uid && !strncmp(uid,"uid-",4);
-}
-
-uint8_t object_property_size(object* n)
-{
-  return properties_size(n->properties);
 }
 
 char* object_property_key(object* n, uint8_t index)
@@ -340,7 +342,7 @@ char* object_to_text(object* n, char* b, uint8_t s)
       if(ln>=s){ *b = 0; return b; }
     }
   }
-  for(i=1; i<=object_property_size(n); i++){
+  for(i=1; i<=object_properties_size(n, ":"); i++){
     ln+=snprintf(b+ln, s-ln, " %s: %s", object_property_key(n,i), object_property_val(n,i));
     if(ln>=s){ *b = 0; return b; }
   }
