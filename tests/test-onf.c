@@ -28,15 +28,23 @@ void test_object_set_up()
   onex_assert(      object_property_is(n1, "UID", "uid-1"),  "object_new saves uid as a (virtual) property");
   onex_assert_equal(object_property(   n1, "is"), "setup",   "object_property returns 'is'" );
   onex_assert(      object_property_is(n1, "is",  "setup"),  "object_property_is says 'is' is 'setup'");
+  onex_assert(      object_property_is_value(n1, "is"),      "property 'is' is a value");
 
-                    object_property_set(n1, "state", "good");
-
-  onex_assert(      object_property_is(n1, "state", "good"), "object_property_is says 'state' is 'good'");
+                    object_property_set(           n1, "state", "good");
+  onex_assert(      object_property_is(            n1, "state", "good"), "object_property_is says 'state' is 'good'");
+  onex_assert(      object_property_is_value(      n1, "state"),         "property 'state' is a value");
+  onex_assert(     !object_property_is_list(       n1, "state"),         "property 'state' is not a list");
+  onex_assert(     !object_property_is_properties( n1, "state"),         "property 'state' is not a properties");
 
   onex_assert(      object_property_set(n1, "1", "ok"),      "can set 1 more property");
+  onex_assert(      object_property_is_value(n1, "1"),       "property '1' is a value");
   onex_assert(      object_property_set(n1, "2", "ok"),      "can set 2 more properties");
+  onex_assert(      object_property_is_value(n1, "2"),       "property '1' is a value");
+
   onex_assert(     !object_property_set(n1, "3", "not ok"),  "can't set 3 more properties");
   onex_assert(     !object_property_set(n1, "4", "not ok"),  "can't set 4 more properties");
+  onex_assert(     !object_property_is_value(n1, "4"),       "property '4' is not a value");
+
 
   onex_assert_equal(object_property_key(n1, 1), "is",        "key of 1st item is 'is'");
   onex_assert_equal(object_property_val(n1, 1), "setup",     "val of 1st item is 'setup'");

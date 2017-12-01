@@ -45,11 +45,20 @@ char* object_property_key(object* n, uint8_t index);
 /** return property value at index. */
 char* object_property_val(object* n, uint8_t index);
 
-/** return whether property value matches supplied string. */
+/** return whether property at path is a value. */
+bool  object_property_is_value(object* n, char* path);
+
+/** return whether property at path is a list. */
+bool  object_property_is_list(object* n, char* path);
+
+/** return whether property at path is a (sub)properties. */
+bool  object_property_is_properties(object* n, char* path);
+
+/** return whether property at path is a value and it matches supplied string. */
 bool  object_property_is(object* n, char* path, char* expected);
 
 /** set property value. */
-bool object_property_set(object* n, char* path, char* value);
+bool  object_property_set(object* n, char* path, char* value);
 
 /** to text. Supply your own buffer, b, of length s */
 char* object_to_text(object* n, char* b, uint8_t s);
