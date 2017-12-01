@@ -20,7 +20,7 @@ value* value_new(char* vs)
   return v;
 }
 
-char* value_get(value* v)
+char* value_string(value* v)
 {
   if(!v) return 0;
   return v->val;

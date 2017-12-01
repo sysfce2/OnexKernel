@@ -24,6 +24,25 @@ static void        notify_observers(object* n);
 static void        show_notifies(object* o);
 static void        call_all_evaluators();
 
+char* properties_get_string(properties* op, char* key)
+{
+  item* i=properties_get(op, key);
+  if(!i || i->type!=ITEM_VALUE) return 0;
+  return value_string((value*)i);
+}
+
+char* properties_get_n_string(properties* op, uint8_t index)
+{
+  item* i=properties_get_n(op, index);
+  if(!i || i->type!=ITEM_VALUE) return 0;
+  return value_string((value*)i);
+}
+
+bool properties_set_string(properties* op, char* key, char* val)
+{
+  return properties_set(op, key, (item*)value_new(val));
+}
+
 // ---------------------------------
 
 typedef struct object {
@@ -41,7 +60,7 @@ object* new_object(char* uid, char* is, onex_evaluator evaluator, uint8_t max_si
   object* n=(object*)calloc(1,sizeof(object));
   n->uid=uid;
   n->properties=properties_new(max_size);
-  properties_set(n->properties, "is", is);
+  properties_set_string(n->properties, "is", is);
   n->evaluator=evaluator;
   return n;
 }
@@ -75,7 +94,7 @@ object* object_new_from(char* text)
         n=new_object(uid, is, 0, max_size);
         set_observers(n, notify);
       }
-      if(!properties_set(n->properties, key, val)) break;
+      if(!properties_set_string(n->properties, key, val)) break;
     }
   }
   return n;
@@ -167,7 +186,7 @@ char* object_property(object* n, char* path)
 {
   if(!strcmp(path, "UID")) return n->uid;
   char* c=strchr(path, ':');
-  if(!c) return properties_get(n->properties, path);
+  if(!c) return properties_get_string(n->properties, path);
   return nested_property(n, path);
 }
 
@@ -176,7 +195,7 @@ char* nested_property(object* n, char* path)
   char* p=strdup(path);
   char* c=strchr(p, ':');
   *c=0; c++;
-  char* uid=properties_get(n->properties, p);
+  char* uid=properties_get_string(n->properties, p);
   object* o=find_object(uid,n);
   if(!o) return 0;
   char* r=object_property(o, c);
@@ -197,7 +216,7 @@ properties* nested_properties(object* n, char* path)
   char* p=strdup(path);
   char* c=strchr(p, ':');
   *c=0; c++;
-  char* uid=properties_get(n->properties, p);
+  char* uid=properties_get_string(n->properties, p);
   object* o=find_object(uid,n);
   if(!o) return 0;
   properties* r=object_properties(o, c);
@@ -230,12 +249,12 @@ uint8_t object_property_size(object* n)
 
 char* object_property_key(object* n, uint8_t index)
 {
-  return properties_get_key(n->properties, index);
+  return properties_key_n(n->properties, index);
 }
 
 char* object_property_val(object* n, uint8_t index)
 {
-  return properties_get_val(n->properties, index);
+  return properties_get_n_string(n->properties, index);
 }
 
 bool object_property_is(object* n, char* path, char* expected)
@@ -246,7 +265,7 @@ bool object_property_is(object* n, char* path, char* expected)
 
 bool object_property_set(object* n, char* path, char* value)
 {
-  bool ok=properties_set(n->properties, path, value);
+  bool ok=properties_set_string(n->properties, path, value);
   notify_observers(n);
   return ok;
 }

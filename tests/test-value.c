@@ -10,8 +10,8 @@ void test_value()
   value* v1=value_new("banana");
   value* v2=value_new("banana");
 
-  onex_assert_equal(value_get(v1), "banana",        "get it back");
-  onex_assert(      value_get(v1) == value_get(v2), "all bananas are the same");
+  onex_assert_equal(value_string(v1), "banana",           "get it back");
+  onex_assert(      value_string(v1) == value_string(v2), "all bananas are the same");
 
                     value_log(v1);
                     value_log(v2);
