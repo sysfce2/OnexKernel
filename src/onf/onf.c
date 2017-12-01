@@ -21,8 +21,6 @@ static char*       nested_property_string(object* n, char* path);
 static item*       nested_property_item(object* n, char* path);
 static properties* nested_properties(object* n, char* path);
 static char*       properties_get_string(properties* op, char* key);
-static char*       properties_get_n_string(properties* op, uint8_t index);
-static bool        properties_set_string(properties* op, char* key, char* val);
 static bool        is_uid(char* uid);
 static bool        add_observer(object* o, char* notify);
 static void        set_observers(object* o, char* notify);
@@ -47,7 +45,7 @@ object* new_object(char* uid, char* is, onex_evaluator evaluator, uint8_t max_si
   object* n=(object*)calloc(1,sizeof(object));
   n->uid=uid;
   n->properties=properties_new(max_size);
-  properties_set_string(n->properties, "is", is);
+  properties_set(n->properties, "is", (item*)value_new(is));
   n->evaluator=evaluator;
   return n;
 }
@@ -81,7 +79,7 @@ object* object_new_from(char* text)
         n=new_object(uid, is, 0, max_size);
         set_observers(n, notify);
       }
-      if(!properties_set_string(n->properties, key, val)) break;
+      if(!properties_set(n->properties, key, (item*)value_new(val))) break;
     }
   }
   return n;
@@ -176,18 +174,6 @@ char* properties_get_string(properties* op, char* key)
   return value_string((value*)i);
 }
 
-char* properties_get_n_string(properties* op, uint8_t index)
-{
-  item* i=properties_get_n(op, index);
-  if(!i || i->type!=ITEM_VALUE) return 0;
-  return value_string((value*)i);
-}
-
-bool properties_set_string(properties* op, char* key, char* val)
-{
-  return properties_set(op, key, (item*)value_new(val));
-}
-
 char* object_property(object* n, char* path)
 {
   if(!strcmp(path, "UID")) return n->uid;
@@ -274,9 +260,11 @@ char* object_property_key(object* n, uint8_t index)
   return properties_key_n(n->properties, index);
 }
 
-char* object_property_val(object* n, uint8_t index)
+char* object_property_value(object* n, uint8_t index)
 {
-  return properties_get_n_string(n->properties, index);
+  item* i=properties_get_n(n->properties, index);
+  if(!i || i->type!=ITEM_VALUE) return 0;
+  return value_string((value*)i);
 }
 
 bool object_property_is_value(object* n, char* path)
@@ -305,7 +293,39 @@ bool object_property_is(object* n, char* path, char* expected)
 
 bool object_property_set(object* n, char* path, char* value)
 {
-  bool ok=properties_set_string(n->properties, path, value);
+  if(strchr(path, ':')) return 0; /* no sub-properties yet */
+  bool ok=properties_set(n->properties, path, (item*)value_new(value));
+  notify_observers(n);
+  return ok;
+}
+
+bool object_property_add(object* n, char* path, char* value)
+{
+  if(strchr(path, ':')) return false; /* no sub-properties yet */
+  item* i=properties_get(n->properties, path);
+  bool ok=true;
+  if(!i){
+    ok=properties_set(n->properties, path, (item*)value_new(value));
+  }
+  else
+  switch(i->type){
+    case ITEM_VALUE: {
+      list* l=list_new(5);
+      ok=ok && list_add(l,i);
+      ok=ok && list_add(l,(item*)value_new(value));
+      ok=ok && properties_set(n->properties, path, (item*)l);
+      break;
+    }
+    case ITEM_LIST: {
+      list* l=(list*)i;
+      ok=ok && list_add(l,(item*)value_new(value));
+      break;
+    }
+    case ITEM_PROPERTIES: {
+      return false;
+      break;
+    }
+  }
   notify_observers(n);
   return ok;
 }
@@ -373,15 +393,18 @@ char* object_to_text(object* n, char* b, uint8_t s)
   ln+=snprintf(b+ln, s-ln, "UID: %s", n->uid);
   if(ln>=s){ *b = 0; return b; }
 
-  int i;
-  for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    if(n->notify[i]){
-      ln+=snprintf(b+ln, s-ln, ((i==0)? " Notify: %s": " %s"), n->notify[i]);
+  int j;
+  for(j=0; j< OBJECT_MAX_NOTIFIES; j++){
+    if(n->notify[j]){
+      ln+=snprintf(b+ln, s-ln, ((j==0)? " Notify: %s": " %s"), n->notify[j]);
       if(ln>=s){ *b = 0; return b; }
     }
   }
-  for(i=1; i<=object_properties_size(n, ":"); i++){
-    ln+=snprintf(b+ln, s-ln, " %s: %s", object_property_key(n,i), object_property_val(n,i));
+  properties* p=n->properties;
+  for(j=1; j<=properties_size(p); j++){
+    ln+=snprintf(b+ln, s-ln, " %s: ", properties_key_n(p,j));
+    item* i=properties_get_n(p,j);
+    ln+=strlen(item_to_text(i, b+ln, s-ln));
     if(ln>=s){ *b = 0; return b; }
   }
   return b;

@@ -43,7 +43,7 @@ uint8_t object_properties_size(object* n, char* path);
 char* object_property_key(object* n, uint8_t index);
 
 /** return property value at index. */
-char* object_property_val(object* n, uint8_t index);
+char* object_property_value(object* n, uint8_t index);
 
 /** return whether property at path is a value. */
 bool  object_property_is_value(object* n, char* path);
@@ -59,6 +59,9 @@ bool  object_property_is(object* n, char* path, char* expected);
 
 /** set property value. */
 bool  object_property_set(object* n, char* path, char* value);
+
+/** add property value to list, or make a list. */
+bool  object_property_add(object* n, char* path, char* value);
 
 /** to text. Supply your own buffer, b, of length s */
 char* object_to_text(object* n, char* b, uint8_t s);

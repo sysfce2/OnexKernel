@@ -36,8 +36,19 @@ void test_object_set_up()
   onex_assert(     !object_property_is_list(       n1, "state"),         "property 'state' is not a list");
   onex_assert(     !object_property_is_properties( n1, "state"),         "property 'state' is not a properties");
 
-  onex_assert(      object_property_set(n1, "1", "ok"),      "can set 1 more property");
+                    object_property_add(           n1, "state", "mostly");
+  onex_assert(     !object_property_is(            n1, "state", "good"), "object_property_is says 'state' is not all 'good'");
+  onex_assert(     !object_property_is_value(      n1, "state"),         "property 'state' is not a value");
+  onex_assert(      object_property_is_list(       n1, "state"),         "property 'state' is now a list");
+  onex_assert(     !object_property_is_properties( n1, "state"),         "property 'state' is not a properties");
+
+  onex_assert(      object_property_add(     n1, "1", "a"),  "can add new property");
   onex_assert(      object_property_is_value(n1, "1"),       "property '1' is a value");
+  onex_assert(      object_property_add(     n1, "1", "b"),  "can add another");
+  onex_assert(      object_property_is_list( n1, "1"),       "property '1' is now a list");
+  onex_assert(      object_property_add(     n1, "1", "c"),  "can add a third to existing list");
+  onex_assert(      object_property_is_list( n1, "1"),       "property '1' is still a list");
+
   onex_assert(      object_property_set(n1, "2", "ok"),      "can set 2 more properties");
   onex_assert(      object_property_is_value(n1, "2"),       "property '1' is a value");
 
@@ -47,19 +58,19 @@ void test_object_set_up()
 
 
   onex_assert_equal(object_property_key(n1, 1), "is",        "key of 1st item is 'is'");
-  onex_assert_equal(object_property_val(n1, 1), "setup",     "val of 1st item is 'setup'");
+  onex_assert_equal(object_property_value(n1, 1), "setup",   "val of 1st item is 'setup'");
   onex_assert_equal(object_property_key(n1, 2), "state",     "key of 2nd item is 'state'");
-  onex_assert_equal(object_property_val(n1, 2), "good",      "val of 2nd item is 'good'");
+  onex_assert(     !object_property_value(n1, 2),            "val of 2nd item is not just a value");
   onex_assert_equal(object_property_key(n1, 3), "1",         "key of 3rd item is '1'");
-  onex_assert_equal(object_property_val(n1, 3), "ok",        "val of 3rd item is 'ok'");
+  onex_assert(     !object_property_value(n1, 3),            "val of 3rd item is not just a value");
   onex_assert_equal(object_property_key(n1, 4), "2",         "key of 4th item is '2'");
-  onex_assert_equal(object_property_val(n1, 4), "ok",        "val of 4th item is 'ok'");
+  onex_assert_equal(object_property_value(n1, 4), "ok",      "val of 4th item is 'ok'");
   onex_assert(     !object_property_key(n1, 5),              "key of 5th item is 0");
-  onex_assert(     !object_property_val(n1, 5),              "val of 5th item is 0");
+  onex_assert(     !object_property_value(n1, 5),            "val of 5th item is 0");
   onex_assert(     !object_property_key(n1, 0),              "key of 0th item is 0");
-  onex_assert(     !object_property_val(n1, 0),              "val of 0th item is 0");
+  onex_assert(     !object_property_value(n1, 0),            "val of 0th item is 0");
 
-  onex_assert(      object_properties_size(n1, ":")==4,        "there are four properties");
+  onex_assert(      object_properties_size(n1, ":")==4,      "there are four properties");
 }
 
 // ---------------------------------------------------------------------------------
@@ -79,7 +90,7 @@ bool evaluate_local_state_3(object* n3)
   evaluate_local_state_3_called=true;
   onex_assert(     !object_property(   n3, "is:foo"),                  "can't find is:foo");
   onex_assert(      object_property_is(n3, "n2:UID",  "uid-2"),        "can see UID of local object immediately");
-  onex_assert(      object_property_is(n3, "n2:is",   "local state"),  "can see 'is' of local object immediately");
+  onex_assert(      object_property_is(n3, "n2:is",   "local-state"),  "can see 'is' of local object immediately");
   onex_assert(      object_property_is(n3, "n2:state", "good"),        "can see state prop of local object immediately");
   onex_assert(      object_properties_size(n3, "self:self:n2:")==2,      "there are four properties at n3:n2:");
   onex_assert(      object_property_is(n3, "self:UID", "uid-3"),       "can see through link to self");
@@ -90,8 +101,8 @@ bool evaluate_local_state_3(object* n3)
 
 void test_local_state()
 {
-  object* n2=object_new("uid-2", "local state", evaluate_local_state_2, 4);
-  object* n3=object_new("uid-3", "local state", evaluate_local_state_3, 4);
+  object* n2=object_new("uid-2", "local-state", evaluate_local_state_2, 4);
+  object* n3=object_new("uid-3", "local-state", evaluate_local_state_3, 4);
 
   onex_assert(      object_get_from_cache("uid-2")==n2,   "object_get_from_cache can find uid-2");
   onex_assert(      object_get_from_cache("uid-3")==n3,   "object_get_from_cache can find uid-3");
@@ -140,7 +151,7 @@ void test_local_notify()
 
 // ---------------------------------------------------------------------------------
 
-#define TEXTBUFFLEN 80
+#define TEXTBUFFLEN 128
 char textbuff[TEXTBUFFLEN];
 
 void test_to_text()
@@ -149,9 +160,9 @@ void test_to_text()
   object* n2=object_get_from_cache("uid-2");
   object* n3=object_get_from_cache("uid-3");
 
-  onex_assert_equal(object_to_text(n1,textbuff,TEXTBUFFLEN), "UID: uid-1 is: setup state: good 1: ok 2: ok",                             "converts uid-1 to correct text");
-  onex_assert_equal(object_to_text(n2,textbuff,TEXTBUFFLEN), "UID: uid-2 Notify: uid-3 is: local state state: better",                   "converts uid-2 to correct text");
-  onex_assert_equal(object_to_text(n3,textbuff,TEXTBUFFLEN), "UID: uid-3 Notify: uid-3 is: local state n2: uid-2 n4: uid-4 self: uid-3", "converts uid-3 to correct text");
+  onex_assert_equal(object_to_text(n1,textbuff,TEXTBUFFLEN), "UID: uid-1 is: setup state: good mostly 1: a b c 2: ok",                   "converts uid-1 to correct text");
+  onex_assert_equal(object_to_text(n2,textbuff,TEXTBUFFLEN), "UID: uid-2 Notify: uid-3 is: local-state state: better",                   "converts uid-2 to correct text");
+  onex_assert_equal(object_to_text(n3,textbuff,TEXTBUFFLEN), "UID: uid-3 Notify: uid-3 is: local-state n2: uid-2 n4: uid-4 self: uid-3", "converts uid-3 to correct text");
 }
 
 // ---------------------------------------------------------------------------------
@@ -179,7 +190,7 @@ void test_from_text()
   object_set_evaluator(n1, evaluate_remote_notify_1);
   object_set_evaluator(n2, evaluate_remote_notify_2);
 
-  char* text="UID: uid-4 Notify: uid-1 uid-2 is: remote state n3: uid-3";
+  char* text="UID: uid-4 Notify: uid-1 uid-2 is: remote-state n3: uid-3";
   object* n4=object_new_from(strdup(text));
 
   onex_assert(      !!n4,                                         "input text was parsed into an object");
@@ -188,7 +199,7 @@ void test_from_text()
   onex_assert_equal(object_to_text(n4,textbuff,TEXTBUFFLEN),text, "gives same text back from reconstruction");
 
   onex_assert(      object_property_is( n4, "UID", "uid-4"),       "object_new_from parses uid");
-  onex_assert_equal(object_property(    n4, "is"), "remote state", "object_new_from parses 'is'" );
+  onex_assert_equal(object_property(    n4, "is"), "remote-state", "object_new_from parses 'is'" );
   onex_assert_equal(object_property(    n4, "n3"), "uid-3",        "object_new_from parses properties" );
 
                     object_property_set(n4, "state", "good");
