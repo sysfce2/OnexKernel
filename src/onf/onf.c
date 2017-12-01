@@ -16,7 +16,6 @@ static char*       get_val(char** p);
 static void        add_to_cache(object* n);
 static object*     find_object(char* uid, object* n);
 static item*       object_property_item(object* n, char* path);
-static properties* object_properties(object* n, char* path);
 static item*       nested_property_item(object* n, char* path);
 static properties* nested_properties(object* n, char* path);
 static char*       properties_get_string(properties* op, char* key);
@@ -202,26 +201,6 @@ item* nested_property_item(object* n, char* path)
   return r;
 }
 
-properties* object_properties(object* n, char* path)
-{
-  if(!strcmp(path, "" )) return n->properties;
-  if(!strcmp(path, ":")) return n->properties;
-  if(!strchr(path, ':')) return 0;
-  return nested_properties(n, path);
-}
-
-properties* nested_properties(object* n, char* path)
-{
-  char* p=strdup(path);
-  char* c=strchr(p, ':');
-  *c=0; c++;
-  char* uid=properties_get_string(n->properties, p);
-  object* o=find_object(uid,n);
-  properties* r= o? object_properties(o, c): 0;
-  free(p);
-  return r;
-}
-
 object* find_object(char* uid, object* n)
 {
   if(!is_uid(uid)) return 0;
@@ -240,21 +219,29 @@ bool is_uid(char* uid)
   return uid && !strncmp(uid,"uid-",4);
 }
 
-uint8_t object_properties_size(object* n, char* path)
+uint8_t object_property_size(object* n, char* path)
 {
-  properties* p=object_properties(n, path);
-  return p? properties_size(p): -1;
+  item* i=object_property_item(n,path);
+  if(!i) return 0;
+  if(i->type==ITEM_VALUE)      return 1;
+  if(i->type==ITEM_LIST)       return list_size((list*)i);
+  if(i->type==ITEM_PROPERTIES) return properties_size((properties*)i);
+  return 0;
 }
 
 char* object_property_key(object* n, char* path, uint8_t index)
 {
-  properties* p=object_properties(n, path);
+  item* t=object_property_item(n,path);
+  if(t->type!=ITEM_PROPERTIES) return 0;
+  properties* p=(properties*)t;
   return properties_key_n(p, index);
 }
 
 char* object_property_value(object* n, char* path, uint8_t index)
 {
-  properties* p=object_properties(n, path);
+  item* t=object_property_item(n,path);
+  if(t->type!=ITEM_PROPERTIES) return 0;
+  properties* p=(properties*)t;
   item* i=properties_get_n(p, index);
   if(!i || i->type!=ITEM_VALUE) return 0;
   return value_string((value*)i);

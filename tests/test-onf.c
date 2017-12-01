@@ -48,6 +48,7 @@ void test_object_set_up()
   onex_assert(      object_property_is_list( n1, "1"),       "property '1' is now a list");
   onex_assert(      object_property_add(     n1, "1", "c"),  "can add a third to existing list");
   onex_assert(      object_property_is_list( n1, "1"),       "property '1' is still a list");
+  onex_assert(      object_property_size(    n1, "1")==3,    "three items in the list");
 
   onex_assert(      object_property_set(n1, "2", "ok"),      "can set 2 more properties");
   onex_assert(      object_property_is_value(n1, "2"),       "property '1' is a value");
@@ -56,6 +57,8 @@ void test_object_set_up()
   onex_assert(     !object_property_set(n1, "4", "not ok"),  "can't set 4 more properties");
   onex_assert(     !object_property_is_value(n1, "4"),       "property '4' is not a value");
 
+  onex_assert(      object_property_is_properties(n1, ":"),  "root path is a properties");
+  onex_assert(      object_property_size( n1, ":")==4,      "there are four properties");
 
   onex_assert_equal(object_property_key(n1, ":", 1), "is",      "key of 1st item is 'is'");
   onex_assert_equal(object_property_value(n1, ":", 1), "setup", "val of 1st item is 'setup'");
@@ -65,12 +68,11 @@ void test_object_set_up()
   onex_assert(     !object_property_value(n1, ":", 3),          "val of 3rd item is not just a value");
   onex_assert_equal(object_property_key(n1, ":", 4), "2",       "key of 4th item is '2'");
   onex_assert_equal(object_property_value(n1, ":", 4), "ok",    "val of 4th item is 'ok'");
+
   onex_assert(     !object_property_key(n1, ":", 5),            "key of 5th item is 0");
   onex_assert(     !object_property_value(n1, ":", 5),          "val of 5th item is 0");
   onex_assert(     !object_property_key(n1, ":", 0),            "key of 0th item is 0");
   onex_assert(     !object_property_value(n1, ":", 0),          "val of 0th item is 0");
-
-  onex_assert(      object_properties_size(n1, ":")==4,      "there are four properties");
 }
 
 // ---------------------------------------------------------------------------------
@@ -94,7 +96,7 @@ bool evaluate_local_state_3(object* n3)
   onex_assert(      object_property_is(    n3, "n2:state", "good"),           "can see state prop of local object immediately");
   onex_assert(      object_property_is_value(     n3, "self:n2"),             "property 'n2' is a value (uid)");
   onex_assert(      object_property_is_properties(n3, "self:n2:"),            "property 'n2:' is a properties");
-  onex_assert(      object_properties_size(n3, "self:self:n2:")==2,           "there are two properties at n3:n2:");
+  onex_assert(      object_property_size(  n3, "self:self:n2:")==2,           "there are two properties at n3:n2:");
   onex_assert(      object_property_is(    n3, "self:UID", "uid-3"),          "can see through link to self");
   onex_assert(     !object_property(       n3, "n2:foo"),                     "can't find n2:foo");
   onex_assert(     !object_property(       n3, "n4:UID"),                     "can't find n4:UID");
