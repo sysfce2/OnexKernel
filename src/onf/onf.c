@@ -96,7 +96,7 @@ void object_new_shell(char* uid, char* notify)
 
 bool object_is_shell(object* o)
 {
-  return !object_properties_size(o, ":") && !o->evaluator;
+  return !o->properties && !o->evaluator;
 }
 
 char* get_key(char** p)

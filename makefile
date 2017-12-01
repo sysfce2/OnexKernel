@@ -280,7 +280,8 @@ clean:
 cleanx: clean
 	rm -f *.linux *.hex libOnex*.a
 	rm -rf $(BUILD_DIRECTORY)
-	rm -rf android/build android/onexkernel/build android/onexkernel/.externalNativeBuild/ android/.gradle/3.3/taskArtifacts/
+	rm -rf android/build android/*/build android/*/.externalNativeBuild/ android/.gradle/[0-9]*/task*/
+	rm -rf CMakeCache.txt CMakeFiles */CMakeFiles Makefile */Makefile cmake_install.cmake */cmake_install.cmake
 
 ############################################################################################
 
