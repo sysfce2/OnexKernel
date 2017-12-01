@@ -255,14 +255,16 @@ bool is_uid(char* uid)
   return uid && !strncmp(uid,"uid-",4);
 }
 
-char* object_property_key(object* n, uint8_t index)
+char* object_property_key(object* n, char* path, uint8_t index)
 {
-  return properties_key_n(n->properties, index);
+  properties* p=object_properties(n, path);
+  return properties_key_n(p, index);
 }
 
-char* object_property_value(object* n, uint8_t index)
+char* object_property_value(object* n, char* path, uint8_t index)
 {
-  item* i=properties_get_n(n->properties, index);
+  properties* p=object_properties(n, path);
+  item* i=properties_get_n(p, index);
   if(!i || i->type!=ITEM_VALUE) return 0;
   return value_string((value*)i);
 }

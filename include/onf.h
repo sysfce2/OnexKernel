@@ -39,11 +39,11 @@ char* object_property(object* n, char* path);
 /** return how many properties there are at a path, -1 if not a properties. */
 uint8_t object_properties_size(object* n, char* path);
 
-/** return property key at index. */
-char* object_property_key(object* n, uint8_t index);
+/** return property key at path and index. */
+char* object_property_key(object* n, char* path, uint8_t index);
 
-/** return property value at index. */
-char* object_property_value(object* n, uint8_t index);
+/** return property value at path and index. */
+char* object_property_value(object* n, char* path, uint8_t index);
 
 /** return whether property at path is a value. */
 bool  object_property_is_value(object* n, char* path);

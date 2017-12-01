@@ -57,18 +57,18 @@ void test_object_set_up()
   onex_assert(     !object_property_is_value(n1, "4"),       "property '4' is not a value");
 
 
-  onex_assert_equal(object_property_key(n1, 1), "is",        "key of 1st item is 'is'");
-  onex_assert_equal(object_property_value(n1, 1), "setup",   "val of 1st item is 'setup'");
-  onex_assert_equal(object_property_key(n1, 2), "state",     "key of 2nd item is 'state'");
-  onex_assert(     !object_property_value(n1, 2),            "val of 2nd item is not just a value");
-  onex_assert_equal(object_property_key(n1, 3), "1",         "key of 3rd item is '1'");
-  onex_assert(     !object_property_value(n1, 3),            "val of 3rd item is not just a value");
-  onex_assert_equal(object_property_key(n1, 4), "2",         "key of 4th item is '2'");
-  onex_assert_equal(object_property_value(n1, 4), "ok",      "val of 4th item is 'ok'");
-  onex_assert(     !object_property_key(n1, 5),              "key of 5th item is 0");
-  onex_assert(     !object_property_value(n1, 5),            "val of 5th item is 0");
-  onex_assert(     !object_property_key(n1, 0),              "key of 0th item is 0");
-  onex_assert(     !object_property_value(n1, 0),            "val of 0th item is 0");
+  onex_assert_equal(object_property_key(n1, ":", 1), "is",      "key of 1st item is 'is'");
+  onex_assert_equal(object_property_value(n1, ":", 1), "setup", "val of 1st item is 'setup'");
+  onex_assert_equal(object_property_key(n1, ":", 2), "state",   "key of 2nd item is 'state'");
+  onex_assert(     !object_property_value(n1, ":", 2),          "val of 2nd item is not just a value");
+  onex_assert_equal(object_property_key(n1, ":", 3), "1",       "key of 3rd item is '1'");
+  onex_assert(     !object_property_value(n1, ":", 3),          "val of 3rd item is not just a value");
+  onex_assert_equal(object_property_key(n1, ":", 4), "2",       "key of 4th item is '2'");
+  onex_assert_equal(object_property_value(n1, ":", 4), "ok",    "val of 4th item is 'ok'");
+  onex_assert(     !object_property_key(n1, ":", 5),            "key of 5th item is 0");
+  onex_assert(     !object_property_value(n1, ":", 5),          "val of 5th item is 0");
+  onex_assert(     !object_property_key(n1, ":", 0),            "key of 0th item is 0");
+  onex_assert(     !object_property_value(n1, ":", 0),          "val of 0th item is 0");
 
   onex_assert(      object_properties_size(n1, ":")==4,      "there are four properties");
 }
@@ -88,14 +88,22 @@ bool evaluate_local_state_3_called=false;
 bool evaluate_local_state_3(object* n3)
 {
   evaluate_local_state_3_called=true;
-  onex_assert(     !object_property(   n3, "is:foo"),                  "can't find is:foo");
-  onex_assert(      object_property_is(n3, "n2:UID",  "uid-2"),        "can see UID of local object immediately");
-  onex_assert(      object_property_is(n3, "n2:is",   "local-state"),  "can see 'is' of local object immediately");
-  onex_assert(      object_property_is(n3, "n2:state", "good"),        "can see state prop of local object immediately");
-  onex_assert(      object_properties_size(n3, "self:self:n2:")==2,      "there are four properties at n3:n2:");
-  onex_assert(      object_property_is(n3, "self:UID", "uid-3"),       "can see through link to self");
-  onex_assert(     !object_property(   n3, "n2:foo"),                  "can't find n2:foo");
-  onex_assert(     !object_property(   n3, "n4:UID"),                  "can't find n4:UID");
+  onex_assert(     !object_property(       n3, "is:foo"),                     "can't find is:foo");
+  onex_assert(      object_property_is(    n3, "n2:UID",  "uid-2"),           "can see UID of local object immediately");
+  onex_assert(      object_property_is(    n3, "n2:is",   "local-state"),     "can see 'is' of local object immediately");
+  onex_assert(      object_property_is(    n3, "n2:state", "good"),           "can see state prop of local object immediately");
+  onex_assert(      object_properties_size(n3, "self:self:n2:")==2,           "there are two properties at n3:n2:");
+  onex_assert(      object_property_is(    n3, "self:UID", "uid-3"),          "can see through link to self");
+  onex_assert(     !object_property(       n3, "n2:foo"),                     "can't find n2:foo");
+  onex_assert(     !object_property(       n3, "n4:UID"),                     "can't find n4:UID");
+  onex_assert_equal(object_property_key(   n3, ":", 2), "n2",                 "key of 2nd item is 'n2'");
+  onex_assert_equal(object_property_value( n3, ":", 2), "uid-2",              "val of 1st item is 'uid-2'");
+  onex_assert_equal(object_property_key(   n3, "n2:", 1), "is",               "key of 1st item in n2 is 'is'");
+  onex_assert_equal(object_property_value( n3, "n2:", 1), "local-state",      "val of 1st item in n2 is 'local-state'");
+  onex_assert_equal(object_property_key(   n3, "n2:", 2), "state",            "key of 2nd item in n2 is 'state'");
+  onex_assert_equal(object_property_value( n3, "n2:", 2), "good",             "val of 2nd item in n2 is 'good'");
+  onex_assert_equal(object_property_key(   n3, "self:self:n2:", 2), "state",  "key of 2nd item in n2 is 'state', via self");
+  onex_assert_equal(object_property_value( n3, "self:n2:", 2), "good",        "val of 2nd item in n2 is 'good', via self");
   return true;
 }
 
