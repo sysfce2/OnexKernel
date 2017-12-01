@@ -17,7 +17,6 @@ static void        add_to_cache(object* n);
 static object*     find_object(char* uid, object* n);
 static item*       object_property_item(object* n, char* path);
 static properties* object_properties(object* n, char* path);
-static char*       nested_property_string(object* n, char* path);
 static item*       nested_property_item(object* n, char* path);
 static properties* nested_properties(object* n, char* path);
 static char*       properties_get_string(properties* op, char* key);
@@ -176,25 +175,19 @@ char* properties_get_string(properties* op, char* key)
 
 char* object_property(object* n, char* path)
 {
-  if(!strcmp(path, "UID")) return n->uid;
-  char* c=strchr(path, ':');
-  if(!c) return properties_get_string(n->properties, path);
-  return nested_property_string(n, path);
+  item* i=object_property_item(n,path);
+  if(!i || i->type!=ITEM_VALUE) return 0;
+  return value_string((value*)i);
 }
 
 item* object_property_item(object* n, char* path)
 {
-  if(!strcmp(path, "UID")) return (item*)value_new(n->uid);
+  if(!strcmp(path, "UID")) return (item*)value_new(n->uid); // leak!
+  if(!strcmp(path, ""))    return (item*)n->properties;
+  if(!strcmp(path, ":"))   return (item*)n->properties;
   char* c=strchr(path, ':');
   if(!c) return properties_get(n->properties, path);
   return nested_property_item(n, path);
-}
-
-char* nested_property_string(object* n, char* path)
-{
-  item* i=nested_property_item(n, path);
-  if(!i || i->type!=ITEM_VALUE) return 0;
-  return value_string((value*)i);
 }
 
 item* nested_property_item(object* n, char* path)
@@ -204,16 +197,9 @@ item* nested_property_item(object* n, char* path)
   *c=0; c++;
   char* uid=properties_get_string(n->properties, p);
   object* o=find_object(uid,n);
-  if(!o) return 0;
-  item* r=object_property_item(o, c);
+  item* r= o? object_property_item(o, c): 0;
   free(p);
   return r;
-}
-
-uint8_t object_properties_size(object* n, char* path)
-{
-  properties* p=object_properties(n, path);
-  return p? properties_size(p): -1;
 }
 
 properties* object_properties(object* n, char* path)
@@ -231,8 +217,7 @@ properties* nested_properties(object* n, char* path)
   *c=0; c++;
   char* uid=properties_get_string(n->properties, p);
   object* o=find_object(uid,n);
-  if(!o) return 0;
-  properties* r=object_properties(o, c);
+  properties* r= o? object_properties(o, c): 0;
   free(p);
   return r;
 }
@@ -253,6 +238,12 @@ object* find_object(char* uid, object* n)
 bool is_uid(char* uid)
 {
   return uid && !strncmp(uid,"uid-",4);
+}
+
+uint8_t object_properties_size(object* n, char* path)
+{
+  properties* p=object_properties(n, path);
+  return p? properties_size(p): -1;
 }
 
 char* object_property_key(object* n, char* path, uint8_t index)

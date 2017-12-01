@@ -92,6 +92,8 @@ bool evaluate_local_state_3(object* n3)
   onex_assert(      object_property_is(    n3, "n2:UID",  "uid-2"),           "can see UID of local object immediately");
   onex_assert(      object_property_is(    n3, "n2:is",   "local-state"),     "can see 'is' of local object immediately");
   onex_assert(      object_property_is(    n3, "n2:state", "good"),           "can see state prop of local object immediately");
+  onex_assert(      object_property_is_value(     n3, "self:n2"),             "property 'n2' is a value (uid)");
+  onex_assert(      object_property_is_properties(n3, "self:n2:"),            "property 'n2:' is a properties");
   onex_assert(      object_properties_size(n3, "self:self:n2:")==2,           "there are two properties at n3:n2:");
   onex_assert(      object_property_is(    n3, "self:UID", "uid-3"),          "can see through link to self");
   onex_assert(     !object_property(       n3, "n2:foo"),                     "can't find n2:foo");
