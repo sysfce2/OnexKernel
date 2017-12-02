@@ -35,7 +35,7 @@ bool list_add(list* li, item* val)
   return true;
 }
 
-bool list_set(list* li, uint8_t index, item* val)
+bool list_set_n(list* li, uint8_t index, item* val)
 {
   if(!li) return false;
   if(index<=0 || index>li->i) return false;
@@ -43,7 +43,7 @@ bool list_set(list* li, uint8_t index, item* val)
   return true;
 }
 
-item* list_get(list* li, uint8_t index)
+item* list_get_n(list* li, uint8_t index)
 {
   if(!li) return 0;
   if(index<=0 || index>li->i) return 0;

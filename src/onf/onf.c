@@ -18,7 +18,6 @@ static object*     find_object(char* uid, object* n);
 static item*       object_property_item(object* n, char* path);
 static item*       nested_property_item(object* n, char* path);
 static properties* nested_properties(object* n, char* path);
-static char*       properties_get_string(properties* op, char* key);
 static bool        is_uid(char* uid);
 static bool        add_observer(object* o, char* notify);
 static void        set_observers(object* o, char* notify);
@@ -165,13 +164,6 @@ void object_set_evaluator(object* n, onex_evaluator evaluator)
   n->evaluator=evaluator;
 }
 
-char* properties_get_string(properties* op, char* key)
-{
-  item* i=properties_get(op, key);
-  if(!i || i->type!=ITEM_VALUE) return 0;
-  return value_string((value*)i);
-}
-
 char* object_property(object* n, char* path)
 {
   item* i=object_property_item(n,path);
@@ -194,7 +186,7 @@ item* nested_property_item(object* n, char* path)
   char* p=strdup(path);
   char* c=strchr(p, ':');
   *c=0; c++;
-  char* uid=properties_get_string(n->properties, p);
+  char* uid=object_property(n, p);
   object* o=find_object(uid,n);
   item* r= o? object_property_item(o, c): 0;
   free(p);
@@ -239,10 +231,17 @@ char* object_property_key(object* n, char* path, uint8_t index)
 
 char* object_property_value(object* n, char* path, uint8_t index)
 {
+  item* i=0;
   item* t=object_property_item(n,path);
-  if(t->type!=ITEM_PROPERTIES) return 0;
-  properties* p=(properties*)t;
-  item* i=properties_get_n(p, index);
+  if(t->type==ITEM_PROPERTIES){
+    i=properties_get_n((properties*)t, index);
+  }else
+  if(t->type==ITEM_LIST){
+    i=list_get_n((list*)t,index);
+  }else
+  if(t->type==ITEM_VALUE){
+    i=(index==1)? t: 0;
+  }
   if(!i || i->type!=ITEM_VALUE) return 0;
   return value_string((value*)i);
 }

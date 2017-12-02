@@ -42,13 +42,20 @@ void test_object_set_up()
   onex_assert(      object_property_is_list(       n1, "state"),         "property 'state' is now a list");
   onex_assert(     !object_property_is_properties( n1, "state"),         "property 'state' is not a properties");
 
-  onex_assert(      object_property_add(     n1, "1", "a"),  "can add new property");
-  onex_assert(      object_property_is_value(n1, "1"),       "property '1' is a value");
-  onex_assert(      object_property_add(     n1, "1", "b"),  "can add another");
-  onex_assert(      object_property_is_list( n1, "1"),       "property '1' is now a list");
-  onex_assert(      object_property_add(     n1, "1", "c"),  "can add a third to existing list");
-  onex_assert(      object_property_is_list( n1, "1"),       "property '1' is still a list");
-  onex_assert(      object_property_size(    n1, "1")==3,    "three items in the list");
+  onex_assert(      object_property_add(     n1, "1", "a"),    "can add new property");
+  onex_assert(      object_property_is_value(n1, "1"),         "property '1' is a value");
+  onex_assert(      object_property_size(    n1, "1")==1,      "one item property");
+  onex_assert_equal(object_property_value(   n1, "1", 1), "a", "1st value in list is 'a'");
+
+  onex_assert(      object_property_add(     n1, "1", "b"),    "can add another");
+  onex_assert(      object_property_is_list( n1, "1"),         "property '1' is now a list");
+  onex_assert(      object_property_size(    n1, "1")==2,      "two items in the list");
+  onex_assert_equal(object_property_value(   n1, "1", 2), "b", "2nd value in list is 'b'");
+
+  onex_assert(      object_property_add(     n1, "1", "c"),    "can add a third to existing list");
+  onex_assert(      object_property_is_list( n1, "1"),         "property '1' is still a list");
+  onex_assert(      object_property_size(    n1, "1")==3,      "three items in the list");
+  onex_assert_equal(object_property_value(   n1, "1", 3), "c", "3rd value in list is 'c'");
 
   onex_assert(      object_property_set(n1, "2", "ok"),      "can set 2 more properties");
   onex_assert(      object_property_is_value(n1, "2"),       "property '1' is a value");
@@ -60,13 +67,13 @@ void test_object_set_up()
   onex_assert(      object_property_is_properties(n1, ":"),  "root path is a properties");
   onex_assert(      object_property_size( n1, ":")==4,      "there are four properties");
 
-  onex_assert_equal(object_property_key(n1, ":", 1), "is",      "key of 1st item is 'is'");
+  onex_assert_equal(object_property_key(  n1, ":", 1), "is",    "key of 1st item is 'is'");
   onex_assert_equal(object_property_value(n1, ":", 1), "setup", "val of 1st item is 'setup'");
-  onex_assert_equal(object_property_key(n1, ":", 2), "state",   "key of 2nd item is 'state'");
+  onex_assert_equal(object_property_key(  n1, ":", 2), "state", "key of 2nd item is 'state'");
   onex_assert(     !object_property_value(n1, ":", 2),          "val of 2nd item is not just a value");
-  onex_assert_equal(object_property_key(n1, ":", 3), "1",       "key of 3rd item is '1'");
+  onex_assert_equal(object_property_key(  n1, ":", 3), "1",     "key of 3rd item is '1'");
   onex_assert(     !object_property_value(n1, ":", 3),          "val of 3rd item is not just a value");
-  onex_assert_equal(object_property_key(n1, ":", 4), "2",       "key of 4th item is '2'");
+  onex_assert_equal(object_property_key(  n1, ":", 4), "2",     "key of 4th item is '2'");
   onex_assert_equal(object_property_value(n1, ":", 4), "ok",    "val of 4th item is 'ok'");
 
   onex_assert(     !object_property_key(n1, ":", 5),            "key of 5th item is 0");
