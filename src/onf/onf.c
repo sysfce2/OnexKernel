@@ -18,7 +18,6 @@ static object*     find_object(char* uid, object* n);
 static item*       object_property_item(object* n, char* path);
 static item*       nested_property_item(object* n, char* path);
 static properties* nested_properties(object* n, char* path);
-static bool        is_uid(char* uid);
 static bool        add_observer(object* o, char* notify);
 static void        set_observers(object* o, char* notify);
 static void        notify_observers(object* n);
