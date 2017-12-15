@@ -190,11 +190,30 @@ item* nested_property_item(object* n, char* path)
   char* p=strdup(path);
   char* c=strchr(p, ':');
   *c=0; c++;
-  char* uid=object_property(n, p);
-  object* o=find_object(uid,n);
-  item* r= o? object_property_item(o, c): 0;
+  item* i=object_property_item(n,p);
+  if(!i){ free(p); return 0; }
+  if(i->type==ITEM_VALUE){
+    char* uid=value_string((value*)i);
+    if(!is_uid(uid)){
+      item* r= !strcmp(c,"1")? i: 0;
+      free(p);
+      return r;
+    }
+    object* o=find_object(uid,n);
+    item* r= o? object_property_item(o, c): 0;
+    free(p);
+    return r;
+  }
+  else
+  if(i->type==ITEM_LIST){
+    char* e;
+    uint32_t index=strtol(c,&e,10);
+    item* r= !(*e)? list_get_n((list*)i,index): 0;
+    free(p);
+    return r;
+  }
   free(p);
-  return r;
+  return 0;
 }
 
 object* find_object(char* uid, object* n)
@@ -232,7 +251,7 @@ uint8_t object_property_size(object* n, char* path)
 char* object_property_key(object* n, char* path, uint8_t index)
 {
   item* t=object_property_item(n,path);
-  if(t->type!=ITEM_PROPERTIES) return 0;
+  if(!(t && t->type==ITEM_PROPERTIES)) return 0;
   properties* p=(properties*)t;
   return properties_key_n(p, index);
 }
@@ -241,6 +260,7 @@ char* object_property_value(object* n, char* path, uint8_t index)
 {
   item* i=0;
   item* t=object_property_item(n,path);
+  if(!t) return 0;
   if(t->type==ITEM_PROPERTIES){
     i=properties_get_n((properties*)t, index);
   }else
@@ -250,7 +270,7 @@ char* object_property_value(object* n, char* path, uint8_t index)
   if(t->type==ITEM_VALUE){
     i=(index==1)? t: 0;
   }
-  if(!i || i->type!=ITEM_VALUE) return 0;
+  if(!(i && i->type==ITEM_VALUE)) return 0;
   return value_string((value*)i);
 }
 

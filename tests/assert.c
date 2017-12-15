@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <onex-kernel/log.h>
 #include <assert.h>
@@ -9,6 +10,8 @@
 
 static uint16_t success=0;
 static uint16_t failure=0;
+
+bool exit_on_fail=true;
 
 bool onex_assert_i(bool condition, const char* fail_message, char* actual, char* expected)
 {
@@ -22,6 +25,7 @@ bool onex_assert_i(bool condition, const char* fail_message, char* actual, char*
   }
   if(expected) log_write("    Expected: [%s]\n",  expected);
   if(actual  ) log_write("    Actual:   [%s]\n",  actual);
+  if(exit_on_fail && !condition){ onex_assert_summary(); log_write("exit on fail!\n-------------\n"); exit(1); }
   return condition;
 }
 

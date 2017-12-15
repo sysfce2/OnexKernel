@@ -14,7 +14,7 @@ typedef struct item {
   item_type type;
 } item;
 
-#define item_is_type(i,t) ((((item*)(i))->type)==(t))
+#define item_is_type(i,t) ((i)&&(((item*)(i))->type)==(t))
 
 typedef struct properties properties;
 typedef struct list       list;
@@ -27,6 +27,7 @@ typedef struct value      value;
 )))
 
 #define item_log(i) do{\
+  if(!i)                              log_write("item_log(null)!\n"); else \
   if(item_is_type(i,ITEM_PROPERTIES)) properties_log((properties*)i); else \
   if(item_is_type(i,ITEM_LIST))       list_log((list*)i); else \
   if(item_is_type(i,ITEM_VALUE))      value_log((value*)i); \
