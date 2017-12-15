@@ -6,11 +6,13 @@
 #include "onp.h"
 
 #include <items.h>
+#include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 #include <onf.h>
 
 // ---------------------------------------------------------------------------------
 
+static object*     object_new_shell(char* uid, char* notify);
 static char*       get_key(char** p);
 static char*       get_val(char** p);
 static void        add_to_cache(object* n);
@@ -31,6 +33,7 @@ typedef struct object {
   onex_evaluator  evaluator;
   properties*     properties;
   char*           notify[OBJECT_MAX_NOTIFIES];
+  uint32_t        last_observe;
   struct object*  next;
 } object;
 
@@ -81,13 +84,15 @@ object* object_new_from(char* text)
   return n;
 }
 
-void object_new_shell(char* uid, char* notify)
+object* object_new_shell(char* uid, char* notify)
 {
   uint8_t max_size=4;
   object* n=(object*)calloc(1,sizeof(object));
   n->uid=uid;
+  n->last_observe = 0;
   add_to_cache(n);
   set_observers(n, notify);
+  return n;
 }
 
 bool object_is_shell(object* o)
@@ -200,8 +205,12 @@ object* find_object(char* uid, object* n)
     add_observer(o,n->uid);
     return o;
   }
-  if(!o) object_new_shell(uid, n->uid);
-  onp_send_observe(uid, "");
+  if(!o) o=object_new_shell(uid, n->uid);
+  uint32_t curtime = time_ms();
+  if(!o->last_observe || curtime > o->last_observe + 1000){
+    o->last_observe = curtime + 1;
+    onp_send_observe(uid, "");
+  }
   return 0;
 }
 
