@@ -208,7 +208,16 @@ item* nested_property_item(object* n, char* path)
   if(i->type==ITEM_LIST){
     char* e;
     uint32_t index=strtol(c,&e,10);
-    item* r= !(*e)? list_get_n((list*)i,index): 0;
+    item* r= ((*e)==0 || (*e)==':')? list_get_n((list*)i,index): 0;
+    if(r){
+      if(r->type==ITEM_VALUE){
+        char* uid=value_string((value*)r);
+        if(is_uid(uid)){
+          object* o=find_object(uid,n);
+          r= o? object_property_item(o, (*e)? e+1: ""): 0;
+        }
+      }
+    }
     free(p);
     return r;
   }
