@@ -124,6 +124,8 @@ bool evaluate_local_state_3(object* n3)
   onex_assert_equal(object_property(       n3, "n*:2:UID"), "uid-2",          "n*:2:UID is uid-2");
   onex_assert_equal(object_property(       n3, "n*:3:UID"), "uid-3",          "n*:3:UID is uid-3");
   onex_assert(     !object_property(       n3, "n*:4:UID"),                   "n*:4:UID is null");
+  onex_assert_equal(object_property(       n3, "n*:1"), "uid-1",              "n*:1 is uid-1");
+  onex_assert_equal(object_property(       n3, "n*:2"), "uid-2",              "n*:2 is uid-2");
   onex_assert_equal(object_property_key(   n3, ":", 2), "n2",                 "key of 2nd item is 'n2'");
   onex_assert_equal(object_property_value( n3, ":", 2), "uid-2",              "val of 1st item is 'uid-2'");
   onex_assert_equal(object_property_key(   n3, "n2:", 1), "is",               "key of 1st item in n2 is 'is'");

@@ -186,7 +186,7 @@ char* object_property(object* n, char* path)
 item* object_property_item(object* n, char* path)
 {
   if(!strcmp(path, "UID")) return (item*)value_new(n->uid); // leak!
-  if(!strcmp(path, ""))    return (item*)n->properties;
+  if(!strcmp(path, ""))    return (item*)n->properties; // ??
   if(!strcmp(path, ":"))   return (item*)n->properties;
   char* c=strchr(path, ':');
   if(!c) return properties_get(n->properties, path);
@@ -220,9 +220,9 @@ item* nested_property_item(object* n, char* path)
     if(r){
       if(r->type==ITEM_VALUE){
         char* uid=value_string((value*)r);
-        if(is_uid(uid)){
+        if(is_uid(uid) && (*e)){
           object* o=find_object(uid,n);
-          r= o? object_property_item(o, (*e)? e+1: ""): 0;
+          r= o? object_property_item(o, e+1): 0;
         }
       }
     }
