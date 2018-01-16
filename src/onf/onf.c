@@ -51,6 +51,7 @@ object* new_object(char* uid, char* is, onex_evaluator evaluator, uint8_t max_si
 
 object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
 {
+  if(object_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
   object* n=new_object(uid, is, evaluator, max_size);
   add_to_cache(n);
   return n;
@@ -100,6 +101,12 @@ bool object_is_shell(object* o)
   return !o->properties && !o->evaluator;
 }
 
+bool object_is_local(char* uid)
+{
+  object* o=object_get_from_cache(uid);
+  return o && o->evaluator;
+}
+
 char* get_key(char** p)
 {
   if(!strlen(*p)) return 0;
@@ -143,6 +150,7 @@ void add_to_cache(object* n)
 
 object* object_get_from_cache(char* uid)
 {
+  if(!uid || !(*uid)) return 0;
   object* o=cache;
   while(o){
     if(!strcmp(o->uid, uid)) return o;

@@ -72,15 +72,18 @@ void object_log(object* n);
 /** true if it's a UID. */
 bool is_uid(char* uid);
 
+/** true if it's a local object (hosted/animated in this Onex). */
+bool object_is_local(char* uid);
+
 // --------------------------------------------------------------------
 
-/** set things up like IPv6. */
+/** set things up. */
 void onex_init();
 
 /** call when you want your evaluator run so you can set some state within a transaction. */
 void onex_run_evaluators(object* n);
 
-/** call this in loop() to give CPU to Objects. */
+/** call this to give CPU to Onex. */
 void onex_loop();
 
 // --------------------------------------------------------------------
