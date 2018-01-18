@@ -46,6 +46,7 @@ item*       properties_get_n(properties* op, uint8_t index);
 uint8_t     properties_size(properties* op);
 char*       properties_to_text(properties* op, char* b, uint8_t s);
 void        properties_log(properties* op);
+item*       properties_delete(properties* op, char* key);
 
 // --------------------------------------------------------------------
 

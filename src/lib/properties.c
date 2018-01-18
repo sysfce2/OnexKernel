@@ -75,6 +75,26 @@ item* properties_get_n(properties* op, uint8_t index)
   return op->vals[index-1];
 }
 
+item* properties_delete(properties* op, char* key)
+{
+  if(!op) return false;
+  item* v=0;
+  int j;
+  for(j=0; j<op->i; j++){
+    if(!strcmp(op->keys[j], key)){
+      v = op->vals[j];
+      break;
+    }
+  }
+  if(j==op->i) return 0;
+  for(; j < op->i-1; j++){
+    op->keys[j] = op->keys[j+1];
+    op->vals[j] = op->vals[j+1];
+  }
+  op->i--;
+  return v;
+}
+
 uint8_t properties_size(properties* op)
 {
   if(!op) return 0;
