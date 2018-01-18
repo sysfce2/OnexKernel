@@ -312,12 +312,13 @@ bool object_property_is_properties(object* n, char* path)
 bool object_property_is(object* n, char* path, char* expected)
 {
   char* v=object_property(n, path);
-  return v && !strcmp(v,expected);
+  return v? !strcmp(v, expected): !expected || !*expected;
 }
 
 bool object_property_set(object* n, char* path, char* value)
 {
   if(strchr(path, ':')) return 0; /* no sub-properties yet */
+  if(!value || !*value){ return !!properties_delete(n->properties, path); }
   bool ok=properties_set(n->properties, path, (item*)value_new(value));
   notify_observers(n);
   return ok;

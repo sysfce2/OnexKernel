@@ -74,7 +74,22 @@ void test_object_set_up()
 
   onex_assert(     !object_property_set(n1, "3", "not ok"),  "can't set 3 more properties");
   onex_assert(     !object_property_set(n1, "4", "not ok"),  "can't set 4 more properties");
-  onex_assert(     !object_property_is_value(n1, "4"),       "property '4' is not a value");
+
+  onex_assert(     !object_property(         n1, "4"),       "empty property returns null");
+  onex_assert(      object_property_is(      n1, "4", ""),   "empty property is empty");
+  onex_assert(     !object_property_is_value(n1, "4"),       "empty property is not a value");
+
+  onex_assert(      object_property_set(     n1, "2", ""),   "can set property to empty");
+  onex_assert(     !object_property(         n1, "2"),       "empty property returns null");
+  onex_assert(      object_property_is(      n1, "2", 0),    "empty property is empty");
+  onex_assert(     !object_property_is_value(n1, "2"),       "empty property is not a value");
+  onex_assert(      object_property_set(     n1, "2", "ok"), "can set empty property back");
+
+  onex_assert(      object_property_set(     n1, "2", 0),    "can set property to null");
+  onex_assert(     !object_property(         n1, "2"),       "empty property returns null");
+  onex_assert(      object_property_is(      n1, "2", ""),   "empty property is empty");
+  onex_assert(     !object_property_is_value(n1, "2"),       "empty property is not a value");
+  onex_assert(      object_property_set(     n1, "2", "ok"), "can set empty property back");
 
   onex_assert(      object_property_is_properties(n1, ":"),  "root path is a properties");
   onex_assert(      object_property_size( n1, ":")==4,      "there are four properties");
