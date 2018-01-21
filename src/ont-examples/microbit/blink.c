@@ -27,7 +27,7 @@ int main()
 
   serial_printf("Type 'o' or 'i'\n");
   for(;;){
-    serial_printf("%dms %d %d\n", time_ms(), speed, random_byte());
+    serial_printf("%dms %d %d\n", time_ms(), speed, random_ish_byte());
     for(uint8_t l=0; l<LEDS_NUMBER; l++){ gpio_toggle(leds_list[l]); time_delay_ms(speed); }
   }
 }

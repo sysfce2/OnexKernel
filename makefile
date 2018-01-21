@@ -44,6 +44,7 @@ UNIX_C_SOURCE_FILES = \
 ./src/platforms/unix/channel-serial.c \
 ./src/platforms/unix/log.c \
 ./src/platforms/unix/time.c \
+./src/platforms/unix/random.c \
 
 
 BLINKY_C_SOURCE_FILES = \

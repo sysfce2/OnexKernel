@@ -17,3 +17,6 @@ uint8_t random_byte()
   random_value = NRF_RNG->VALUE;
   return random_value;
 }
+
+uint8_t random_ish_byte(){ return random_byte(); }
+
