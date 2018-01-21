@@ -6,7 +6,6 @@
 extern "C" {
 #include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
-#include <onex-kernel/random.h>
 #include <onf.h>
 #include <assert.h>
 extern void run_properties_tests();
@@ -24,7 +23,6 @@ bool evaluate_button(object* button)
   char* s=(char*)(button_pressed? "down": "up");
   object_property_set(button, (char*)"state", s);
   log_write("evaluate_button: "); object_log(button);
-  log_write("random number test: %d\n", random_ish_byte());
   return true;
 }
 
@@ -86,6 +84,7 @@ public:
     time_init();
     onex_init();
 
+    time_delay_s(1);
     log_write("---------------OnexKernel tests----------------------\n");
 
     run_properties_tests();
@@ -99,7 +98,7 @@ public:
 
     log_write("\n------Starting Button Test-----\n");
 
-    button=object_new((char*)"uid-1-2-3", (char*)"button", evaluate_button, 4);
+    button=object_new(0, (char*)"button", evaluate_button, 4);
 
     int lasttime=0;
 
