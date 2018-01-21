@@ -256,6 +256,8 @@ microbit.blinky: blinky.microbit
 	$(OBJCOPY) -O ihex $(BUILD_DIRECTORY)/$(OUTPUT_FILENAME).out $(BUILD_DIRECTORY)/$(OUTPUT_FILENAME).hex
 	$(SIZE) $(BUILD_DIRECTORY)/$(OUTPUT_FILENAME).out
 	cp build/$(OUTPUT_FILENAME).hex /media/duncan/MICROBIT/
+	sleep 2
+	miniterm.py -e --eol CR /dev/ttyACM0 9600
 
 ############################################################################################
 
