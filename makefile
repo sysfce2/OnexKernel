@@ -110,7 +110,7 @@ tests.linux: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLU
 tests.linux: CC=/usr/bin/gcc
 tests.linux: LD=/usr/bin/gcc
 tests.linux: TARGET=TARGET_LINUX
-light.linux: CHANNELS=-DONP_CHANNEL_SERIAL
+tests.linux: CHANNELS=-DONP_CHANNEL_SERIAL
 tests.linux: libOnexKernel.a ${TESTS_OBJECTS:.c=.o}
 	$(LD) -static ${TESTS_OBJECTS:.c=.o} -L. -lOnexKernel -o $@
 
