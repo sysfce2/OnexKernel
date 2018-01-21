@@ -36,6 +36,7 @@ NRF51_C_SOURCE_FILES = \
 ./src/platforms/nrf51/log.c \
 ./src/platforms/nrf51/gpio.c \
 ./src/platforms/nrf51/time.c \
+./src/platforms/nrf51/random.c \
 
 
 UNIX_C_SOURCE_FILES = \
