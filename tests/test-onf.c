@@ -19,6 +19,15 @@ bool evaluate_setup(object* n1)
 
 void test_object_set_up()
 {
+  object* nr=object_new(0, "random uid", 0, 4);
+  char* random_uid_1 = object_property(nr, "UID");
+  nr=object_new(0, "random uid", 0, 4);
+  char* random_uid_2 = object_property(nr, "UID");
+
+  onex_assert(      strlen(random_uid_1)==23,                "UID generation returns long string");
+  onex_assert(      strlen(random_uid_2)==23,                "UID generation returns long string");
+  onex_assert(      strcmp(random_uid_1, random_uid_2),      "UID generation creates unique UIDs");
+
   object* n1=object_new("uid-1", "setup", evaluate_setup, 4);
 
   onex_assert(      n1,                                      "object_new created an object");

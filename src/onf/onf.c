@@ -8,10 +8,12 @@
 #include <items.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
+#include <onex-kernel/random.h>
 #include <onf.h>
 
 // ---------------------------------------------------------------------------------
 
+static char*       generate_uid();
 static object*     object_new_shell(char* uid, char* notify);
 static char*       get_key(char** p);
 static char*       get_val(char** p);
@@ -42,11 +44,23 @@ object* cache=0;
 object* new_object(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
 {
   object* n=(object*)calloc(1,sizeof(object));
-  n->uid=uid;
+  n->uid=uid? uid: generate_uid();
   n->properties=properties_new(max_size);
   properties_set(n->properties, "is", (item*)value_new(is));
   n->evaluator=evaluator;
   return n;
+}
+
+char* generate_uid()
+{
+  char b[24];
+  snprintf(b, 24, "uid-%02x%02x-%02x%02x-%02x%02x-%02x%02x",
+    random_ish_byte(), random_ish_byte(),
+    random_ish_byte(), random_ish_byte(),
+    random_ish_byte(), random_ish_byte(),
+    random_ish_byte(), random_ish_byte()
+  );
+  return strdup(b);
 }
 
 object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
