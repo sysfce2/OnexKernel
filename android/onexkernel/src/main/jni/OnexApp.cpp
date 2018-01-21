@@ -6,6 +6,7 @@
 extern "C" {
 #include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
+#include <onex-kernel/random.h>
 #include <onf.h>
 #include <assert.h>
 extern void run_properties_tests();
@@ -23,6 +24,7 @@ bool evaluate_button(object* button)
   char* s=(char*)(button_pressed? "down": "up");
   object_property_set(button, (char*)"state", s);
   log_write("evaluate_button: "); object_log(button);
+  log_write("random number test: %d\n", random_ish_byte());
   return true;
 }
 

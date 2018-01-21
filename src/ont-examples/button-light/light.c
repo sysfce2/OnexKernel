@@ -4,6 +4,7 @@
 #endif
 #include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
+#include <onex-kernel/random.h>
 #include <onf.h>
 
 object* light;
@@ -39,6 +40,7 @@ bool evaluate_light(object* light)
   char* s=(char*)(buttonpressed? "on": "off");
   object_property_set(light, "light", s);
   log_write("evaluate_light: "); object_log(light);
+  log_write("random number test: %d\n", random_ish_byte());
   return true;
 }
 
