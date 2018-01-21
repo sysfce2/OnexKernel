@@ -9,10 +9,10 @@
 
 static volatile uint16_t speed = 128;
 
-static void serial_received(uint8_t ch)
+static void serial_received(char* ch)
 {
-  if(ch=='o') speed/=2;
-  if(ch=='i') speed*=2;
+  if(*ch=='o') speed/=2;
+  if(*ch=='i') speed*=2;
   if(!speed)  speed=1;
 }
 
