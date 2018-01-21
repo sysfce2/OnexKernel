@@ -6,6 +6,7 @@
 #include <onex-kernel/gpio.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/serial.h>
+#include <onex-kernel/random.h>
 
 static volatile uint16_t speed = 128;
 
@@ -26,7 +27,7 @@ int main()
 
   serial_printf("Type 'o' or 'i'\n");
   for(;;){
-    serial_printf("%dms %d\n", time_ms(), speed);
+    serial_printf("%dms %d %d\n", time_ms(), speed, random_byte());
     for(uint8_t l=0; l<LEDS_NUMBER; l++){ gpio_toggle(leds_list[l]); time_delay_ms(speed); }
   }
 }
