@@ -344,6 +344,16 @@ bool object_property_set(object* n, char* path, char* val)
   }
   if(!val || !*val){
     bool ok=false; /* delete in list */
+    char p[128]; memcpy(p, path, strlen(path)+1);
+    char* c=strchr(p, ':');
+    *c=0; c++;
+    item* i=object_property_item(n,p);
+    if(!i) return 0;
+    if(i->type!=ITEM_LIST) return 0;
+    list* l=(list*)i;
+    char* e;
+    uint32_t index=strtol(c,&e,10);
+    ok=list_del_n(l, index);
     if(ok) notify_observers(n);
     return ok;
   }
