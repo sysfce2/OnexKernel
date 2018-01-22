@@ -41,6 +41,19 @@ void test_list()
 
   onex_assert_equal(item_to_text(li, buf, 128), "y 5 +", "serialise to string works");
 
+  onex_assert(                   list_del_n(li,2),                       "can delete 2nd item");
+  onex_assert(                   list_size( li)==2,                      "size now 2");
+  onex_assert_equal(item_to_text(li, buf, 128), "y +", "serialise to string works");
+
+  onex_assert(                   list_del_n(li,2),                       "can delete 2nd item");
+  onex_assert(                   list_size( li)==1,                      "size now 1");
+  onex_assert_equal(item_to_text(li, buf, 128), "y", "serialise to string works");
+
+  onex_assert(                   list_del_n(li,1),                       "can delete 1st item");
+  onex_assert(                   list_size( li)==0,                      "size now 0");
+
+  onex_assert_equal(item_to_text(li, buf, 128), "", "serialise to string works");
+
                     list_log(li);
 }
 

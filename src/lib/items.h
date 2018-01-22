@@ -56,6 +56,7 @@ list*   list_new(uint8_t max_size);
 bool    list_add(list* li, item* val);
 bool    list_set_n(list* li, uint8_t index, item* val);
 item*   list_get_n(list* li, uint8_t index);
+item*   list_del_n(list* li, uint8_t index);
 uint8_t list_size(list* li);
 char*   list_to_text(list* li, char* b, uint8_t s);
 void    list_log(list* li);

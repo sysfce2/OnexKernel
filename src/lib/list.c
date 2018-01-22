@@ -50,6 +50,19 @@ item* list_get_n(list* li, uint8_t index)
   return li->vals[index-1];
 }
 
+item* list_del_n(list* li, uint8_t index)
+{
+  if(!li) return 0;
+  if(index<=0 || index>li->i) return 0;
+  int j=index-1;
+  item* v=li->vals[j];
+  for(; j < li->i-1; j++){
+    li->vals[j] = li->vals[j+1];
+  }
+  li->i--;
+  return v;
+}
+
 uint8_t list_size(list* li)
 {
   if(!li) return 0;
@@ -58,7 +71,8 @@ uint8_t list_size(list* li)
 
 char* list_to_text(list* li, char* b, uint8_t s)
 {
-  if(!li){ *b = 0; return b; }
+  *b=0;
+  if(!li || !li->i) return b;
   int ln=0;
   int j;
   for(j=0; j<li->i; j++){
