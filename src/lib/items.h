@@ -66,6 +66,7 @@ void    list_log(list* li);
 
 value* value_new(char*);
 char*  value_string(value* v);
+bool   value_set(value* v, char*);
 void   value_log(value* v);
 char*  value_to_text(value* v, char* b, uint8_t s);
 

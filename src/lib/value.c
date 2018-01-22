@@ -12,11 +12,11 @@ typedef struct value {
   char*  val;
 } value;
 
-value* value_new(char* vs)
+value* value_new(char* val)
 {
   value* v=(value*)calloc(1,sizeof(value));
   v->type=ITEM_VALUE;
-  v->val=vs;
+  v->val=val;
   return v;
 }
 
@@ -24,6 +24,12 @@ char* value_string(value* v)
 {
   if(!v) return 0;
   return v->val;
+}
+
+bool value_set(value* v, char* val)
+{
+  v->val=val;
+  return true;
 }
 
 char* value_to_text(value* v, char* b, uint8_t s)
