@@ -331,9 +331,39 @@ bool object_property_is(object* n, char* path, char* expected)
 
 bool object_property_set(object* n, char* path, char* val)
 {
-  if(strchr(path, ':')) return 0; // no sub-properties yet
-  if(!val || !*val){ return !!properties_delete(n->properties, path); }
-  bool ok=properties_set(n->properties, path, (item*)value_new(val));
+  char* c=strchr(path, ':');
+  if(!c){
+    if(!val || !*val){
+      bool ok=!!properties_delete(n->properties, path);
+      if(ok) notify_observers(n);
+      return ok;
+    }
+    bool ok=properties_set(n->properties, path, (item*)value_new(val));
+    if(ok) notify_observers(n);
+    return ok;
+  }
+  if(!val || !*val){
+    bool ok=false; /* delete in list */
+    if(ok) notify_observers(n);
+    return ok;
+  }
+  item* i=nested_property_item(n, path);
+  if(!i) return false;
+  bool ok=false;
+  switch(i->type){
+    case ITEM_VALUE: {
+      ok=value_set((value*)i, val);
+      break;
+    }
+    case ITEM_LIST: {
+      return false;
+      break;
+    }
+    case ITEM_PROPERTIES: {
+      return false;
+      break;
+    }
+  }
   if(ok) notify_observers(n);
   return ok;
 }
