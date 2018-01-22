@@ -178,9 +178,13 @@ void test_local_state()
   onex_assert(      object_property_set(    n3, "n*", "uid-1"),    "can set uid-1 in n*");
   onex_assert(      object_property_add(    n3, "n*", "uid-2"),    "can add uid-2 to n*");
   onex_assert(      object_property_add(    n3, "n*", "uid-3"),    "can add uid-3 to n*");
+  onex_assert(     !object_property_add(    n3, "n*", ""),         "can't add empty to n*");
+  onex_assert(     !object_property_add(    n3, "n*", 0),          "can't add empty to n*");
   onex_assert(      object_property_add(    n3, "n*", "uid-4"),    "can add uid-4 to n*");
+  onex_assert(      object_property_add(    n3, "n*", "uid-5"),    "can add uid-5 to n*");
+  onex_assert(     !object_property_add(    n3, "n*", "uid-6"),    "can't add uid-6 to n*");
   onex_assert(      object_property_is_list(n3, "n*"),             "n* is a list");
-  onex_assert(      object_property_size(   n3, "n*")==4,          "there are 4 items in n*");
+  onex_assert(      object_property_size(   n3, "n*")==5,          "there are 5 items in n*");
   onex_assert_equal(object_property_value(  n3, "n*", 1), "uid-1", "1st item in n* list is uid-1");
   onex_assert_equal(object_property_value(  n3, "n*", 2), "uid-2", "2nd item in n* list is uid-2");
   onex_assert_equal(object_property_value(  n3, "n*", 3), "uid-3", "3rd item in n* list is uid-3");
@@ -234,9 +238,9 @@ void test_to_text()
   object* n2=object_get_from_cache("uid-2");
   object* n3=object_get_from_cache("uid-3");
 
-  onex_assert_equal(object_to_text(n1,textbuff,TEXTBUFFLEN), "UID: uid-1 Notify: uid-3 is: setup state: good mostly 1: a B c 2: ok",                       "converts uid-1 to correct text");
-  onex_assert_equal(object_to_text(n2,textbuff,TEXTBUFFLEN), "UID: uid-2 Notify: uid-3 is: local-state state: better",                                     "converts uid-2 to correct text");
-  onex_assert_equal(object_to_text(n3,textbuff,TEXTBUFFLEN), "UID: uid-3 Notify: uid-3 is: local-state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4", "converts uid-3 to correct text");
+  onex_assert_equal(object_to_text(n1,textbuff,TEXTBUFFLEN), "UID: uid-1 Notify: uid-3 is: setup state: good mostly 1: a B c 2: ok",                             "converts uid-1 to correct text");
+  onex_assert_equal(object_to_text(n2,textbuff,TEXTBUFFLEN), "UID: uid-2 Notify: uid-3 is: local-state state: better",                                           "converts uid-2 to correct text");
+  onex_assert_equal(object_to_text(n3,textbuff,TEXTBUFFLEN), "UID: uid-3 Notify: uid-3 is: local-state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5", "converts uid-3 to correct text");
 }
 
 // ---------------------------------------------------------------------------------

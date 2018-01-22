@@ -371,6 +371,7 @@ bool object_property_set(object* n, char* path, char* val)
 bool object_property_add(object* n, char* path, char* val)
 {
   if(strchr(path, ':')) return false; // no sub-properties yet
+  if(!val || !*val) return 0;
   item* i=properties_get(n->properties, path);
   bool ok=true;
   if(!i){
@@ -379,7 +380,7 @@ bool object_property_add(object* n, char* path, char* val)
   else
   switch(i->type){
     case ITEM_VALUE: {
-      list* l=list_new(5);
+      list* l=list_new(5); //!!
       ok=ok && list_add(l,i);
       ok=ok && list_add(l,(item*)value_new(val));
       ok=ok && properties_set(n->properties, path, (item*)l);
