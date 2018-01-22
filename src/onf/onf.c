@@ -329,35 +329,35 @@ bool object_property_is(object* n, char* path, char* expected)
   return v? !strcmp(v, expected): !expected || !*expected;
 }
 
-bool object_property_set(object* n, char* path, char* value)
+bool object_property_set(object* n, char* path, char* val)
 {
-  if(strchr(path, ':')) return 0; /* no sub-properties yet */
-  if(!value || !*value){ return !!properties_delete(n->properties, path); }
-  bool ok=properties_set(n->properties, path, (item*)value_new(value));
-  notify_observers(n);
+  if(strchr(path, ':')) return 0; // no sub-properties yet
+  if(!val || !*val){ return !!properties_delete(n->properties, path); }
+  bool ok=properties_set(n->properties, path, (item*)value_new(val));
+  if(ok) notify_observers(n);
   return ok;
 }
 
-bool object_property_add(object* n, char* path, char* value)
+bool object_property_add(object* n, char* path, char* val)
 {
-  if(strchr(path, ':')) return false; /* no sub-properties yet */
+  if(strchr(path, ':')) return false; // no sub-properties yet
   item* i=properties_get(n->properties, path);
   bool ok=true;
   if(!i){
-    ok=properties_set(n->properties, path, (item*)value_new(value));
+    ok=properties_set(n->properties, path, (item*)value_new(val));
   }
   else
   switch(i->type){
     case ITEM_VALUE: {
       list* l=list_new(5);
       ok=ok && list_add(l,i);
-      ok=ok && list_add(l,(item*)value_new(value));
+      ok=ok && list_add(l,(item*)value_new(val));
       ok=ok && properties_set(n->properties, path, (item*)l);
       break;
     }
     case ITEM_LIST: {
       list* l=(list*)i;
-      ok=ok && list_add(l,(item*)value_new(value));
+      ok=ok && list_add(l,(item*)value_new(val));
       break;
     }
     case ITEM_PROPERTIES: {
@@ -365,7 +365,7 @@ bool object_property_add(object* n, char* path, char* value)
       break;
     }
   }
-  notify_observers(n);
+  if(ok) notify_observers(n);
   return ok;
 }
 

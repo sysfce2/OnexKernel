@@ -34,10 +34,10 @@ object* object_get_from_cache(char* uid);
 void object_set_evaluator(object* n, onex_evaluator evaluator);
 
 /** set property value. */
-bool  object_property_set(object* n, char* path, char* value);
+bool  object_property_set(object* n, char* path, char* val);
 
 /** add property value to list, or make a list. */
-bool  object_property_add(object* n, char* path, char* value);
+bool  object_property_add(object* n, char* path, char* val);
 
 /** return property value. */
 char* object_property(object* n, char* path);
