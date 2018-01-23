@@ -385,6 +385,9 @@ bool nested_property_delete(object* n, char* path)
       }
       break;
     }
+    case ITEM_PROPERTIES: {
+      break;
+    }
   }
   if(ok) notify_observers(n);
   return ok;
