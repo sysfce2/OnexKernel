@@ -24,6 +24,10 @@ void test_object_set_up()
   nr=object_new(0, "random uid", 0, 4);
   char* random_uid_2 = object_property(nr, "UID");
 
+  onex_assert(      object_property_is_list(nr, "is"),             "property 'is' is a list");
+  onex_assert_equal(object_property(        nr, "is:1"), "random", "object_new parses 'is' first list item" );
+  onex_assert(      object_property_is(     nr, "is:2",  "uid"),   "object_new parses 'is' second list item" );
+
   onex_assert(      strlen(random_uid_1)==23,                "UID generation returns long string");
   onex_assert(      strlen(random_uid_2)==23,                "UID generation returns long string");
   onex_assert(      strcmp(random_uid_1, random_uid_2),      "UID generation creates unique UIDs");

@@ -49,7 +49,7 @@ object* new_object(char* uid, char* is, onex_evaluator evaluator, uint8_t max_si
   object* n=(object*)calloc(1,sizeof(object));
   n->uid=uid? uid: generate_uid();
   n->properties=properties_new(max_size);
-  if(is) properties_set(n->properties, "is", (item*)value_new(is));
+  if(is) set_value_or_list(n, "is", is);
   n->evaluator=evaluator;
   return n;
 }
