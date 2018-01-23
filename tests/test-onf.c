@@ -119,7 +119,11 @@ void test_object_set_up()
   onex_assert(     !object_property(         n1, "2"),       "empty property returns null");
   onex_assert(      object_property_is(      n1, "2", ""),   "empty property is empty");
   onex_assert(     !object_property_is_value(n1, "2"),       "empty property is not a value");
-  onex_assert(      object_property_set(     n1, "2", "ok"), "can set empty property back");
+
+  onex_assert(      object_property_set(     n1, "2", "ok m8"), "can set property to two items");
+  onex_assert(      object_property_is_list( n1, "2"),          "property '2' is a list");
+  onex_assert(      object_property_is(      n1, "2:1", "ok"),  "list items are correct");
+  onex_assert(      object_property_is(      n1, "2:2", "m8"),  "list items are correct");
 
   onex_assert(      object_property_is_properties(n1, ":"),  "root path is a properties");
   onex_assert(      object_property_size( n1, ":")==4,      "there are four properties");
@@ -131,7 +135,7 @@ void test_object_set_up()
   onex_assert_equal(object_property_key(  n1, ":", 3), "1",     "key of 3rd item is '1'");
   onex_assert(     !object_property_value(n1, ":", 3),          "val of 3rd item is not just a value");
   onex_assert_equal(object_property_key(  n1, ":", 4), "2",     "key of 4th item is '2'");
-  onex_assert_equal(object_property_value(n1, ":", 4), "ok",    "val of 4th item is 'ok'");
+  onex_assert(     !object_property_value(n1, ":", 4),          "val of 4th item is not just a value");
 
   onex_assert(     !object_property_key(n1, ":", 5),            "key of 5th item is 0");
   onex_assert(     !object_property_value(n1, ":", 5),          "val of 5th item is 0");
@@ -257,7 +261,7 @@ void test_to_text()
   object* n2=object_get_from_cache("uid-2");
   object* n3=object_get_from_cache("uid-3");
 
-  onex_assert_equal(object_to_text(n1,textbuff,TEXTBUFFLEN), "UID: uid-1 Notify: uid-3 is: setup state: good mostly 1: a c 2: ok",                               "converts uid-1 to correct text");
+  onex_assert_equal(object_to_text(n1,textbuff,TEXTBUFFLEN), "UID: uid-1 Notify: uid-3 is: setup state: good mostly 1: a c 2: ok m8",                            "converts uid-1 to correct text");
   onex_assert_equal(object_to_text(n2,textbuff,TEXTBUFFLEN), "UID: uid-2 Notify: uid-3 is: local-state state: better",                                           "converts uid-2 to correct text");
   onex_assert_equal(object_to_text(n3,textbuff,TEXTBUFFLEN), "UID: uid-3 Notify: uid-3 is: local-state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5", "converts uid-3 to correct text");
 }
@@ -287,7 +291,7 @@ void test_from_text()
   object_set_evaluator(n1, evaluate_remote_notify_1);
   object_set_evaluator(n2, evaluate_remote_notify_2);
 
-  char* text="UID: uid-4 Notify: uid-1 uid-2 is: remote-state n3: uid-3";
+  char* text="UID: uid-4 Notify: uid-1 uid-2 is: remote state n3: uid-3";
   object* n4=object_new_from(strdup(text));
 
   onex_assert(      !!n4,                                         "input text was parsed into an object");
@@ -296,7 +300,8 @@ void test_from_text()
   onex_assert_equal(object_to_text(n4,textbuff,TEXTBUFFLEN),text, "gives same text back from reconstruction");
 
   onex_assert(      object_property_is( n4, "UID", "uid-4"),       "object_new_from parses uid");
-  onex_assert_equal(object_property(    n4, "is"), "remote-state", "object_new_from parses 'is'" );
+  onex_assert_equal(object_property(    n4, "is:1"), "remote",     "object_new_from parses 'is' first list item" );
+  onex_assert_equal(object_property(    n4, "is:2"), "state",      "object_new_from parses 'is' second list item" );
   onex_assert_equal(object_property(    n4, "n3"), "uid-3",        "object_new_from parses properties" );
 
                     object_property_set(n4, "state", "good");

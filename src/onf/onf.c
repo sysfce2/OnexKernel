@@ -24,6 +24,7 @@ static item*       nested_property_item(object* n, char* path);
 static bool        nested_property_set(object* n, char* path, char* val);
 static bool        nested_property_delete(object* n, char* path);
 static properties* nested_properties(object* n, char* path);
+static bool        set_value_or_list(object* n, char* path, char* val);
 static bool        add_observer(object* o, char* notify);
 static void        set_observers(object* o, char* notify);
 static void        notify_observers(object* n);
@@ -48,7 +49,7 @@ object* new_object(char* uid, char* is, onex_evaluator evaluator, uint8_t max_si
   object* n=(object*)calloc(1,sizeof(object));
   n->uid=uid? uid: generate_uid();
   n->properties=properties_new(max_size);
-  properties_set(n->properties, "is", (item*)value_new(is));
+  if(is) properties_set(n->properties, "is", (item*)value_new(is));
   n->evaluator=evaluator;
   return n;
 }
@@ -87,15 +88,13 @@ object* object_new_from(char* text)
     if(!strcmp(key,"UID")    && strlen(val)){ uid=val;    free(key); }
     else
     if(!strcmp(key,"Notify") && strlen(val)){ notify=val; free(key); }
-    else
-    if(!strcmp(key,"is")     && strlen(val)){ is=val;     free(key); }
     else {
       if(!n && !uid && !is) return 0;
       if(!n){
-        n=new_object(uid, is, 0, max_size);
+        n=new_object(uid, 0, 0, max_size);
         set_observers(n, notify);
       }
-      if(!properties_set(n->properties, key, (item*)value_new(val))) break;
+      if(!set_value_or_list(n, key, val)) break;
     }
   }
   return n;
@@ -333,7 +332,25 @@ bool object_property_set(object* n, char* path, char* val)
     if(ok) notify_observers(n);
     return ok;
   }
-  bool ok=properties_set(n->properties, path, (item*)value_new(val));
+  return set_value_or_list(n, path, val);
+}
+
+bool set_value_or_list(object* n, char* path, char* val)
+{
+  bool ok=false;
+  if(!strchr(val, ' ')){
+    ok=properties_set(n->properties, path, (item*)value_new(val));
+  }
+  else{
+    list* l=list_new(5); //!!
+    char v[128]; memcpy(v, val, strlen(val)+1);
+    char* t=strtok(v, " ");
+    while(t) {
+      list_add(l,(item*)value_new(strdup(t)));
+      t=strtok(0, " ");
+    }
+    ok=properties_set(n->properties, path, (item*)l);
+  }
   if(ok) notify_observers(n);
   return ok;
 }
