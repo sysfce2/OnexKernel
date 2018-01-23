@@ -62,7 +62,7 @@ void test_object_set_up()
   onex_assert(      object_property_add(     n1, "1", "b"),    "can add another");
   onex_assert(      object_property_is_list( n1, "1"),         "property '1' is now a list");
   onex_assert(      object_property_size(    n1, "1")==2,      "two items in the list");
-  onex_assert_equal(object_property_value(   n1, "1", 2), "b", "2nd value in list is 'b'");
+  onex_assert_equal(object_property_value(   n1, "1", 2), "b", "2nd value in list is 'b' by index");
   onex_assert(     !object_property(         n1, "1:0"),       "0th value in list is null");
   onex_assert_equal(object_property(         n1, "1:1"), "a",  "1st value in list is 'a'");
   onex_assert_equal(object_property(         n1, "1:2"), "b",  "2nd value in list is 'b'");
@@ -79,9 +79,25 @@ void test_object_set_up()
   onex_assert(     !object_property(         n1, "1:4"),       "4th value in list is null");
 
   onex_assert(      object_property_set(     n1, "1:2", "B"),  "can set 2nd value in list");
+  onex_assert_equal(object_property(         n1, "1:2"), "B",  "2nd value in list is 'B'");
   onex_assert(     !object_property_set(     n1, "1:4", "X"),  "can't set 4th value in list");
+
   onex_assert(      object_property_set(     n1, "1:2", ""),   "can set 2nd value in list to empty to delete");
   onex_assert(      object_property_size(    n1, "1")==2,      "now two items in the list");
+  onex_assert(      object_property_is_list( n1, "1"),         "property '1' is still a list");
+
+  onex_assert(      object_property_set(     n1, "1:2", 0),    "can set 2nd value in list to null to delete");
+  onex_assert(      object_property_size(    n1, "1")==1,      "now one item in the list");
+  onex_assert(      object_property_is_value(n1, "1"),         "property '1' is now a value");
+  onex_assert_equal(object_property(         n1, "1"), "a",    "property '1' is 'a'");
+
+  onex_assert(      object_property_set(     n1, "1:1", ""),   "can set 1st value in 'list' to empty to delete");
+  onex_assert(      object_property_size(    n1, "1")==0,      "now no property");
+  onex_assert(     !object_property(         n1, "1"),         "now no such property");
+  onex_assert(     !object_property_is_value(n1, "1"),         "property '1' is not a value");
+
+  onex_assert(      object_property_set(     n1, "1", "a"),    "can set property back");
+  onex_assert(      object_property_add(     n1, "1", "c"),    "and another");
 
   onex_assert(      object_property_set(n1, "2", "ok"),      "can set 2 more properties");
   onex_assert(      object_property_is_value(n1, "2"),       "property '1' is a value");
