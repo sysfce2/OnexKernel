@@ -24,7 +24,7 @@ static item*       nested_property_item(object* n, char* path);
 static bool        nested_property_set(object* n, char* path, char* val);
 static bool        nested_property_delete(object* n, char* path);
 static properties* nested_properties(object* n, char* path);
-static bool        set_value_or_list(object* n, char* path, char* val);
+static bool        set_value_or_list(object* n, char* path, char* val, bool notify);
 static bool        add_observer(object* o, char* notify);
 static void        set_observers(object* o, char* notify);
 static void        notify_observers(object* n);
@@ -49,7 +49,7 @@ object* new_object(char* uid, char* is, onex_evaluator evaluator, uint8_t max_si
   object* n=(object*)calloc(1,sizeof(object));
   n->uid=uid? uid: generate_uid();
   n->properties=properties_new(max_size);
-  if(is) set_value_or_list(n, "is", is);
+  if(is) set_value_or_list(n, "is", is, false);
   n->evaluator=evaluator;
   return n;
 }
@@ -94,7 +94,7 @@ object* object_new_from(char* text)
         n=new_object(uid, 0, 0, max_size);
         set_observers(n, notify);
       }
-      if(!set_value_or_list(n, key, val)) break;
+      if(!set_value_or_list(n, key, val, false)) break;
     }
   }
   return n;
@@ -332,10 +332,10 @@ bool object_property_set(object* n, char* path, char* val)
     if(ok) notify_observers(n);
     return ok;
   }
-  return set_value_or_list(n, path, val);
+  return set_value_or_list(n, path, val, true);
 }
 
-bool set_value_or_list(object* n, char* path, char* val)
+bool set_value_or_list(object* n, char* path, char* val, bool notify)
 {
   bool ok=false;
   if(!strchr(val, ' ')){
@@ -351,7 +351,7 @@ bool set_value_or_list(object* n, char* path, char* val)
     }
     ok=properties_set(n->properties, path, (item*)l);
   }
-  if(ok) notify_observers(n);
+  if(ok && notify) notify_observers(n);
   return ok;
 }
 
