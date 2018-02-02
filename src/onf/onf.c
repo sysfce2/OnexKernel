@@ -13,6 +13,10 @@
 
 // ---------------------------------------------------------------------------------
 
+#define MAX_LIST_SIZE 64
+
+// ---------------------------------------------------------------------------------
+
 static char*       generate_uid();
 static object*     object_new_shell(char* uid, char* notify);
 static char*       get_key(char** p);
@@ -342,12 +346,12 @@ bool set_value_or_list(object* n, char* path, char* val, bool notify)
     ok=properties_set(n->properties, path, (item*)value_new(val));
   }
   else{
-    list* l=list_new(5); //!!
-    char v[128]; memcpy(v, val, strlen(val)+1);
-    char* t=strtok(v, " ");
+    list* l=list_new(MAX_LIST_SIZE);
+    char v[strlen(val)+1]; memcpy(v, val, strlen(val)+1);
+    char* t=strtok(v, " \n");
     while(t) {
       list_add(l,(item*)value_new(strdup(t)));
-      t=strtok(0, " ");
+      t=strtok(0, " \n");
     }
     ok=properties_set(n->properties, path, (item*)l);
   }
@@ -422,7 +426,7 @@ bool object_property_add(object* n, char* path, char* val)
   else
   switch(i->type){
     case ITEM_VALUE: {
-      list* l=list_new(5); //!!
+      list* l=list_new(MAX_LIST_SIZE);
       ok=ok && list_add(l,i);
       ok=ok && list_add(l,(item*)value_new(val));
       ok=ok && properties_set(n->properties, path, (item*)l);
