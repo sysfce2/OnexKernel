@@ -34,6 +34,7 @@ static void        set_observers(object* o, char* notify);
 static void        notify_observers(object* n);
 static void        show_notifies(object* o);
 static void        call_all_evaluators();
+static bool        object_is_shell(object* o);
 
 // ---------------------------------
 
@@ -48,16 +49,6 @@ typedef struct object {
 
 object* cache=0;
 
-object* new_object(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
-{
-  object* n=(object*)calloc(1,sizeof(object));
-  n->uid=uid? uid: generate_uid();
-  n->properties=properties_new(max_size);
-  if(is) set_value_or_list(n, "is", is, false);
-  n->evaluator=evaluator;
-  return n;
-}
-
 char* generate_uid()
 {
   char b[24];
@@ -70,21 +61,21 @@ char* generate_uid()
   return strdup(b);
 }
 
-object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
+object* new_object(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
 {
-  if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
-  object* n=new_object(uid, is, evaluator, max_size);
-  add_to_cache(n);
+  object* n=(object*)calloc(1,sizeof(object));
+  n->uid=uid? uid: generate_uid();
+  n->properties=properties_new(max_size);
+  if(is) set_value_or_list(n, "is", is, false);
+  n->evaluator=evaluator;
   return n;
 }
 
-object* object_new_from(char* text)
+object* new_object_from(char* text, onex_evaluator evaluator, uint8_t max_size)
 {
   object* n=0;
   char* uid=0;
   char* notify=0;
-  char* is=0;
-  uint8_t max_size=4;
   char* p=text;
   while(true){
     char* key=get_key(&p); if(!key) break;
@@ -93,7 +84,6 @@ object* object_new_from(char* text)
     else
     if(!strcmp(key,"Notify") && strlen(val)){ notify=val; free(key); }
     else {
-      if(!n && !uid && !is) return 0;
       if(!n){
         n=new_object(uid, 0, 0, max_size);
         set_observers(n, notify);
@@ -101,6 +91,24 @@ object* object_new_from(char* text)
       if(!set_value_or_list(n, key, val, false)) break;
     }
   }
+  n->evaluator=evaluator;
+  return n;
+}
+
+object* object_new_from(char* text, onex_evaluator evaluator, uint8_t max_size)
+{
+  object* n=new_object_from(text, evaluator, max_size);
+  char* uid=object_property(n, "UID");
+  if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
+  add_to_cache(n);
+  return n;
+}
+
+object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
+{
+  if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
+  object* n=new_object(uid, is, evaluator, max_size);
+  add_to_cache(n);
   return n;
 }
 
@@ -577,7 +585,7 @@ void recv_observe(char* b, char* from)
 
 void recv_object(char* text)
 {
-  object* n=object_new_from(text);
+  object* n=new_object_from(text, 0,4);
   if(!n) return;
   object* s=onex_get_from_cache(n->uid);
   if(!s) return;

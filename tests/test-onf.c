@@ -176,7 +176,7 @@ bool evaluate_local_state_3(object* n3)
   onex_assert_equal(object_property(       n3, "n*:1:UID"), "uid-1",          "n*:1:UID is uid-1");
   onex_assert_equal(object_property(       n3, "n*:2:UID"), "uid-2",          "n*:2:UID is uid-2");
   onex_assert_equal(object_property(       n3, "n*:3:UID"), "uid-3",          "n*:3:UID is uid-3");
-  onex_assert(     !object_property(       n3, "n*:4:UID"),                   "n*:4:UID is null");
+  onex_assert(     !object_property(       n3, "n*:5:UID"),                   "n*:5:UID is null");
   onex_assert_equal(object_property(       n3, "n*:1"), "uid-1",              "n*:1 is uid-1");
   onex_assert_equal(object_property(       n3, "n*:2"), "uid-2",              "n*:2 is uid-2");
   onex_assert_equal(object_property_key(   n3, ":", 2), "n2",                 "key of 2nd item is 'n2'");
@@ -296,20 +296,30 @@ void test_from_text()
   object_set_evaluator(n2, evaluate_remote_notify_2);
 
   char* text="UID: uid-4 Notify: uid-1 uid-2 is: remote state n3: uid-3";
-  object* n4=object_new_from(strdup(text));
-
-  onex_assert(      !!n4,                                         "input text was parsed into an object");
+  object* n4=object_new_from(strdup(text), 0, 4);
+  onex_assert(      !!n4,                                              "input text was parsed into an object");
   if(!n4) return;
 
-  onex_assert_equal(object_to_text(n4,textbuff,TEXTBUFFLEN),text, "gives same text back from reconstruction");
+  onex_assert_equal(object_to_text(n4,textbuff,TEXTBUFFLEN), text,     "gives same text back from reconstruction");
 
-  onex_assert(      object_property_is( n4, "UID", "uid-4"),       "object_new_from parses uid");
-  onex_assert_equal(object_property(    n4, "is:1"), "remote",     "object_new_from parses 'is' first list item" );
-  onex_assert_equal(object_property(    n4, "is:2"), "state",      "object_new_from parses 'is' second list item" );
-  onex_assert_equal(object_property(    n4, "n3"), "uid-3",        "object_new_from parses properties" );
+  onex_assert(      object_property_is( n4, "UID", "uid-4"),           "object_new_from parses uid");
+  onex_assert_equal(object_property(    n4, "is:1"), "remote",         "object_new_from parses 'is' first list item" );
+  onex_assert_equal(object_property(    n4, "is:2"), "state",          "object_new_from parses 'is' second list item" );
+  onex_assert_equal(object_property(    n4, "n3"), "uid-3",            "object_new_from parses properties" );
 
                     object_property_set(n4, "state", "good");
-  onex_assert(      object_property_is( n4, "state", "good"),      "object_new_from creates usable object");
+  onex_assert(      object_property_is( n4, "state", "good"),          "object_new_from creates usable object");
+
+  text="Notify: uid-1 uid-2 is: remote state n3: uid-3";
+  n4=object_new_from(strdup(text), 0, 4);
+  onex_assert(      !!n4,                                              "input text was parsed into an object");
+  if(!n4) return;
+  char* n4uid=object_property(n4, "UID");
+
+  char fulltext[128]; snprintf(fulltext, 128, "UID: %s %s", n4uid, text);
+  onex_assert_equal(object_to_text(n4,textbuff,TEXTBUFFLEN), fulltext, "gives same text back from reconstruction");
+
+  onex_assert_equal(object_property(    n4, "n3:is"), "local-state",   "object_new_from creates usable object" );
 }
 
 // ---------------------------------------------------------------------------------
