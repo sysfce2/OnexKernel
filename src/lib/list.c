@@ -77,6 +77,7 @@ char* list_to_text(list* li, char* b, uint8_t s)
   int j;
   for(j=0; j<li->i; j++){
     ln+=strlen(item_to_text(li->vals[j], b+ln, s-ln));
+    if(ln>=s){ *b = 0; return b; }
     if(j!=li->i-1) ln+=snprintf(b+ln, s-ln, " ");
     if(ln>=s){ *b = 0; return b; }
   }

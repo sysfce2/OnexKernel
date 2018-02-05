@@ -110,7 +110,9 @@ char* properties_to_text(properties* op, char* b, uint8_t s)
   if(ln>=s){ *b = 0; return b; }
   for(j=0; j<op->i; j++){
     ln+=snprintf(b+ln, s-ln, "  %s: ", op->keys[j]);
+    if(ln>=s){ *b = 0; return b; }
     ln+=strlen(item_to_text(op->vals[j], b+ln, s-ln));
+    if(ln>=s){ *b = 0; return b; }
     ln+=snprintf(b+ln, s-ln, "\n");
     if(ln>=s){ *b = 0; return b; }
   }
