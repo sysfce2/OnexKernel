@@ -209,7 +209,7 @@ void test_local_state()
   onex_assert(     !object_property_add(    n3, "n*", 0),          "can't add empty to n*");
   onex_assert(      object_property_add(    n3, "n*", "uid-4"),    "can add uid-4 to n*");
   onex_assert(      object_property_add(    n3, "n*", "uid-5"),    "can add uid-5 to n*");
-  onex_assert(     !object_property_add(    n3, "n*", "uid-6"),    "can't add uid-6 to n*");
+//onex_assert(     !object_property_add(    n3, "n*", "uid-6"),    "can't add uid-6 to n*");
   onex_assert(      object_property_is_list(n3, "n*"),             "n* is a list");
   onex_assert(      object_property_size(   n3, "n*")==5,          "there are 5 items in n*");
   onex_assert_equal(object_property_value(  n3, "n*", 1), "uid-1", "1st item in n* list is uid-1");
@@ -339,6 +339,8 @@ void run_onf_tests()
   onex_assert(      evaluate_local_notify_3_called,     "evaluate_local_notify_3 was called");
   onex_assert(      evaluate_remote_notify_1_called,    "evaluate_remote_notify_1 was called");
   onex_assert(      evaluate_remote_notify_2_called,    "evaluate_remote_notify_2 was called");
+
+  onex_show_cache();
 }
 
 // ---------------------------------------------------------------------------------

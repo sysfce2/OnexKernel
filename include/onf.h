@@ -86,6 +86,9 @@ void onex_run_evaluators(object* n);
 /** call this to give CPU to Onex. */
 void onex_loop();
 
+/** log out all the objects in the cache. */
+void onex_show_cache();
+
 // --------------------------------------------------------------------
 
 #endif

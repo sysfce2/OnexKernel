@@ -178,18 +178,6 @@ object* object_get_from_cache(char* uid)
   return 0;
 }
 
-void show_cache()
-{
-  log_write("+-----------cache dump------------\n");
-  char buff[128];
-  object* o=cache;
-  while(o){
-    log_write("| %s\n", object_to_text(o,buff,128));
-    o=o->next;
-  }
-  log_write("+---------------------------------\n");
-}
-
 void object_set_evaluator(object* n, onex_evaluator evaluator)
 {
   n->evaluator=evaluator;
@@ -554,6 +542,18 @@ void onex_loop()
 {
   if(first_time){ first_time=false; call_all_evaluators(); }
   onp_loop();
+}
+
+void onex_show_cache()
+{
+  log_write("+-----------cache dump------------\n");
+  char buff[128];
+  object* o=cache;
+  while(o){
+    log_write("| %s\n", object_to_text(o,buff,128));
+    o=o->next;
+  }
+  log_write("+---------------------------------\n");
 }
 
 void call_all_evaluators()
