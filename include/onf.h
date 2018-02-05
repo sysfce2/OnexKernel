@@ -27,9 +27,6 @@ object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_si
 /** create a new Object from text. */
 object* object_new_from(char* text);
 
-/** get the given Object from the cache. */
-object* object_get_from_cache(char* uid);
-
 /** re-set evaluator callback. */
 void object_set_evaluator(object* n, onex_evaluator evaluator);
 
@@ -85,6 +82,9 @@ void onex_run_evaluators(object* n);
 
 /** call this to give CPU to Onex. */
 void onex_loop();
+
+/** get the given Object from the cache. */
+object* onex_get_from_cache(char* uid);
 
 /** log out all the objects in the cache. */
 void onex_show_cache();

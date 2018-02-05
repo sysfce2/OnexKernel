@@ -72,7 +72,7 @@ char* generate_uid()
 
 object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
 {
-  if(object_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
+  if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
   object* n=new_object(uid, is, evaluator, max_size);
   add_to_cache(n);
   return n;
@@ -122,7 +122,7 @@ bool object_is_shell(object* o)
 
 bool object_is_local(char* uid)
 {
-  object* o=object_get_from_cache(uid);
+  object* o=onex_get_from_cache(uid);
   return o && o->evaluator;
 }
 
@@ -167,7 +167,7 @@ void add_to_cache(object* n)
   }
 }
 
-object* object_get_from_cache(char* uid)
+object* onex_get_from_cache(char* uid)
 {
   if(!uid || !(*uid)) return 0;
   object* o=cache;
@@ -240,7 +240,7 @@ item* nested_property_item(object* n, char* path)
 object* find_object(char* uid, object* n)
 {
   if(!is_uid(uid)) return 0;
-  object* o=object_get_from_cache(uid);
+  object* o=onex_get_from_cache(uid);
   if(o && !object_is_shell(o)){
     add_observer(o,n->uid);
     return o;
@@ -471,7 +471,7 @@ void notify_observers(object* o)
     if(!o->notify[i]) continue;
     char* notify = o->notify[i];
     if(is_uid(notify)){
-      object* n=object_get_from_cache(notify);
+      object* n=onex_get_from_cache(notify);
       if(n && n->evaluator) n->evaluator(n);
     }
     else{
@@ -569,7 +569,7 @@ void recv_observe(char* b, char* from)
 {
   char* uid=strchr(b,':')+2;
   char* u=uid; while(*u > ' ') u++; *u=0;
-  object* o=object_get_from_cache(uid);
+  object* o=onex_get_from_cache(uid);
   if(!o) return;
   add_observer(o,from);
   onp_send_object(o,from);
@@ -579,7 +579,7 @@ void recv_object(char* text)
 {
   object* n=object_new_from(text);
   if(!n) return;
-  object* s=object_get_from_cache(n->uid);
+  object* s=onex_get_from_cache(n->uid);
   if(!s) return;
   s->properties = n->properties;
   notify_observers(s);
