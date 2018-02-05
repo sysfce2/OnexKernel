@@ -519,6 +519,7 @@ char* object_to_text(object* n, char* b, uint8_t s)
   properties* p=n->properties;
   for(j=1; j<=properties_size(p); j++){
     ln+=snprintf(b+ln, s-ln, " %s: ", properties_key_n(p,j));
+    if(ln>=s){ *b = 0; return b; }
     item* i=properties_get_n(p,j);
     ln+=strlen(item_to_text(i, b+ln, s-ln));
     if(ln>=s){ *b = 0; return b; }
