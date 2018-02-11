@@ -220,7 +220,7 @@ item* nested_property_item(object* n, char* path)
   if(i->type==ITEM_VALUE){
     char* uid=value_string((value*)i);
     if(!is_uid(uid)){
-      item* r= !strcmp(c,"1")? i: 0;
+      item* r= !strcmp(c,"1") || !strcmp(c,"1:")? i: 0;
       return r;
     }
     object* o=find_object(uid,n);
@@ -267,14 +267,24 @@ bool is_uid(char* uid)
   return uid && !strncmp(uid,"uid-",4);
 }
 
-uint8_t object_property_size(object* n, char* path)
+uint16_t object_property_length(object* n, char* path)
 {
   item* i=object_property_item(n,path);
-  if(!i) return 0;
-  if(i->type==ITEM_VALUE)      return 1;
-  if(i->type==ITEM_LIST)       return list_size((list*)i);
-  if(i->type==ITEM_PROPERTIES) return properties_size((properties*)i);
+  if(i){
+    if(i->type==ITEM_VALUE) return 1;
+    if(i->type==ITEM_PROPERTIES) return 1;
+    if(i->type==ITEM_LIST)  return list_size((list*)i);
+  }
   return 0;
+}
+
+int8_t object_property_size(object* n, char* path)
+{
+  item* i=object_property_item(n,path);
+  if(i){
+    if(i->type==ITEM_PROPERTIES) return properties_size((properties*)i);
+  }
+  return -1;
 }
 
 char* object_property_key(object* n, char* path, uint8_t index)
@@ -297,24 +307,6 @@ char* object_property_value(object* n, char* path, uint8_t index)
   }
   if(!(i && i->type==ITEM_VALUE)) return 0;
   return value_string((value*)i);
-}
-
-bool object_property_is_value(object* n, char* path)
-{
-  item* i=object_property_item(n,path);
-  return i && i->type == ITEM_VALUE;
-}
-
-bool object_property_is_list(object* n, char* path)
-{
-  item* i=object_property_item(n,path);
-  return i && i->type == ITEM_LIST;
-}
-
-bool object_property_is_properties(object* n, char* path)
-{
-  item* i=object_property_item(n,path);
-  return i && i->type == ITEM_PROPERTIES;
 }
 
 bool object_property_is(object* n, char* path, char* expected)

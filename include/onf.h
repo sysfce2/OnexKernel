@@ -39,26 +39,20 @@ bool  object_property_add(object* n, char* path, char* val);
 /** return property value. */
 char* object_property(object* n, char* path);
 
-/** return whether property at path is a value and it matches supplied string. */
+/** return whether property at path is a single value and it matches supplied string. */
 bool  object_property_is(object* n, char* path, char* expected);
 
-/** return how many properties there are at a path. */
-uint8_t object_property_size(object* n, char* path);
+/** return how many items there are at a path. */
+uint16_t object_property_length(object* n, char* path);
+
+/** return how many properties there are at a path, or -1 if it's not a properties there. */
+int8_t object_property_size(object* n, char* path);
 
 /** return property key at path and index. */
 char* object_property_key(object* n, char* path, uint8_t index);
 
 /** return property value at path and index. */
 char* object_property_value(object* n, char* path, uint8_t index);
-
-/** return whether property at path is a value. */
-bool  object_property_is_value(object* n, char* path);
-
-/** return whether property at path is a list. */
-bool  object_property_is_list(object* n, char* path);
-
-/** return whether property at path is a (sub)properties. */
-bool  object_property_is_properties(object* n, char* path);
 
 /** object to text; supply your own buffer, b, of length s */
 char* object_to_text(object* n, char* b, uint8_t s);

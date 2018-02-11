@@ -19,6 +19,7 @@ typedef struct properties {
 
 properties* properties_new(uint8_t max_size)
 {
+  if(max_size > 128) return 0;
   properties* op=(properties*)calloc(1,sizeof(properties));
   op->type=ITEM_PROPERTIES;
   op->max_size=max_size;
