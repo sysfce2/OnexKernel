@@ -48,6 +48,9 @@ bool  object_property_is(object* n, char* path, char* expected);
 /** return how many items there are at a path. */
 uint16_t object_property_length(object* n, char* path);
 
+/** return property value at path and index into list. */
+char* object_property_get_n(object* n, char* path, uint8_t index);
+
 /** return how many properties there are at a path, or -1 if it's not a properties there. */
 int8_t object_property_size(object* n, char* path);
 

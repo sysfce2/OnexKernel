@@ -28,6 +28,7 @@ void test_object_set_up()
   onex_assert_equal(object_property(        nr, "is"), "random uid", "object_new parses 'is' first list item" );
   onex_assert_equal(object_property_values( nr, "is"), "random uid", "object_new parses 'is' first list item" );
   onex_assert_equal(object_property(        nr, "is:1"), "random", "object_new parses 'is' first list item" );
+  onex_assert_equal(object_property_get_n(  nr, "is", 1),"random", "object_new parses 'is' first list item passing index" );
   onex_assert_equal(object_property_values( nr, "is:1"), "random", "object_new parses 'is' first list item" );
   onex_assert(      object_property_is(     nr, "is:2",  "uid"),   "object_new parses 'is' second list item" );
   onex_assert_equal(object_property_values( nr, "is:1:"), "random", "object_new parses 'is' first list item" );
@@ -67,6 +68,9 @@ void test_object_set_up()
   onex_assert_equal(object_property(         n1, "1:1:"), "a", "1st value in list can be found by path-indexing and is 'a'");
   onex_assert(     !object_property(         n1, "1:2"),       "2nd value in list by path index is null");
   onex_assert(     !object_property(         n1, "1:0"),       "0th value in list by path index is null");
+  onex_assert_equal(object_property_get_n(   n1, "1", 1), "a", "1st value in list can be found by index and is 'a'");
+  onex_assert(     !object_property_get_n(   n1, "1", 2),      "2nd value in list by index is null");
+  onex_assert(     !object_property_get_n(   n1, "1", 0),      "0th value in list by index is null");
   onex_assert(     !object_property_val(     n1, "1", 1),      "1st value in list can't be found by indexing which is for properties only");
   // UID: uid-1  is: setup  state: good  1: a b
   onex_assert(      object_property_add(     n1, "1", "b"),    "can add another");
@@ -79,6 +83,12 @@ void test_object_set_up()
   onex_assert_equal(object_property(         n1, "1:1:"), "a", "1st value in list is 'a'");
   onex_assert_equal(object_property(         n1, "1:2:"), "b", "2nd value in list is 'b'");
   onex_assert(     !object_property(         n1, "1:3"),       "3rd value in list is null");
+  onex_assert(     !object_property_get_n(   n1, "1", 0),       "0th value in list is null");
+  onex_assert_equal(object_property_get_n(   n1, "1", 1), "a",  "1st value in list is 'a'");
+  onex_assert_equal(object_property_get_n(   n1, "1", 2), "b",  "2nd value in list is 'b'");
+  onex_assert_equal(object_property_get_n(   n1, "1:", 1), "a", "1st value in list is 'a'");
+  onex_assert_equal(object_property_get_n(   n1, "1:", 2), "b", "2nd value in list is 'b'");
+  onex_assert(     !object_property_get_n(   n1, "1", 3),       "3rd value in list is null");
   onex_assert(     !object_property(         n1, "1:four"),    "four-th value in list is null");
   // UID: uid-1  is: setup  state: good  1: a b c
   onex_assert(      object_property_add(     n1, "1", "c"),    "can add a third to existing list");
@@ -194,6 +204,8 @@ bool evaluate_local_state_3(object* n3)
   onex_assert(     !object_property(       n3, "n*:5:UID"),                   "n*:5:UID is null");
   onex_assert_equal(object_property(       n3, "n*:1"), "uid-1",              "n*:1 is uid-1");
   onex_assert_equal(object_property(       n3, "n*:2"), "uid-2",              "n*:2 is uid-2");
+  onex_assert_equal(object_property_get_n( n3, "n*", 1), "uid-1",             "n*:1 is uid-1");
+  onex_assert_equal(object_property_get_n( n3, "n*", 2), "uid-2",             "n*:2 is uid-2");
   onex_assert_equal(object_property_key(   n3, ":", 2), "n2",                 "key of 2nd item is 'n2'");
   onex_assert_equal(object_property_val(   n3, ":", 2), "uid-2",              "val of 1st item is 'uid-2'");
   onex_assert_equal(object_property_key(   n3, "n2:", 1), "is",               "key of 1st item in n2 is 'is'");
@@ -236,8 +248,8 @@ void test_local_state()
   onex_assert(      object_property_length( n3, "n*")==5,          "there are 5 items in n*");
   onex_assert_equal(object_property(        n3, "n*:1"), "uid-1",  "n*:1 is uid-1");
   onex_assert_equal(object_property(        n3, "n*:2"), "uid-2",  "n*:2 is uid-2");
-  onex_assert_equal(object_property(        n3, "n*:3"), "uid-3",  "n*:3 is uid-3");
-  onex_assert_equal(object_property(        n3, "n*:4"), "uid-4",  "n*:4 is uid-4");
+  onex_assert_equal(object_property_get_n(  n3, "n*", 3), "uid-3", "n*:3 is uid-3");
+  onex_assert_equal(object_property_get_n(  n3, "n*", 4), "uid-4", "n*:4 is uid-4");
 }
 
 // ---------------------------------------------------------------------------------

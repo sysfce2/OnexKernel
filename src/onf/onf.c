@@ -316,6 +316,20 @@ uint16_t object_property_length(object* n, char* path)
   return 0;
 }
 
+char* object_property_get_n(object* n, char* path, uint8_t index)
+{
+  item* v=0;
+  item* i=object_property_item(n,path);
+  if(!i) return 0;
+  switch(i->type){
+    case ITEM_LIST: { v=list_get_n((list*)i,index); break; }
+    case ITEM_VALUE: { if(index==1) v=i; break; }
+    case ITEM_PROPERTIES: break;
+  }
+  if(!(v && v->type==ITEM_VALUE)) return 0;
+  return value_string((value*)v);
+}
+
 int8_t object_property_size(object* n, char* path)
 {
   item* i=object_property_item(n,path);
