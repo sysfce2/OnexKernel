@@ -257,13 +257,16 @@ item* nested_property_item(object* n, char* path)
   if(!i) return 0;
   if(i->type==ITEM_VALUE){
     char* uid=value_string((value*)i);
-    if(!is_uid(uid)){
-      item* r= !strcmp(c,"1") || !strcmp(c,"1:")? i: 0;
-      return r;
+    bool looksLikeItIsIndexedOne=(*c=='1');
+    if(looksLikeItIsIndexedOne){
+      if(strlen(c)==1) return i;
+      c+=2; // skip '1:' to next bit
     }
-    object* o=find_object(uid,n);
-    item* r= o? object_property_item(o, c): 0;
-    return r;
+    if(is_uid(uid)){
+      object* o=find_object(uid,n);
+      return o? object_property_item(o, c): 0;
+    }
+    return 0;
   }
   if(i->type==ITEM_LIST){
     char* e;

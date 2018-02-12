@@ -182,7 +182,12 @@ bool evaluate_local_state_3(object* n3)
   // UID: uid-2  is: local-state  state: good
   // UID: uid-3  is: local-state  n2: uid-2  self: uid-3  n* uid-1 uid-2 uid-3 uid-4 uid-5
   onex_assert(     !object_property(       n3, "is:foo"),                     "can't find is:foo");
-  onex_assert(      object_property_is(    n3, "n2:UID",  "uid-2"),           "can see UID of local object immediately");
+  onex_assert(      object_property_is(    n3, "n2", "uid-2"),                "can see UID of local object immediately: n2");
+  onex_assert(      object_property_is(    n3, "n2:", "uid-2"),               "can see UID of local object immediately: n2:");
+  onex_assert(      object_property_is(    n3, "n2:1", "uid-2"),              "can see UID of local object immediately: n2:1");
+  onex_assert(      object_property_is(    n3, "n2:1:", "uid-2"),             "can see UID of local object immediately: n2:1:");
+  onex_assert(      object_property_is(    n3, "n2:UID", "uid-2"),            "can see UID of local object immediately: n2:UID");
+  onex_assert(      object_property_is(    n3, "n2:1:UID", "uid-2"),          "can see UID of local object immediately: n2:1:UID");
   onex_assert(      object_property_is(    n3, "n2:is",   "local-state"),     "can see 'is' of local object immediately");
   onex_assert(      object_property_is(    n3, "n2:state", "good"),           "can see state prop of local object immediately");
   onex_assert(     !object_property(       n3, "n2:foo"),                     "can't find n2:foo");
@@ -198,14 +203,16 @@ bool evaluate_local_state_3(object* n3)
   onex_assert(      object_property_size(  n3, "self:self:n2")==2,            "there are two properties at n3:n2:");
   onex_assert(      object_property_length(n3, "n*")==5,                      "property 'n*' is a list of 5 values/uids");
   onex_assert(      object_property_length(n3, "n*:")==5,                     "property 'n*:' is a list of 5 values/uids");
+//onex_assert_equal(object_property(       n3, "n*:UID"), "uid-1 uid-2..",    "n*:UID is uid-1 uid-2.. (one day)");
   onex_assert_equal(object_property(       n3, "n*:1:UID"), "uid-1",          "n*:1:UID is uid-1");
   onex_assert_equal(object_property(       n3, "n*:2:UID"), "uid-2",          "n*:2:UID is uid-2");
   onex_assert_equal(object_property(       n3, "n*:3:UID"), "uid-3",          "n*:3:UID is uid-3");
   onex_assert(     !object_property(       n3, "n*:5:UID"),                   "n*:5:UID is null");
   onex_assert_equal(object_property(       n3, "n*:1"), "uid-1",              "n*:1 is uid-1");
+  onex_assert_equal(object_property(       n3, "n*:1:"), "uid-1",             "n*:1: is uid-1");
   onex_assert_equal(object_property(       n3, "n*:2"), "uid-2",              "n*:2 is uid-2");
-  onex_assert_equal(object_property_get_n( n3, "n*", 1), "uid-1",             "n*:1 is uid-1");
-  onex_assert_equal(object_property_get_n( n3, "n*", 2), "uid-2",             "n*:2 is uid-2");
+  onex_assert_equal(object_property_get_n( n3, "n*", 1), "uid-1",             "n*,1 is uid-1");
+  onex_assert_equal(object_property_get_n( n3, "n*", 2), "uid-2",             "n*,2 is uid-2");
   onex_assert_equal(object_property_key(   n3, ":", 2), "n2",                 "key of 2nd item is 'n2'");
   onex_assert_equal(object_property_val(   n3, ":", 2), "uid-2",              "val of 1st item is 'uid-2'");
   onex_assert_equal(object_property_key(   n3, "n2:", 1), "is",               "key of 1st item in n2 is 'is'");

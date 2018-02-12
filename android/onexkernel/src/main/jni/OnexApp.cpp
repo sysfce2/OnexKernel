@@ -84,7 +84,7 @@ public:
     time_init();
     onex_init();
 
-    time_delay_s(1);
+    time_delay_s(4);
     log_write("---------------OnexKernel tests----------------------\n");
 
     run_properties_tests();
