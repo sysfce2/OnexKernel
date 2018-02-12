@@ -354,7 +354,7 @@ char* object_property_key(object* n, char* path, uint8_t index)
   return k;
 }
 
-char* object_property_value(object* n, char* path, uint8_t index)
+char* object_property_val(object* n, char* path, uint8_t index)
 {
   item* v=0;
   item* i=object_property_item(n,path);

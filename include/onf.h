@@ -51,11 +51,11 @@ uint16_t object_property_length(object* n, char* path);
 /** return how many properties there are at a path, or -1 if it's not a properties there. */
 int8_t object_property_size(object* n, char* path);
 
-/** return property key at path and index. */
+/** return property key at path and index into properties. */
 char* object_property_key(object* n, char* path, uint8_t index);
 
-/** return property value at path and index. */
-char* object_property_value(object* n, char* path, uint8_t index);
+/** return property value at path and index into properties. */
+char* object_property_val(object* n, char* path, uint8_t index);
 
 /** object to text; supply your own buffer, b, of length s */
 char* object_to_text(object* n, char* b, uint16_t s);
