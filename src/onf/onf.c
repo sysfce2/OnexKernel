@@ -492,7 +492,7 @@ void show_notifies(object* o)
 
 // ------------------------------------------------------
 
-char* object_to_text(object* n, char* b, uint8_t s)
+char* object_to_text(object* n, char* b, uint16_t s)
 {
   if(!n){ *b = 0; return b; }
 

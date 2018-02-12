@@ -32,7 +32,7 @@ bool value_set(value* v, char* val)
   return true;
 }
 
-char* value_to_text(value* v, char* b, uint8_t s)
+char* value_to_text(value* v, char* b, uint16_t s)
 {
   if(!v){ *b = 0; return b; }
   int ln=snprintf(b,s,"%s",v->val);

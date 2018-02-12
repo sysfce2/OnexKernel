@@ -102,7 +102,7 @@ uint8_t properties_size(properties* op)
   return op->i;
 }
 
-char* properties_to_text(properties* op, char* b, uint8_t s)
+char* properties_to_text(properties* op, char* b, uint16_t s)
 {
   if(!op){ *b = 0; return b; }
   int ln=0;

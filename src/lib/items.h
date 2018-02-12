@@ -44,7 +44,7 @@ item*       properties_get(properties* op, char* key);
 char*       properties_key_n(properties* op, uint8_t index);
 item*       properties_get_n(properties* op, uint8_t index);
 uint8_t     properties_size(properties* op);
-char*       properties_to_text(properties* op, char* b, uint8_t s);
+char*       properties_to_text(properties* op, char* b, uint16_t s);
 void        properties_log(properties* op);
 item*       properties_delete(properties* op, char* key);
 
@@ -52,14 +52,14 @@ item*       properties_delete(properties* op, char* key);
 
 /* List. */
 
-list*   list_new(uint8_t max_size);
-bool    list_add(list* li, item* val);
-bool    list_set_n(list* li, uint8_t index, item* val);
-item*   list_get_n(list* li, uint8_t index);
-item*   list_del_n(list* li, uint8_t index);
-uint8_t list_size(list* li);
-char*   list_to_text(list* li, char* b, uint8_t s);
-void    list_log(list* li);
+list*    list_new(uint16_t max_size);
+bool     list_add(list* li, item* val);
+bool     list_set_n(list* li, uint16_t index, item* val);
+item*    list_get_n(list* li, uint16_t index);
+item*    list_del_n(list* li, uint16_t index);
+uint16_t list_size(list* li);
+char*    list_to_text(list* li, char* b, uint16_t s);
+void     list_log(list* li);
 
 // --------------------------------------------------------------------
 
@@ -69,7 +69,7 @@ value* value_new(char*);
 char*  value_string(value* v);
 bool   value_set(value* v, char*);
 void   value_log(value* v);
-char*  value_to_text(value* v, char* b, uint8_t s);
+char*  value_to_text(value* v, char* b, uint16_t s);
 
 // --------------------------------------------------------------------
 

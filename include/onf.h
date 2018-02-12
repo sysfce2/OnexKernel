@@ -39,6 +39,7 @@ bool  object_property_add(object* n, char* path, char* val);
 /** return property value. */
 char* object_property(object* n, char* path);
 
+
 /** return whether property at path is a single value and it matches supplied string. */
 bool  object_property_is(object* n, char* path, char* expected);
 
@@ -55,7 +56,7 @@ char* object_property_key(object* n, char* path, uint8_t index);
 char* object_property_value(object* n, char* path, uint8_t index);
 
 /** object to text; supply your own buffer, b, of length s */
-char* object_to_text(object* n, char* b, uint8_t s);
+char* object_to_text(object* n, char* b, uint16_t s);
 
 /** log out the object */
 void object_log(object* n);

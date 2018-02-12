@@ -73,7 +73,7 @@ static void handle_recv(char* buff, int size, char* from, uint16_t* fromip)
   if(size>=5 && !strncmp(buff,"UID: ",5)) recv_object(strdup(buff));
 }
 
-char* object_to_text(object* n, char* b, uint8_t s);
+char* object_to_text(object* n, char* b, uint16_t s);
 static void send(char* buff, char* to);
 
 void onp_send_observe(char* uid, char* to)

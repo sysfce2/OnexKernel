@@ -11,12 +11,12 @@
 
 typedef struct list {
   item_type type;
-  uint8_t max_size;
+  uint16_t max_size;
   item**  vals;
-  uint8_t i;
+  uint16_t i;
 } list;
 
-list* list_new(uint8_t max_size)
+list* list_new(uint16_t max_size)
 {
   list* li=(list*)calloc(1,sizeof(list));
   li->type=ITEM_LIST;
@@ -35,7 +35,7 @@ bool list_add(list* li, item* val)
   return true;
 }
 
-bool list_set_n(list* li, uint8_t index, item* val)
+bool list_set_n(list* li, uint16_t index, item* val)
 {
   if(!li) return false;
   if(index<=0 || index>li->i) return false;
@@ -43,14 +43,14 @@ bool list_set_n(list* li, uint8_t index, item* val)
   return true;
 }
 
-item* list_get_n(list* li, uint8_t index)
+item* list_get_n(list* li, uint16_t index)
 {
   if(!li) return 0;
   if(index<=0 || index>li->i) return 0;
   return li->vals[index-1];
 }
 
-item* list_del_n(list* li, uint8_t index)
+item* list_del_n(list* li, uint16_t index)
 {
   if(!li) return 0;
   if(index<=0 || index>li->i) return 0;
@@ -63,13 +63,13 @@ item* list_del_n(list* li, uint8_t index)
   return v;
 }
 
-uint8_t list_size(list* li)
+uint16_t list_size(list* li)
 {
   if(!li) return 0;
   return li->i;
 }
 
-char* list_to_text(list* li, char* b, uint8_t s)
+char* list_to_text(list* li, char* b, uint16_t s)
 {
   *b=0;
   if(!li || !li->i) return b;
