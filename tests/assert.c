@@ -21,10 +21,11 @@ bool onex_assert_i(bool condition, const char* fail_message, char* actual, char*
   }
   else {
     failure++;
-    log_write("%d **** Failed to ensure %s\n",  success+failure, fail_message);
+    log_write("%d **** Failed to ensure %s ********\n",  success+failure, fail_message);
   }
   if(expected) log_write("    Expected: [%s]\n",  expected);
   if(actual  ) log_write("    Actual:   [%s]\n",  actual);
+  log_write("-------------\n");
   if(exit_on_fail && !condition){ onex_assert_summary(); log_write("exit on fail!\n-------------\n"); exit(1); }
   return condition;
 }

@@ -238,11 +238,14 @@ char* object_property_values(object* n, char* path)
 item* object_property_item(object* n, char* path)
 {
   if(!strcmp(path, "UID")) return (item*)value_new(n->uid); // leak!
-  if(!strcmp(path, ""))    return (item*)n->properties; // ??
+  if(!strcmp(path, ""))    return (item*)n->properties;
   if(!strcmp(path, ":"))   return (item*)n->properties;
-  char* c=strchr(path, ':');
-  if(!c) return properties_get(n->properties, path);
-  return nested_property_item(n, path);
+  char p[128]; memcpy(p, path, strlen(path)+1);
+  char* c=strrchr(p, ':');
+  bool endsincolon=(c && c+1-p==strlen(p));
+  if(endsincolon){ *c=0; c=strrchr(p, ':'); }
+  if(!c) return properties_get(n->properties, p);
+  return nested_property_item(n, p);
 }
 
 item* nested_property_item(object* n, char* path)
@@ -318,30 +321,60 @@ int8_t object_property_size(object* n, char* path)
   item* i=object_property_item(n,path);
   if(i){
     if(i->type==ITEM_PROPERTIES) return properties_size((properties*)i);
+    if(i->type==ITEM_VALUE){
+      char* uid=value_string((value*)i);
+      if(is_uid(uid)){
+        object* o=find_object(uid,n);
+        if(o) return properties_size(o->properties);
+      }
+    }
   }
   return -1;
 }
 
 char* object_property_key(object* n, char* path, uint8_t index)
 {
-  item* t=object_property_item(n,path);
-  if(!(t && t->type==ITEM_PROPERTIES)) return 0;
-  properties* p=(properties*)t;
-  return properties_key_n(p, index);
+  char* k=0;
+  item* i=object_property_item(n,path);
+  if(!i) return 0;
+  switch(i->type){
+    case ITEM_PROPERTIES: {
+      k=properties_key_n((properties*)i, index);
+      break;
+    }
+    case ITEM_VALUE: {
+      char* uid=value_string((value*)i);
+      if(!is_uid(uid)) break;
+      object* o=find_object(uid,n);
+      if(o) k=properties_key_n(o->properties, index);
+      break;
+    }
+    case ITEM_LIST: break;
+  }
+  return k;
 }
 
 char* object_property_value(object* n, char* path, uint8_t index)
 {
-  item* i=0;
-  item* t=object_property_item(n,path);
-  if(!t) return 0;
-  switch(t->type){
-    case ITEM_PROPERTIES: { i=properties_get_n((properties*)t, index); break; }
-    case ITEM_LIST:       { i=list_get_n((list*)t,index); break; }
-    case ITEM_VALUE:      { i=(index==1)? t: 0; break; }
+  item* v=0;
+  item* i=object_property_item(n,path);
+  if(!i) return 0;
+  switch(i->type){
+    case ITEM_PROPERTIES: {
+      v=properties_get_n((properties*)i, index);
+      break;
+    }
+    case ITEM_VALUE: {
+      char* uid=value_string((value*)i);
+      if(!is_uid(uid)) break;
+      object* o=find_object(uid,n);
+      if(o) v=properties_get_n(o->properties, index);
+      break;
+    }
+    case ITEM_LIST: break;
   }
-  if(!(i && i->type==ITEM_VALUE)) return 0;
-  return value_string((value*)i);
+  if(!(v && v->type==ITEM_VALUE)) return 0;
+  return value_string((value*)v);
 }
 
 bool object_property_is(object* n, char* path, char* expected)
@@ -352,21 +385,24 @@ bool object_property_is(object* n, char* path, char* expected)
 
 bool object_property_set(object* n, char* path, char* val)
 {
-  char* c=strchr(path, ':');
-  if(c) return nested_property_set(n, path, val);
+  char p[128]; memcpy(p, path, strlen(path)+1);
+  char* c=strrchr(p, ':');
+  bool endsincolon=(c && c+1-p==strlen(p));
+  if(endsincolon){ *c=0; c=strrchr(p, ':'); }
+  if(c) return nested_property_set(n, p, val);
   if(!val || !*val){
-    bool ok=!!properties_delete(n->properties, path);
+    bool ok=!!properties_delete(n->properties, p);
     if(ok) notify_observers(n);
     return ok;
   }
-  return set_value_or_list(n, path, val, true);
+  return set_value_or_list(n, p, val, true);
 }
 
 bool set_value_or_list(object* n, char* path, char* val, bool notify)
 {
   bool ok=false;
   if(!strchr(val, ' ')){
-    ok=properties_set(n->properties, path, (item*)value_new(val));
+    ok=properties_set(n->properties, strdup(path), (item*)value_new(val));
   }
   else{
     list* l=list_new(MAX_LIST_SIZE);
@@ -376,7 +412,7 @@ bool set_value_or_list(object* n, char* path, char* val, bool notify)
       list_add(l,(item*)value_new(strdup(t)));
       t=strtok(0, " \n");
     }
-    ok=properties_set(n->properties, path, (item*)l);
+    ok=properties_set(n->properties, strdup(path), (item*)l);
   }
   if(ok && notify) notify_observers(n);
   return ok;
@@ -425,7 +461,7 @@ bool nested_property_delete(object* n, char* path)
       ok=list_del_n(l, index);
       if(!ok) break;
       if(list_size(l)==1){
-        properties_set(n->properties, p, list_get_n(l,1));
+        properties_set(n->properties, strdup(p), list_get_n(l,1));
       }
       break;
     }
@@ -444,7 +480,7 @@ bool object_property_add(object* n, char* path, char* val)
   item* i=properties_get(n->properties, path);
   bool ok=true;
   if(!i){
-    ok=properties_set(n->properties, path, (item*)value_new(val));
+    ok=properties_set(n->properties, strdup(path), (item*)value_new(val));
   }
   else
   switch(i->type){
@@ -452,7 +488,7 @@ bool object_property_add(object* n, char* path, char* val)
       list* l=list_new(MAX_LIST_SIZE);
       ok=ok && list_add(l,i);
       ok=ok && list_add(l,(item*)value_new(val));
-      ok=ok && properties_set(n->properties, path, (item*)l);
+      ok=ok && properties_set(n->properties, strdup(path), (item*)l);
       break;
     }
     case ITEM_LIST: {

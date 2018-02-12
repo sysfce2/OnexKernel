@@ -30,7 +30,8 @@ typedef struct value      value;
   if(!i)                              log_write("item_log(null)!\n"); else \
   if(item_is_type(i,ITEM_PROPERTIES)) properties_log((properties*)i); else \
   if(item_is_type(i,ITEM_LIST))       list_log((list*)i); else \
-  if(item_is_type(i,ITEM_VALUE))      value_log((value*)i); \
+  if(item_is_type(i,ITEM_VALUE))      value_log((value*)i); else \
+                                      log_write("item_log(not an item)!\n"); \
 }while(0)
 
 

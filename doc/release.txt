@@ -1,5 +1,6 @@
 
-make cleanx linux.tests android.tests
+make cleanx android.tests
+make clean linux.tests
 make clean microbit.tests
 make clean microbit.button
 make clean linux.light
