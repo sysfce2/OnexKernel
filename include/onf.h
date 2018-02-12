@@ -36,9 +36,11 @@ bool  object_property_set(object* n, char* path, char* val);
 /** add property value to list, or make a list. */
 bool  object_property_add(object* n, char* path, char* val);
 
-/** return property value. */
+/** return property value, or space-separated list of values, including uids and sub-properties. */
 char* object_property(object* n, char* path);
 
+/** return property value, or space-separated list of values, excluding uids and sub-properties. */
+char* object_property_values(object* n, char* path);
 
 /** return whether property at path is a single value and it matches supplied string. */
 bool  object_property_is(object* n, char* path, char* expected);

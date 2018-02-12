@@ -25,7 +25,10 @@ void test_object_set_up()
   char* random_uid_2 = object_property(nr, "UID");
 
   onex_assert(      object_property_length( nr, "is")==2,          "property 'is' is a list of 2 items");
+  onex_assert_equal(object_property(        nr, "is"), "random uid", "object_new parses 'is' first list item" );
+  onex_assert_equal(object_property_values( nr, "is"), "random uid", "object_new parses 'is' first list item" );
   onex_assert_equal(object_property(        nr, "is:1"), "random", "object_new parses 'is' first list item" );
+  onex_assert_equal(object_property_values( nr, "is:1"), "random", "object_new parses 'is' first list item" );
   onex_assert(      object_property_is(     nr, "is:2",  "uid"),   "object_new parses 'is' second list item" );
 
   onex_assert(      strlen(random_uid_1)==23,                "UID generation returns long string");
@@ -33,7 +36,7 @@ void test_object_set_up()
   onex_assert(      strcmp(random_uid_1, random_uid_2),      "UID generation creates unique UIDs");
 
   object* n1=object_new("uid-1", "setup", evaluate_setup, 4);
-
+  // UID: uid-1  is: setup
   onex_assert(      n1,                                      "object_new created an object");
   onex_assert(      onex_get_from_cache("uid-1")==n1,        "onex_get_from_cache can find uid-1");
   onex_assert(     !onex_get_from_cache("uid-2"),            "onex_get_from_cache can't find uid-2");
@@ -42,18 +45,18 @@ void test_object_set_up()
   onex_assert_equal(object_property(       n1, "is"), "setup",   "object_property returns 'is'" );
   onex_assert(      object_property_is(    n1, "is",  "setup"),  "object_property_is says 'is' is 'setup'");
   onex_assert(      object_property_length(n1, "is")==1,         "property 'is' is a single value");
-
+  // UID: uid-1  is: setup  state: good
                     object_property_set(           n1, "state", "good");
   onex_assert(      object_property_is(            n1, "state", "good"), "object_property_is says 'state' is 'good'");
   onex_assert(      object_property_length(        n1, "state")==1,      "property 'state' is a single value");
   onex_assert(      object_property_length(        n1, "banana")==0,     "property 'banana' is empty");
   onex_assert(      object_property_size(          n1, "state")== -1,    "property 'state' is not a properties");
-
+  // UID: uid-1  is: setup  state: good mostly
                     object_property_add(           n1, "state", "mostly");
   onex_assert(     !object_property_is(            n1, "state", "good"), "object_property_is says 'state' is not all 'good'");
   onex_assert(      object_property_length(        n1, "state")==2,      "property 'state' is now a list of two");
   onex_assert(      object_property_size(          n1, "state")== -1,    "property 'state' is not a properties");
-
+  // UID: uid-1  is: setup  state: good  1: a
   onex_assert(      object_property_add(     n1, "1", "a"),    "can add new property");
   onex_assert(      object_property_length(  n1, "1")==1,      "property '1' is a single value");
   onex_assert(      object_property_size(    n1, "1")== -1,    "not a properties");
@@ -62,7 +65,7 @@ void test_object_set_up()
   onex_assert_equal(object_property(         n1, "1:1:"), "a", "1st value in list is 'a'");
   onex_assert(     !object_property(         n1, "1:2"),       "2nd value in list is null");
   onex_assert(     !object_property(         n1, "1:0"),       "0th value in list is null");
-
+  // UID: uid-1  is: setup  state: good  1: a b
   onex_assert(      object_property_add(     n1, "1", "b"),    "can add another");
   onex_assert(      object_property_length(  n1, "1")==2,      "property '1' is now a list of two");
   onex_assert(      object_property_size(    n1, "1")== -1,    "not a properties");
@@ -74,7 +77,7 @@ void test_object_set_up()
   onex_assert_equal(object_property(         n1, "1:2:"), "b", "2nd value in list is 'b'");
   onex_assert(     !object_property(         n1, "1:3"),       "3rd value in list is null");
   onex_assert(     !object_property(         n1, "1:four"),    "four-th value in list is null");
-
+  // UID: uid-1  is: setup  state: good  1: a b c
   onex_assert(      object_property_add(     n1, "1", "c"),    "can add a third to existing list");
   onex_assert(      object_property_length(  n1, "1")==3,      "three items in the list");
   onex_assert_equal(object_property_value(   n1, "1", 3), "c", "3rd value in list is 'c'");
@@ -82,25 +85,25 @@ void test_object_set_up()
   onex_assert_equal(object_property(         n1, "1:2"), "b",  "2nd value in list is 'b'");
   onex_assert_equal(object_property(         n1, "1:3"), "c",  "3rd value in list is 'c'");
   onex_assert(     !object_property(         n1, "1:4"),       "4th value in list is null");
-
+  // UID: uid-1  is: setup  state: good  1: a B c
   onex_assert(      object_property_set(     n1, "1:2", "B"),  "can set 2nd value in list");
   onex_assert_equal(object_property(         n1, "1:2"), "B",  "2nd value in list is 'B'");
   onex_assert(     !object_property_set(     n1, "1:4", "X"),  "can't set 4th value in list");
-
+  // UID: uid-1  is: setup  state: good  1: a c
   onex_assert(      object_property_set(     n1, "1:2", ""),   "can set 2nd value in list to empty to delete");
   onex_assert(      object_property_length(  n1, "1")==2,      "now two items in the list");
-
+  // UID: uid-1  is: setup  state: good  1: a
   onex_assert(      object_property_set(     n1, "1:2", 0),    "can set 2nd value in list to null to delete");
   onex_assert(      object_property_length(  n1, "1")==1,      "now one item in the list");
   onex_assert_equal(object_property(         n1, "1"), "a",    "property '1' is 'a'");
-
+  // UID: uid-1  is: setup  state: good
   onex_assert(      object_property_set(     n1, "1:1", ""),   "can set 1st value in 'list' to empty to delete");
   onex_assert(      object_property_length(  n1, "1")==0,      "now no property");
   onex_assert(     !object_property(         n1, "1"),         "now no such property");
-
+  // UID: uid-1  is: setup  state: good  1: a c
   onex_assert(      object_property_set(     n1, "1", "a"),    "can set property back");
   onex_assert(      object_property_add(     n1, "1", "c"),    "and another");
-
+  // UID: uid-1  is: setup  state: good  1: a c  2: ok
   onex_assert(      object_property_set(     n1, "2", "ok"),   "can set 2 more properties");
   onex_assert(      object_property_length(  n1, "2")==1,      "property '1' is a value");
 
@@ -110,25 +113,27 @@ void test_object_set_up()
   onex_assert(     !object_property(         n1, "4"),       "empty property returns null");
   onex_assert(      object_property_is(      n1, "4", ""),   "empty property is empty");
   onex_assert(     !object_property_length(  n1, "4"),       "empty property is not a value");
-
+  // UID: uid-1  is: setup  state: good  1: a c
   onex_assert(      object_property_set(     n1, "2", ""),   "can set property to empty");
   onex_assert(     !object_property(         n1, "2"),       "empty property returns null");
   onex_assert(      object_property_is(      n1, "2", 0),    "empty property is empty");
   onex_assert(     !object_property_length(  n1, "2"),       "empty property is not a value");
   onex_assert(      object_property_set(     n1, "2", "ok"), "can set empty property back");
-
+  // UID: uid-1  is: setup  state: good  1: a c
   onex_assert(      object_property_set(     n1, "2", 0),    "can set property to null");
   onex_assert(     !object_property(         n1, "2"),       "empty property returns null");
   onex_assert(      object_property_is(      n1, "2", ""),   "empty property is empty");
   onex_assert(     !object_property_length(  n1, "2"),       "empty property is not a value");
-
+  // UID: uid-1  is: setup  state: good  1: a c  2: ok m8
   onex_assert(      object_property_set(     n1, "2", "ok m8"), "can set property to two items");
+  onex_assert_equal(object_property(         n1, "2"), "ok m8", "can get both back in space-separated list");
+  onex_assert_equal(object_property_values(  n1, "2"), "ok m8", "can get both back in space-separated list");
   onex_assert(      object_property_length(  n1, "2")==2,       "property '2' is a list of two");
   onex_assert(      object_property_is(      n1, "2:1", "ok"),  "list items are correct");
   onex_assert(      object_property_is(      n1, "2:2", "m8"),  "list items are correct");
 
   onex_assert(      object_property_size(    n1, ":")==4,       "there are four properties");
-
+  // UID: uid-1  is: setup  state: good  1: a c  2: ok m8
   onex_assert_equal(object_property_key(     n1, ":", 1), "is",    "key of 1st item is 'is'");
   onex_assert_equal(object_property_value(   n1, ":", 1), "setup", "val of 1st item is 'setup'");
   onex_assert_equal(object_property_key(     n1, ":", 2), "state", "key of 2nd item is 'state'");
@@ -161,6 +166,8 @@ bool evaluate_local_state_3_called=false;
 bool evaluate_local_state_3(object* n3)
 {
   evaluate_local_state_3_called=true;
+  // UID: uid-2  is: local-state  state: good
+  // UID: uid-3  is: local-state  n2: uid-2  self: uid-3  n* uid-1 uid-2 uid-3 uid-4 uid-5
   onex_assert(     !object_property(       n3, "is:foo"),                     "can't find is:foo");
   onex_assert(      object_property_is(    n3, "n2:UID",  "uid-2"),           "can see UID of local object immediately");
   onex_assert(      object_property_is(    n3, "n2:is",   "local-state"),     "can see 'is' of local object immediately");
@@ -184,6 +191,12 @@ bool evaluate_local_state_3(object* n3)
   onex_assert_equal(object_property_value( n3, "n2:", 2), "good",             "val of 2nd item in n2 is 'good'");
   onex_assert_equal(object_property_key(   n3, "self:self:n2:", 2), "state",  "key of 2nd item in n2 is 'state', via self");
   onex_assert_equal(object_property_value( n3, "self:n2:", 2), "good",        "val of 2nd item in n2 is 'good', via self");
+  onex_assert_equal(object_property(       n3, "self"), "uid-3",              "can see self as string when it's all uids");
+  onex_assert_equal(object_property(       n3, "n2"), "uid-2",                "can see n2 as string when it's all uids");
+  onex_assert_equal(object_property(       n3, "n*"), "uid-1 uid-2 uid-3 uid-4 uid-5", "can see n* as string when it's all uids");
+  onex_assert(     !object_property_values(n3, "self"),                       "can't see self as string cos it's all uids");
+  onex_assert(     !object_property_values(n3, "n2"),                         "can't see n2 as string cos it's all uids");
+  onex_assert(     !object_property_values(n3, "n*"),                         "can't see n* as string cos it's all uids");
   return true;
 }
 
@@ -191,14 +204,16 @@ void test_local_state()
 {
   object* n2=object_new("uid-2", "local-state", evaluate_local_state_2, 4);
   object* n3=object_new("uid-3", "local-state", evaluate_local_state_3, 4);
-
+  // UID: uid-2  is: local-state
+  // UID: uid-3  is: local-state
   onex_assert(      onex_get_from_cache("uid-2")==n2,   "onex_get_from_cache can find uid-2");
   onex_assert(      onex_get_from_cache("uid-3")==n3,   "onex_get_from_cache can find uid-3");
-
+  // UID: uid-2  is: local-state  state: good
+  // UID: uid-3  is: local-state  n2: uid-2  self: uid-3
   onex_assert(      object_property_set(n2, "state", "good"),  "can add 'state'");
   onex_assert(      object_property_set(n3, "n2",    "uid-2"), "can add 'n2'");
   onex_assert(      object_property_set(n3, "self",  "uid-3"), "can add 'self'");
-
+  // UID: uid-3  is: local-state  n2: uid-2  self: uid-3  n* uid-1 uid-2 uid-3 uid-4
   onex_assert(      object_property_set(    n3, "n*", "uid-1"),    "can set uid-1 in n*");
   onex_assert(      object_property_add(    n3, "n*", "uid-2"),    "can add uid-2 to n*");
   onex_assert(      object_property_add(    n3, "n*", "uid-3"),    "can add uid-3 to n*");

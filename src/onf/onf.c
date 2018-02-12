@@ -196,8 +196,43 @@ void object_set_evaluator(object* n, onex_evaluator evaluator)
 char* object_property(object* n, char* path)
 {
   item* i=object_property_item(n,path);
-  if(!i || i->type!=ITEM_VALUE) return 0;
-  return value_string((value*)i);
+  uint16_t s=256;
+  char b[s]; *b=0;
+  if(strlen(item_to_text(i, b, s))) return strdup(b); // leak!
+  return 0;
+}
+
+char* object_property_values(object* n, char* path)
+{
+  item* i=object_property_item(n,path);
+  if(i){
+    if(i->type==ITEM_VALUE){
+      char* v=value_string((value*)i);
+      if(is_uid(v)) return 0;
+      return v;
+    }
+    if(i->type==ITEM_LIST){
+      uint16_t s=256;
+      char b[s]; *b=0;
+      int ln=0;
+      int j; int sz=list_size((list*)i);
+      for(j=1; j<=sz; j++){
+        item* y=list_get_n((list*)i, j);
+        if(y->type==ITEM_PROPERTIES) continue;
+        if(y->type==ITEM_LIST) continue;
+        if(y->type==ITEM_VALUE){
+          char* v=value_string((value*)y);
+          if(is_uid(v)) continue;
+          ln+=strlen(value_to_text((value*)y, b+ln, s-ln));
+          if(ln>=s) return 0;
+          if(j!=sz) ln+=snprintf(b+ln, s-ln, " ");
+          if(ln>=s) return 0;
+        }
+      }
+      return strlen(b)? strdup(b): 0; // leak!
+    }
+  }
+  return 0;
 }
 
 item* object_property_item(object* n, char* path)
