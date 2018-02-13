@@ -24,15 +24,15 @@ void test_object_set_up()
   nr=object_new(0, "random uid", 0, 4);
   char* random_uid_2 = object_property(nr, "UID");
 
-  onex_assert(      object_property_length( nr, "is")==2,          "property 'is' is a list of 2 items");
+  onex_assert(      object_property_length( nr, "is")==2,            "property 'is' is a list of 2 items");
   onex_assert_equal(object_property(        nr, "is"), "random uid", "object_new parses 'is' first list item" );
   onex_assert_equal(object_property_values( nr, "is"), "random uid", "object_new parses 'is' first list item" );
-  onex_assert_equal(object_property(        nr, "is:1"), "random", "object_new parses 'is' first list item" );
-  onex_assert_equal(object_property_get_n(  nr, "is", 1),"random", "object_new parses 'is' first list item passing index" );
-  onex_assert_equal(object_property_values( nr, "is:1"), "random", "object_new parses 'is' first list item" );
-  onex_assert(      object_property_is(     nr, "is:2",  "uid"),   "object_new parses 'is' second list item" );
-  onex_assert_equal(object_property_values( nr, "is:1:"), "random", "object_new parses 'is' first list item" );
-  onex_assert(      object_property_is(     nr, "is:2:",  "uid"),   "object_new parses 'is' second list item" );
+  onex_assert_equal(object_property(        nr, "is:1"), "random",   "object_new parses 'is' first list item" );
+  onex_assert_equal(object_property_get_n(  nr, "is", 1),"random",   "object_new parses 'is' first list item passing index" );
+  onex_assert_equal(object_property_values( nr, "is:1"), "random",   "object_new parses 'is' first list item" );
+  onex_assert(      object_property_is(     nr, "is:2",  "uid"),     "object_new parses 'is' second list item" );
+  onex_assert_equal(object_property_values( nr, "is:1:"), "random",  "object_new parses 'is' first list item" );
+  onex_assert(      object_property_is(     nr, "is:2:",  "uid"),    "object_new parses 'is' second list item" );
 
   onex_assert(      strlen(random_uid_1)==23,                "UID generation returns long string");
   onex_assert(      strlen(random_uid_2)==23,                "UID generation returns long string");
@@ -195,12 +195,13 @@ bool evaluate_local_state_3(object* n3)
   onex_assert(      object_property_length(n3, "self:n2")==1,                 "property 'n2' is a value (uid)");
   onex_assert(      object_property_length(n3, "self:n2:")==1,                "property 'n2:' is a value (uid)");
   onex_assert(      object_property_is(    n3, "self:n2", "uid-2"),           "property 'n2' is uid-2");
-  onex_assert(      object_property_size(  n3, "self:n2")==2,                 "property 'n2' is also a properties");
-  onex_assert(      object_property_size(  n3, "self:n2:")==2,                "property 'n2:' is also a properties");
+  onex_assert(      object_property_size(  n3, "self:n2")==3,                 "property 'n2' is also a properties");
+  onex_assert(      object_property_size(  n3, "self:n2:")==3,                "property 'n2:' is also a properties");
   onex_assert_equal(object_property_val(   n3, "self:n2", 1), "local-state",  "value of n2 first item is 'local-state'");
   onex_assert_equal(object_property_val(   n3, "self:n2", 2), "good",         "value of n2 second item is 'good'");
-  onex_assert(     !object_property_val(   n3, "self:n2", 3),                 "value of n2 third item is null");
-  onex_assert(      object_property_size(  n3, "self:self:n2")==2,            "there are two properties at n3:n2:");
+  onex_assert_equal(object_property_val(   n3, "self:n2", 3), "uid-1",        "value of n2 third item is uid-1");
+  onex_assert(     !object_property_val(   n3, "self:n2", 4),                 "value of n2 third item is null");
+  onex_assert(      object_property_size(  n3, "self:self:n2")==3,            "there are three properties at n3:n2:");
   onex_assert(      object_property_length(n3, "n*")==5,                      "property 'n*' is a list of 5 values/uids");
   onex_assert(      object_property_length(n3, "n*:")==5,                     "property 'n*:' is a list of 5 values/uids");
 //onex_assert_equal(object_property(       n3, "n*:UID"), "uid-1 uid-2..",    "n*:UID is uid-1 uid-2.. (one day)");
@@ -227,6 +228,7 @@ bool evaluate_local_state_3(object* n3)
   onex_assert(     !object_property_values(n3, "self"),                       "can't see self as string cos it's all uids");
   onex_assert(     !object_property_values(n3, "n2"),                         "can't see n2 as string cos it's all uids");
   onex_assert(     !object_property_values(n3, "n*"),                         "can't see n* as string cos it's all uids");
+  onex_assert_equal(object_property(       n3, "n2:n1:state"), "good mostly", "can see through n2 to n1");
   return true;
 }
 
@@ -241,6 +243,7 @@ void test_local_state()
   // UID: uid-2  is: local-state  state: good
   // UID: uid-3  is: local-state  n2: uid-2  self: uid-3
   onex_assert(      object_property_set(n2, "state", "good"),  "can add 'state'");
+  onex_assert(      object_property_set(n2, "n1",    "uid-1"), "can add 'n1'");
   onex_assert(      object_property_set(n3, "n2",    "uid-2"), "can add 'n2'");
   onex_assert(      object_property_set(n3, "self",  "uid-3"), "can add 'self'");
   // UID: uid-3  is: local-state  n2: uid-2  self: uid-3  n* uid-1 uid-2 uid-3 uid-4
@@ -307,7 +310,7 @@ void test_to_text()
   object* n3=onex_get_from_cache("uid-3");
 
   onex_assert_equal(object_to_text(n1,textbuff,TEXTBUFFLEN), "UID: uid-1 Notify: uid-3 is: setup state: good mostly 1: a c 2: ok m8",                            "converts uid-1 to correct text");
-  onex_assert_equal(object_to_text(n2,textbuff,TEXTBUFFLEN), "UID: uid-2 Notify: uid-3 is: local-state state: better",                                           "converts uid-2 to correct text");
+  onex_assert_equal(object_to_text(n2,textbuff,TEXTBUFFLEN), "UID: uid-2 Notify: uid-3 is: local-state state: better n1: uid-1",                                 "converts uid-2 to correct text");
   onex_assert_equal(object_to_text(n3,textbuff,TEXTBUFFLEN), "UID: uid-3 Notify: uid-3 is: local-state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5", "converts uid-3 to correct text");
 }
 
