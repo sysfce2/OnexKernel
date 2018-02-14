@@ -24,7 +24,6 @@ struct hash_item{
   hash_item* next;
   char*      key;
   item*      item;
-  int        free;
 };
 
 unsigned int string_hash(char* p)
@@ -72,16 +71,13 @@ bool properties_set(properties* op, char* key, item* i)
     op->keys[op->i]=(*lisp)->key;
     op->i++;
     (*lisp)->item=i;
-    (*lisp)->free=1;
     (*lisp)->next=0;
     op->size++;
     //if(op->i==op->max_size) return false;
     WARN_SIZE(op);
   }
   else{
-    //if((*lisp)->free) free((*lisp)->item);
     (*lisp)->item=i;
-    (*lisp)->free=1;
   }
   return true;
 }
@@ -137,7 +133,6 @@ item* properties_delete(properties* op, char* key)
     op->i--;
     free((*lisp)->key);
     v=(*lisp)->item;
-    if((*lisp)->free) free((*lisp)->item);
     free((*lisp));
     (*lisp)=next;
     op->size--;
