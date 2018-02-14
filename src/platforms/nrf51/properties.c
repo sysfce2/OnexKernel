@@ -4,11 +4,6 @@
 #include <items.h>
 #include <onex-kernel/log.h>
 
-/*
-  properties for MCUs, not Linux, so move to src/platforms/nrf51
-  and do a proper hashtable for Linux in src/platforms/unix
-*/
-
 typedef struct properties {
   item_type type;
   uint8_t max_size;

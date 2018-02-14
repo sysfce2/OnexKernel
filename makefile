@@ -31,6 +31,7 @@ SYS_C_SOURCE_FILES = \
 
 
 NRF51_C_SOURCE_FILES = \
+./src/platforms/nrf51/properties.c \
 ./src/platforms/nrf51/serial.c \
 ./src/platforms/nrf51/channel-serial.c \
 ./src/platforms/nrf51/log.c \
@@ -40,6 +41,7 @@ NRF51_C_SOURCE_FILES = \
 
 
 UNIX_C_SOURCE_FILES = \
+./src/platforms/unix/properties.c \
 ./src/platforms/unix/serial.c \
 ./src/platforms/unix/channel-serial.c \
 ./src/platforms/unix/log.c \
@@ -67,7 +69,6 @@ ASM_SOURCE_FILES = src/platforms/nrf51/gcc_startup_nrf51.s
 
 
 LIB_OBJECTS = \
-./src/lib/properties.c \
 ./src/lib/list.c \
 ./src/lib/value.c \
 ./src/onp/onp.c \
