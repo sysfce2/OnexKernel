@@ -66,7 +66,7 @@ bool properties_set(properties* op, char* key, item* i)
   if(!(*lisp)){
     if(op->size==op->max_size) return false;
     (*lisp)=malloc(sizeof(hash_item));
-    (*lisp)->key=strdup(key);
+    (*lisp)->key=key;
     op->keys[op->size]=(*lisp)->key;
     (*lisp)->item=i;
     (*lisp)->next=0;
@@ -128,7 +128,6 @@ item* properties_delete(properties* op, char* key)
     int j;
     for(j=0; j<op->size;   j++) if(!strcmp(op->keys[j], key)) break;
     for(   ; j<op->size-1; j++) op->keys[j] = op->keys[j+1];
-    free((*lisp)->key);
     v=(*lisp)->item;
     free((*lisp));
     (*lisp)=next;
