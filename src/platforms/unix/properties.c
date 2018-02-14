@@ -49,7 +49,6 @@ properties* properties_new(uint8_t max_size)
   op->size=0;
   op->lists=malloc((op->buckets)*sizeof(hash_item*));
   op->keys=(char**)calloc(max_size,sizeof(char*));
-  op->i=0;
   op->ignorecase=ignorecase;
   op->next=0;
   int i; for(i=0; i< op->buckets; i++) op->lists[i]=0;
@@ -65,15 +64,14 @@ bool properties_set(properties* op, char* key, item* i)
     lisp=&(*lisp)->next;
   }
   if(!(*lisp)){
-    if(op->i==op->max_size) return false;
+    if(op->size==op->max_size) return false;
     (*lisp)=malloc(sizeof(hash_item));
     (*lisp)->key=strdup(key);
-    op->keys[op->i]=(*lisp)->key;
-    op->i++;
+    op->keys[op->size]=(*lisp)->key;
     (*lisp)->item=i;
     (*lisp)->next=0;
     op->size++;
-    //if(op->i==op->max_size) return false;
+    //if(op->size==op->max_size) return false;
     WARN_SIZE(op);
   }
   else{
@@ -104,14 +102,14 @@ item_type properties_type(properties* op, char* key)
 char* properties_key_n(properties* op, uint8_t index)
 {
   if(!op) return 0;
-  if(index<=0 || index>op->i) return 0;
+  if(index<=0 || index>op->size) return 0;
   return op->keys[index-1];
 }
 
 item* properties_get_n(properties* op, uint8_t index)
 {
   if(!op) return 0;
-  if(index<=0 || index>op->i) return 0;
+  if(index<=0 || index>op->size) return 0;
   return properties_get(op, op->keys[index-1]);
 }
 
@@ -128,9 +126,8 @@ item* properties_delete(properties* op, char* key)
   if((*lisp)){
     next=(*lisp)->next;
     int j;
-    for(j=0; j<op->i;   j++) if(!strcmp(op->keys[j], key)) break;
-    for(   ; j<op->i-1; j++) op->keys[j] = op->keys[j+1];
-    op->i--;
+    for(j=0; j<op->size;   j++) if(!strcmp(op->keys[j], key)) break;
+    for(   ; j<op->size-1; j++) op->keys[j] = op->keys[j+1];
     free((*lisp)->key);
     v=(*lisp)->item;
     free((*lisp));
@@ -146,7 +143,7 @@ item* properties_delete(properties* op, char* key)
 uint8_t properties_size(properties* op)
 {
   if(!op) return 0;
-  return op->i;
+  return op->size;
 }
 
 char* properties_to_text(properties* op, char* b, uint16_t s)
@@ -156,7 +153,7 @@ char* properties_to_text(properties* op, char* b, uint16_t s)
   int j;
   ln+=snprintf(b+ln, s-ln, "{\n");
   if(ln>=s){ *b = 0; return b; }
-  for(j=0; j<op->i; j++){
+  for(j=0; j<op->size; j++){
     ln+=snprintf(b+ln, s-ln, "  %s: ", op->keys[j]);
     if(ln>=s){ *b = 0; return b; }
     ln+=strlen(item_to_text(properties_get(op, op->keys[j]), b+ln, s-ln));
