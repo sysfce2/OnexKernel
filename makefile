@@ -153,6 +153,9 @@ light.linux: libOnexKernel.a ${LIGHT_OBJECTS:.c=.o}
 linux.tests: tests.linux
 	./tests.linux
 
+linux.valgrind: tests.linux
+	valgrind --leak-check=yes --undef-value-errors=no ./tests.linux
+
 android.tests: android.library
 	adb -d uninstall network.object.onexkernel
 	adb -d install android/onexkernel/build/outputs/apk/onexkernel-debug.apk

@@ -131,11 +131,11 @@ item* properties_delete(properties* op, char* key)
   }
   if((*lisp)){
     next=(*lisp)->next;
-    free((*lisp)->key);
     int j;
     for(j=0; j<op->i;   j++) if(!strcmp(op->keys[j], key)) break;
     for(   ; j<op->i-1; j++) op->keys[j] = op->keys[j+1];
     op->i--;
+    free((*lisp)->key);
     v=(*lisp)->item;
     if((*lisp)->free) free((*lisp)->item);
     free((*lisp));
