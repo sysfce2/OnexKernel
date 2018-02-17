@@ -17,10 +17,10 @@
 
 // ---------------------------------------------------------------------------------
 
-static char*       generate_uid();
-static object*     object_new_shell(char* uid, char* notify);
-static char*       get_key(char** p);
-static char*       get_val(char** p);
+static value*      generate_uid();
+static object*     object_new_shell(value* uid, value* notify);
+static value*      get_key(char** p);
+static value*      get_val(char** p);
 static void        add_to_cache(object* n);
 static object*     find_object(char* uid, object* n);
 static item*       object_property_item(object* n, char* path, object* t);
@@ -28,9 +28,9 @@ static item*       nested_property_item(object* n, char* path, object* t);
 static bool        nested_property_set(object* n, char* path, char* val);
 static bool        nested_property_delete(object* n, char* path);
 static properties* nested_properties(object* n, char* path);
-static bool        set_value_or_list(object* n, char* key, char* val, bool notify);
-static bool        add_observer(object* o, char* notify);
-static void        set_observers(object* o, char* notify);
+static bool        set_value_or_list(object* n, value* key, value* val, bool notify);
+static bool        add_observer(object* o, value* notify);
+static void        set_observers(object* o, value* notify);
 static void        notify_observers(object* n);
 static void        show_notifies(object* o);
 static void        call_all_evaluators();
@@ -39,17 +39,17 @@ static bool        object_is_shell(object* o);
 // ---------------------------------
 
 typedef struct object {
-  char*           uid;
+  value*          uid;
   onex_evaluator  evaluator;
   properties*     properties;
-  char*           notify[OBJECT_MAX_NOTIFIES];
+  value*          notify[OBJECT_MAX_NOTIFIES];
   uint32_t        last_observe;
   struct object*  next;
 } object;
 
 object* cache=0;
 
-char* generate_uid()
+value* generate_uid()
 {
   char b[24];
   snprintf(b, 24, "uid-%02x%02x-%02x%02x-%02x%02x-%02x%02x",
@@ -58,15 +58,15 @@ char* generate_uid()
     random_ish_byte(), random_ish_byte(),
     random_ish_byte(), random_ish_byte()
   );
-  return strdup(b);
+  return value_new(b);
 }
 
-object* new_object(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
+object* new_object(value* uid, value* is, onex_evaluator evaluator, uint8_t max_size)
 {
   object* n=(object*)calloc(1,sizeof(object));
   n->uid=uid? uid: generate_uid();
   n->properties=properties_new(max_size);
-  if(is) set_value_or_list(n, "is", is, false);
+  if(is) set_value_or_list(n, value_new("is"), is, false);
   n->evaluator=evaluator;
   return n;
 }
@@ -74,15 +74,15 @@ object* new_object(char* uid, char* is, onex_evaluator evaluator, uint8_t max_si
 object* new_object_from(char* text, onex_evaluator evaluator, uint8_t max_size)
 {
   object* n=0;
-  char* uid=0;
-  char* notify=0;
+  value* uid=0;
+  value* notify=0;
   char* p=text;
   while(true){
-    char* key=get_key(&p); if(!key) break;
-    char* val=get_val(&p); if(!val) break;
-    if(!strcmp(key,"UID")    && strlen(val)){ uid=val;    free(key); }
+    value* key=get_key(&p); if(!key) break;
+    value* val=get_val(&p); if(!val) break;
+    if(!strcmp(value_string(key),"UID")) uid=val;
     else
-    if(!strcmp(key,"Notify") && strlen(val)){ notify=val; free(key); }
+    if(!strcmp(value_string(key),"Notify")) notify=val;
     else {
       if(!n){
         n=new_object(uid, 0, 0, max_size);
@@ -107,12 +107,12 @@ object* object_new_from(char* text, onex_evaluator evaluator, uint8_t max_size)
 object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
 {
   if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
-  object* n=new_object(uid, is, evaluator, max_size);
+  object* n=new_object(value_new(uid), value_new(is), evaluator, max_size);
   add_to_cache(n);
   return n;
 }
 
-object* object_new_shell(char* uid, char* notify)
+object* object_new_shell(value* uid, value* notify)
 {
   uint8_t max_size=4;
   object* n=(object*)calloc(1,sizeof(object));
@@ -134,24 +134,25 @@ bool object_is_local(char* uid)
   return o && o->evaluator;
 }
 
-char* get_key(char** p)
+value* get_key(char** p)
 {
   if(!strlen(*p)) return 0;
   char* s=strchr(*p, ' ');
   char* c=strchr(*p, ':');
   if(s<c) return 0;
   (*c)=0;
-  char* r=strdup(*p);
+  value* r=value_new(*p);
   (*c)=':';
   (*p)=c+1;
   return r;
 }
 
-char* get_val(char** p)
+value* get_val(char** p)
 {
   char* c=strstr(*p, ": ");
+  value* r=0;
   if(!c){
-    char* r=strdup(*p+1);
+    r=value_new(*p+1);
     (*p)+=strlen(*p+1)+1;
     return r;
   }
@@ -159,7 +160,7 @@ char* get_val(char** p)
   char* s=strrchr(*p, ' ');
   (*c)=':';
   (*s)=0;
-  char* r=strdup(*p+1);
+  r=value_new(*p+1);
   (*s)=' ';
   (*p)=s+1;
   return r;
@@ -180,7 +181,7 @@ object* onex_get_from_cache(char* uid)
   if(!uid || !(*uid)) return 0;
   object* o=cache;
   while(o){
-    if(!strcmp(o->uid, uid)) return o;
+    if(!strcmp(value_string(o->uid), uid)) return o;
     o=o->next;
   }
   return 0;
@@ -195,10 +196,11 @@ void object_set_evaluator(object* n, onex_evaluator evaluator)
 
 char* object_property(object* n, char* path)
 {
+  if(!strcmp(path, "UID")) return value_string(n->uid);
   item* i=object_property_item(n,path,n);
   uint16_t s=256;
   char b[s]; *b=0;
-  if(strlen(item_to_text(i, b, s))) return strdup(b); // leak!
+  if(strlen(item_to_text(i, b, s))) return value_string(value_new(b));
   return 0;
 }
 
@@ -229,7 +231,8 @@ char* object_property_values(object* n, char* path)
           if(ln>=s) return 0;
         }
       }
-      return strlen(b)? strdup(b): 0; // leak!
+      return strlen(b)? value_string(value_new(b)): 0;
+
     }
   }
   return 0;
@@ -237,7 +240,7 @@ char* object_property_values(object* n, char* path)
 
 item* object_property_item(object* n, char* path, object* t)
 {
-  if(!strcmp(path, "UID")) return (item*)value_new(n->uid); // leak!
+  if(!strcmp(path, "UID")) return (item*)n->uid;
   if(!strcmp(path, ""))    return (item*)n->properties;
   if(!strcmp(path, ":"))   return (item*)n->properties;
   char p[128]; memcpy(p, path, strlen(path)+1);
@@ -294,7 +297,7 @@ object* find_object(char* uid, object* n)
     add_observer(o,n->uid);
     return o;
   }
-  if(!o) o=object_new_shell(uid, n->uid);
+  if(!o) o=object_new_shell(value_new(uid), n->uid);
   uint32_t curtime = time_ms();
   if(!o->last_observe || curtime > o->last_observe + 1000){
     o->last_observe = curtime + 1;
@@ -412,24 +415,26 @@ bool object_property_set(object* n, char* path, char* val)
     if(ok) notify_observers(n);
     return ok;
   }
-  return set_value_or_list(n, p, val, true);
+  return set_value_or_list(n, value_new(p), value_new(val), true);
 }
 
-bool set_value_or_list(object* n, char* key, char* val, bool notify)
+bool set_value_or_list(object* n, value* key, value* val, bool notify)
 {
   bool ok=false;
-  if(!strchr(val, ' ')){
-    ok=properties_set(n->properties, value_new(strdup(key)), (item*)value_new(val));
+  char* v=value_string(val);
+  if(!strchr(v, ' ')){
+    ok=properties_set(n->properties, key, (item*)val);
   }
-  else{
+  else{ // give to list type to parse!
     list* l=list_new(MAX_LIST_SIZE);
-    char v[strlen(val)+1]; memcpy(v, val, strlen(val)+1);
-    char* t=strtok(v, " \n");
+    size_t m=strlen(v)+1;
+    char vals[m]; memcpy(vals, v, m);
+    char* t=strtok(vals, " \n");
     while(t) {
-      list_add(l,(item*)value_new(strdup(t)));
+      list_add(l,(item*)value_new(t));
       t=strtok(0, " \n");
     }
-    ok=properties_set(n->properties, value_new(strdup(key)), (item*)l);
+    ok=properties_set(n->properties, key, (item*)l);
   }
   if(ok && notify) notify_observers(n);
   return ok;
@@ -443,7 +448,7 @@ bool nested_property_set(object* n, char* path, char* val)
   bool ok=false;
   switch(i->type){
     case ITEM_VALUE: {
-      ok=value_set((value*)i, val);
+      ok=value_set((value*)i, val); // NOOO!
       break;
     }
     case ITEM_LIST: {
@@ -478,7 +483,7 @@ bool nested_property_delete(object* n, char* path)
       ok=list_del_n(l, index);
       if(!ok) break;
       if(list_size(l)==1){
-        properties_set(n->properties, value_new(strdup(p)), list_get_n(l,1));
+        properties_set(n->properties, value_new(p), list_get_n(l,1));
       }
       break;
     }
@@ -497,7 +502,7 @@ bool object_property_add(object* n, char* path, char* val)
   item* i=properties_get(n->properties, value_new(path));
   bool ok=true;
   if(!i){
-    ok=properties_set(n->properties, value_new(strdup(path)), (item*)value_new(val));
+    ok=properties_set(n->properties, value_new(path), (item*)value_new(val));
   }
   else
   switch(i->type){
@@ -505,7 +510,7 @@ bool object_property_add(object* n, char* path, char* val)
       list* l=list_new(MAX_LIST_SIZE);
       ok=ok && list_add(l,i);
       ok=ok && list_add(l,(item*)value_new(val));
-      ok=ok && properties_set(n->properties, value_new(strdup(path)), (item*)l);
+      ok=ok && properties_set(n->properties, value_new(path), (item*)l);
       break;
     }
     case ITEM_LIST: {
@@ -524,30 +529,30 @@ bool object_property_add(object* n, char* path, char* val)
 
 // ------------------------------------------------------
 
-bool add_observer(object* o, char* notify)
+bool add_observer(object* o, value* notify)
 {
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    if(o->notify[i] && !strcmp(o->notify[i], notify)) return true;
+    if(o->notify[i] && !strcmp(value_string(o->notify[i]), value_string(notify))) return true;
   }
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
     if(!o->notify[i]){ o->notify[i]=notify; return true; }
   }
-  log_write("can't add observer %s to %s\n", notify, o->uid);
+  log_write("can't add observer %s to %s\n", value_string(notify), value_string(o->uid));
   show_notifies(o);
   return false;
 }
 
-void set_observers(object* o, char* notify)
+void set_observers(object* o, value* notify)
 {
   if(!notify) return;
-  char* s=notify;
+  char* s=value_string(notify);
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
     char* e=strchr(s, ' ');
-    if(!e){ o->notify[i]=s; break; }
+    if(!e){ o->notify[i]=value_new(s); break; }
     (*e)=0;
-    o->notify[i]=s;
+    o->notify[i]=value_new(s);
     s=e+1;
   }
 }
@@ -557,7 +562,7 @@ void notify_observers(object* o)
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
     if(!o->notify[i]) continue;
-    char* notify = o->notify[i];
+    char* notify = value_string(o->notify[i]);
     if(is_uid(notify)){
       object* n=onex_get_from_cache(notify);
       if(n && n->evaluator) n->evaluator(n);
@@ -570,10 +575,10 @@ void notify_observers(object* o)
 
 void show_notifies(object* o)
 {
-  log_write("notifies of %s\n", o->uid);
+  log_write("notifies of %s\n", value_string(o->uid));
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    if(o->notify[i]){ log_write("%s ", o->notify[i]); }
+    if(o->notify[i]){ log_write("%s ", value_string(o->notify[i])); }
   }
   log_write("\n--------------\n");
 }
@@ -586,13 +591,13 @@ char* object_to_text(object* n, char* b, uint16_t s)
 
   int ln=0;
 
-  ln+=snprintf(b+ln, s-ln, "UID: %s", n->uid);
+  ln+=snprintf(b+ln, s-ln, "UID: %s", value_string(n->uid));
   if(ln>=s){ *b = 0; return b; }
 
   int j;
   for(j=0; j< OBJECT_MAX_NOTIFIES; j++){
     if(n->notify[j]){
-      ln+=snprintf(b+ln, s-ln, ((j==0)? " Notify: %s": " %s"), n->notify[j]);
+      ln+=snprintf(b+ln, s-ln, ((j==0)? " Notify: %s": " %s"), value_string(n->notify[j]));
       if(ln>=s){ *b = 0; return b; }
     }
   }
@@ -660,7 +665,7 @@ void recv_observe(char* b, char* from)
   char* u=uid; while(*u > ' ') u++; *u=0;
   object* o=onex_get_from_cache(uid);
   if(!o) return;
-  add_observer(o,from);
+  add_observer(o, value_new(from));
   onp_send_object(o,from);
 }
 
@@ -668,32 +673,10 @@ void recv_object(char* text)
 {
   object* n=new_object_from(text, 0,4);
   if(!n) return;
-  object* s=onex_get_from_cache(n->uid);
+  object* s=onex_get_from_cache(value_string(n->uid));
   if(!s) return;
   s->properties = n->properties;
   notify_observers(s);
-}
-
-// -----------------------------------------------------------------------
-
-void* onex_malloc()
-{
-  return 0;
-}
-
-void* onex_strdup()
-{
-  return 0;
-}
-
-void* onex_free()
-{
-  return 0;
-}
-
-void* onex_memory_usage()
-{
-  return 0;
 }
 
 // -----------------------------------------------------------------------
