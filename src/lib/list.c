@@ -9,6 +9,12 @@
   and do a proper list for Linux in src/platforms/unix
 */
 
+#if defined(TARGET_MCU_NRF51822)
+#define MAX_TEXT_LEN 128
+#else
+#define MAX_TEXT_LEN 4096
+#endif
+
 typedef struct list {
   item_type type;
   uint16_t max_size;
@@ -88,7 +94,7 @@ char* list_to_text(list* li, char* b, uint16_t s)
 
 void list_log(list* li)
 {
-  char buf[128];
-  log_write("%s\n", list_to_text(li,buf,128));
+  char buf[MAX_TEXT_LEN];
+  log_write("%s\n", list_to_text(li,buf,MAX_TEXT_LEN));
 }
 

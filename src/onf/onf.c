@@ -15,6 +15,12 @@
 
 #define MAX_LIST_SIZE 64
 
+#if defined(TARGET_MCU_NRF51822)
+#define MAX_TEXT_LEN 128
+#else
+#define MAX_TEXT_LEN 2048
+#endif
+
 // ---------------------------------------------------------------------------------
 
 static value*      generate_uid();
@@ -198,9 +204,9 @@ char* object_property(object* n, char* path)
 {
   if(!strcmp(path, "UID")) return value_string(n->uid);
   item* i=object_property_item(n,path,n);
-  uint16_t s=256;
-  char b[s]; *b=0;
-  if(strlen(item_to_text(i, b, s))) return value_string(value_new(b));
+  uint16_t s=MAX_TEXT_LEN;
+  char b[MAX_TEXT_LEN]; *b=0;
+  if(strlen(item_to_text(i, b, MAX_TEXT_LEN))) return value_string(value_new(b));
   return 0;
 }
 
@@ -214,8 +220,7 @@ char* object_property_values(object* n, char* path)
       return v;
     }
     if(i->type==ITEM_LIST){
-      uint16_t s=256;
-      char b[s]; *b=0;
+      char b[MAX_TEXT_LEN]; *b=0;
       int ln=0;
       int j; int sz=list_size((list*)i);
       for(j=1; j<=sz; j++){
@@ -225,10 +230,10 @@ char* object_property_values(object* n, char* path)
         if(y->type==ITEM_VALUE){
           char* v=value_string((value*)y);
           if(is_uid(v)) continue;
-          ln+=strlen(value_to_text((value*)y, b+ln, s-ln));
-          if(ln>=s) return 0;
-          if(j!=sz) ln+=snprintf(b+ln, s-ln, " ");
-          if(ln>=s) return 0;
+          ln+=strlen(value_to_text((value*)y, b+ln, MAX_TEXT_LEN-ln));
+          if(ln>=MAX_TEXT_LEN) return 0;
+          if(j!=sz) ln+=snprintf(b+ln, MAX_TEXT_LEN-ln, " ");
+          if(ln>=MAX_TEXT_LEN) return 0;
         }
       }
       return strlen(b)? value_string(value_new(b)): 0;
@@ -614,8 +619,8 @@ char* object_to_text(object* n, char* b, uint16_t s)
 
 void object_log(object* o)
 {
-  char buff[128];
-  log_write("{ %s }\n", object_to_text(o,buff,128));
+  char buff[MAX_TEXT_LEN];
+  log_write("{ %s }\n", object_to_text(o,buff,MAX_TEXT_LEN));
 }
 
 // -----------------------------------------------------------------------
@@ -641,10 +646,10 @@ void onex_loop()
 void onex_show_cache()
 {
   log_write("+-----------cache dump------------\n");
-  char buff[128];
+  char buff[MAX_TEXT_LEN*2];
   object* o=cache;
   while(o){
-    log_write("| %s\n", object_to_text(o,buff,128));
+    log_write("| %s\n", object_to_text(o,buff,MAX_TEXT_LEN*2));
     o=o->next;
   }
   log_write("+---------------------------------\n");

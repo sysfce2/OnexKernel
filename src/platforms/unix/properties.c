@@ -9,7 +9,7 @@ typedef struct hash_item hash_item;
 
 typedef struct properties{
   item_type          type;
-  uint8_t            max_size;
+  uint16_t           max_size;
   struct properties* next;
   char*              name;
   int                buckets;
@@ -35,9 +35,8 @@ unsigned int string_hash(char* p)
 #define BX 30
 #define WARN_SIZE(h) if((h)->size && !((h)->size % BX)) log_write("%s# %d", (h)->name, (h)->size);
 
-properties* properties_new(uint8_t max_size)
+properties* properties_new(uint16_t max_size)
 {
-  if(max_size > 128) return 0;
   char* name="";
   properties* op=(properties*)malloc(sizeof(properties));
   if(!op) return 0;
@@ -71,7 +70,6 @@ bool properties_set(properties* op, value* key, item* i)
     (*lisp)->item=i;
     (*lisp)->next=0;
     op->size++;
-    //if(op->size==op->max_size) return false;
     WARN_SIZE(op);
   }
   else{
@@ -178,8 +176,8 @@ char* properties_to_text(properties* op, char* b, uint16_t s)
 
 void properties_log(properties* op)
 {
-  char buf[128];
-  log_write("%s\n", properties_to_text(op,buf,128));
+  char buf[4096];
+  log_write("%s\n", properties_to_text(op,buf,4096));
 }
 
 

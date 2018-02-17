@@ -54,7 +54,7 @@ void test_properties()
 
   onex_assert_equal(item_to_text(op, buf, 128), "{\n  x: y\n  3: 5\n  *: +\n}\n", "serialise to string works");
 
-                    properties_set(op,value_new("x"),(item*)value_new("i"));
+  onex_assert(      properties_set(op,value_new("x"),(item*)value_new("i")), "can set x");
 
   onex_assert(      properties_get(op,value_new("x"))->type==ITEM_VALUE,             "x is a value");
   onex_assert_equal(item_to_text(properties_get(op,value_new("x")), buf, 128), "i",  "x now returns i");

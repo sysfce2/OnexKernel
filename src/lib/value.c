@@ -14,19 +14,29 @@ typedef struct value {
 
 static properties* all_values=0;
 
+#if defined(TARGET_MCU_NRF51822)
+#define MAX_VALUES 128
+#define MAX_TEXT_LEN 128
+#else
+#define MAX_VALUES 4096
+#define MAX_TEXT_LEN 4096
+#endif
+
 value* value_new(char* val)
 {
   if(!val) return 0;
-  if(!all_values) all_values=properties_new(100);
+  if(!all_values) all_values=properties_new(MAX_VALUES);
   value ourstemp;
   ourstemp.type=ITEM_VALUE;
   ourstemp.val=val;
   value* ours=(value*)properties_get_same(all_values, &ourstemp);
   if(ours) return ours;
   ours=(value*)calloc(1,sizeof(value));
+  if(!ours) return 0;
   ours->type=ITEM_VALUE;
   ours->val=strdup(val);
-  properties_set(all_values, ours, (item*)ours);
+  if(!ours->val){ free(ours); return 0; }
+  if(!properties_set(all_values, ours, (item*)ours)) return 0;
 
   properties_log(all_values);
 
@@ -55,8 +65,8 @@ char* value_to_text(value* v, char* b, uint16_t s)
 
 void value_log(value* v)
 {
-  char buf[128];
-  log_write("%s\n", value_to_text(v,buf,128));
+  char buf[MAX_TEXT_LEN];
+  log_write("%s\n", value_to_text(v,buf,MAX_TEXT_LEN));
 }
 
 

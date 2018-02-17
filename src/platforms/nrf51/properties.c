@@ -6,15 +6,14 @@
 
 typedef struct properties {
   item_type type;
-  uint8_t   max_size;
+  uint16_t  max_size;
   value**   keys;
   item**    vals;
   uint8_t   size;
 } properties;
 
-properties* properties_new(uint8_t max_size)
+properties* properties_new(uint16_t max_size)
 {
-  if(max_size > 128) return 0;
   properties* op=(properties*)calloc(1,sizeof(properties));
   if(!op) return 0;
   op->type=ITEM_PROPERTIES;

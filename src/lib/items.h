@@ -39,7 +39,7 @@ typedef struct value      value;
 
 /* Assoc array/dictionary/map/hash. */
 
-properties* properties_new(uint8_t max_size);
+properties* properties_new(uint16_t max_size);
 bool        properties_set(properties* op, value* key, item* i);
 item*       properties_get(properties* op, value* key);
 item*       properties_get_same(properties* op, value* key);
