@@ -12,12 +12,25 @@ typedef struct value {
   char*  val;
 } value;
 
+static properties* all_values=0;
+
 value* value_new(char* val)
 {
-  value* v=(value*)calloc(1,sizeof(value));
-  v->type=ITEM_VALUE;
-  v->val=val;
-  return v;
+  if(!val) return 0;
+  if(!all_values) all_values=properties_new(100);
+  value ourstemp;
+  ourstemp.type=ITEM_VALUE;
+  ourstemp.val=val;
+  value* ours=(value*)properties_get_same(all_values, &ourstemp);
+  if(ours) return ours;
+  ours=(value*)calloc(1,sizeof(value));
+  ours->type=ITEM_VALUE;
+  ours->val=strdup(val);
+  properties_set(all_values, ours, (item*)ours);
+
+  properties_log(all_values);
+
+  return ours;
 }
 
 char* value_string(value* v)

@@ -31,7 +31,7 @@ bool properties_set(properties* op, value* key, item* i)
   if(!op) return false;
   int j;
   for(j=0; j<op->size; j++){
-    if(!strcmp(value_string(op->keys[j]), value_string(key))){
+    if(op->keys[j]==key){
       op->vals[j]=i;
       return true;
     }
@@ -47,6 +47,14 @@ item* properties_get(properties* op, value* key)
 {
   if(!op) return 0;
   int j;
+  for(j=0; j<op->size; j++) if(op->keys[j]==key) return op->vals[j];
+  return 0;
+}
+
+item* properties_get_same(properties* op, value* key)
+{
+  if(!op) return 0;
+  int j;
   for(j=0; j<op->size; j++) if(!strcmp(value_string(op->keys[j]), value_string(key))) return op->vals[j];
   return 0;
 }
@@ -55,7 +63,7 @@ item_type properties_type(properties* op, value* key)
 {
   if(!op) return 0;
   int j;
-  for(j=0; j<op->size; j++) if(!strcmp(value_string(op->keys[j]), value_string(key))) return (op->vals[j])->type;
+  for(j=0; j<op->size; j++) if(op->keys[j]==key) return (op->vals[j])->type;
   return 0;
 }
 
@@ -79,7 +87,7 @@ item* properties_delete(properties* op, value* key)
   item* v=0;
   int j;
   for(j=0; j<op->size; j++){
-    if(!strcmp(value_string(op->keys[j]), value_string(key))){
+    if(op->keys[j]==key){
       v = op->vals[j];
       break;
     }

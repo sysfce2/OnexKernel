@@ -59,7 +59,7 @@ bool properties_set(properties* op, value* key, item* i)
   if(!(op && key && i)) return false;
   hash_item** lisp;
   lisp=&op->lists[string_hash(value_string(key)) % op->buckets];
-  while((*lisp) && strcmp(value_string((*lisp)->key), value_string(key))){
+  while((*lisp) && (*lisp)->key != key){
     lisp=&(*lisp)->next;
   }
   if(!(*lisp)){
@@ -86,7 +86,18 @@ item* properties_get(properties* op, value* key)
   if(!(op && key)) return 0;
   hash_item* list;
   list=op->lists[string_hash(value_string(key)) % op->buckets];
-  while(list && strcmp(value_string(list->key), value_string(key))){
+  while(list && list->key!=key){
+    list=list->next;
+  }
+  return list? list->item: 0;
+}
+
+item* properties_get_same(properties* op, value* key)
+{
+  if(!(op && key)) return 0;
+  hash_item* list;
+  list=op->lists[string_hash(value_string(key)) % op->buckets];
+  while(list && strcmp(value_string(list->key),value_string(key))){
     list=list->next;
   }
   return list? list->item: 0;
@@ -120,13 +131,13 @@ item* properties_delete(properties* op, value* key)
   hash_item** lisp;
   hash_item*  next;
   lisp=&op->lists[string_hash(value_string(key)) % op->buckets];
-  while((*lisp) && strcmp(value_string((*lisp)->key), value_string(key))){
+  while((*lisp) && (*lisp)->key != key){
     lisp=&(*lisp)->next;
   }
   if((*lisp)){
     next=(*lisp)->next;
     int j;
-    for(j=0; j<op->size;   j++) if(!strcmp(value_string(op->keys[j]), value_string(key))) break;
+    for(j=0; j<op->size;   j++) if(op->keys[j]==key) break;
     for(   ; j<op->size-1; j++) op->keys[j] = op->keys[j+1];
     v=(*lisp)->item;
     free((*lisp));

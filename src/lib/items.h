@@ -42,6 +42,7 @@ typedef struct value      value;
 properties* properties_new(uint8_t max_size);
 bool        properties_set(properties* op, value* key, item* i);
 item*       properties_get(properties* op, value* key);
+item*       properties_get_same(properties* op, value* key);
 value*      properties_key_n(properties* op, uint8_t index);
 item*       properties_get_n(properties* op, uint8_t index);
 uint8_t     properties_size(properties* op);
