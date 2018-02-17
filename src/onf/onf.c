@@ -210,7 +210,7 @@ char* object_property(object* n, char* path)
   item* i=object_property_item(n,path,n);
   uint16_t s=MAX_TEXT_LEN;
   char b[MAX_TEXT_LEN]; *b=0;
-  if(strlen(item_to_text(i, b, MAX_TEXT_LEN))) return value_string(value_new(b));
+  if(strlen(item_to_text(i, b, MAX_TEXT_LEN))) return value_string(value_new(b)); // not single value
   return 0;
 }
 
@@ -240,7 +240,7 @@ char* object_property_values(object* n, char* path)
           if(ln>=MAX_TEXT_LEN) return 0;
         }
       }
-      return strlen(b)? value_string(value_new(b)): 0;
+      return strlen(b)? value_string(value_new(b)): 0; // not single value
 
     }
   }
@@ -460,12 +460,12 @@ bool nested_property_set(object* n, char* path, char* val)
   bool ok=false;
   if(i) switch(i->type){
     case ITEM_VALUE: {
-      if(!strcmp(c,"1")) ok=properties_set(n->properties, value_new(p), (item*)value_new(val));
+      if(!strcmp(c,"1")) ok=properties_set(n->properties, value_new(p), (item*)value_new(val)); // not singled like above fn
       break;
     }
     case ITEM_LIST: {
       char* e; uint32_t index=strtol(c,&e,10);
-      ok=list_set_n((list*)i, index, (item*)value_new(val));
+      ok=list_set_n((list*)i, index, (item*)value_new(val)); // not single
       break;
     }
     case ITEM_PROPERTIES: {
@@ -514,20 +514,20 @@ bool object_property_add(object* n, char* path, char* val)
   item* i=properties_get(n->properties, value_new(path));
   bool ok=true;
   if(!i){
-    ok=properties_set(n->properties, value_new(path), (item*)value_new(val));
+    ok=properties_set(n->properties, value_new(path), (item*)value_new(val)); // not single
   }
   else
   switch(i->type){
     case ITEM_VALUE: {
       list* l=list_new(MAX_LIST_SIZE);
       ok=ok && list_add(l,i);
-      ok=ok && list_add(l,(item*)value_new(val));
+      ok=ok && list_add(l,(item*)value_new(val)); // not single
       ok=ok && properties_set(n->properties, value_new(path), (item*)l);
       break;
     }
     case ITEM_LIST: {
       list* l=(list*)i;
-      ok=ok && list_add(l,(item*)value_new(val));
+      ok=ok && list_add(l,(item*)value_new(val)); // not single
       break;
     }
     case ITEM_PROPERTIES: {
@@ -562,7 +562,7 @@ void set_observers(object* o, char* notify)
   char s[m]; memcpy(s, notify, m);
   char* t=s;
   int i;
-  for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
+  for(i=0; i< OBJECT_MAX_NOTIFIES; i++){ // use strtok
     char* e=strchr(t, ' ');
     if(!e){ o->notify[i]=value_new(t); break; }
     (*e)=0;
