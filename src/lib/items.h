@@ -40,14 +40,14 @@ typedef struct value      value;
 /* Assoc array/dictionary/map/hash. */
 
 properties* properties_new(uint8_t max_size);
-bool        properties_set(properties* op, char* key, item* i);
-item*       properties_get(properties* op, char* key);
-char*       properties_key_n(properties* op, uint8_t index);
+bool        properties_set(properties* op, value* key, item* i);
+item*       properties_get(properties* op, value* key);
+value*      properties_key_n(properties* op, uint8_t index);
 item*       properties_get_n(properties* op, uint8_t index);
 uint8_t     properties_size(properties* op);
 char*       properties_to_text(properties* op, char* b, uint16_t s);
 void        properties_log(properties* op);
-item*       properties_delete(properties* op, char* key);
+item*       properties_delete(properties* op, value* key);
 
 // --------------------------------------------------------------------
 

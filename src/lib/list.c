@@ -6,7 +6,7 @@
 
 /*
   lists for MCUs, not Linux, so move to src/platforms/nrf51
-  and do a proper hashtable for Linux in src/platforms/unix
+  and do a proper list for Linux in src/platforms/unix
 */
 
 typedef struct list {
@@ -19,9 +19,11 @@ typedef struct list {
 list* list_new(uint16_t max_size)
 {
   list* li=(list*)calloc(1,sizeof(list));
+  if(!li) return 0;
   li->type=ITEM_LIST;
   li->max_size=max_size;
   li->vals=(item**)calloc(max_size,sizeof(item*));
+  if(!li->vals) return 0;
   li->i=0;
   return li;
 }

@@ -344,26 +344,27 @@ void test_from_text()
   onex_assert(      !!n4,                                              "input text was parsed into an object");
   if(!n4) return;
 
-  onex_assert_equal(object_to_text(n4,textbuff,TEXTBUFFLEN), text,     "gives same text back from reconstruction");
-
   onex_assert(      object_property_is( n4, "UID", "uid-4"),           "object_new_from parses uid");
+  onex_assert_equal(object_property(    n4, "is"), "remote state",     "object_new_from parses is");
   onex_assert_equal(object_property(    n4, "is:1"), "remote",         "object_new_from parses 'is' first list item" );
   onex_assert_equal(object_property(    n4, "is:2"), "state",          "object_new_from parses 'is' second list item" );
-  onex_assert_equal(object_property(    n4, "n3"), "uid-3",            "object_new_from parses properties" );
+  onex_assert_equal(object_property(    n4, "n3"), "uid-3",            "object_new_from parses n3");
+
+  onex_assert_equal(object_to_text(n4,textbuff,TEXTBUFFLEN), text,     "gives same text back from reconstruction");
 
                     object_property_set(n4, "state", "good");
+  onex_assert_equal(object_property(    n4, "n3:is"), "local-state",   "object_new_from traverses n3:is" );
   onex_assert(      object_property_is( n4, "state", "good"),          "object_new_from creates usable object");
 
   text="Notify: uid-1 uid-2 is: remote state n3: uid-3";
   n4=object_new_from(strdup(text), 0, 4);
   onex_assert(      !!n4,                                              "input text was parsed into an object");
   if(!n4) return;
-  char* n4uid=object_property(n4, "UID");
 
+  char* n4uid=object_property(n4, "UID");
   char fulltext[128]; snprintf(fulltext, 128, "UID: %s %s", n4uid, text);
   onex_assert_equal(object_to_text(n4,textbuff,TEXTBUFFLEN), fulltext, "gives same text back from reconstruction");
 
-  onex_assert_equal(object_property(    n4, "n3:is"), "local-state",   "object_new_from creates usable object" );
 }
 
 // ---------------------------------------------------------------------------------

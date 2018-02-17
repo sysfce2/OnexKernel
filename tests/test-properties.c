@@ -22,30 +22,30 @@ void test_properties()
 
   properties* op=properties_new(3);
 
-                    properties_set(op,"x",(item*)value_new("y"));
-                    properties_set(op,"3",(item*)value_new("4"));
+                    properties_set(op,value_new("x"),(item*)value_new("y"));
+                    properties_set(op,value_new("3"),(item*)value_new("4"));
 
   onex_assert(      properties_size(op)==2,                               "size should be 2");
-  onex_assert_equal(item_to_text(properties_get(op,"x"), buf, 128), "y",  "x returns y");
-  onex_assert_equal(item_to_text(properties_get(op,"3"), buf, 128), "4",  "3 returns 4");
-  onex_assert(     !properties_get(op,"?"),                               "? returns null");
+  onex_assert_equal(item_to_text(properties_get(op,value_new("x")), buf, 128), "y",  "x returns y");
+  onex_assert_equal(item_to_text(properties_get(op,value_new("3")), buf, 128), "4",  "3 returns 4");
+  onex_assert(     !properties_get(op,value_new("?")),                               "? returns null");
 
-                    properties_set(op,"3",(item*)value_new("5"));
+                    properties_set(op,value_new("3"),(item*)value_new("5"));
 
   onex_assert(      properties_size(op)==2,                               "size should still be 2");
-  onex_assert_equal(item_to_text(properties_get(op,"3"), buf, 128), "5",  "3 now returns 5");
+  onex_assert_equal(item_to_text(properties_get(op,value_new("3")), buf, 128), "5",  "3 now returns 5");
 
-                    properties_set(op,"*",(item*)value_new("+"));
+                    properties_set(op,value_new("*"),(item*)value_new("+"));
 
   onex_assert(      properties_size(op)==3,       "size should now be 3");
-  onex_assert(     !properties_set(op,"M",(item*)value_new("N")),   "shouldn't be able to add a fourth item");
+  onex_assert(     !properties_set(op,value_new("M"),(item*)value_new("N")),   "shouldn't be able to add a fourth item");
   onex_assert(      properties_size(op)==3,       "size should still be 3");
 
-  onex_assert_equal(             properties_key_n(op,1), "x",            "1st key is 'x'");
+  onex_assert_equal(value_string(properties_key_n(op,1)), "x",            "1st key is 'x'");
   onex_assert_equal(item_to_text(properties_get_n(op,1), buf, 128), "y", "1st val is 'y'");
-  onex_assert_equal(             properties_key_n(op,2), "3",            "2nd key is '3'");
+  onex_assert_equal(value_string(properties_key_n(op,2)), "3",            "2nd key is '3'");
   onex_assert_equal(item_to_text(properties_get_n(op,2), buf, 128), "5", "2nd val is '5'");
-  onex_assert_equal(             properties_key_n(op,3), "*",            "3rd key is '*'");
+  onex_assert_equal(value_string(properties_key_n(op,3)), "*",            "3rd key is '*'");
   onex_assert_equal(item_to_text(properties_get_n(op,3), buf, 128), "+", "3rd val is '+'");
   onex_assert(                  !properties_key_n(op,4),                 "4th key is 0");
   onex_assert(                  !properties_get_n(op,4),                 "4th val is 0");
@@ -54,22 +54,22 @@ void test_properties()
 
   onex_assert_equal(item_to_text(op, buf, 128), "{\n  x: y\n  3: 5\n  *: +\n}\n", "serialise to string works");
 
-                    properties_set(op,"x",(item*)value_new("i"));
+                    properties_set(op,value_new("x"),(item*)value_new("i"));
 
-  onex_assert(      properties_get(op,"x")->type==ITEM_VALUE,             "x is a value");
-  onex_assert_equal(item_to_text(properties_get(op,"x"), buf, 128), "i",  "x now returns i");
+  onex_assert(      properties_get(op,value_new("x"))->type==ITEM_VALUE,             "x is a value");
+  onex_assert_equal(item_to_text(properties_get(op,value_new("x")), buf, 128), "i",  "x now returns i");
 
                     list* li=list_new(3); list_add(li,(item*)value_new("l")); list_add(li,(item*)value_new("m"));
-                    properties_set(op,"3",(item*)li);
-  onex_assert(      properties_get(op,"3")->type==ITEM_LIST,              "x is a list");
+                    properties_set(op,value_new("3"),(item*)li);
+  onex_assert(      properties_get(op,value_new("3"))->type==ITEM_LIST,              "x is a list");
 
   onex_assert_equal(item_to_text(op, buf, 128), "{\n  x: i\n  3: l m\n  *: +\n}\n", "serialise to string works");
 
-                    properties_delete(op,"3");
+                    properties_delete(op,value_new("3"));
   onex_assert(      properties_size(op)==2,                               "after delete size should now be 2");
-                    properties_delete(op,"x");
+                    properties_delete(op,value_new("x"));
   onex_assert(      properties_size(op)==1,                               "after delete size should now be 1");
-                    properties_delete(op,"*");
+                    properties_delete(op,value_new("*"));
   onex_assert(      properties_size(op)==0,                               "after delete size should now be 0");
   onex_assert_equal(item_to_text(op, buf, 128), "{\n}\n", "serialise to string works");
 

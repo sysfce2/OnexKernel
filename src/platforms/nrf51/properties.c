@@ -6,30 +6,32 @@
 
 typedef struct properties {
   item_type type;
-  uint8_t max_size;
-  char**  keys;
-  item**  vals;
-  uint8_t i;
+  uint8_t   max_size;
+  item**    vals;
+  uint8_t   i;
+  value**   keys;
 } properties;
 
 properties* properties_new(uint8_t max_size)
 {
   if(max_size > 128) return 0;
   properties* op=(properties*)calloc(1,sizeof(properties));
+  if(!op) return 0;
   op->type=ITEM_PROPERTIES;
   op->max_size=max_size;
-  op->keys=(char**)calloc(max_size,sizeof(char*));
+  op->keys=(value**)calloc(max_size,sizeof(value*));
   op->vals=(item**)calloc(max_size,sizeof(item*));
+  if(!op->keys || !op->vals) return 0;
   op->i=0;
   return op;
 }
 
-bool properties_set(properties* op, char* key, item* i)
+bool properties_set(properties* op, value* key, item* i)
 {
   if(!op) return false;
   int j;
   for(j=0; j<op->i; j++){
-    if(!strcmp(op->keys[j], key)){
+    if(!strcmp(value_string(op->keys[j]), value_string(key))){
       op->vals[j]=i;
       return true;
     }
@@ -41,23 +43,23 @@ bool properties_set(properties* op, char* key, item* i)
   return true;
 }
 
-item* properties_get(properties* op, char* key)
+item* properties_get(properties* op, value* key)
 {
   if(!op) return 0;
   int j;
-  for(j=0; j<op->i; j++) if(!strcmp(op->keys[j], key)) return op->vals[j];
+  for(j=0; j<op->i; j++) if(!strcmp(value_string(op->keys[j]), value_string(key))) return op->vals[j];
   return 0;
 }
 
-item_type properties_type(properties* op, char* key)
+item_type properties_type(properties* op, value* key)
 {
   if(!op) return 0;
   int j;
-  for(j=0; j<op->i; j++) if(!strcmp(op->keys[j], key)) return (op->vals[j])->type;
+  for(j=0; j<op->i; j++) if(!strcmp(value_string(op->keys[j]), value_string(key))) return (op->vals[j])->type;
   return 0;
 }
 
-char* properties_key_n(properties* op, uint8_t index)
+value* properties_key_n(properties* op, uint8_t index)
 {
   if(!op) return 0;
   if(index<=0 || index>op->i) return 0;
@@ -71,13 +73,13 @@ item* properties_get_n(properties* op, uint8_t index)
   return op->vals[index-1];
 }
 
-item* properties_delete(properties* op, char* key)
+item* properties_delete(properties* op, value* key)
 {
   if(!op) return false;
   item* v=0;
   int j;
   for(j=0; j<op->i; j++){
-    if(!strcmp(op->keys[j], key)){
+    if(!strcmp(value_string(op->keys[j]), value_string(key))){
       v = op->vals[j];
       break;
     }
@@ -105,7 +107,7 @@ char* properties_to_text(properties* op, char* b, uint16_t s)
   ln+=snprintf(b+ln, s-ln, "{\n");
   if(ln>=s){ *b = 0; return b; }
   for(j=0; j<op->i; j++){
-    ln+=snprintf(b+ln, s-ln, "  %s: ", op->keys[j]);
+    ln+=snprintf(b+ln, s-ln, "  %s: ", value_string(op->keys[j]));
     if(ln>=s){ *b = 0; return b; }
     ln+=strlen(item_to_text(op->vals[j], b+ln, s-ln));
     if(ln>=s){ *b = 0; return b; }

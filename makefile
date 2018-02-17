@@ -190,7 +190,7 @@ BUILD_DIRECTORY = build
 LINUX_FLAGS=-g3 -ggdb
 LINUX_CC_SYMBOLS = -D${TARGET} ${CHANNELS}
 
-CC_FLAGS = -c    -std=gnu99              -fno-common                    -Wno-pointer-sign -Wno-format -Wno-sign-compare -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-write-strings -Wno-old-style-declaration -Wall -Wextra -Wno-strict-aliasing -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer
+CC_FLAGS = -c -std=gnu99 -Werror -Wall -Wextra -Wno-pointer-sign -Wno-format -Wno-sign-compare -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-write-strings -Wno-old-style-declaration -Wno-strict-aliasing -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer
 
 M0_CPU = -mcpu=cortex-m0 -mthumb
 M0_CC_FLAGS = -std=gnu99 -Werror -Wall -Wextra -Wno-pointer-sign -Wno-format -Wno-sign-compare -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-write-strings -Wno-old-style-declaration -Wno-strict-aliasing -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer -O0
