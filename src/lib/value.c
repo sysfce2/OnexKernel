@@ -37,9 +37,7 @@ value* value_new(char* val)
   ours->val=strdup(val);
   if(!ours->val){ free(ours); return 0; }
   if(!properties_set(all_values, ours, (item*)ours)) return 0;
-
-  properties_log(all_values);
-
+;;properties_log(all_values);
   return ours;
 }
 
@@ -47,12 +45,6 @@ char* value_string(value* v)
 {
   if(!v) return 0;
   return v->val;
-}
-
-bool value_set(value* v, char* val)
-{
-  v->val=val;
-  return true;
 }
 
 char* value_to_text(value* v, char* b, uint16_t s)

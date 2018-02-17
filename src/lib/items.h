@@ -65,11 +65,10 @@ void     list_log(list* li);
 
 // --------------------------------------------------------------------
 
-/* Value: numbers, words, etc. */
+/* Value: numbers, words, etc; immutable and interned. */
 
 value* value_new(char*);
 char*  value_string(value* v);
-bool   value_set(value* v, char*);
 void   value_log(value* v);
 char*  value_to_text(value* v, char* b, uint16_t s);
 

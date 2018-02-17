@@ -70,7 +70,7 @@ static void handle_recv(char* buff, int size, char* from, uint16_t* fromip)
 #endif
 
   if(size>=5 && !strncmp(buff,"OBS: ",5)) recv_observe(buff, from);
-  if(size>=5 && !strncmp(buff,"UID: ",5)) recv_object(strdup(buff));
+  if(size>=5 && !strncmp(buff,"UID: ",5)) recv_object(buff);
 }
 
 char* object_to_text(object* n, char* b, uint16_t s);

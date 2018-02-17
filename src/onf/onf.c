@@ -24,9 +24,9 @@
 // ---------------------------------------------------------------------------------
 
 static value*      generate_uid();
-static object*     object_new_shell(value* uid, value* notify);
-static value*      get_key(char** p);
-static value*      get_val(char** p);
+static object*     object_new_shell(value* uid, char* notify);
+static char*       get_key(char** p);
+static char*       get_val(char** p);
 static void        add_to_cache(object* n);
 static object*     find_object(char* uid, object* n);
 static item*       object_property_item(object* n, char* path, object* t);
@@ -34,9 +34,9 @@ static item*       nested_property_item(object* n, char* path, object* t);
 static bool        nested_property_set(object* n, char* path, char* val);
 static bool        nested_property_delete(object* n, char* path);
 static properties* nested_properties(object* n, char* path);
-static bool        set_value_or_list(object* n, value* key, value* val, bool notify);
+static bool        set_value_or_list(object* n, char* key, char* val);
 static bool        add_observer(object* o, value* notify);
-static void        set_observers(object* o, value* notify);
+static void        set_observers(object* o, char* notify);
 static void        notify_observers(object* n);
 static void        show_notifies(object* o);
 static void        call_all_evaluators();
@@ -67,35 +67,39 @@ value* generate_uid()
   return value_new(b);
 }
 
-object* new_object(value* uid, value* is, onex_evaluator evaluator, uint8_t max_size)
+object* new_object(value* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
 {
   object* n=(object*)calloc(1,sizeof(object));
   n->uid=uid? uid: generate_uid();
   n->properties=properties_new(max_size);
-  if(is) set_value_or_list(n, value_new("is"), is, false);
+  if(is) set_value_or_list(n, "is", is);
   n->evaluator=evaluator;
   return n;
 }
 
 object* new_object_from(char* text, onex_evaluator evaluator, uint8_t max_size)
 {
+  size_t m=strlen(text)+1;
+  char t[m]; memcpy(t, text, m);
   object* n=0;
   value* uid=0;
-  value* notify=0;
-  char* p=text;
+  char* notify=0;
+  char* p=t;
   while(true){
-    value* key=get_key(&p); if(!key) break;
-    value* val=get_val(&p); if(!val) break;
-    if(!strcmp(value_string(key),"UID")) uid=val;
+    char* key=get_key(&p); if(!key) break;
+    char* val=get_val(&p); if(!val) break;
+    if(!strcmp(key,"UID")) uid=value_new(val);
     else
-    if(!strcmp(value_string(key),"Notify")) notify=val;
+    if(!strcmp(key,"Notify")) notify=strdup(val);
     else {
       if(!n){
         n=new_object(uid, 0, 0, max_size);
         set_observers(n, notify);
+        free(notify);
       }
-      if(!set_value_or_list(n, key, val, false)) break;
+      if(!set_value_or_list(n, key, val)) break;
     }
+    free(key); free(val);
   }
   n->evaluator=evaluator;
   return n;
@@ -113,12 +117,12 @@ object* object_new_from(char* text, onex_evaluator evaluator, uint8_t max_size)
 object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
 {
   if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
-  object* n=new_object(value_new(uid), value_new(is), evaluator, max_size);
+  object* n=new_object(value_new(uid), is, evaluator, max_size);
   add_to_cache(n);
   return n;
 }
 
-object* object_new_shell(value* uid, value* notify)
+object* object_new_shell(value* uid, char* notify)
 {
   uint8_t max_size=4;
   object* n=(object*)calloc(1,sizeof(object));
@@ -140,25 +144,25 @@ bool object_is_local(char* uid)
   return o && o->evaluator;
 }
 
-value* get_key(char** p)
+char* get_key(char** p)
 {
   if(!strlen(*p)) return 0;
   char* s=strchr(*p, ' ');
   char* c=strchr(*p, ':');
   if(s<c) return 0;
   (*c)=0;
-  value* r=value_new(*p);
+  char* r=strdup(*p);
   (*c)=':';
   (*p)=c+1;
   return r;
 }
 
-value* get_val(char** p)
+char* get_val(char** p)
 {
   char* c=strstr(*p, ": ");
-  value* r=0;
+  char* r=0;
   if(!c){
-    r=value_new(*p+1);
+    r=strdup(*p+1);
     (*p)+=strlen(*p+1)+1;
     return r;
   }
@@ -166,7 +170,7 @@ value* get_val(char** p)
   char* s=strrchr(*p, ' ');
   (*c)=':';
   (*s)=0;
-  r=value_new(*p+1);
+  r=strdup(*p+1);
   (*s)=' ';
   (*p)=s+1;
   return r;
@@ -248,7 +252,8 @@ item* object_property_item(object* n, char* path, object* t)
   if(!strcmp(path, "UID")) return (item*)n->uid;
   if(!strcmp(path, ""))    return (item*)n->properties;
   if(!strcmp(path, ":"))   return (item*)n->properties;
-  char p[128]; memcpy(p, path, strlen(path)+1);
+  size_t m=strlen(path)+1;
+  char p[m]; memcpy(p, path, m);
   char* c=strrchr(p, ':');
   bool endsincolon=(c && c+1-p==strlen(p));
   if(endsincolon){ *c=0; c=strrchr(p, ':'); }
@@ -258,7 +263,8 @@ item* object_property_item(object* n, char* path, object* t)
 
 item* nested_property_item(object* n, char* path, object* t)
 {
-  char p[128]; memcpy(p, path, strlen(path)+1);
+  size_t m=strlen(path)+1;
+  char p[m]; memcpy(p, path, m);
   char* c=strchr(p, ':');
   *c=0; c++;
   item* i=object_property_item(n,p,t);
@@ -277,8 +283,7 @@ item* nested_property_item(object* n, char* path, object* t)
     return 0;
   }
   if(i->type==ITEM_LIST){
-    char* e;
-    uint32_t index=strtol(c,&e,10);
+    char* e; uint32_t index=strtol(c,&e,10);
     item* r= ((*e)==0 || (*e)==':')? list_get_n((list*)i,index): 0;
     if(r){
       if(r->type==ITEM_VALUE){
@@ -302,7 +307,7 @@ object* find_object(char* uid, object* n)
     add_observer(o,n->uid);
     return o;
   }
-  if(!o) o=object_new_shell(value_new(uid), n->uid);
+  if(!o) o=object_new_shell(value_new(uid), value_string(n->uid));
   uint32_t curtime = time_ms();
   if(!o->last_observe || curtime > o->last_observe + 1000){
     o->last_observe = curtime + 1;
@@ -410,58 +415,60 @@ bool object_property_is(object* n, char* path, char* expected)
 
 bool object_property_set(object* n, char* path, char* val)
 {
-  char p[128]; memcpy(p, path, strlen(path)+1);
+  size_t m=strlen(path)+1;
+  char p[m]; memcpy(p, path, m);
   char* c=strrchr(p, ':');
   bool endsincolon=(c && c+1-p==strlen(p));
   if(endsincolon){ *c=0; c=strrchr(p, ':'); }
-  if(c) return nested_property_set(n, p, val);
   if(!val || !*val){
+    if(c) return nested_property_delete(n, path);
     bool ok=!!properties_delete(n->properties, value_new(p));
     if(ok) notify_observers(n);
     return ok;
   }
-  return set_value_or_list(n, value_new(p), value_new(val), true);
+  if(c) return nested_property_set(n, p, val);
+  bool ok=set_value_or_list(n, p, val);
+  if(ok) notify_observers(n);
+  return ok;
 }
 
-bool set_value_or_list(object* n, value* key, value* val, bool notify)
+bool set_value_or_list(object* n, char* key, char* val)
 {
-  bool ok=false;
-  char* v=value_string(val);
-  if(!strchr(v, ' ')){
-    ok=properties_set(n->properties, key, (item*)val);
+  if(!strchr(val, ' ')){
+    return properties_set(n->properties, value_new(key), (item*)value_new(val));
   }
   else{ // give to list type to parse!
     list* l=list_new(MAX_LIST_SIZE);
-    size_t m=strlen(v)+1;
-    char vals[m]; memcpy(vals, v, m);
+    size_t m=strlen(val)+1;
+    char vals[m]; memcpy(vals, val, m);
     char* t=strtok(vals, " \n");
     while(t) {
       list_add(l,(item*)value_new(t));
       t=strtok(0, " \n");
     }
-    ok=properties_set(n->properties, key, (item*)l);
+    return properties_set(n->properties, value_new(key), (item*)l);
   }
-  if(ok && notify) notify_observers(n);
-  return ok;
 }
 
 bool nested_property_set(object* n, char* path, char* val)
 {
-  if(!val || !*val) return nested_property_delete(n, path);
-  item* i=nested_property_item(n, path, 0);
-  if(!i) return false;
+  size_t m=strlen(path)+1;
+  char p[m]; memcpy(p, path, m);
+  char* c=strchr(p, ':');
+  *c=0; c++;
+  item* i=object_property_item(n,p,0);
   bool ok=false;
-  switch(i->type){
+  if(i) switch(i->type){
     case ITEM_VALUE: {
-      ok=value_set((value*)i, val); // NOOO!
+      if(!strcmp(c,"1")) ok=properties_set(n->properties, value_new(p), (item*)value_new(val));
       break;
     }
     case ITEM_LIST: {
-      return false;
+      char* e; uint32_t index=strtol(c,&e,10);
+      ok=list_set_n((list*)i, index, (item*)value_new(val));
       break;
     }
     case ITEM_PROPERTIES: {
-      return false;
       break;
     }
   }
@@ -471,7 +478,8 @@ bool nested_property_set(object* n, char* path, char* val)
 
 bool nested_property_delete(object* n, char* path)
 {
-  char p[128]; memcpy(p, path, strlen(path)+1);
+  size_t m=strlen(path)+1;
+  char p[m]; memcpy(p, path, m);
   char* c=strchr(p, ':');
   *c=0; c++;
   item* i=object_property_item(n,p,0);
@@ -482,8 +490,7 @@ bool nested_property_delete(object* n, char* path)
       break;
     }
     case ITEM_LIST: {
-      char* e;
-      uint32_t index=strtol(c,&e,10);
+      char* e; uint32_t index=strtol(c,&e,10);
       list* l=(list*)i;
       ok=list_del_n(l, index);
       if(!ok) break;
@@ -548,17 +555,19 @@ bool add_observer(object* o, value* notify)
   return false;
 }
 
-void set_observers(object* o, value* notify)
+void set_observers(object* o, char* notify)
 {
   if(!notify) return;
-  char* s=value_string(notify);
+  size_t m=strlen(notify)+1;
+  char s[m]; memcpy(s, notify, m);
+  char* t=s;
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    char* e=strchr(s, ' ');
-    if(!e){ o->notify[i]=value_new(s); break; }
+    char* e=strchr(t, ' ');
+    if(!e){ o->notify[i]=value_new(t); break; }
     (*e)=0;
-    o->notify[i]=value_new(s);
-    s=e+1;
+    o->notify[i]=value_new(t);
+    t=e+1;
   }
 }
 

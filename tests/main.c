@@ -35,9 +35,9 @@ int main(void) {
 
   log_write("-----------------OnexKernel tests------------------------\n");
 
-  run_properties_tests();
-  run_list_tests();
   run_value_tests();
+  run_list_tests();
+  run_properties_tests();
   run_onf_tests();
 
   int failures=onex_assert_summary();

@@ -340,7 +340,7 @@ void test_from_text()
   object_set_evaluator(n2, evaluate_remote_notify_2);
 
   char* text="UID: uid-4 Notify: uid-1 uid-2 is: remote state n3: uid-3";
-  object* n4=object_new_from(strdup(text), 0, 4);
+  object* n4=object_new_from(text, 0, 4);
   onex_assert(      !!n4,                                              "input text was parsed into an object");
   if(!n4) return;
 
@@ -357,7 +357,7 @@ void test_from_text()
   onex_assert(      object_property_is( n4, "state", "good"),          "object_new_from creates usable object");
 
   text="Notify: uid-1 uid-2 is: remote state n3: uid-3";
-  n4=object_new_from(strdup(text), 0, 4);
+  n4=object_new_from(text, 0, 4);
   onex_assert(      !!n4,                                              "input text was parsed into an object");
   if(!n4) return;
 
