@@ -89,6 +89,9 @@ object* onex_get_from_cache(char* uid);
 /** log out all the objects in the cache. */
 void onex_show_cache();
 
+/** remove object from the cache. */
+void onex_un_cache(char* uid);
+
 // --------------------------------------------------------------------
 
 #endif

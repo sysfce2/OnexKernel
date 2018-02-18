@@ -37,7 +37,6 @@ value* value_new(char* val)
   ours->val=strdup(val);
   if(!ours->val){ free(ours); return 0; }
   if(!properties_set(all_values, ours, (item*)ours)) return 0;
-;;properties_log(all_values);
   return ours;
 }
 

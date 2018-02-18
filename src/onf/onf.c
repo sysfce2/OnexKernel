@@ -206,6 +206,7 @@ void object_set_evaluator(object* n, onex_evaluator evaluator)
 
 char* object_property(object* n, char* path)
 {
+  if(!n) return 0;
   if(!strcmp(path, "UID")) return value_string(n->uid);
   item* i=object_property_item(n,path,n);
   uint16_t s=MAX_TEXT_LEN;
@@ -241,7 +242,6 @@ char* object_property_values(object* n, char* path)
         }
       }
       return strlen(b)? value_string(value_new(b)): 0; // not single value
-
     }
   }
   return 0;
@@ -662,6 +662,22 @@ void onex_show_cache()
     o=o->next;
   }
   log_write("+---------------------------------\n");
+}
+
+void onex_un_cache(char* uid)
+{
+  if(!uid || !(*uid)) return;
+  object* o=cache;
+  object* p=0;
+  while(o){
+    if(!strcmp(value_string(o->uid), uid)){
+      if(!p) cache=o->next;
+      else p->next=o->next;
+      break;
+    }
+    p=o;
+    o=o->next;
+  }
 }
 
 void call_all_evaluators()
