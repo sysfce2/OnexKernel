@@ -176,27 +176,6 @@ char* get_val(char** p)
   return r;
 }
 
-void add_to_cache(object* n)
-{
-  if(!cache) cache=n;
-  else{
-    object* o=cache;
-    while(o->next) o=o->next;
-    o->next=n;
-  }
-}
-
-object* onex_get_from_cache(char* uid)
-{
-  if(!uid || !(*uid)) return 0;
-  object* o=cache;
-  while(o){
-    if(!strcmp(value_string(o->uid), uid)) return o;
-    o=o->next;
-  }
-  return 0;
-}
-
 void object_set_evaluator(object* n, onex_evaluator evaluator)
 {
   n->evaluator=evaluator;
@@ -639,17 +618,33 @@ void onex_init()
   onp_init();
 }
 
-void onex_run_evaluators(object* n)
-{
-  if(n->evaluator) n->evaluator(n);
-}
-
 bool first_time=true;
 
 void onex_loop()
 {
   if(first_time){ first_time=false; call_all_evaluators(); }
   onp_loop();
+}
+
+void add_to_cache(object* n)
+{
+  if(!cache) cache=n;
+  else{
+    object* o=cache;
+    while(o->next) o=o->next;
+    o->next=n;
+  }
+}
+
+object* onex_get_from_cache(char* uid)
+{
+  if(!uid || !(*uid)) return 0;
+  object* o=cache;
+  while(o){
+    if(!strcmp(value_string(o->uid), uid)) return o;
+    o=o->next;
+  }
+  return 0;
 }
 
 void onex_show_cache()
@@ -678,6 +673,11 @@ void onex_un_cache(char* uid)
     p=o;
     o=o->next;
   }
+}
+
+void onex_run_evaluators(object* n)
+{
+  if(n->evaluator) n->evaluator(n);
 }
 
 void call_all_evaluators()
