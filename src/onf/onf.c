@@ -24,7 +24,6 @@
 // ---------------------------------------------------------------------------------
 
 static value*      generate_uid();
-static object*     object_new_shell(value* uid, char* notify);
 static char*       get_key(char** p);
 static char*       get_val(char** p);
 static void        add_to_cache(object* n);
@@ -40,7 +39,9 @@ static void        set_observers(object* o, char* notify);
 static void        notify_observers(object* n);
 static void        show_notifies(object* o);
 static void        call_all_evaluators();
-static bool        object_is_shell(object* o);
+static object*     new_shell(value* uid, char* notify);
+static bool        is_shell(object* o);
+
 
 // ---------------------------------
 
@@ -122,7 +123,7 @@ object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_si
   return n;
 }
 
-object* object_new_shell(value* uid, char* notify)
+object* new_shell(value* uid, char* notify)
 {
   uint8_t max_size=4;
   object* n=(object*)calloc(1,sizeof(object));
@@ -133,7 +134,7 @@ object* object_new_shell(value* uid, char* notify)
   return n;
 }
 
-bool object_is_shell(object* o)
+bool is_shell(object* o)
 {
   return !o->properties && !o->evaluator;
 }
@@ -282,11 +283,11 @@ object* find_object(char* uid, object* n)
 {
   if(!is_uid(uid) || !n) return 0;
   object* o=onex_get_from_cache(uid);
-  if(o && !object_is_shell(o)){
+  if(o && !is_shell(o)){
     add_observer(o,n->uid);
     return o;
   }
-  if(!o) o=object_new_shell(value_new(uid), value_string(n->uid));
+  if(!o) o=new_shell(value_new(uid), value_string(n->uid));
   uint32_t curtime = time_ms();
   if(!o->last_observe || curtime > o->last_observe + 1000){
     o->last_observe = curtime + 1;
