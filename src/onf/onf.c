@@ -603,6 +603,11 @@ char* object_to_text(object* n, char* b, uint16_t s)
     ln+=strlen(item_to_text(i, b+ln, s-ln));
     if(ln>=s){ *b = 0; return b; }
   }
+
+  if(is_shell(n)){
+    ln+=snprintf(b+ln, s-ln, " [shell]");
+    if(ln>=s){ *b = 0; return b; }
+  }
   return b;
 }
 
