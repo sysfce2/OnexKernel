@@ -113,7 +113,7 @@ tests.linux: LD=/usr/bin/gcc
 tests.linux: TARGET=TARGET_LINUX
 tests.linux: CHANNELS=-DONP_CHANNEL_SERIAL
 tests.linux: libOnexKernel.a ${TESTS_OBJECTS:.c=.o}
-	$(LD) -static ${TESTS_OBJECTS:.c=.o} -L. -lOnexKernel -o $@
+	$(LD) ${TESTS_OBJECTS:.c=.o} -L. -lOnexKernel -o $@
 
 tests.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
 tests.microbit.elf: TARGET=TARGET_MICRO_BIT
