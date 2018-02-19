@@ -17,8 +17,12 @@
 
 #if defined(TARGET_MCU_NRF51822)
 #define MAX_TEXT_LEN 128
+#define MAX_OBJECTS 128
+#define MAX_OBJECT_SIZE 8
 #else
 #define MAX_TEXT_LEN 2048
+#define MAX_OBJECTS 4096
+#define MAX_OBJECT_SIZE 32
 #endif
 
 // ---------------------------------------------------------------------------------
@@ -27,6 +31,7 @@ static value*      generate_uid();
 static char*       get_key(char** p);
 static char*       get_val(char** p);
 static void        add_to_cache(object* n);
+static void        add_to_cache_and_persist(object* n);
 static object*     find_object(char* uid, object* n);
 static item*       object_property_item(object* n, char* path, object* t);
 static item*       nested_property_item(object* n, char* path, object* t);
@@ -36,12 +41,17 @@ static properties* nested_properties(object* n, char* path);
 static bool        set_value_or_list(object* n, char* key, char* val);
 static bool        add_observer(object* o, value* notify);
 static void        set_observers(object* o, char* notify);
-static void        notify_observers(object* n);
+static void        save_and_notify_observers(object* n);
 static void        show_notifies(object* o);
 static void        call_all_evaluators();
 static object*     new_shell(value* uid, char* notify);
 static bool        is_shell(object* o);
 
+static void        persistence_init(char* filename);
+static void        persistence_loop();
+static object*     persistence_get(char* uid);
+static void        persistence_put(object* o);
+static void        persistence_flush();
 
 // ---------------------------------
 
@@ -111,7 +121,7 @@ object* object_new_from(char* text, onex_evaluator evaluator, uint8_t max_size)
   object* n=new_object_from(text, evaluator, max_size);
   char* uid=object_property(n, "UID");
   if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
-  add_to_cache(n);
+  add_to_cache_and_persist(n);
   return n;
 }
 
@@ -119,7 +129,7 @@ object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_si
 {
   if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
   object* n=new_object(value_new(uid), is, evaluator, max_size);
-  add_to_cache(n);
+  add_to_cache_and_persist(n);
   return n;
 }
 
@@ -403,12 +413,12 @@ bool object_property_set(object* n, char* path, char* val)
   if(!val || !*val){
     if(c) return nested_property_delete(n, path);
     bool ok=!!properties_delete(n->properties, value_new(p));
-    if(ok) notify_observers(n);
+    if(ok) save_and_notify_observers(n);
     return ok;
   }
   if(c) return nested_property_set(n, p, val);
   bool ok=set_value_or_list(n, p, val);
-  if(ok) notify_observers(n);
+  if(ok) save_and_notify_observers(n);
   return ok;
 }
 
@@ -452,7 +462,7 @@ bool nested_property_set(object* n, char* path, char* val)
       break;
     }
   }
-  if(ok) notify_observers(n);
+  if(ok) save_and_notify_observers(n);
   return ok;
 }
 
@@ -483,7 +493,7 @@ bool nested_property_delete(object* n, char* path)
       break;
     }
   }
-  if(ok) notify_observers(n);
+  if(ok) save_and_notify_observers(n);
   return ok;
 }
 
@@ -515,7 +525,7 @@ bool object_property_add(object* n, char* path, char* val)
       break;
     }
   }
-  if(ok) notify_observers(n);
+  if(ok) save_and_notify_observers(n);
   return ok;
 }
 
@@ -551,8 +561,9 @@ void set_observers(object* o, char* notify)
   }
 }
 
-void notify_observers(object* o)
+void save_and_notify_observers(object* o)
 {
+  persistence_put(o);
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
     if(!o->notify[i]) continue;
@@ -621,6 +632,7 @@ void object_log(object* o)
 
 void onex_init()
 {
+  persistence_init("onex.db");
   onp_init();
 }
 
@@ -628,7 +640,8 @@ bool first_time=true;
 
 void onex_loop()
 {
-  if(first_time){ first_time=false; call_all_evaluators(); }
+  if(first_time){ first_time=false; call_all_evaluators(); } // hmm
+  persistence_loop();
   onp_loop();
 }
 
@@ -650,7 +663,15 @@ object* onex_get_from_cache(char* uid)
     if(!strcmp(value_string(o->uid), uid)) return o;
     o=o->next;
   }
-  return 0;
+  o=persistence_get(uid);
+  if(o) add_to_cache(o);
+  return o;
+}
+
+void add_to_cache_and_persist(object* n)
+{
+  add_to_cache(n);
+  persistence_put(n);
 }
 
 void onex_show_cache()
@@ -668,6 +689,7 @@ void onex_show_cache()
 void onex_un_cache(char* uid)
 {
   if(!uid || !(*uid)) return;
+  persistence_flush();
   object* o=cache;
   object* p=0;
   while(o){
@@ -702,6 +724,98 @@ void call_all_evaluators()
   }
 }
 
+// -----------------------------------------------------------------------
+
+static properties* objects_text=0;
+static properties* objects_to_save=0;
+
+static FILE* db=0;
+
+void persistence_init(char* filename)
+{
+;;log_write("persistence_init %s\n", filename);
+  objects_text=properties_new(MAX_OBJECTS);
+  objects_to_save=properties_new(MAX_OBJECTS);
+  db=fopen(filename, "a+");
+  if(!db){
+    log_write("Couldn't open DB file %s\n", filename);
+    return;
+  }
+  fseek(db, 0, SEEK_END);
+  long len = ftell(db);
+  fseek(db, 0, SEEK_SET);
+  char* alldbtext=malloc(len*sizeof(char)+1);
+  if(!alldbtext) {
+    fclose(db); db=0;
+    log_write("Can't allocate space for DB file %s\n", filename);
+    return;
+  }
+  long n=fread(alldbtext, sizeof(char), len, db);
+  alldbtext[n] = '\0';
+  char* text=strtok(alldbtext, "\n");
+  while(text){
+    if(strncmp(text, "UID: ", 5)) continue;
+    char* uid=text+5;
+    char* e=strchr(uid, ' ');
+    if(e) *e=0;
+    value* uidv=value_new(uid);
+    if(e) *e=' ';
+    properties_set(objects_text, uidv, (item*)value_new(text));
+    text=strtok(0, "\n");
+  }
+;;properties_log(objects_text);
+}
+
+uint32_t lasttime=0;
+
+void persistence_loop()
+{
+  uint32_t curtime = time_ms();
+  if(curtime > lasttime+100){
+    persistence_flush();
+    lasttime = curtime;
+  }
+}
+
+object* persistence_get(char* uid)
+{
+;;log_write("persistence_get=%s\n", uid);
+  value* uidv=value_new(uid);
+  value* text=(value*)properties_get(objects_text, uidv);
+  if(!text) return 0;
+;;log_write("persistence_get={%s}\n", value_string(text));
+  return new_object_from(value_string(text), default_evaluator, MAX_OBJECT_SIZE);
+}
+
+void persistence_put(object* o)
+{
+  value* uidv=o->uid;
+;;log_write("persistence_put=%s\n", value_string(uidv));
+  properties_set(objects_to_save, uidv, (item*)uidv);
+}
+
+void persistence_flush()
+{
+  uint16_t sz=properties_size(objects_to_save);
+  if(!sz) return;
+;;properties_log(objects_to_save);
+;;properties_log(objects_text);
+  for(int j=1; j<=sz; j++){
+    value* uidv=(value*)properties_get_n(objects_to_save, 1);
+    properties_delete(objects_to_save, uidv);
+    object* o=onex_get_from_cache(value_string(uidv));
+    char buff[MAX_TEXT_LEN];
+    char* text=object_to_text(o,buff,MAX_TEXT_LEN);
+    properties_set(objects_text, uidv, (item*)value_new(text));
+    if(db) fprintf(db, "%s\n", text);
+  }
+  if(db) fflush(db);
+;;properties_log(objects_to_save);
+;;properties_log(objects_text);
+}
+
+// -----------------------------------------------------------------------
+
 void recv_observe(char* b, char* from)
 {
   char* uid=strchr(b,':')+2;
@@ -719,7 +833,7 @@ void recv_object(char* text)
   object* s=onex_get_from_cache(value_string(n->uid));
   if(!s) return;
   s->properties = n->properties;
-  notify_observers(s);
+  save_and_notify_observers(s);
 }
 
 // -----------------------------------------------------------------------

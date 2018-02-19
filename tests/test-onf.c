@@ -367,6 +367,52 @@ void test_from_text()
 
 }
 
+int evaluate_default_persistence_called=0;
+
+bool evaluate_default_persistence(object* n)
+{
+  if(object_property_is(n, "UID", "uid-4")) onex_assert_equal(object_property(n, "n3:n2:n1:state"), "better better", "n4 can look through objects in the cache on notify");
+  if(object_property_is(n, "UID", "uid-1")) {}
+  evaluate_default_persistence_called++;
+  return true;
+}
+
+bool evaluate_n4_persistence_called=false;
+
+bool evaluate_n4_persistence(object* n4)
+{
+  onex_assert_equal(object_property(n4, "n3:n2:n1:state"), "good good",     "n4 can look through objects in the cache on notify");
+  evaluate_n4_persistence_called=true;
+  return true;
+}
+
+void test_persistence()
+{
+  object* n4=onex_get_from_cache("uid-4");
+  object* n1=onex_get_from_cache("uid-1");
+
+  object_set_evaluator(n4, evaluate_n4_persistence);
+
+  onex_assert_equal(object_property(    n4, "n3:n2:n1:state"), "good mostly", "n4 can look through objects in the cache");
+  onex_assert(      object_property_set(n1, "state", "good good"),            "can change n1 to good good (awaiting n4 to be notified)");
+
+  onex_un_cache("uid-5");
+  onex_un_cache("uid-4");
+  onex_un_cache("uid-3");
+  onex_un_cache("uid-2");
+  onex_un_cache("uid-1");
+  onex_show_cache();
+
+  onex_set_default_evaluator(evaluate_default_persistence);
+
+  n1=onex_get_from_cache("uid-1");
+
+  onex_assert_equal(object_property(    n1, "state"), "good good",     "can still see n1's state because it's refetched from persistence");
+  onex_assert(      object_property_set(n1, "state", "better better"), "can change n1 to better better (awaiting n4 to be notified)");
+
+  onex_show_cache();
+}
+
 // ---------------------------------------------------------------------------------
 
 void run_onf_tests()
@@ -396,6 +442,13 @@ void run_onf_tests()
   onex_assert(      evaluate_remote_notify_2_called,    "evaluate_remote_notify_2 was called");
 
   onex_show_cache();
+
+  test_persistence();
+
+  onex_loop();
+
+  onex_assert(      evaluate_n4_persistence_called,          "evaluate_n4_persistence_called was called");
+  onex_assert(      evaluate_default_persistence_called==2,  "evaluate_default_persistence_called was called twice");
 }
 
 // ---------------------------------------------------------------------------------

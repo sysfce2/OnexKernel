@@ -283,6 +283,7 @@ clean:
 	rm -f *.bin *.elf
 	rm -f ,* core
 	rm -rf $(BUILD_DIRECTORY)/*.o
+	rm -f onex.db
 	@echo "------------------------------"
 
 cleanx: clean
