@@ -733,7 +733,6 @@ static FILE* db=0;
 
 void persistence_init(char* filename)
 {
-;;log_write("persistence_init %s\n", filename);
   objects_text=properties_new(MAX_OBJECTS);
   objects_to_save=properties_new(MAX_OBJECTS);
   db=fopen(filename, "a+");
@@ -763,7 +762,6 @@ void persistence_init(char* filename)
     properties_set(objects_text, uidv, (item*)value_new(text));
     text=strtok(0, "\n");
   }
-;;properties_log(objects_text);
 }
 
 uint32_t lasttime=0;
@@ -779,18 +777,15 @@ void persistence_loop()
 
 object* persistence_get(char* uid)
 {
-;;log_write("persistence_get=%s\n", uid);
   value* uidv=value_new(uid);
   value* text=(value*)properties_get(objects_text, uidv);
   if(!text) return 0;
-;;log_write("persistence_get={%s}\n", value_string(text));
   return new_object_from(value_string(text), default_evaluator, MAX_OBJECT_SIZE);
 }
 
 void persistence_put(object* o)
 {
   value* uidv=o->uid;
-;;log_write("persistence_put=%s\n", value_string(uidv));
   properties_set(objects_to_save, uidv, (item*)uidv);
 }
 
@@ -798,8 +793,6 @@ void persistence_flush()
 {
   uint16_t sz=properties_size(objects_to_save);
   if(!sz) return;
-;;properties_log(objects_to_save);
-;;properties_log(objects_text);
   for(int j=1; j<=sz; j++){
     value* uidv=(value*)properties_get_n(objects_to_save, 1);
     properties_delete(objects_to_save, uidv);
@@ -810,8 +803,6 @@ void persistence_flush()
     if(db) fprintf(db, "%s\n", text);
   }
   if(db) fflush(db);
-;;properties_log(objects_to_save);
-;;properties_log(objects_text);
 }
 
 // -----------------------------------------------------------------------
