@@ -326,7 +326,7 @@ char* object_property_get_n(object* n, char* path, uint8_t index)
   return value_string((value*)v);
 }
 
-int8_t object_property_size(object* n, char* path)
+int16_t object_property_size(object* n, char* path)
 {
   item* i=object_property_item(n,path,n);
   if(i){
@@ -342,7 +342,7 @@ int8_t object_property_size(object* n, char* path)
   return -1;
 }
 
-char* object_property_key(object* n, char* path, uint8_t index)
+char* object_property_key(object* n, char* path, uint16_t index)
 {
   value* k=0;
   item* i=object_property_item(n,path,n);
@@ -364,7 +364,7 @@ char* object_property_key(object* n, char* path, uint8_t index)
   return value_string(k);
 }
 
-char* object_property_val(object* n, char* path, uint8_t index)
+char* object_property_val(object* n, char* path, uint16_t index)
 {
   item* v=0;
   item* i=object_property_item(n,path,n);

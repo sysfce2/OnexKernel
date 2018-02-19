@@ -13,7 +13,7 @@ typedef struct properties{
   struct properties* next;
   char*              name;
   int                buckets;
-  int                size;
+  uint16_t           size;
   hash_item**        lists;
   value**            keys;
   uint8_t            i;
@@ -108,14 +108,14 @@ item_type properties_type(properties* op, value* key)
   return i? i->type: 0;
 }
 
-value* properties_key_n(properties* op, uint8_t index)
+value* properties_key_n(properties* op, uint16_t index)
 {
   if(!op) return 0;
   if(index<=0 || index>op->size) return 0;
   return op->keys[index-1];
 }
 
-item* properties_get_n(properties* op, uint8_t index)
+item* properties_get_n(properties* op, uint16_t index)
 {
   if(!op) return 0;
   if(index<=0 || index>op->size) return 0;
@@ -147,8 +147,7 @@ item* properties_delete(properties* op, value* key)
   return 0;
 }
 
-
-uint8_t properties_size(properties* op)
+uint16_t properties_size(properties* op)
 {
   if(!op) return 0;
   return op->size;

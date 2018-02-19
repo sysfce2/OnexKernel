@@ -9,7 +9,7 @@ typedef struct properties {
   uint16_t  max_size;
   value**   keys;
   item**    vals;
-  uint8_t   size;
+  uint16_t  size;
 } properties;
 
 properties* properties_new(uint16_t max_size)
@@ -66,14 +66,14 @@ item_type properties_type(properties* op, value* key)
   return 0;
 }
 
-value* properties_key_n(properties* op, uint8_t index)
+value* properties_key_n(properties* op, uint16_t index)
 {
   if(!op) return 0;
   if(index<=0 || index>op->size) return 0;
   return op->keys[index-1];
 }
 
-item* properties_get_n(properties* op, uint8_t index)
+item* properties_get_n(properties* op, uint16_t index)
 {
   if(!op) return 0;
   if(index<=0 || index > op->size) return 0;
@@ -100,7 +100,7 @@ item* properties_delete(properties* op, value* key)
   return v;
 }
 
-uint8_t properties_size(properties* op)
+uint16_t properties_size(properties* op)
 {
   if(!op) return 0;
   return op->size;
