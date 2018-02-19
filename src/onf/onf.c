@@ -681,6 +681,13 @@ void onex_un_cache(char* uid)
   }
 }
 
+onex_evaluator default_evaluator=0;
+
+void onex_set_default_evaluator(onex_evaluator evaluator)
+{
+  default_evaluator=evaluator;
+}
+
 void onex_run_evaluators(object* n)
 {
   if(n->evaluator) n->evaluator(n);

@@ -80,6 +80,9 @@ void onex_init();
 /** call when you want your evaluator run so you can set some state within a transaction. */
 void onex_run_evaluators(object* n);
 
+/** set the evaluator for objects pulled from persistence. */
+void onex_set_default_evaluator(onex_evaluator evaluator);
+
 /** call this to give CPU to Onex. */
 void onex_loop();
 
