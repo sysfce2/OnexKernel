@@ -61,10 +61,7 @@ typedef struct object {
   properties*     properties;
   value*          notify[OBJECT_MAX_NOTIFIES];
   uint32_t        last_observe;
-  struct object*  next;
 } object;
-
-object* cache=0;
 
 value* generate_uid()
 {
@@ -645,24 +642,19 @@ void onex_loop()
   onp_loop();
 }
 
+static properties* objects_cache=0;
+
 void add_to_cache(object* n)
 {
-  if(!cache) cache=n;
-  else{
-    object* o=cache;
-    while(o->next) o=o->next;
-    o->next=n;
-  }
+  if(!objects_cache) objects_cache=properties_new(MAX_OBJECTS);
+  properties_set(objects_cache, n->uid, n);
 }
 
 object* onex_get_from_cache(char* uid)
 {
   if(!uid || !(*uid)) return 0;
-  object* o=cache;
-  while(o){
-    if(!strcmp(value_string(o->uid), uid)) return o;
-    o=o->next;
-  }
+  object* o=properties_get(objects_cache, value_new(uid));
+  if(o) return o;
   o=persistence_get(uid);
   if(o) add_to_cache(o);
   return o;
@@ -678,10 +670,9 @@ void onex_show_cache()
 {
   log_write("+-----------cache dump------------\n");
   char buff[MAX_TEXT_LEN*2];
-  object* o=cache;
-  while(o){
+  for(int n=1; n<=properties_size(objects_cache); n++){
+    object* o=properties_get_n(objects_cache,n);
     log_write("| %s\n", object_to_text(o,buff,MAX_TEXT_LEN*2));
-    o=o->next;
   }
   log_write("+---------------------------------\n");
 }
@@ -690,17 +681,7 @@ void onex_un_cache(char* uid)
 {
   if(!uid || !(*uid)) return;
   persistence_flush();
-  object* o=cache;
-  object* p=0;
-  while(o){
-    if(!strcmp(value_string(o->uid), uid)){
-      if(!p) cache=o->next;
-      else p->next=o->next;
-      break;
-    }
-    p=o;
-    o=o->next;
-  }
+  properties_delete(objects_cache, value_new(uid));
 }
 
 onex_evaluator default_evaluator=0;
@@ -717,10 +698,9 @@ void onex_run_evaluators(object* n)
 
 void call_all_evaluators()
 {
-  object* o=cache;
-  while(o){
+  for(int n=1; n<=properties_size(objects_cache); n++){
+    object* o=properties_get_n(objects_cache,n);
     if(o->evaluator) o->evaluator(o);
-    o=o->next;
   }
 }
 
