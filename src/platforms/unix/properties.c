@@ -22,7 +22,7 @@ typedef struct properties{
 struct hash_item{
   hash_item* next;
   value*     key;
-  item*      item;
+  void*      item;
 };
 
 unsigned int string_hash(char* p)
@@ -53,7 +53,7 @@ properties* properties_new(uint16_t max_size)
   return op;
 }
 
-bool properties_set(properties* op, value* key, item* i)
+bool properties_set(properties* op, value* key, void* i)
 {
   if(!(op && key && i)) return false;
   hash_item** lisp;
@@ -79,7 +79,7 @@ bool properties_set(properties* op, value* key, item* i)
 }
 
 
-item* properties_get(properties* op, value* key)
+void* properties_get(properties* op, value* key)
 {
   if(!(op && key)) return 0;
   hash_item* list;
@@ -90,7 +90,7 @@ item* properties_get(properties* op, value* key)
   return list? list->item: 0;
 }
 
-item* properties_get_same(properties* op, value* key)
+void* properties_get_same(properties* op, value* key)
 {
   if(!(op && key)) return 0;
   hash_item* list;
@@ -101,13 +101,6 @@ item* properties_get_same(properties* op, value* key)
   return list? list->item: 0;
 }
 
-item_type properties_type(properties* op, value* key)
-{
-  if(!op) return 0;
-  item* i=properties_get(op, key);
-  return i? i->type: 0;
-}
-
 value* properties_key_n(properties* op, uint16_t index)
 {
   if(!op) return 0;
@@ -115,17 +108,17 @@ value* properties_key_n(properties* op, uint16_t index)
   return op->keys[index-1];
 }
 
-item* properties_get_n(properties* op, uint16_t index)
+void* properties_get_n(properties* op, uint16_t index)
 {
   if(!op) return 0;
   if(index<=0 || index>op->size) return 0;
   return properties_get(op, op->keys[index-1]);
 }
 
-item* properties_delete(properties* op, value* key)
+void* properties_delete(properties* op, value* key)
 {
   if(!op) return false;
-  item* v=0;
+  void* v=0;
   hash_item** lisp;
   hash_item*  next;
   lisp=&op->lists[string_hash(value_string(key)) % op->buckets];

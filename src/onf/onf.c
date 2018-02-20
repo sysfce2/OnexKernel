@@ -425,7 +425,7 @@ bool object_property_set(object* n, char* path, char* val)
 bool set_value_or_list(object* n, char* key, char* val)
 {
   if(!strchr(val, ' ')){
-    return properties_set(n->properties, value_new(key), (item*)value_new(val));
+    return properties_set(n->properties, value_new(key), value_new(val));
   }
   else{ // give to list type to parse!
     list* l=list_new(MAX_LIST_SIZE);
@@ -433,10 +433,10 @@ bool set_value_or_list(object* n, char* key, char* val)
     char vals[m]; memcpy(vals, val, m);
     char* t=strtok(vals, " \n");
     while(t) {
-      list_add(l,(item*)value_new(t));
+      list_add(l,value_new(t));
       t=strtok(0, " \n");
     }
-    return properties_set(n->properties, value_new(key), (item*)l);
+    return properties_set(n->properties, value_new(key), l);
   }
 }
 
@@ -450,12 +450,12 @@ bool nested_property_set(object* n, char* path, char* val)
   bool ok=false;
   if(i) switch(i->type){
     case ITEM_VALUE: {
-      if(!strcmp(c,"1")) ok=properties_set(n->properties, value_new(p), (item*)value_new(val)); // not singled like above fn
+      if(!strcmp(c,"1")) ok=properties_set(n->properties, value_new(p), value_new(val)); // not singled like above fn
       break;
     }
     case ITEM_LIST: {
       char* e; uint32_t index=strtol(c,&e,10);
-      ok=list_set_n((list*)i, index, (item*)value_new(val)); // not single
+      ok=list_set_n((list*)i, index, value_new(val)); // not single
       break;
     }
     case ITEM_PROPERTIES: {
@@ -504,20 +504,20 @@ bool object_property_add(object* n, char* path, char* val)
   item* i=properties_get(n->properties, value_new(path));
   bool ok=true;
   if(!i){
-    ok=properties_set(n->properties, value_new(path), (item*)value_new(val)); // not single
+    ok=properties_set(n->properties, value_new(path), value_new(val)); // not single
   }
   else
   switch(i->type){
     case ITEM_VALUE: {
       list* l=list_new(MAX_LIST_SIZE);
       ok=ok && list_add(l,i);
-      ok=ok && list_add(l,(item*)value_new(val)); // not single
-      ok=ok && properties_set(n->properties, value_new(path), (item*)l);
+      ok=ok && list_add(l,value_new(val)); // not single
+      ok=ok && properties_set(n->properties, value_new(path), l);
       break;
     }
     case ITEM_LIST: {
       list* l=(list*)i;
-      ok=ok && list_add(l,(item*)value_new(val)); // not single
+      ok=ok && list_add(l,value_new(val)); // not single
       break;
     }
     case ITEM_PROPERTIES: {
@@ -759,7 +759,7 @@ void persistence_init(char* filename)
     if(e) *e=0;
     value* uidv=value_new(uid);
     if(e) *e=' ';
-    properties_set(objects_text, uidv, (item*)value_new(text));
+    properties_set(objects_text, uidv, strdup(text));
     text=strtok(0, "\n");
   }
 }
@@ -778,15 +778,15 @@ void persistence_loop()
 object* persistence_get(char* uid)
 {
   value* uidv=value_new(uid);
-  value* text=(value*)properties_get(objects_text, uidv);
+  char* text=properties_get(objects_text, uidv);
   if(!text) return 0;
-  return new_object_from(value_string(text), default_evaluator, MAX_OBJECT_SIZE);
+  return new_object_from(text, default_evaluator, MAX_OBJECT_SIZE);
 }
 
 void persistence_put(object* o)
 {
   value* uidv=o->uid;
-  properties_set(objects_to_save, uidv, (item*)uidv);
+  properties_set(objects_to_save, uidv, uidv);
 }
 
 void persistence_flush()
@@ -799,7 +799,8 @@ void persistence_flush()
     object* o=onex_get_from_cache(value_string(uidv));
     char buff[MAX_TEXT_LEN];
     char* text=object_to_text(o,buff,MAX_TEXT_LEN);
-    properties_set(objects_text, uidv, (item*)value_new(text));
+    free(properties_delete(objects_text, uidv));
+    properties_set(objects_text, uidv, strdup(text));
     if(db) fprintf(db, "%s\n", text);
   }
   if(db) fflush(db);

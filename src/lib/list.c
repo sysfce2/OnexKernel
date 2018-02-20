@@ -18,7 +18,7 @@
 typedef struct list {
   item_type type;
   uint16_t max_size;
-  item**  vals;
+  void**  vals;
   uint16_t i;
 } list;
 
@@ -28,13 +28,13 @@ list* list_new(uint16_t max_size)
   if(!li) return 0;
   li->type=ITEM_LIST;
   li->max_size=max_size;
-  li->vals=(item**)calloc(max_size,sizeof(item*));
+  li->vals=(void**)calloc(max_size,sizeof(void*));
   if(!li->vals) return 0;
   li->i=0;
   return li;
 }
 
-bool list_add(list* li, item* val)
+bool list_add(list* li, void* val)
 {
   if(!li) return false;
   if(li->i==li->max_size) return false;
@@ -43,7 +43,7 @@ bool list_add(list* li, item* val)
   return true;
 }
 
-bool list_set_n(list* li, uint16_t index, item* val)
+bool list_set_n(list* li, uint16_t index, void* val)
 {
   if(!li) return false;
   if(index<=0 || index>li->i) return false;
@@ -51,19 +51,19 @@ bool list_set_n(list* li, uint16_t index, item* val)
   return true;
 }
 
-item* list_get_n(list* li, uint16_t index)
+void* list_get_n(list* li, uint16_t index)
 {
   if(!li) return 0;
   if(index<=0 || index>li->i) return 0;
   return li->vals[index-1];
 }
 
-item* list_del_n(list* li, uint16_t index)
+void* list_del_n(list* li, uint16_t index)
 {
   if(!li) return 0;
   if(index<=0 || index>li->i) return 0;
   int j=index-1;
-  item* v=li->vals[j];
+  void* v=li->vals[j];
   for(; j < li->i-1; j++){
     li->vals[j] = li->vals[j+1];
   }

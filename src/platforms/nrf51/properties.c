@@ -8,7 +8,7 @@ typedef struct properties {
   item_type type;
   uint16_t  max_size;
   value**   keys;
-  item**    vals;
+  void**    vals;
   uint16_t  size;
 } properties;
 
@@ -19,13 +19,13 @@ properties* properties_new(uint16_t max_size)
   op->type=ITEM_PROPERTIES;
   op->max_size=max_size;
   op->keys=(value**)calloc(max_size,sizeof(value*));
-  op->vals=(item**)calloc(max_size,sizeof(item*));
+  op->vals=(void**)calloc(max_size,sizeof(void*));
   if(!op->keys || !op->vals) return 0;
   op->size=0;
   return op;
 }
 
-bool properties_set(properties* op, value* key, item* i)
+bool properties_set(properties* op, value* key, void* i)
 {
   if(!op) return false;
   int j;
@@ -42,7 +42,7 @@ bool properties_set(properties* op, value* key, item* i)
   return true;
 }
 
-item* properties_get(properties* op, value* key)
+void* properties_get(properties* op, value* key)
 {
   if(!op) return 0;
   int j;
@@ -50,19 +50,11 @@ item* properties_get(properties* op, value* key)
   return 0;
 }
 
-item* properties_get_same(properties* op, value* key)
+void* properties_get_same(properties* op, value* key)
 {
   if(!op) return 0;
   int j;
   for(j=0; j<op->size; j++) if(!strcmp(value_string(op->keys[j]), value_string(key))) return op->vals[j];
-  return 0;
-}
-
-item_type properties_type(properties* op, value* key)
-{
-  if(!op) return 0;
-  int j;
-  for(j=0; j<op->size; j++) if(op->keys[j]==key) return (op->vals[j])->type;
   return 0;
 }
 
@@ -73,17 +65,17 @@ value* properties_key_n(properties* op, uint16_t index)
   return op->keys[index-1];
 }
 
-item* properties_get_n(properties* op, uint16_t index)
+void* properties_get_n(properties* op, uint16_t index)
 {
   if(!op) return 0;
   if(index<=0 || index > op->size) return 0;
   return op->vals[index-1];
 }
 
-item* properties_delete(properties* op, value* key)
+void* properties_delete(properties* op, value* key)
 {
   if(!op) return false;
-  item* v=0;
+  void* v=0;
   int j;
   for(j=0; j<op->size; j++){
     if(op->keys[j]==key){

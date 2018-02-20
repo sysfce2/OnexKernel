@@ -40,25 +40,25 @@ typedef struct value      value;
 /* Assoc array/dictionary/map/hash. */
 
 properties* properties_new(uint16_t max_size);
-bool        properties_set(properties* op, value* key, item* i);
-item*       properties_get(properties* op, value* key);
-item*       properties_get_same(properties* op, value* key);
+bool        properties_set(properties* op, value* key, void* i);
+void*       properties_get(properties* op, value* key);
+void*       properties_get_same(properties* op, value* key);
 value*      properties_key_n(properties* op, uint16_t index);
-item*       properties_get_n(properties* op, uint16_t index);
+void*       properties_get_n(properties* op, uint16_t index);
 uint16_t    properties_size(properties* op);
 char*       properties_to_text(properties* op, char* b, uint16_t s);
 void        properties_log(properties* op);
-item*       properties_delete(properties* op, value* key);
+void*       properties_delete(properties* op, value* key);
 
 // --------------------------------------------------------------------
 
 /* List. */
 
 list*    list_new(uint16_t max_size);
-bool     list_add(list* li, item* val);
-bool     list_set_n(list* li, uint16_t index, item* val);
-item*    list_get_n(list* li, uint16_t index);
-item*    list_del_n(list* li, uint16_t index);
+bool     list_add(list* li, void* val);
+bool     list_set_n(list* li, uint16_t index, void* val);
+void*    list_get_n(list* li, uint16_t index);
+void*    list_del_n(list* li, uint16_t index);
 uint16_t list_size(list* li);
 char*    list_to_text(list* li, char* b, uint16_t s);
 void     list_log(list* li);
