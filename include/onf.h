@@ -75,7 +75,7 @@ bool object_is_local(char* uid);
 // --------------------------------------------------------------------
 
 /** set things up. */
-void onex_init();
+void onex_init(char* dbpath);
 
 /** call when you want your evaluator run so you can set some state within a transaction. */
 void onex_run_evaluators(object* n);

@@ -12,7 +12,7 @@
 extern void run_properties_tests();
 extern void run_list_tests();
 extern void run_value_tests();
-extern void run_onf_tests();
+extern void run_onf_tests(char* dbpath);
 
 #if defined(TARGET_MCU_NRF51822)
 const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
@@ -38,7 +38,7 @@ int main(void) {
   run_value_tests();
   run_list_tests();
   run_properties_tests();
-  run_onf_tests();
+  run_onf_tests("./onex.db");
 
   int failures=onex_assert_summary();
 

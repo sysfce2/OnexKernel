@@ -15,7 +15,7 @@ bool button_pressed=false;
 int main()
 {
   time_init();
-  onex_init();
+  onex_init("");
 
   time_delay_s(1);
   log_init(9600);

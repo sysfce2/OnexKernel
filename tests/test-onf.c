@@ -415,11 +415,11 @@ void test_persistence()
 
 // ---------------------------------------------------------------------------------
 
-void run_onf_tests()
+void run_onf_tests(char* dbpath)
 {
   log_write("------ONF tests-----------\n");
 
-  onex_init();
+  onex_init(dbpath);
 
   test_object_set_up();
   test_local_state();

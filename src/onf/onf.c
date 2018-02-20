@@ -636,9 +636,9 @@ void object_log(object* o)
 
 // -----------------------------------------------------------------------
 
-void onex_init()
+void onex_init(char* dbpath)
 {
-  persistence_init("onex.db");
+  persistence_init(dbpath);
   onp_init();
 }
 
@@ -727,7 +727,7 @@ void persistence_init(char* filename)
   objects_to_save=properties_new(MAX_OBJECTS);
   db=fopen(filename, "a+");
   if(!db){
-    log_write("Couldn't open DB file %s\n", filename);
+    log_write("Couldn't open DB file '%s'\n", filename);
     return;
   }
   fseek(db, 0, SEEK_END);

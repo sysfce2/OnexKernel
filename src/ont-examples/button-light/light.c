@@ -13,7 +13,7 @@ bool evaluate_light(object* light);
 int main()
 {
   time_init();
-  onex_init();
+  onex_init("");
 
   time_delay_s(2);
   log_init(9600);

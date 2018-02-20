@@ -11,7 +11,7 @@ extern "C" {
 extern void run_properties_tests();
 extern void run_list_tests();
 extern void run_value_tests();
-extern void run_onf_tests();
+extern void run_onf_tests(char* dbpath);
 }
 
 android_app* androidApp;
@@ -82,15 +82,14 @@ public:
   {
     log_init(0);
     time_init();
-    onex_init();
 
     time_delay_s(4);
     log_write("---------------OnexKernel tests----------------------\n");
 
-    run_properties_tests();
-    run_list_tests();
     run_value_tests();
-    run_onf_tests();
+    run_list_tests();
+    run_properties_tests();
+    run_onf_tests((char*)"data/data/network.object.onexkernel/files/onex.db");
 
     int failures=onex_assert_summary();
 
