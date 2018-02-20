@@ -44,6 +44,8 @@ static void        set_observers(object* o, char* notify);
 static void        save_and_notify_observers(object* n);
 static void        show_notifies(object* o);
 static void        call_all_evaluators();
+static object*     new_object(value* uid, char* is, onex_evaluator evaluator, uint8_t max_size);
+static object*     new_object_from(char* text, onex_evaluator evaluator, uint8_t max_size);
 static object*     new_shell(value* uid, char* notify);
 static bool        is_shell(object* o);
 
@@ -73,6 +75,23 @@ value* generate_uid()
     random_ish_byte(), random_ish_byte()
   );
   return value_new(b);
+}
+
+object* object_new_from(char* text, onex_evaluator evaluator, uint8_t max_size)
+{
+  object* n=new_object_from(text, evaluator, max_size);
+  char* uid=value_string(n->uid);
+  if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
+  add_to_cache_and_persist(n);
+  return n;
+}
+
+object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
+{
+  if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
+  object* n=new_object(value_new(uid), is, evaluator, max_size);
+  add_to_cache_and_persist(n);
+  return n;
 }
 
 object* new_object(value* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
@@ -110,23 +129,6 @@ object* new_object_from(char* text, onex_evaluator evaluator, uint8_t max_size)
     free(key); free(val);
   }
   n->evaluator=evaluator;
-  return n;
-}
-
-object* object_new_from(char* text, onex_evaluator evaluator, uint8_t max_size)
-{
-  object* n=new_object_from(text, evaluator, max_size);
-  char* uid=value_string(n->uid);
-  if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
-  add_to_cache_and_persist(n);
-  return n;
-}
-
-object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
-{
-  if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
-  object* n=new_object(value_new(uid), is, evaluator, max_size);
-  add_to_cache_and_persist(n);
   return n;
 }
 
