@@ -608,16 +608,23 @@ char* object_to_text(object* n, char* b, uint16_t s)
   int j;
   for(j=0; j< OBJECT_MAX_NOTIFIES; j++){
     if(n->notify[j]){
-      ln+=snprintf(b+ln, s-ln, ((j==0)? " Notify: %s": " %s"), value_string(n->notify[j]));
+      if(j==0) ln+=snprintf(b+ln, s-ln, " Notify:");
+      if(ln>=s){ *b = 0; return b; }
+      ln+=snprintf(b+ln, s-ln, " ");
+      if(ln>=s){ *b = 0; return b; }
+      ln+=strlen(value_to_text(n->notify[j], b+ln, s-ln));
       if(ln>=s){ *b = 0; return b; }
     }
   }
   properties* p=n->properties;
   for(j=1; j<=properties_size(p); j++){
-    ln+=snprintf(b+ln, s-ln, " %s: ", value_string(properties_key_n(p,j)));
+    ln+=snprintf(b+ln, s-ln, " ");
     if(ln>=s){ *b = 0; return b; }
-    item* i=properties_get_n(p,j);
-    ln+=strlen(item_to_text(i, b+ln, s-ln));
+    ln+=strlen(value_to_text(properties_key_n(p,j), b+ln, s-ln));
+    if(ln>=s){ *b = 0; return b; }
+    ln+=snprintf(b+ln, s-ln, ": ");
+    if(ln>=s){ *b = 0; return b; }
+    ln+=strlen(item_to_text(properties_get_n(p,j), b+ln, s-ln));
     if(ln>=s){ *b = 0; return b; }
   }
 
