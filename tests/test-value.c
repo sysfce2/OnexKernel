@@ -13,7 +13,12 @@ void test_value()
   onex_assert_equal(value_string(v1), "banana",           "get it back");
   onex_assert(      value_string(v1) == value_string(v2), "all bananas are the same");
 
-                    value_log(v1);
+  value* vc=value_new(":banana:mango:");
+
+  char buf[18]; value_to_text(vc, buf, 18);
+  onex_assert_equal(buf, ":banana:mango\\:", "colons escaped if on end in value_to_text");
+
+                    value_log(vc);
 }
 
 void run_value_tests()

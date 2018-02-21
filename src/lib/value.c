@@ -51,6 +51,13 @@ char* value_to_text(value* v, char* b, uint16_t s)
   if(!v){ *b = 0; return b; }
   int ln=snprintf(b,s,"%s",v->val);
   if(ln>=s){ *b = 0; return b; }
+  if(b[ln-1]==':'){
+    ln++;
+    if(ln>=s){ *b = 0; return b; }
+    b[ln-2]='\\';
+    b[ln-1]=':';
+    b[ln]=0;
+  }
   return b;
 }
 
