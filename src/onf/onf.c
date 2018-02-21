@@ -165,7 +165,7 @@ char* get_key(char** p)
 {
   if(!strlen(*p)) return 0;
   char* s=strchr(*p, ' ');
-  char* c=strchr(*p, ':');
+  char* c=strstr(*p, ": ");
   if(s<c) return 0;
   (*c)=0;
   char* r=strdup(*p);
@@ -177,19 +177,28 @@ char* get_key(char** p)
 char* get_val(char** p)
 {
   char* c=strstr(*p, ": ");
+  while(c && *(c-1)=='\\') c=strstr(c+1, ": ");
   char* r=0;
   if(!c){
     r=strdup(*p+1);
     (*p)+=strlen(*p+1)+1;
-    return r;
   }
-  (*c)=0;
-  char* s=strrchr(*p, ' ');
-  (*c)=':';
-  (*s)=0;
-  r=strdup(*p+1);
-  (*s)=' ';
-  (*p)=s+1;
+  else{
+    (*c)=0;
+    char* s=strrchr(*p, ' ');
+    (*c)=':';
+    (*s)=0;
+    r=strdup(*p+1);
+    (*s)=' ';
+    (*p)=s+1;
+  }
+  int y=0;
+  for(int x=0; x<strlen(r); x++){
+    if(r[x]=='\\') continue;
+    if(y!=x) r[y]=r[x];
+    y++;
+  }
+  r[y]=0;
   return r;
 }
 
