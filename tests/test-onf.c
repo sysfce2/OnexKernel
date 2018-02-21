@@ -367,6 +367,15 @@ void test_from_text()
 
 }
 
+bool evaluate_n4_persistence_called=false;
+
+bool evaluate_n4_persistence(object* n4)
+{
+  onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), "good\\: good",     "n4 can look through objects in the cache on notify");
+  evaluate_n4_persistence_called=true;
+  return true;
+}
+
 int evaluate_default_persistence_called=0;
 
 bool evaluate_default_persistence(object* n)
@@ -374,15 +383,6 @@ bool evaluate_default_persistence(object* n)
   if(object_property_is(n, "UID", "uid-4")) onex_assert_equal(object_property_values(n, "n3:n2:n1:state"), ":better better\\:", "n4 can look through objects in the cache on notify");
   if(object_property_is(n, "UID", "uid-1")) {}
   evaluate_default_persistence_called++;
-  return true;
-}
-
-bool evaluate_n4_persistence_called=false;
-
-bool evaluate_n4_persistence(object* n4)
-{
-  onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), "good\\: good",     "n4 can look through objects in the cache on notify");
-  evaluate_n4_persistence_called=true;
   return true;
 }
 
