@@ -357,14 +357,13 @@ void test_from_text()
   onex_assert(      object_property_is( n4, "state", "good"),          "object_new_from creates usable object");
 
   text="Notify: uid-1 uid-2 is: remote state n3: uid-3";
-  n4=object_new_from(text, 0, 4);
-  onex_assert(      !!n4,                                              "input text was parsed into an object");
-  if(!n4) return;
+  object* nx=object_new_from(text, 0, 4);
+  onex_assert(      !!nx,                                              "input text was parsed into an object");
+  if(!nx) return;
 
-  char* n4uid=object_property(n4, "UID");
-  char fulltext[128]; snprintf(fulltext, 128, "UID: %s %s", n4uid, text);
-  onex_assert_equal(object_to_text(n4,textbuff,TEXTBUFFLEN), fulltext, "gives same text back from reconstruction");
-
+  char* nxuid=object_property(nx, "UID");
+  char fulltext[128]; snprintf(fulltext, 128, "UID: %s %s", nxuid, text);
+  onex_assert_equal(object_to_text(nx,textbuff,TEXTBUFFLEN), fulltext, "gives same text back from reconstruction");
 }
 
 bool evaluate_n4_persistence_called=false;

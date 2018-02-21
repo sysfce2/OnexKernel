@@ -13,13 +13,14 @@
 
 // ---------------------------------------------------------------------------------
 
-#define MAX_LIST_SIZE 64
 
 #if defined(TARGET_MCU_NRF51822)
+#define MAX_LIST_SIZE 16
 #define MAX_TEXT_LEN 128
 #define MAX_OBJECTS 128
 #define MAX_OBJECT_SIZE 8
 #else
+#define MAX_LIST_SIZE 64
 #define MAX_TEXT_LEN 2048
 #define MAX_OBJECTS 4096
 #define MAX_OBJECT_SIZE 32
@@ -766,6 +767,7 @@ void persistence_init(char* filename)
     properties_set(objects_text, uidv, strdup(text));
     text=strtok(0, "\n");
   }
+  free(alldbtext);
 }
 
 uint32_t lasttime=0;
