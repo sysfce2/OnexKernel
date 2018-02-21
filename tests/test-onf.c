@@ -24,8 +24,11 @@ void test_object_set_up()
   nr=object_new(0, "random uid", 0, 4);
   char* random_uid_2 = object_property(nr, "UID");
 
+  onex_assert(      strlen(random_uid_1)==23,                "UID generation returns long string");
+  onex_assert(      strlen(random_uid_2)==23,                "UID generation returns long string");
+  onex_assert(      strcmp(random_uid_1, random_uid_2),      "UID generation creates unique UIDs");
   onex_assert(      object_property_length( nr, "is")==2,            "property 'is' is a list of 2 items");
-  onex_assert_equal(object_property(        nr, "is"), "random uid", "object_new parses 'is' first list item" );
+  onex_assert(     !object_property(        nr, "is"),               "'is' isn't a value" );
   onex_assert_equal(object_property_values( nr, "is"), "random uid", "object_new parses 'is' first list item" );
   onex_assert_equal(object_property(        nr, "is:1"), "random",   "object_new parses 'is' first list item" );
   onex_assert_equal(object_property_get_n(  nr, "is", 1),"random",   "object_new parses 'is' first list item passing index" );
@@ -33,10 +36,6 @@ void test_object_set_up()
   onex_assert(      object_property_is(     nr, "is:2",  "uid"),     "object_new parses 'is' second list item" );
   onex_assert_equal(object_property_values( nr, "is:1:"), "random",  "object_new parses 'is' first list item" );
   onex_assert(      object_property_is(     nr, "is:2:",  "uid"),    "object_new parses 'is' second list item" );
-
-  onex_assert(      strlen(random_uid_1)==23,                "UID generation returns long string");
-  onex_assert(      strlen(random_uid_2)==23,                "UID generation returns long string");
-  onex_assert(      strcmp(random_uid_1, random_uid_2),      "UID generation creates unique UIDs");
 
   object* n1=object_new("uid-1", "setup", evaluate_setup, 4);
   // UID: uid-1  is: setup
@@ -57,7 +56,7 @@ void test_object_set_up()
   // UID: uid-1  is: setup  state: good mostly
                     object_property_add(           n1, "state", "mostly");
   onex_assert(     !object_property_is(            n1, "state", "good"), "object_property_is says 'state' is not all 'good'");
-  onex_assert(      object_property_is(            n1, "state", "good mostly"), "object_property_is says 'state' is 'good mostly'");
+  onex_assert_equal(object_property_values(        n1, "state"), "good mostly", "object_property_is says 'state' is 'good mostly'");
   onex_assert(      object_property_length(        n1, "state")==2,      "property 'state' is now a list of two");
   onex_assert(      object_property_size(          n1, "state")== -1,    "property 'state' is not a properties");
   // UID: uid-1  is: setup  state: good  1: a
@@ -139,7 +138,6 @@ void test_object_set_up()
   onex_assert(     !object_property_length(  n1, "2"),       "empty property is not a value");
   // UID: uid-1  is: setup  state: good  1: a c  2: ok m8
   onex_assert(      object_property_set(     n1, "2", "ok m8"), "can set property to two items");
-  onex_assert_equal(object_property(         n1, "2"), "ok m8", "can get both back in space-separated list");
   onex_assert_equal(object_property_values(  n1, "2"), "ok m8", "can get both back in space-separated list");
   onex_assert(      object_property_length(  n1, "2")==2,       "property '2' is a list of two");
   onex_assert(      object_property_is(      n1, "2:1", "ok"),  "list items are correct");
@@ -224,11 +222,10 @@ bool evaluate_local_state_3(object* n3)
   onex_assert_equal(object_property_val(   n3, "self:n2:", 2), "good",        "val of 2nd item in n2 is 'good', via self");
   onex_assert_equal(object_property(       n3, "self"), "uid-3",              "can see self as string when it's all uids");
   onex_assert_equal(object_property(       n3, "n2"), "uid-2",                "can see n2 as string when it's all uids");
-  onex_assert_equal(object_property(       n3, "n*"), "uid-1 uid-2 uid-3 uid-4 uid-5", "can see n* as string when it's all uids");
   onex_assert(     !object_property_values(n3, "self"),                       "can't see self as string cos it's all uids");
   onex_assert(     !object_property_values(n3, "n2"),                         "can't see n2 as string cos it's all uids");
   onex_assert(     !object_property_values(n3, "n*"),                         "can't see n* as string cos it's all uids");
-  onex_assert_equal(object_property(       n3, "n2:n1:state"), "good mostly", "can see through n2 to n1");
+  onex_assert_equal(object_property_values(n3, "n2:n1:state"), "good mostly", "can see through n2 to n1");
   return true;
 }
 
@@ -344,11 +341,11 @@ void test_from_text()
   onex_assert(      !!n4,                                              "input text was parsed into an object");
   if(!n4) return;
 
-  onex_assert(      object_property_is( n4, "UID", "uid-4"),           "object_new_from parses uid");
-  onex_assert_equal(object_property(    n4, "is"), "remote state",     "object_new_from parses is");
-  onex_assert_equal(object_property(    n4, "is:1"), "remote",         "object_new_from parses 'is' first list item" );
-  onex_assert_equal(object_property(    n4, "is:2"), "state",          "object_new_from parses 'is' second list item" );
-  onex_assert_equal(object_property(    n4, "n3"), "uid-3",            "object_new_from parses n3");
+  onex_assert(      object_property_is(    n4, "UID", "uid-4"),           "object_new_from parses uid");
+  onex_assert_equal(object_property_values(n4, "is"), "remote state",     "object_new_from parses is");
+  onex_assert_equal(object_property(       n4, "is:1"), "remote",         "object_new_from parses 'is' first list item" );
+  onex_assert_equal(object_property(       n4, "is:2"), "state",          "object_new_from parses 'is' second list item" );
+  onex_assert_equal(object_property(       n4, "n3"), "uid-3",            "object_new_from parses n3");
 
   onex_assert_equal(object_to_text(n4,textbuff,TEXTBUFFLEN), text,     "gives same text back from reconstruction");
 
@@ -371,7 +368,7 @@ int evaluate_default_persistence_called=0;
 
 bool evaluate_default_persistence(object* n)
 {
-  if(object_property_is(n, "UID", "uid-4")) onex_assert_equal(object_property(n, "n3:n2:n1:state"), "better better", "n4 can look through objects in the cache on notify");
+  if(object_property_is(n, "UID", "uid-4")) onex_assert_equal(object_property_values(n, "n3:n2:n1:state"), "better better", "n4 can look through objects in the cache on notify");
   if(object_property_is(n, "UID", "uid-1")) {}
   evaluate_default_persistence_called++;
   return true;
@@ -393,7 +390,7 @@ void test_persistence()
 
   object_set_evaluator(n4, evaluate_n4_persistence);
 
-  onex_assert_equal(object_property(    n4, "n3:n2:n1:state"), "good mostly", "n4 can look through objects in the cache");
+  onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), "good mostly", "n4 can look through objects in the cache");
   onex_assert(      object_property_set(n1, "state", "good good"),            "can change n1 to good good (awaiting n4 to be notified)");
 
   onex_un_cache("uid-5");

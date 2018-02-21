@@ -205,9 +205,7 @@ char* object_property(object* n, char* path)
   if(!n) return 0;
   if(!strcmp(path, "UID")) return value_string(n->uid);
   item* i=property_item(n,path,n);
-  uint16_t s=MAX_TEXT_LEN;
-  char b[MAX_TEXT_LEN]; *b=0;
-  if(strlen(item_to_text(i, b, MAX_TEXT_LEN))) return value_string(value_new(b)); // not single value
+  if(i && i->type==ITEM_VALUE) return value_string((value*)i);
   return 0;
 }
 
