@@ -106,7 +106,11 @@ char* properties_to_text(properties* op, char* b, uint16_t s)
   ln+=snprintf(b+ln, s-ln, "{\n");
   if(ln>=s){ *b = 0; return b; }
   for(j=0; j<op->size; j++){
-    ln+=snprintf(b+ln, s-ln, "  %s: ", value_string(op->keys[j]));
+    ln+=snprintf(b+ln, s-ln, "  ");
+    if(ln>=s){ *b = 0; return b; }
+    ln+=strlen(value_to_text(op->keys[j], b+ln, s-ln));
+    if(ln>=s){ *b = 0; return b; }
+    ln+=snprintf(b+ln, s-ln, ": ");
     if(ln>=s){ *b = 0; return b; }
     ln+=strlen(item_to_text(op->vals[j], b+ln, s-ln));
     if(ln>=s){ *b = 0; return b; }
