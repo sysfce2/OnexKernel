@@ -11,7 +11,6 @@ targets:
 INCLUDES = \
 -I./include \
 -I./src/ \
--I./src/lib/ \
 -I./src/onp/ \
 -I./tests \
 
@@ -19,7 +18,6 @@ INCLUDES = \
 NRF51_INCLUDES = \
 -I./include \
 -I./src/ \
--I./src/lib/ \
 -I./src/onp/ \
 -I./tests \
 -I./src/platforms/nrf51/ \
