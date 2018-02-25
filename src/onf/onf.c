@@ -413,8 +413,39 @@ char* object_property_val(object* n, char* path, uint16_t index)
 
 bool object_property_is(object* n, char* path, char* expected)
 {
-  char* v=object_property(n, path);
-  return v? !strcmp(v, expected): !expected || !*expected;
+  if(!n) return false;
+  if(!strcmp(path, "UID")){
+    return expected && !strcmp(value_string(n->uid), expected);
+  }
+  item* i=property_item(n,path,n);
+  if(!i) return (!expected || !*expected);
+  if(i->type==ITEM_VALUE){
+    return expected && !strcmp(value_string((value*)i), expected);
+  }
+  return false;
+}
+
+bool object_property_contains(object* n, char* path, char* expected)
+{
+  if(!n) return false;
+  if(!strcmp(path, "UID")){
+    return expected && !strcmp(value_string(n->uid), expected);
+  }
+  item* i=property_item(n,path,n);
+  if(!i) return (!expected || !*expected);
+  if(i->type==ITEM_VALUE){
+    return expected && !strcmp(value_string((value*)i), expected);
+  }
+  if(i->type==ITEM_LIST){
+    int j; int sz=list_size((list*)i);
+    for(j=1; j<=sz; j++){
+      item* y=list_get_n((list*)i, j);
+      if(y->type!=ITEM_VALUE) continue;
+      if(expected && !strcmp(value_string((value*)y), expected)) return true;
+    }
+    return false;
+  }
+  return false;
 }
 
 bool object_property_set(object* n, char* path, char* val)

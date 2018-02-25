@@ -45,6 +45,9 @@ char* object_property_values(object* n, char* path);
 /** return whether property at path is a single value and it matches supplied string. */
 bool  object_property_is(object* n, char* path, char* expected);
 
+/** return whether property at path is a single value or a list and supplied string found. */
+bool  object_property_contains(object* n, char* path, char* expected);
+
 /** return how many items there are at a path. */
 uint16_t object_property_length(object* n, char* path);
 

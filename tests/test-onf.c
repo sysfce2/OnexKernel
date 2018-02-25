@@ -51,15 +51,18 @@ void test_object_set_up()
   // UID: uid-1  is: setup  state: good
                     object_property_set(           n1, "state", "good");
   onex_assert(      object_property_is(            n1, "state", "good"), "object_property_is says 'state' is 'good'");
+  onex_assert(      object_property_contains(      n1, "state", "good"), "object_property_contains says it is 'good'");
   onex_assert(      object_property_length(        n1, "state")==1,      "property 'state' is a single value");
   onex_assert(      object_property_length(        n1, "banana")==0,     "property 'banana' is empty");
   onex_assert(      object_property_size(          n1, "state")== -1,    "property 'state' is not a properties");
   // UID: uid-1  is: setup  state: good mostly
                     object_property_add(           n1, "state", "mostly");
-  onex_assert(     !object_property_is(            n1, "state", "good"), "object_property_is says 'state' is not all 'good'");
+  onex_assert(     !object_property_is(            n1, "state", "good"),        "object_property_is says 'state' is not all 'good'");
+  onex_assert(      object_property_contains(      n1, "state", "good"),        "object_property_contains says it is 'good'");
+  onex_assert(      object_property_contains(      n1, "state", "mostly"),      "object_property_contains says it is 'mostly'");
   onex_assert_equal(object_property_values(        n1, "state"), "good mostly", "object_property_is says 'state' is 'good mostly'");
-  onex_assert(      object_property_length(        n1, "state")==2,      "property 'state' is now a list of two");
-  onex_assert(      object_property_size(          n1, "state")== -1,    "property 'state' is not a properties");
+  onex_assert(      object_property_length(        n1, "state")==2,             "property 'state' is now a list of two");
+  onex_assert(      object_property_size(          n1, "state")== -1,           "property 'state' is not a properties");
   // UID: uid-1  is: setup  state: good  1: a
   onex_assert(      object_property_add(     n1, "1", "a"),    "can add new property");
   onex_assert(      object_property_length(  n1, "1")==1,      "property '1' is a single value");
@@ -125,17 +128,20 @@ void test_object_set_up()
 
   onex_assert(     !object_property(         n1, "4"),       "empty property returns null");
   onex_assert(      object_property_is(      n1, "4", ""),   "empty property is empty");
+  onex_assert(      object_property_contains(n1, "4", ""),   "empty property is empty");
   onex_assert(     !object_property_length(  n1, "4"),       "empty property is not a value");
   // UID: uid-1  is: setup  state: good  1: a c
   onex_assert(      object_property_set(     n1, "2", ""),   "can set property to empty");
   onex_assert(     !object_property(         n1, "2"),       "empty property returns null");
   onex_assert(      object_property_is(      n1, "2", 0),    "empty property is empty");
+  onex_assert(      object_property_contains(n1, "2", 0),    "empty property is empty");
   onex_assert(     !object_property_length(  n1, "2"),       "empty property is not a value");
   onex_assert(      object_property_set(     n1, "2", "ok"), "can set empty property back");
   // UID: uid-1  is: setup  state: good  1: a c
   onex_assert(      object_property_set(     n1, "2", 0),    "can set property to null");
   onex_assert(     !object_property(         n1, "2"),       "empty property returns null");
   onex_assert(      object_property_is(      n1, "2", ""),   "empty property is empty");
+  onex_assert(      object_property_contains(n1, "2", 0),    "empty property is empty");
   onex_assert(     !object_property_length(  n1, "2"),       "empty property is not a value");
   // UID: uid-1  is: setup  state: good  1: a c  2: ok m8
   onex_assert(      object_property_set(     n1, "2", "ok m8"), "can set property to two items");
