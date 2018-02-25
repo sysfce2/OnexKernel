@@ -34,6 +34,7 @@ unsigned int string_hash(char* p)
 
 #define BX 30
 #define WARN_SIZE(h) if((h)->size && !((h)->size % BX)) log_write("%s# %d", (h)->name, (h)->size);
+#define WARN_SZLG(h) if((h)->size && !((h)->size % BX)) properties_log(h)
 
 properties* properties_new(uint16_t max_size)
 {
@@ -70,7 +71,7 @@ bool properties_set(properties* op, value* key, void* i)
     (*lisp)->item=i;
     (*lisp)->next=0;
     op->size++;
-    WARN_SIZE(op);
+    WARN_SZLG(op);
   }
   else{
     (*lisp)->item=i;
@@ -134,7 +135,6 @@ void* properties_delete(properties* op, value* key)
     free((*lisp));
     (*lisp)=next;
     op->size--;
-    WARN_SIZE(op);
     return v;
   }
   return 0;
