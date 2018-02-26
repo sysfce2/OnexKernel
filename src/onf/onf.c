@@ -795,6 +795,8 @@ void persistence_init(char* filename)
     if(e) *e=0;
     value* uidv=value_new(uid);
     if(e) *e=' ';
+    char* prevtext=properties_delete(objects_text, uidv);
+    if(prevtext) free(prevtext);
     properties_set(objects_text, uidv, strdup(text));
     text=strtok(0, "\n");
   }
