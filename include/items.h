@@ -57,7 +57,7 @@ uint16_t    properties_size(properties* op);
 char*       properties_to_text(properties* op, char* b, uint16_t s);
 void        properties_log(properties* op);
 void*       properties_delete(properties* op, value* key);
-void        properties_clear(properties* op, bool freeItems);
+void        properties_clear(properties* op, bool freeItems); // only set freeItems if you've only saved items objects and only you have used them!
 void        properties_free(properties* op);
 
 // --------------------------------------------------------------------

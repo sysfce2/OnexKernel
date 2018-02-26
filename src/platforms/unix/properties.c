@@ -144,7 +144,7 @@ void properties_clear(properties* op, bool freeItems)
   int sz=op->size;
   for(int j=0; j<sz; j++){
     void* v=properties_delete(op, op->keys[0]);
-    if(freeItems && v) free(v);
+    if(freeItems && v) item_free((item*)v);
   }
 }
 
