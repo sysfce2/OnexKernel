@@ -48,7 +48,6 @@ static void        call_all_evaluators();
 static object*     new_object(value* uid, char* is, onex_evaluator evaluator, uint8_t max_size);
 static object*     new_object_from(char* text, onex_evaluator evaluator, uint8_t max_size);
 static object*     new_shell(value* uid, char* notify);
-static void        free_object(object* o);
 static bool        is_shell(object* o);
 
 static void        persistence_init(char* filename);
@@ -145,9 +144,9 @@ object* new_shell(value* uid, char* notify)
   return n;
 }
 
-void free_object(object* o)
+void object_free(object* o)
 {
-  free(o->properties);
+  item_free(o->properties);
   free(o);
 }
 
@@ -737,7 +736,7 @@ void onex_un_cache(char* uid)
   if(!uid || !(*uid)) return;
   persistence_flush();
   object* o=properties_delete(objects_cache, value_new(uid));
-  free_object(o);
+  object_free(o);
 }
 
 onex_evaluator default_evaluator=0;

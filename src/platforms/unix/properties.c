@@ -151,7 +151,7 @@ void properties_clear(properties* op, bool freeItems)
 void properties_free(properties* op)
 {
   free(op->keys);
-  free(op->lists);
+  free(op->lists); // hash_item free too
   free(op);
 }
 

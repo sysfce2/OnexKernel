@@ -63,6 +63,9 @@ char* object_property_key(object* n, char* path, uint16_t index);
 /** return property value at path and index into properties. */
 char* object_property_val(object* n, char* path, uint16_t index);
 
+/** free object, plus just the properties. */
+void object_free(object* n);
+
 /** object to text; supply your own buffer, b, of length s */
 char* object_to_text(object* n, char* b, uint16_t s);
 
