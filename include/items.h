@@ -34,6 +34,14 @@ typedef struct value      value;
                                       log_write("item_log(not an item)!\n"); \
 }while(0)
 
+#define item_free(i) do{\
+  if(!i)                              log_write("item_free(null)!\n"); else \
+  if(item_is_type(i,ITEM_PROPERTIES)) properties_free((properties*)i); else \
+  if(item_is_type(i,ITEM_LIST))       list_free((list*)i); else \
+  if(item_is_type(i,ITEM_VALUE))      value_free((value*)i); else \
+                                      log_write("item_free(not an item)!\n"); \
+}while(0)
+
 
 // --------------------------------------------------------------------
 
@@ -50,6 +58,7 @@ char*       properties_to_text(properties* op, char* b, uint16_t s);
 void        properties_log(properties* op);
 void*       properties_delete(properties* op, value* key);
 void        properties_clear(properties* op, bool freeItems);
+void        properties_free(properties* op);
 
 // --------------------------------------------------------------------
 
@@ -63,6 +72,7 @@ void*    list_del_n(list* li, uint16_t index);
 uint16_t list_size(list* li);
 char*    list_to_text(list* li, char* b, uint16_t s);
 void     list_log(list* li);
+void     list_free(list* li);
 
 // --------------------------------------------------------------------
 
@@ -72,6 +82,7 @@ value* value_new(char*);
 char*  value_string(value* v);
 void   value_log(value* v);
 char*  value_to_text(value* v, char* b, uint16_t s);
+void   value_free(value* v);
 
 // --------------------------------------------------------------------
 

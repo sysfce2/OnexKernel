@@ -77,6 +77,12 @@ uint16_t list_size(list* li)
   return li->i;
 }
 
+void list_free(list* li)
+{
+  free(li->vals);
+  free(li);
+}
+
 char* list_to_text(list* li, char* b, uint16_t s)
 {
   *b=0;

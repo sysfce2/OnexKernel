@@ -101,6 +101,13 @@ void properties_clear(properties* op, bool freeItems)
   }
 }
 
+void properties_free(properties* op)
+{
+  free(op->keys);
+  free(op->vals);
+  free(op);
+}
+
 uint16_t properties_size(properties* op)
 {
   if(!op) return 0;

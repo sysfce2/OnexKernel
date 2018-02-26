@@ -46,6 +46,10 @@ char* value_string(value* v)
   return v->val;
 }
 
+void value_free(value* v)
+{
+}
+
 char* value_to_text(value* v, char* b, uint16_t s)
 {
   if(!v){ *b = 0; return b; }
