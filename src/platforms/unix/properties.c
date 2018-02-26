@@ -120,13 +120,12 @@ void* properties_delete(properties* op, value* key)
   if(!op) return false;
   void* v=0;
   hash_item** lisp;
-  hash_item*  next;
   lisp=&op->lists[string_hash(value_string(key)) % op->buckets];
   while((*lisp) && (*lisp)->key != key){
     lisp=&(*lisp)->next;
   }
   if((*lisp)){
-    next=(*lisp)->next;
+    hash_item* next=(*lisp)->next;
     int j;
     for(j=0; j<op->size;   j++) if(op->keys[j]==key) break;
     for(   ; j<op->size-1; j++) op->keys[j] = op->keys[j+1];
@@ -150,8 +149,9 @@ void properties_clear(properties* op, bool freeItems)
 
 void properties_free(properties* op)
 {
+  properties_clear(op, false);
   free(op->keys);
-  free(op->lists); // hash_item free too
+  free(op->lists);
   free(op);
 }
 
