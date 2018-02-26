@@ -92,6 +92,15 @@ void* properties_delete(properties* op, value* key)
   return v;
 }
 
+void properties_clear(properties* op, bool freeItems)
+{
+  int sz=op->size;
+  for(int j=0; j<sz; j++){
+    void* v=properties_delete(op, op->keys[0]);
+    if(freeItems && v) free(v);
+  }
+}
+
 uint16_t properties_size(properties* op)
 {
   if(!op) return 0;

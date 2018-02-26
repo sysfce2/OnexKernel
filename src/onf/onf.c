@@ -831,8 +831,7 @@ void persistence_flush()
   uint16_t sz=properties_size(objects_to_save);
   if(!sz) return;
   for(int j=1; j<=sz; j++){
-    value* uidv=(value*)properties_get_n(objects_to_save, 1);
-    properties_delete(objects_to_save, uidv);
+    value* uidv=(value*)properties_get_n(objects_to_save, j);
     object* o=onex_get_from_cache(value_string(uidv));
     char buff[MAX_TEXT_LEN];
     char* text=object_to_text(o,buff,MAX_TEXT_LEN);
@@ -840,6 +839,7 @@ void persistence_flush()
     properties_set(objects_text, uidv, strdup(text));
     if(db) fprintf(db, "%s\n", text);
   }
+  properties_clear(objects_to_save, false);
   if(db) fflush(db);
 }
 

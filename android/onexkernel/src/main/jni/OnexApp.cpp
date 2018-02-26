@@ -83,7 +83,7 @@ public:
     log_init(0);
     time_init();
 
-    time_delay_s(4);
+    time_delay_s(2);
     log_write("---------------OnexKernel tests----------------------\n");
 
     run_value_tests();
@@ -94,6 +94,8 @@ public:
     int failures=onex_assert_summary();
 
     log_write("---------------%d failures---------------------------\n", failures);
+
+    time_delay_s(2);
 
     log_write("\n------Starting Button Test-----\n");
 
