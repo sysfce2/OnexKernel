@@ -115,6 +115,7 @@ object* new_object_from(char* text, onex_evaluator evaluator, uint8_t max_size)
   char* p=t;
   while(true){
     char* key=get_key(&p); if(!key) break;
+    if(!*key){ free(key); key=strdup("--"); }
     char* val=get_val(&p); if(!val) break;
     if(!strcmp(key,"UID")) uid=value_new(val);
     else
