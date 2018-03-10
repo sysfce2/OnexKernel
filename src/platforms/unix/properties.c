@@ -71,7 +71,7 @@ bool properties_set(properties* op, value* key, void* i)
     (*lisp)->item=i;
     (*lisp)->next=0;
     op->size++;
-    WARN_SZLG(op);
+    WARN_SIZE(op);
   }
   else{
     (*lisp)->item=i;
