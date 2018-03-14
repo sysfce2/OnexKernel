@@ -4,8 +4,8 @@
 
 extern android_app* androidApp;
 
-char* getExternalStorageDirectory()
-{
+void sprintExternalStorageDirectory(char* buf, int buflen, const char* format)
+{   
   JNIEnv* env; androidApp->activity->vm->AttachCurrentThread(&env, 0);
 
   jclass osEnvClass = env->FindClass("android/os/Environment");
@@ -14,12 +14,12 @@ char* getExternalStorageDirectory()
 
   jclass extStorageClass = env->GetObjectClass(extStorage);
   jmethodID getAbsolutePathMethod = env->GetMethodID(extStorageClass, "getAbsolutePath", "()Ljava/lang/String;");
-  jstring stringPath = (jstring)env->CallObjectMethod(extStorage, getAbsolutePathMethod);
+  jstring extStoragePath = (jstring)env->CallObjectMethod(extStorage, getAbsolutePathMethod);
 
-  char* dir=(char*)(env->GetStringUTFChars(stringPath, NULL));
+  const char* extStoragePathString=env->GetStringUTFChars(extStoragePath, 0);
+  snprintf(buf, buflen, format, extStoragePathString);
+  env->ReleaseStringUTFChars(extStoragePath, extStoragePathString);
 
   androidApp->activity->vm->DetachCurrentThread();
-
-  return dir;
 }
 

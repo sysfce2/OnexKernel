@@ -11,7 +11,11 @@
 static uint16_t success=0;
 static uint16_t failure=0;
 
+#ifdef __ANDROID__
+bool exit_on_fail=false;
+#else
 bool exit_on_fail=true;
+#endif
 
 bool onex_assert_i(bool condition, const char* fail_message, char* actual, char* expected)
 {

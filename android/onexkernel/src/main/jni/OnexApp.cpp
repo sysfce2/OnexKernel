@@ -86,9 +86,8 @@ public:
     time_delay_s(2);
     log_write("---------------OnexKernel tests----------------------\n");
 
-    extern char* getExternalStorageDirectory();
-    const char* sdpath = getExternalStorageDirectory();
-    char dbpath[128]; snprintf(dbpath, 128, "%s/Onex/onex.ondb", sdpath);
+    extern char* sprintExternalStorageDirectory(char* buf, int buflen, const char* format);
+    char dbpath[128]; sprintExternalStorageDirectory(dbpath, 128, "%s/Onex/onex.ondb");
 
     run_value_tests();
     run_list_tests();
