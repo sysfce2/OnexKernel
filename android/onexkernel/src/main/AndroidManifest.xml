@@ -10,6 +10,8 @@
   <uses-feature android:name="android.hardware.gamepad" android:required="false"/>
   <uses-feature android:name="android.software.leanback" android:required="false"/>
 
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
   <application android:label="onexkernel"
                android:icon="@drawable/icon"
                android:hasCode="false">

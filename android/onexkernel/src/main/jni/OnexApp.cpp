@@ -86,10 +86,14 @@ public:
     time_delay_s(2);
     log_write("---------------OnexKernel tests----------------------\n");
 
+    extern char* getExternalStorageDirectory();
+    const char* sdpath = getExternalStorageDirectory();
+    char dbpath[128]; snprintf(dbpath, 128, "%s/Onex/onex.ondb", sdpath);
+
     run_value_tests();
     run_list_tests();
     run_properties_tests();
-    run_onf_tests((char*)"data/data/network.object.onexkernel/files/onex.db");
+    run_onf_tests(dbpath);
 
     int failures=onex_assert_summary();
 

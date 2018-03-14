@@ -37,6 +37,7 @@ LOCAL_C_INCLUDES += $(LOCAL_PATH)/../tests/
 
 LOCAL_SRC_FILES := $(wildcard $(LOCAL_PATH)/../tests/assert.c) \
                    $(wildcard $(LOCAL_PATH)/../tests/test-*.c) \
+                   $(wildcard $(LOCAL_PATH)/onexkernel/src/main/jni/Files.cpp) \
                    $(wildcard $(LOCAL_PATH)/onexkernel/src/main/jni/OnexApp.cpp) \
 
 LOCAL_CPPFLAGS := -std=c++11
