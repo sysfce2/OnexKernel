@@ -38,7 +38,7 @@ int main(void) {
   run_value_tests();
   run_list_tests();
   run_properties_tests();
-  run_onf_tests("./onex.db");
+  run_onf_tests("Onex/onex.ondb");
 
   int failures=onex_assert_summary();
 

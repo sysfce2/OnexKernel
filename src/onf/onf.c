@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
+#include <sys/stat.h>
 
 #include "onp.h"
 
@@ -767,13 +769,34 @@ static properties* objects_to_save=0;
 
 static FILE* db=0;
 
+#if !defined(TARGET_MCU_NRF51822)
+bool mkdir_p(char* filename)
+{
+  char* fn=strdup(filename);
+  char* s=fn;
+  while((s=strchr(s+1, '/'))){
+    *s=0;
+    if(mkdir(fn, S_IRWXU) && errno != EEXIST) return false;
+    *s='/';
+  }
+  free(fn);
+  return true;
+}
+#endif
+
 void persistence_init(char* filename)
 {
   objects_text=properties_new(MAX_OBJECTS);
   objects_to_save=properties_new(MAX_OBJECTS);
+#if !defined(TARGET_MCU_NRF51822)
+  if(!mkdir_p(filename)){
+    log_write("Couldn't make dirctory for '%s' errno=%d\n", filename, errno);
+    return;
+  }
+#endif
   db=fopen(filename, "a+");
   if(!db){
-    log_write("Couldn't open DB file '%s'\n", filename);
+    log_write("Couldn't open DB file '%s' errno=%d\n", filename, errno);
     return;
   }
   fseek(db, 0, SEEK_END);
