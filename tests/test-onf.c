@@ -464,6 +464,7 @@ void run_onf_tests(char* dbpath)
   onex_assert(      evaluate_remote_notify_n1_called,    "evaluate_remote_notify_n1 was called");
   onex_assert(      evaluate_remote_notify_n2_called,    "evaluate_remote_notify_n2 was called");
 
+  evaluate_local_notify_n3_called=false;
   onex_show_cache();
 
   test_persistence();
@@ -472,6 +473,7 @@ void run_onf_tests(char* dbpath)
 
   onex_assert(      evaluate_persistence_n4_before_called, "evaluate_persistence_n4_before was called");
   onex_assert(      evaluate_persistence_n4_after_called,  "evaluate_persistence_n4_after was called");
+  onex_assert(      evaluate_local_notify_n3_called,       "evaluate_local_notify_n3 was called");
 }
 
 // ---------------------------------------------------------------------------------
