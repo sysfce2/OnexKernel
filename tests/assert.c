@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include <onex-kernel/log.h>
+#include <onex-kernel/time.h>
 #include <assert.h>
 
 // -----------------------------------------------------------------------
@@ -19,6 +20,9 @@ bool exit_on_fail=true;
 
 bool onex_assert_i(bool condition, const char* fail_message, char* actual, char* expected)
 {
+#ifdef __ANDROID__
+  time_delay_ms(10);
+#endif
   if(condition){
     success++;
     log_write("%d (%s)\n",  success+failure, fail_message);
