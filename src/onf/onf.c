@@ -745,8 +745,8 @@ void onex_show_cache()
 
 void onex_un_cache(char* uid)
 {
-  if(!uid || !(*uid)) return;
   persistence_flush();
+  if(!uid || !(*uid)) return;
   object* o=properties_delete(objects_cache, value_new(uid));
   object_free(o);
 }

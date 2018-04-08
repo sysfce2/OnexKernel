@@ -449,6 +449,7 @@ void test_persistence()
   onex_assert(      object_property_set(   n1, "state", ":better better:"), "can change n1 to :better better: (awaiting n4 to be notified)");
 
   onex_show_cache();
+  onex_un_cache(0); // flushes
 }
 
 // ---------------------------------------------------------------------------------
