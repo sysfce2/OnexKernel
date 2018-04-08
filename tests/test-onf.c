@@ -317,13 +317,17 @@ void test_to_text()
   object* n1=onex_get_from_cache("uid-1");
   object* n2=onex_get_from_cache("uid-2");
   object* n3=onex_get_from_cache("uid-3");
+  object* n4=onex_get_from_cache("uid-4");
 
-  char* n1text="UID: uid-1 Eval: default Notify: uid-3 is: setup state: good mostly 1: a c 2: ok m8";
-  char* n2text="UID: uid-2 Eval: evaluate_local_notify_n2 Notify: uid-3 is: local-state state: better\\: n1: uid-1";
-  char* n3text="UID: uid-3 Eval: evaluate_local_notify_n3 Notify: uid-3 is: local-state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5";
+  char* n1text="UID: uid-1 Eval: evaluate_remote_notify_n1 Notify: uid-3 is: setup state: good mostly 1: a c 2: ok m8";
+  char* n2text="UID: uid-2 Eval: evaluate_remote_notify_n2 Notify: uid-3 is: local-state state: better\\: n1: uid-1";
+  char* n3text="UID: uid-3 Eval: evaluate_local_notify_n3 Notify: uid-3 uid-4 is: local-state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5";
+  char* n4text="UID: uid-4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 xy: a :z:q\\: b state: good";
+
   onex_assert_equal(object_to_text(n1,textbuff,TEXTBUFFLEN), n1text, "converts uid-1 to correct text");
   onex_assert_equal(object_to_text(n2,textbuff,TEXTBUFFLEN), n2text, "converts uid-2 to correct text");
   onex_assert_equal(object_to_text(n3,textbuff,TEXTBUFFLEN), n3text, "converts uid-3 to correct text");
+  onex_assert_equal(object_to_text(n4,textbuff,TEXTBUFFLEN), n4text, "converts uid-4 to correct text");
 }
 
 // ---------------------------------------------------------------------------------
@@ -457,8 +461,8 @@ void run_onf_tests(char* dbpath)
   onex_assert(      evaluate_local_state_n3_called,     "evaluate_local_state_n3 was called");
 
   test_local_notify();
-  test_to_text();
   test_from_text();
+  test_to_text();
 
   onex_loop();
 
