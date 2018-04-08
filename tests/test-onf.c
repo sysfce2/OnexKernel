@@ -329,8 +329,8 @@ void test_to_text()
 
   char* n1text="UID: uid-1 Eval: evaluate_remote_notify_n1 Notify: uid-3 is: setup state: good mostly 1: a c 2: ok m8";
   char* n2text="UID: uid-2 Eval: evaluate_remote_notify_n2 Notify: uid-3 is: local-state state: better\\: n1: uid-1";
-  char* n3text="UID: uid-3 Eval: evaluate_local_notify_n3 Notify: uid-3 uid-4 is: local-state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5";
-  char* n4text="UID: uid-4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 xy: a :z:q\\: b state: good";
+  char* n3text="UID: uid-3 Eval: evaluate_local_notify_n3 Notify: uid-3 uid-4 is: local state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5";
+  char* n4text="UID: uid-4 Eval: evaluate_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 xy: a :z:q\\: b state: good";
 
   onex_assert_equal(object_to_text(n1,textbuff,TEXTBUFFLEN), n1text, "converts uid-1 to correct text");
   onex_assert_equal(object_to_text(n2,textbuff,TEXTBUFFLEN), n2text, "converts uid-2 to correct text");
@@ -356,16 +356,26 @@ bool evaluate_remote_notify_n2(object* n2)
   return true;
 }
 
+bool evaluate_remote_notify_n4_called=false;
+
+bool evaluate_remote_notify_n4(object* n4)
+{
+  evaluate_remote_notify_n4_called=true;
+  return true;
+}
+
 void test_from_text()
 {
   object* n1=onex_get_from_cache("uid-1");
   object* n2=onex_get_from_cache("uid-2");
+  object* n3=onex_get_from_cache("uid-3");
   onex_set_evaluator("evaluate_remote_notify_n1", evaluate_remote_notify_n1);
   onex_set_evaluator("evaluate_remote_notify_n2", evaluate_remote_notify_n2);
+  onex_set_evaluator("evaluate_remote_notify_n4", evaluate_remote_notify_n4);
   object_set_evaluator(n1, "evaluate_remote_notify_n1");
   object_set_evaluator(n2, "evaluate_remote_notify_n2");
 
-  char* text="UID: uid-4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 xy: a :z:q\\: b";
+  char* text="UID: uid-4 Eval: evaluate_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 xy: a :z:q\\: b";
   object* n4=object_new_from(text, 5);
   onex_assert(      !!n4,                                              "input text was parsed into an object");
   if(!n4) return;
@@ -383,6 +393,7 @@ void test_from_text()
                     object_property_set(n4, "state", "good");
   onex_assert_equal(object_property(    n4, "n3:is"), "local-state",   "object_new_from traverses n3:is" );
   onex_assert(      object_property_is( n4, "state", "good"),          "object_new_from creates usable object");
+                    object_property_set(n3, "is", "local state");
 
   char fulltext[256];
 
@@ -481,6 +492,7 @@ void run_onf_tests(char* dbpath)
   onex_assert(      evaluate_local_notify_n3_called,     "evaluate_local_notify_n3 was called");
   onex_assert(      evaluate_remote_notify_n1_called,    "evaluate_remote_notify_n1 was called");
   onex_assert(      evaluate_remote_notify_n2_called,    "evaluate_remote_notify_n2 was called");
+  onex_assert(      evaluate_remote_notify_n4_called,    "evaluate_remote_notify_n4 was called");
 
   evaluate_local_notify_n3_called=false;
   onex_show_cache();
