@@ -83,7 +83,7 @@ void serial_init(uart_rx_handler_t cb, uint32_t baudrate)
   initialised=true;
 }
 
-#define SERIAL_MAX_LENGTH 128
+#define SERIAL_MAX_LENGTH 256
 
 int  i=0;
 char ser_buff[SERIAL_MAX_LENGTH];

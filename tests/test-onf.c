@@ -309,7 +309,7 @@ void test_local_notify()
 
 // ---------------------------------------------------------------------------------
 
-#define TEXTBUFFLEN 128
+#define TEXTBUFFLEN 256
 char textbuff[TEXTBUFFLEN];
 
 void test_to_text()
@@ -369,7 +369,7 @@ void test_from_text()
   onex_assert_equal(object_property(    n4, "n3:is"), "local-state",   "object_new_from traverses n3:is" );
   onex_assert(      object_property_is( n4, "state", "good"),          "object_new_from creates usable object");
 
-  char fulltext[128];
+  char fulltext[256];
 
   text="Notify: uid-1 uid-2 is: remote state n3: uid-3";
   object* nx=object_new_from(text, 4);
@@ -378,14 +378,14 @@ void test_from_text()
   if(!nx) return;
 
   char* nxuid=object_property(nx, "UID");
-  snprintf(fulltext, 128, "UID: %s %s", nxuid, text);
+  snprintf(fulltext, 256, "UID: %s %s", nxuid, text);
   onex_assert_equal(object_to_text(nx,textbuff,TEXTBUFFLEN), fulltext, "gives same text back from reconstruction");
 
   text="is: messed up  : --";
   object* nm=object_new_from(text, 4);
 
   char* nmuid=object_property(nm, "UID");
-  snprintf(fulltext, 128, "UID: %s is: messed up --: --", nmuid);
+  snprintf(fulltext, 256, "UID: %s is: messed up --: --", nmuid);
   onex_assert_equal(object_to_text(nm,textbuff,TEXTBUFFLEN), fulltext, "gives better text back than messed up");
 }
 

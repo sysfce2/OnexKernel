@@ -140,7 +140,7 @@ char* properties_to_text(properties* op, char* b, uint16_t s)
 
 void properties_log(properties* op)
 {
-  char buf[128];
-  log_write("%s\n", properties_to_text(op,buf,128));
+  char buf[256];
+  log_write("%s\n", properties_to_text(op,buf,256));
 }
 

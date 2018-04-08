@@ -18,7 +18,7 @@
 
 #if defined(TARGET_MCU_NRF51822)
 #define MAX_LIST_SIZE 16
-#define MAX_TEXT_LEN 128
+#define MAX_TEXT_LEN 256
 #define MAX_OBJECTS 128
 #define MAX_OBJECT_SIZE 8
 #else
@@ -736,10 +736,10 @@ void add_to_cache_and_persist(object* n)
 void onex_show_cache()
 {
   log_write("+-----------cache dump------------\n");
-  char buff[MAX_TEXT_LEN*2];
+  char buff[MAX_TEXT_LEN*8];
   for(int n=1; n<=properties_size(objects_cache); n++){
     object* o=properties_get_n(objects_cache,n);
-    log_write("| %s\n", object_to_text(o,buff,MAX_TEXT_LEN*2));
+    log_write("| %s\n", object_to_text(o,buff,MAX_TEXT_LEN*8));
   }
   log_write("+---------------------------------\n");
 }
@@ -802,7 +802,7 @@ void persistence_init(char* filename)
   objects_to_save=properties_new(MAX_OBJECTS);
 #if !defined(TARGET_MCU_NRF51822)
   if(!mkdir_p(filename)){
-    log_write("Couldn't make dirctory for '%s' errno=%d\n", filename, errno);
+    log_write("Couldn't make directory for '%s' errno=%d\n", filename, errno);
     return;
   }
 #endif

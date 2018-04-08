@@ -6,7 +6,7 @@
 
 static bool initialised=false;
 
-#define SERIAL_MAX_LENGTH 128
+#define SERIAL_MAX_LENGTH 256
 
 int  i=0;
 char ser_buff[SERIAL_MAX_LENGTH];

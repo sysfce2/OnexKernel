@@ -44,14 +44,14 @@ uint16_t single_peer[] = { 0x2002, 0xd417, 0x1f9e, 0x1234, 0x5e51, 0x4fff, 0xfe7
 
 void onp_loop()
 {
-  char buff[128];
+  char buff[256];
   int  size=0;
 #ifdef ONP_CHANNEL_SERIAL
-  size = channel_serial_recv(buff, 128);
+  size = channel_serial_recv(buff, 256);
   if(size!= -1){ handle_recv(buff,size,"Serial",0); return; }
 #endif
 #ifdef ONP_CHANNEL_IPV6
-  size = channel_ipv6_recv(buff, 128, single_peer);
+  size = channel_ipv6_recv(buff, 256, single_peer);
   if(size!= -1){ handle_recv(buff,size,0,single_peer); return; }
 #endif
 }
@@ -85,8 +85,8 @@ void onp_send_observe(char* uid, char* to)
 
 void onp_send_object(object* o, char* to)
 {
-  char buff[128];
-  object_to_text(o,buff,128);
+  char buff[256];
+  object_to_text(o,buff,256);
   send(buff, to);
 }
 
