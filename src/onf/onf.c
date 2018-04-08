@@ -783,7 +783,7 @@ static properties* evaluators=0;
 
 void onex_set_evaluator(char* name, onex_evaluator evaluator)
 {
-  if(!evaluators) evaluators = properties_new(10);
+  if(!evaluators) evaluators = properties_new(32);
   properties_set(evaluators, value_new(name), evaluator);
 }
 
