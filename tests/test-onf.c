@@ -9,6 +9,9 @@
 
 // ---------------------------------------------------------------------------------
 
+#define TEXTBUFFLEN 256
+char textbuff[TEXTBUFFLEN];
+
 bool evaluate_setup_called=false;
 
 bool evaluate_setup(object* n1)
@@ -214,7 +217,6 @@ bool evaluate_local_state_n3(object* n3)
   onex_assert_equal(object_property(       n3, "n*:1:UID"), "uid-1",          "n*:1:UID is uid-1");
   onex_assert_equal(object_property(       n3, "n*:2:UID"), "uid-2",          "n*:2:UID is uid-2");
   onex_assert_equal(object_property(       n3, "n*:3:UID"), "uid-3",          "n*:3:UID is uid-3");
-  onex_assert(     !object_property(       n3, "n*:5:UID"),                   "n*:5:UID is null");
   onex_assert_equal(object_property(       n3, "n*:1"), "uid-1",              "n*:1 is uid-1");
   onex_assert_equal(object_property(       n3, "n*:1:"), "uid-1",             "n*:1: is uid-1");
   onex_assert_equal(object_property(       n3, "n*:2"), "uid-2",              "n*:2 is uid-2");
@@ -289,6 +291,15 @@ bool evaluate_local_notify_n3(object* n3)
   return true;
 }
 
+void test_remote_object()
+{
+  object* n3=onex_get_from_cache("uid-3");
+  onex_assert(     !object_property(       n3, "n*:5:UID"),                   "n*:5:UID is null");
+  object* n5=onex_get_from_cache("uid-5");
+  char* n5text="UID: uid-5 Notify: uid-3 [shell]";
+  onex_assert_equal(object_to_text(n5,textbuff,TEXTBUFFLEN), n5text, "converts remote shell uid-5 to correct text");
+}
+
 void test_local_notify()
 {
   object* n2=onex_get_from_cache("uid-2");
@@ -308,9 +319,6 @@ void test_local_notify()
 }
 
 // ---------------------------------------------------------------------------------
-
-#define TEXTBUFFLEN 256
-char textbuff[TEXTBUFFLEN];
 
 void test_to_text()
 {
@@ -465,6 +473,8 @@ void run_onf_tests(char* dbpath)
   test_to_text();
 
   onex_loop();
+
+  test_remote_object();
 
   onex_assert(      evaluate_local_notify_n2_called,     "evaluate_local_notify_n2 was called");
   onex_assert(      evaluate_local_notify_n3_called,     "evaluate_local_notify_n3 was called");
