@@ -211,6 +211,7 @@ char* get_val(char** p)
 void object_set_evaluator(object* n, char* evaluator)
 {
   n->evaluator=value_new(evaluator);
+  persistence_put(n);
 }
 
 // ------------------------------------------------------
