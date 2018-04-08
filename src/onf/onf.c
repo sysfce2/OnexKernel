@@ -115,6 +115,7 @@ object* new_object_from(char* text, uint8_t max_size)
   object* n=0;
   value* uid=0;
   value* evaluator=0;
+  value* remote=0;
   char* notify=0;
   char* p=t;
   while(true){
@@ -125,11 +126,14 @@ object* new_object_from(char* text, uint8_t max_size)
     else
     if(!strcmp(key,"Eval")) evaluator=value_new(val);
     else
+    if(!strcmp(key,"Remote")) remote=value_new(val);
+    else
     if(!strcmp(key,"Notify")) notify=strdup(val);
     else {
       if(!n){
         n=new_object(uid, 0, 0, max_size);
         if(evaluator) n->evaluator=evaluator;
+        if(remote) n->remote=remote;
         set_observers(n, notify);
         free(notify);
       }

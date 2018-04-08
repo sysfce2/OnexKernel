@@ -397,13 +397,17 @@ void test_from_text()
 
   char fulltext[256];
 
-  text="Notify: uid-1 uid-2 is: remote state n3: uid-3";
+  text="Remote: Serial Notify: uid-1 uid-2 is: remote state n3: uid-3";
   object* nx=object_new_from(text, 4);
 
   onex_assert(      !!nx,                                              "input text was parsed into an object");
   if(!nx) return;
 
   char* nxuid=object_property(nx, "UID");
+
+  onex_assert(      object_is_local("uid-4"),                          "n4 is local");
+  onex_assert(     !object_is_local(nxuid),                            "nx is remote");
+
   snprintf(fulltext, 256, "UID: %s %s", nxuid, text);
   onex_assert_equal(object_to_text(nx,textbuff,TEXTBUFFLEN), fulltext, "gives same text back from reconstruction");
 
