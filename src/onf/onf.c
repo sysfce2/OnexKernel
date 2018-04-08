@@ -651,9 +651,7 @@ char* object_to_text(object* n, char* b, uint16_t s)
   if(ln>=s){ *b = 0; return b; }
 
   if(n->evaluator){
-    ln+=snprintf(b+ln, s-ln, " Eval: ");
-    if(ln>=s){ *b = 0; return b; }
-    ln+=strlen(value_to_text(n->evaluator, b+ln, s-ln));
+    ln+=snprintf(b+ln, s-ln, " Eval: %s", value_string(n->evaluator));
     if(ln>=s){ *b = 0; return b; }
   }
 
