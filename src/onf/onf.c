@@ -48,7 +48,7 @@ static void        save_and_notify_observers(object* n);
 static void        show_notifies(object* o);
 static void        call_all_evaluators();
 static object*     new_object(value* uid, char* evaluator, char* is, uint8_t max_size);
-static object*     new_object_from(char* text, char* evaluator, uint8_t max_size);
+static object*     new_object_from(char* text, uint8_t max_size);
 static object*     new_shell(value* uid, char* notify);
 static bool        is_shell(object* o);
 
@@ -80,9 +80,9 @@ value* generate_uid()
   return value_new(b);
 }
 
-object* object_new_from(char* text, char* evaluator, uint8_t max_size)
+object* object_new_from(char* text, uint8_t max_size)
 {
-  object* n=new_object_from(text, evaluator, max_size);
+  object* n=new_object_from(text, max_size);
   char* uid=value_string(n->uid);
   if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
   add_to_cache_and_persist(n);
@@ -107,12 +107,13 @@ object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size)
   return n;
 }
 
-object* new_object_from(char* text, char* evaluator, uint8_t max_size)
+object* new_object_from(char* text, uint8_t max_size)
 {
   size_t m=strlen(text)+1;
   char t[m]; memcpy(t, text, m);
   object* n=0;
   value* uid=0;
+  value* evaluator=0;
   char* notify=0;
   char* p=t;
   while(true){
@@ -121,10 +122,13 @@ object* new_object_from(char* text, char* evaluator, uint8_t max_size)
     char* val=get_val(&p); if(!val) break;
     if(!strcmp(key,"UID")) uid=value_new(val);
     else
+    if(!strcmp(key,"Eval")) evaluator=value_new(val);
+    else
     if(!strcmp(key,"Notify")) notify=strdup(val);
     else {
       if(!n){
         n=new_object(uid, 0, 0, max_size);
+        if(evaluator) n->evaluator=evaluator;
         set_observers(n, notify);
         free(notify);
       }
@@ -132,7 +136,6 @@ object* new_object_from(char* text, char* evaluator, uint8_t max_size)
     }
     free(key); free(val);
   }
-  n->evaluator=value_new(evaluator);
   return n;
 }
 
@@ -646,6 +649,13 @@ char* object_to_text(object* n, char* b, uint16_t s)
   ln+=snprintf(b+ln, s-ln, "UID: %s", value_string(n->uid));
   if(ln>=s){ *b = 0; return b; }
 
+  if(n->evaluator){
+    ln+=snprintf(b+ln, s-ln, " Eval: ");
+    if(ln>=s){ *b = 0; return b; }
+    ln+=strlen(value_to_text(n->evaluator, b+ln, s-ln));
+    if(ln>=s){ *b = 0; return b; }
+  }
+
   int j;
   for(j=0; j< OBJECT_MAX_NOTIFIES; j++){
     if(n->notify[j]){
@@ -844,7 +854,7 @@ object* persistence_get(char* uid)
   value* uidv=value_new(uid);
   char* text=properties_get(objects_text, uidv);
   if(!text) return 0;
-  return new_object_from(text, "default", MAX_OBJECT_SIZE);
+  return new_object_from(text, MAX_OBJECT_SIZE);
 }
 
 void persistence_put(object* o)
@@ -884,7 +894,7 @@ void recv_observe(char* b, char* from)
 
 void recv_object(char* text)
 {
-  object* n=new_object_from(text, 0,4);
+  object* n=new_object_from(text, 4);
   if(!n) return;
   object* s=onex_get_from_cache(value_string(n->uid));
   if(!s) return;

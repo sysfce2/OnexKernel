@@ -25,7 +25,7 @@ typedef bool (*onex_evaluator)(struct object* n);
 object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size);
 
 /** create a new Object from text. */
-object* object_new_from(char* text, char* evaluator, uint8_t max_size);
+object* object_new_from(char* text, uint8_t max_size);
 
 /** re-set evaluator callback. */
 void object_set_evaluator(object* n, char* evaluator);

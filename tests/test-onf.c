@@ -318,9 +318,9 @@ void test_to_text()
   object* n2=onex_get_from_cache("uid-2");
   object* n3=onex_get_from_cache("uid-3");
 
-  onex_assert_equal(object_to_text(n1,textbuff,TEXTBUFFLEN), "UID: uid-1 Notify: uid-3 is: setup state: good mostly 1: a c 2: ok m8",                            "converts uid-1 to correct text");
-  onex_assert_equal(object_to_text(n2,textbuff,TEXTBUFFLEN), "UID: uid-2 Notify: uid-3 is: local-state state: better\\: n1: uid-1",                              "converts uid-2 to correct text");
-  onex_assert_equal(object_to_text(n3,textbuff,TEXTBUFFLEN), "UID: uid-3 Notify: uid-3 is: local-state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5", "converts uid-3 to correct text");
+  onex_assert_equal(object_to_text(n1,textbuff,TEXTBUFFLEN), "UID: uid-1 Eval: default Notify: uid-3 is: setup state: good mostly 1: a c 2: ok m8",                            "converts uid-1 to correct text");
+  onex_assert_equal(object_to_text(n2,textbuff,TEXTBUFFLEN), "UID: uid-2 Eval: evaluate_local_notify_n2 Notify: uid-3 is: local-state state: better\\: n1: uid-1",                              "converts uid-2 to correct text");
+  onex_assert_equal(object_to_text(n3,textbuff,TEXTBUFFLEN), "UID: uid-3 Eval: evaluate_local_notify_n3 Notify: uid-3 is: local-state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5", "converts uid-3 to correct text");
 }
 
 // ---------------------------------------------------------------------------------
@@ -351,7 +351,7 @@ void test_from_text()
   object_set_evaluator(n2, "evaluate_remote_notify_n2");
 
   char* text="UID: uid-4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 xy: a :z:q\\: b";
-  object* n4=object_new_from(text, 0, 5);
+  object* n4=object_new_from(text, 5);
   onex_assert(      !!n4,                                              "input text was parsed into an object");
   if(!n4) return;
 
@@ -372,7 +372,7 @@ void test_from_text()
   char fulltext[128];
 
   text="Notify: uid-1 uid-2 is: remote state n3: uid-3";
-  object* nx=object_new_from(text, 0, 4);
+  object* nx=object_new_from(text, 4);
 
   onex_assert(      !!nx,                                              "input text was parsed into an object");
   if(!nx) return;
@@ -382,29 +382,28 @@ void test_from_text()
   onex_assert_equal(object_to_text(nx,textbuff,TEXTBUFFLEN), fulltext, "gives same text back from reconstruction");
 
   text="is: messed up  : --";
-  object* nm=object_new_from(text, 0, 4);
+  object* nm=object_new_from(text, 4);
 
   char* nmuid=object_property(nm, "UID");
   snprintf(fulltext, 128, "UID: %s is: messed up --: --", nmuid);
   onex_assert_equal(object_to_text(nm,textbuff,TEXTBUFFLEN), fulltext, "gives better text back than messed up");
 }
 
-bool evaluate_persistence_n4_called=false;
+bool evaluate_persistence_n4_before_called=false;
 
-bool evaluate_persistence_n4(object* n4)
+bool evaluate_persistence_n4_before(object* n4)
 {
-  onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), "good\\: good",     "n4 can look through objects in the cache on notify");
-  evaluate_persistence_n4_called=true;
+  onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), "good\\: good",     "n4 can look through objects in the cache on notify before persist");
+  evaluate_persistence_n4_before_called=true;
   return true;
 }
 
-int evaluate_default_persistence_called=0;
+bool evaluate_persistence_n4_after_called=false;
 
-bool evaluate_default_persistence(object* n)
+bool evaluate_persistence_n4_after(object* n4)
 {
-  if(object_property_is(n, "UID", "uid-4")) onex_assert_equal(object_property_values(n, "n3:n2:n1:state"), ":better better\\:", "n4 can look through objects in the cache on notify");
-  if(object_property_is(n, "UID", "uid-1")) {}
-  evaluate_default_persistence_called++;
+  onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), ":better better\\:", "n4 can look through objects in the cache on notify after perist");
+  evaluate_persistence_n4_after_called=true;
   return true;
 }
 
@@ -413,12 +412,13 @@ void test_persistence()
   object* n4=onex_get_from_cache("uid-4");
   object* n1=onex_get_from_cache("uid-1");
 
-  onex_set_evaluator("evaluate_persistence_n4", evaluate_persistence_n4);
+  onex_set_evaluator("evaluate_persistence_n4", evaluate_persistence_n4_before);
   object_set_evaluator(n4, "evaluate_persistence_n4");
 
   onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), "good mostly", "n4 can look through objects in the cache");
   onex_assert(      object_property_set(   n1, "state", "good: good"),           "can change n1 to good: good (awaiting n4 to be notified)");
 
+  onex_show_cache();
   onex_un_cache("uid-5");
   onex_un_cache("uid-4");
   onex_un_cache("uid-3");
@@ -426,7 +426,7 @@ void test_persistence()
   onex_un_cache("uid-1");
   onex_show_cache();
 
-  onex_set_evaluator("default", evaluate_default_persistence);
+  onex_set_evaluator("evaluate_persistence_n4", evaluate_persistence_n4_after);
 
   n1=onex_get_from_cache("uid-1");
 
@@ -470,8 +470,8 @@ void run_onf_tests(char* dbpath)
 
   onex_loop();
 
-  onex_assert(      evaluate_persistence_n4_called,          "evaluate_persistence_n4 was called");
-  onex_assert(      evaluate_default_persistence_called==2,  "evaluate_default_persistence was called twice");
+  onex_assert(      evaluate_persistence_n4_before_called, "evaluate_persistence_n4_before was called");
+  onex_assert(      evaluate_persistence_n4_after_called,  "evaluate_persistence_n4_after was called");
 }
 
 // ---------------------------------------------------------------------------------
