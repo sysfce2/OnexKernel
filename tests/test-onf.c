@@ -397,7 +397,7 @@ void test_from_text()
 
   char fulltext[256];
 
-  text="Remote: Serial Notify: uid-1 uid-2 is: remote state n3: uid-3";
+  text="Remote: Serial Cache: keep-active Notify: uid-1 uid-2 is: remote state n3: uid-3";
   object* nx=object_new_from(text, 4);
 
   onex_assert(      !!nx,                                              "input text was parsed into an object");
@@ -407,6 +407,7 @@ void test_from_text()
 
   onex_assert(      object_is_local("uid-4"),                          "n4 is local");
   onex_assert(     !object_is_local(nxuid),                            "nx is remote");
+  onex_assert(      object_is_keep_active(nx),                         "nx is Cache: keep-active");
 
   snprintf(fulltext, 256, "UID: %s %s", nxuid, text);
   onex_assert_equal(object_to_text(nx,textbuff,TEXTBUFFLEN), fulltext, "gives same text back from reconstruction");
@@ -417,6 +418,17 @@ void test_from_text()
   char* nmuid=object_property(nm, "UID");
   snprintf(fulltext, 256, "UID: %s is: messed up --: --", nmuid);
   onex_assert_equal(object_to_text(nm,textbuff,TEXTBUFFLEN), fulltext, "gives better text back than messed up");
+}
+
+bool evaluate_persistence_n1_called=false;
+
+bool evaluate_persistence_n1(object* n1)
+{
+  if(evaluate_persistence_n1_called) return true;
+  onex_assert_equal(object_property_values(n1, "state"), "good\\: good",  "can still see n1's state because it's refetched from persistence");
+  onex_assert(      object_property_set(   n1, "state", ":better better:"), "can change n1 to :better better: (awaiting n4 to be notified)");
+  evaluate_persistence_n1_called=true;
+  return true;
 }
 
 bool evaluate_persistence_n4_before_called=false;
@@ -442,11 +454,18 @@ void test_persistence()
   object* n4=onex_get_from_cache("uid-4");
   object* n1=onex_get_from_cache("uid-1");
 
+  object_keep_active(n1, true);
+
+  onex_set_evaluator("evaluate_persistence_n1", evaluate_persistence_n1);
   onex_set_evaluator("evaluate_persistence_n4", evaluate_persistence_n4_before);
+
+  object_set_evaluator(n1, "evaluate_persistence_n1");
   object_set_evaluator(n4, "evaluate_persistence_n4");
 
   onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), "good mostly", "n4 can look through objects in the cache");
   onex_assert(      object_property_set(   n1, "state", "good: good"),           "can change n1 to good: good (awaiting n4 to be notified)");
+
+  onex_set_evaluator("evaluate_persistence_n4", evaluate_persistence_n4_after);
 
   onex_show_cache();
   onex_un_cache("uid-5");
@@ -455,13 +474,6 @@ void test_persistence()
   onex_un_cache("uid-2");
   onex_un_cache("uid-1");
   onex_show_cache();
-
-  onex_set_evaluator("evaluate_persistence_n4", evaluate_persistence_n4_after);
-
-  n1=onex_get_from_cache("uid-1");
-
-  onex_assert_equal(object_property_values(n1, "state"), "good\\: good",  "can still see n1's state because it's refetched from persistence");
-  onex_assert(      object_property_set(   n1, "state", ":better better:"), "can change n1 to :better better: (awaiting n4 to be notified)");
 
   onex_show_cache();
   onex_un_cache(0); // flushes
@@ -505,6 +517,7 @@ void run_onf_tests(char* dbpath)
 
   onex_loop();
 
+  onex_assert(      evaluate_persistence_n1_called,        "evaluate_persistence_n1 was called");
   onex_assert(      evaluate_persistence_n4_before_called, "evaluate_persistence_n4_before was called");
   onex_assert(      evaluate_persistence_n4_after_called,  "evaluate_persistence_n4_after was called");
   onex_assert(      evaluate_local_notify_n3_called,       "evaluate_local_notify_n3 was called");

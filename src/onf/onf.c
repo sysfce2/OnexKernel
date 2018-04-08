@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 #include <sys/stat.h>
 
 #include "onp.h"
@@ -57,6 +58,7 @@ static void        persistence_loop();
 static object*     persistence_get(char* uid);
 static void        persistence_put(object* o);
 static void        persistence_flush();
+static void        scan_objects_text_for_keep_active();
 
 // ---------------------------------
 
@@ -64,6 +66,7 @@ typedef struct object {
   value*          uid;
   value*          evaluator;
   properties*     properties;
+  value*          cache;
   value*          notify[OBJECT_MAX_NOTIFIES];
   value*          remote;
   uint32_t        last_observe;
@@ -116,17 +119,20 @@ object* new_object_from(char* text, uint8_t max_size)
   value* uid=0;
   value* evaluator=0;
   value* remote=0;
+  value* cache=0;
   char* notify=0;
   char* p=t;
   while(true){
     char* key=get_key(&p); if(!key) break;
     if(!*key){ free(key); key=strdup("--"); }
-    char* val=get_val(&p); if(!val) break;
+    char* val=get_val(&p); if(!val){ free(key); break; }
     if(!strcmp(key,"UID")) uid=value_new(val);
     else
     if(!strcmp(key,"Eval")) evaluator=value_new(val);
     else
     if(!strcmp(key,"Remote")) remote=value_new(val);
+    else
+    if(!strcmp(key,"Cache")) cache=value_new(val);
     else
     if(!strcmp(key,"Notify")) notify=strdup(val);
     else {
@@ -134,6 +140,7 @@ object* new_object_from(char* text, uint8_t max_size)
         n=new_object(uid, 0, 0, max_size);
         if(evaluator) n->evaluator=evaluator;
         if(remote) n->remote=remote;
+        if(cache) n->cache=cache;
         set_observers(n, notify);
         free(notify);
       }
@@ -217,6 +224,17 @@ void object_set_evaluator(object* n, char* evaluator)
 {
   n->evaluator=value_new(evaluator);
   persistence_put(n);
+}
+
+void object_keep_active(object* n, bool keepactive)
+{
+  n->cache=keepactive? value_new("keep-active"): 0;
+  persistence_put(n);
+}
+
+bool object_is_keep_active(object* n)
+{
+  return n->cache && !strcmp(value_string(n->cache), "keep-active");
 }
 
 // ------------------------------------------------------
@@ -628,8 +646,7 @@ void save_and_notify_observers(object* o)
     if(!o->notify[i]) continue;
     char* notify = value_string(o->notify[i]);
     if(is_uid(notify)){
-      object* n=onex_get_from_cache(notify);
-      onex_run_evaluator(n);
+      onex_run_evaluator(onex_get_from_cache(notify));
     }
     else{
       onp_send_object(o,notify);
@@ -665,6 +682,11 @@ char* object_to_text(object* n, char* b, uint16_t s)
 
   if(n->remote){
     ln+=snprintf(b+ln, s-ln, " Remote: %s", value_string(n->remote));
+    if(ln>=s){ *b = 0; return b; }
+  }
+
+  if(n->cache){
+    ln+=snprintf(b+ln, s-ln, " Cache: %s", value_string(n->cache));
     if(ln>=s){ *b = 0; return b; }
   }
 
@@ -755,6 +777,7 @@ void onex_un_cache(char* uid)
   if(!uid || !(*uid)) return;
   object* o=properties_delete(objects_cache, value_new(uid));
   object_free(o);
+  scan_objects_text_for_keep_active();
 }
 
 static properties* evaluators=0;
@@ -841,6 +864,7 @@ void persistence_init(char* filename)
     text=strtok(0, "\n");
   }
   free(alldbtext);
+  scan_objects_text_for_keep_active();
 }
 
 uint32_t lasttime=0;
@@ -885,6 +909,31 @@ void persistence_flush()
   }
   properties_clear(objects_to_save, false);
   if(db) fflush(db);
+}
+
+void scan_objects_text_for_keep_active()
+{
+  for(int n=1; n<=properties_size(objects_text); n++){
+    value* uid=0;
+    char* p=properties_get_n(objects_text, n);
+    while(true){
+      char* key=get_key(&p); if(!key) break; if(!*key){ free(key); break; }
+      char* val=get_val(&p); if(!val){ free(key); break; }
+      if(!isupper((unsigned char)(*key))){
+        free(key); free(val);
+        break;
+      }
+      if(!strcmp(key,"Cache") && !strcmp(val,"keep-active")){
+        uid=properties_key_n(objects_text, n);
+        free(key); free(val);
+        break;
+      }
+      free(key); free(val);
+    }
+    if(uid){
+      onex_run_evaluator(onex_get_from_cache(value_string(uid)));
+    }
+  }
 }
 
 // -----------------------------------------------------------------------
