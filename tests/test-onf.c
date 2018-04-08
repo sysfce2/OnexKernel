@@ -296,7 +296,7 @@ void test_remote_object()
   object* n3=onex_get_from_cache("uid-3");
   onex_assert(     !object_property(       n3, "n*:5:UID"),                   "n*:5:UID is null");
   object* n5=onex_get_from_cache("uid-5");
-  char* n5text="UID: uid-5 Notify: uid-3 [shell]";
+  char* n5text="UID: uid-5 Remote: Serial Notify: uid-3";
   onex_assert_equal(object_to_text(n5,textbuff,TEXTBUFFLEN), n5text, "converts remote shell uid-5 to correct text");
 }
 

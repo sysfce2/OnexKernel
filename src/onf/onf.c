@@ -49,7 +49,7 @@ static void        show_notifies(object* o);
 static void        call_all_evaluators();
 static object*     new_object(value* uid, char* evaluator, char* is, uint8_t max_size);
 static object*     new_object_from(char* text, uint8_t max_size);
-static object*     new_shell(value* uid, char* notify);
+static object*     new_shell(value* uid, char* notify, value* remote);
 static bool        is_shell(object* o);
 
 static void        persistence_init(char* filename);
@@ -65,6 +65,7 @@ typedef struct object {
   value*          evaluator;
   properties*     properties;
   value*          notify[OBJECT_MAX_NOTIFIES];
+  value*          remote;
   uint32_t        last_observe;
 } object;
 
@@ -139,11 +140,12 @@ object* new_object_from(char* text, uint8_t max_size)
   return n;
 }
 
-object* new_shell(value* uid, char* notify)
+object* new_shell(value* uid, char* notify, value* remote)
 {
   uint8_t max_size=4;
   object* n=(object*)calloc(1,sizeof(object));
   n->uid=uid;
+  n->remote=remote;
   n->last_observe = 0;
   set_observers(n, notify);
   return n;
@@ -157,13 +159,13 @@ void object_free(object* o)
 
 bool is_shell(object* o)
 {
-  return !o->properties && !o->evaluator;
+  return o->remote && !o->properties;
 }
 
 bool object_is_local(char* uid)
 {
   object* o=onex_get_from_cache(uid);
-  return o && o->evaluator;
+  return o && !o->remote;
 }
 
 char* get_key(char** p)
@@ -317,13 +319,13 @@ object* find_object(char* uid, object* n)
     return o;
   }
   if(!o){
-    o=new_shell(value_new(uid), value_string(n->uid));
+    o=new_shell(value_new(uid), value_string(n->uid), value_new("Serial"));
     add_to_cache_and_persist(o);
   }
   uint32_t curtime = time_ms();
   if(!o->last_observe || curtime > o->last_observe + 1000){
     o->last_observe = curtime + 1;
-    onp_send_observe(uid, "");
+    onp_send_observe(uid, value_string(o->remote));
   }
   return 0;
 }
@@ -657,6 +659,11 @@ char* object_to_text(object* n, char* b, uint16_t s)
     if(ln>=s){ *b = 0; return b; }
   }
 
+  if(n->remote){
+    ln+=snprintf(b+ln, s-ln, " Remote: %s", value_string(n->remote));
+    if(ln>=s){ *b = 0; return b; }
+  }
+
   int j;
   for(j=0; j< OBJECT_MAX_NOTIFIES; j++){
     if(n->notify[j]){
@@ -677,11 +684,6 @@ char* object_to_text(object* n, char* b, uint16_t s)
     ln+=snprintf(b+ln, s-ln, ": ");
     if(ln>=s){ *b = 0; return b; }
     ln+=strlen(item_to_text(properties_get_n(p,j), b+ln, s-ln));
-    if(ln>=s){ *b = 0; return b; }
-  }
-
-  if(is_shell(n)){
-    ln+=snprintf(b+ln, s-ln, " [shell]");
     if(ln>=s){ *b = 0; return b; }
   }
   return b;
