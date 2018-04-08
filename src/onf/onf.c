@@ -145,7 +145,6 @@ object* new_shell(value* uid, char* notify)
   object* n=(object*)calloc(1,sizeof(object));
   n->uid=uid;
   n->last_observe = 0;
-  add_to_cache(n);
   set_observers(n, notify);
   return n;
 }
@@ -317,7 +316,10 @@ object* find_object(char* uid, object* n)
     add_observer(o,n->uid);
     return o;
   }
-  if(!o) o=new_shell(value_new(uid), value_string(n->uid));
+  if(!o){
+    o=new_shell(value_new(uid), value_string(n->uid));
+    add_to_cache_and_persist(o);
+  }
   uint32_t curtime = time_ms();
   if(!o->last_observe || curtime > o->last_observe + 1000){
     o->last_observe = curtime + 1;
@@ -720,9 +722,7 @@ object* onex_get_from_cache(char* uid)
 {
   if(!uid || !(*uid)) return 0;
   object* o=properties_get(objects_cache, value_new(uid));
-  if(o) return o;
-  o=persistence_get(uid);
-  if(o) add_to_cache(o);
+  if(!o)  o=persistence_get(uid);
   return o;
 }
 
@@ -853,7 +853,9 @@ object* persistence_get(char* uid)
   value* uidv=value_new(uid);
   char* text=properties_get(objects_text, uidv);
   if(!text) return 0;
-  return new_object_from(text, MAX_OBJECT_SIZE);
+  object* o=new_object_from(text, MAX_OBJECT_SIZE);
+  if(o) add_to_cache(o);
+  return o;
 }
 
 void persistence_put(object* o)
