@@ -733,7 +733,6 @@ bool first_time=true;
 
 void onex_loop()
 {
-  if(first_time){ first_time=false; call_all_evaluators(); } // hmm
   persistence_loop();
   onp_loop();
 }

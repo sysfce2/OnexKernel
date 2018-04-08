@@ -243,16 +243,16 @@ void test_local_state()
 {
   onex_set_evaluator("evaluate_local_state_n2", evaluate_local_state_n2);
   onex_set_evaluator("evaluate_local_state_n3", evaluate_local_state_n3);
-  object* n2=object_new("uid-2", "evaluate_local_state_n2", "local-state", 4);
-  object* n3=object_new("uid-3", "evaluate_local_state_n3", "local-state", 4);
   // UID: uid-2  is: local-state
   // UID: uid-3  is: local-state
+  object* n2=object_new("uid-2", "evaluate_local_state_n2", "local-state", 4);
+  object* n3=object_new("uid-3", "evaluate_local_state_n3", "local-state", 4);
   onex_assert(      onex_get_from_cache("uid-2")==n2,   "onex_get_from_cache can find uid-2");
   onex_assert(      onex_get_from_cache("uid-3")==n3,   "onex_get_from_cache can find uid-3");
-  // UID: uid-2  is: local-state  state: good
-  // UID: uid-3  is: local-state  n2: uid-2  self: uid-3
-  onex_assert(      object_property_set(n2, "state", "good"),  "can add 'state'");
+  // UID: uid-2  is: local-state  state: ok
+  onex_assert(      object_property_set(n2, "state", "ok"),  "can add 'state'");
   onex_assert(      object_property_set(n2, "n1",    "uid-1"), "can add 'n1'");
+  // UID: uid-3  is: local-state  n2: uid-2  self: uid-3
   onex_assert(      object_property_set(n3, "n2",    "uid-2"), "can add 'n2'");
   onex_assert(      object_property_set(n3, "self",  "uid-3"), "can add 'self'");
   // UID: uid-3  is: local-state  n2: uid-2  self: uid-3  n* uid-1 uid-2 uid-3 uid-4
@@ -269,6 +269,9 @@ void test_local_state()
   onex_assert_equal(object_property(        n3, "n*:2"), "uid-2",  "n*:2 is uid-2");
   onex_assert_equal(object_property_get_n(  n3, "n*", 3), "uid-3", "n*:3 is uid-3");
   onex_assert_equal(object_property_get_n(  n3, "n*", 4), "uid-4", "n*:4 is uid-4");
+  // UID: uid-2  is: local-state  state: good
+  onex_assert_equal(object_property(    n3, "n2:state"), "ok", "can see through n2 to uid-2's state");
+  onex_assert(      object_property_set(n2, "state", "good"),  "can set 'state' to trigger evaluate_local_state_n3");
 }
 
 // ---------------------------------------------------------------------------------
@@ -492,8 +495,8 @@ void run_onf_tests(char* dbpath)
 
   onex_loop();
 
-  onex_assert(      evaluate_setup_called,              "evaluate_setup was called");
-  onex_assert(      evaluate_local_state_n2_called,     "evaluate_local_state_n2 was called");
+  onex_assert(     !evaluate_setup_called,              "evaluate_setup was not called");
+  onex_assert(     !evaluate_local_state_n2_called,     "evaluate_local_state_n2 was not called");
   onex_assert(      evaluate_local_state_n3_called,     "evaluate_local_state_n3 was called");
 
   test_local_notify();
