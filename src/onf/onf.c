@@ -47,8 +47,8 @@ static void        set_observers(object* o, char* notify);
 static void        save_and_notify_observers(object* n);
 static void        show_notifies(object* o);
 static void        call_all_evaluators();
-static object*     new_object(value* uid, char* is, onex_evaluator evaluator, uint8_t max_size);
-static object*     new_object_from(char* text, onex_evaluator evaluator, uint8_t max_size);
+static object*     new_object(value* uid, char* evaluator, char* is, uint8_t max_size);
+static object*     new_object_from(char* text, char* evaluator, uint8_t max_size);
 static object*     new_shell(value* uid, char* notify);
 static bool        is_shell(object* o);
 
@@ -62,7 +62,7 @@ static void        persistence_flush();
 
 typedef struct object {
   value*          uid;
-  onex_evaluator  evaluator;
+  value*          evaluator;
   properties*     properties;
   value*          notify[OBJECT_MAX_NOTIFIES];
   uint32_t        last_observe;
@@ -80,7 +80,7 @@ value* generate_uid()
   return value_new(b);
 }
 
-object* object_new_from(char* text, onex_evaluator evaluator, uint8_t max_size)
+object* object_new_from(char* text, char* evaluator, uint8_t max_size)
 {
   object* n=new_object_from(text, evaluator, max_size);
   char* uid=value_string(n->uid);
@@ -89,25 +89,25 @@ object* object_new_from(char* text, onex_evaluator evaluator, uint8_t max_size)
   return n;
 }
 
-object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
+object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size)
 {
   if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
-  object* n=new_object(value_new(uid), is, evaluator, max_size);
+  object* n=new_object(value_new(uid), evaluator, is, max_size);
   add_to_cache_and_persist(n);
   return n;
 }
 
-object* new_object(value* uid, char* is, onex_evaluator evaluator, uint8_t max_size)
+object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size)
 {
   object* n=(object*)calloc(1,sizeof(object));
   n->uid=uid? uid: generate_uid();
   n->properties=properties_new(max_size);
   if(is) set_value_or_list(n, "is", is);
-  n->evaluator=evaluator;
+  n->evaluator=value_new(evaluator);
   return n;
 }
 
-object* new_object_from(char* text, onex_evaluator evaluator, uint8_t max_size)
+object* new_object_from(char* text, char* evaluator, uint8_t max_size)
 {
   size_t m=strlen(text)+1;
   char t[m]; memcpy(t, text, m);
@@ -132,7 +132,7 @@ object* new_object_from(char* text, onex_evaluator evaluator, uint8_t max_size)
     }
     free(key); free(val);
   }
-  n->evaluator=evaluator;
+  n->evaluator=value_new(evaluator);
   return n;
 }
 
@@ -205,9 +205,9 @@ char* get_val(char** p)
   return r;
 }
 
-void object_set_evaluator(object* n, onex_evaluator evaluator)
+void object_set_evaluator(object* n, char* evaluator)
 {
-  n->evaluator=evaluator;
+  n->evaluator=value_new(evaluator);
 }
 
 // ------------------------------------------------------
@@ -617,7 +617,7 @@ void save_and_notify_observers(object* o)
     char* notify = value_string(o->notify[i]);
     if(is_uid(notify)){
       object* n=onex_get_from_cache(notify);
-      if(n && n->evaluator) n->evaluator(n);
+      onex_run_evaluator(n);
     }
     else{
       onp_send_object(o,notify);
@@ -742,23 +742,25 @@ void onex_un_cache(char* uid)
   object_free(o);
 }
 
-onex_evaluator default_evaluator=0;
+static properties* evaluators=0;
 
-void onex_set_default_evaluator(onex_evaluator evaluator)
+void onex_set_evaluator(char* name, onex_evaluator evaluator)
 {
-  default_evaluator=evaluator;
+  if(!evaluators) evaluators = properties_new(10);
+  properties_set(evaluators, value_new(name), evaluator);
 }
 
-void onex_run_evaluators(object* n)
-{
-  if(n->evaluator) n->evaluator(n);
+void onex_run_evaluator(object* o){
+  if(o && o->evaluator){
+    onex_evaluator evaluator=(onex_evaluator)properties_get(evaluators, o->evaluator);
+    if(evaluator) evaluator(o);
+  }
 }
 
 void call_all_evaluators()
 {
   for(int n=1; n<=properties_size(objects_cache); n++){
-    object* o=properties_get_n(objects_cache,n);
-    if(o->evaluator) o->evaluator(o);
+    onex_run_evaluator(properties_get_n(objects_cache,n));
   }
 }
 
@@ -842,7 +844,7 @@ object* persistence_get(char* uid)
   value* uidv=value_new(uid);
   char* text=properties_get(objects_text, uidv);
   if(!text) return 0;
-  return new_object_from(text, default_evaluator, MAX_OBJECT_SIZE);
+  return new_object_from(text, "default", MAX_OBJECT_SIZE);
 }
 
 void persistence_put(object* o)
@@ -856,7 +858,7 @@ void persistence_flush()
   uint16_t sz=properties_size(objects_to_save);
   if(!sz) return;
   for(int j=1; j<=sz; j++){
-    value* uidv=(value*)properties_get_n(objects_to_save, j);
+    value* uidv=properties_get_n(objects_to_save, j);
     object* o=onex_get_from_cache(value_string(uidv));
     char buff[MAX_TEXT_LEN];
     char* text=object_to_text(o,buff,MAX_TEXT_LEN);

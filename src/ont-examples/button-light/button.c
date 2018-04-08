@@ -21,7 +21,8 @@ int main()
   log_init(9600);
   log_write("\n------Starting Button Test-----\n");
 
-  button=object_new("uid-1-2-3", "button", evaluate_button, 4);
+  onex_set_evaluator("evaluate_button", evaluate_button);
+  button=object_new("uid-1-2-3", "evaluate_button", "button", 4);
   object_property_set(button, "name", "£€§");
 
   int lasttime=0;
@@ -33,7 +34,7 @@ int main()
     if(time_ms() > lasttime+1000){
        lasttime=time_ms();
        button_pressed=!button_pressed;
-       onex_run_evaluators(button);
+       onex_run_evaluator(button);
     }
   }
 }

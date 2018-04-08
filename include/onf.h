@@ -17,18 +17,18 @@ typedef bool (*onex_evaluator)(struct object* n);
 // --------------------------------------------------------------------
 
 /** create a new Object.
-    is:        string type name (e.g. "light", "button")
     uid:       if any (will generate one otherwise)
-    evaluator: callback to get and set values on this Object
-    max_size:  max number of properties - this is embedded!
+    evaluator: name of callback function, set in onex_set_evaluator(), to get and set values on this Object
+    is:        string type name (e.g. "light", "button")
+    max_size:  max number of properties - for embedded use
  */
-object* object_new(char* uid, char* is, onex_evaluator evaluator, uint8_t max_size);
+object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size);
 
 /** create a new Object from text. */
-object* object_new_from(char* text, onex_evaluator evaluator, uint8_t max_size);
+object* object_new_from(char* text, char* evaluator, uint8_t max_size);
 
 /** re-set evaluator callback. */
-void object_set_evaluator(object* n, onex_evaluator evaluator);
+void object_set_evaluator(object* n, char* evaluator);
 
 /** set property value. */
 bool  object_property_set(object* n, char* path, char* val);
@@ -84,10 +84,10 @@ bool object_is_local(char* uid);
 void onex_init(char* dbpath);
 
 /** call when you want your evaluator run so you can set some state within a transaction. */
-void onex_run_evaluators(object* n);
+void onex_run_evaluator(object* n);
 
-/** set the evaluator for objects pulled from persistence. */
-void onex_set_default_evaluator(onex_evaluator evaluator);
+/** set the evaluator mapping from name to function. */
+void onex_set_evaluator(char* name, onex_evaluator evaluator);
 
 /** call this to give CPU to Onex. */
 void onex_loop();
