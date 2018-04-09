@@ -47,7 +47,6 @@ static bool        add_observer(object* o, value* notify);
 static void        set_observers(object* o, char* notify);
 static void        save_and_notify_observers(object* n);
 static void        show_notifies(object* o);
-static void        call_all_evaluators();
 static object*     new_object(value* uid, char* evaluator, char* is, uint8_t max_size);
 static object*     new_object_from(char* text, uint8_t max_size);
 static object*     new_shell(value* uid, char* notify, value* remote);
@@ -794,12 +793,6 @@ void onex_run_evaluator(object* o){
   }
 }
 
-void call_all_evaluators()
-{
-  for(int n=1; n<=properties_size(objects_cache); n++){
-    onex_run_evaluator(properties_get_n(objects_cache,n));
-  }
-}
 
 // -----------------------------------------------------------------------
 
