@@ -75,6 +75,13 @@ void object_free(object* n);
 /** object to text; supply your own buffer, b, of length s */
 char* object_to_text(object* n, char* b, uint16_t s);
 
+/** set run data. */
+void object_set_run_data(object* n, int32_t data);
+
+/** get run data. */
+int32_t object_get_run_data(object* n);
+
+
 /** log out the object */
 void object_log(object* n);
 

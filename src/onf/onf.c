@@ -69,6 +69,7 @@ typedef struct object {
   value*          notify[OBJECT_MAX_NOTIFIES];
   value*          remote;
   uint32_t        last_observe;
+  int32_t         run_data;
 } object;
 
 value* generate_uid()
@@ -793,6 +794,15 @@ void onex_run_evaluator(object* o){
   }
 }
 
+void object_set_run_data(object* n, int32_t data)
+{
+  if(n) n->run_data=data;
+}
+
+int32_t object_get_run_data(object* n)
+{
+  return n? n->run_data: 0;
+}
 
 // -----------------------------------------------------------------------
 

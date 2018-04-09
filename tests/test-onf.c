@@ -27,6 +27,9 @@ void test_object_set_up()
   nr=object_new(0, 0, "random uid", 4);
   char* random_uid_2 = object_property(nr, "UID");
 
+                    object_set_run_data(nr, 5151);
+  onex_assert(      object_get_run_data(nr)==5151,            "can save some run data");
+
   onex_assert(      strlen(random_uid_1)==23,                "UID generation returns long string");
   onex_assert(      strlen(random_uid_2)==23,                "UID generation returns long string");
   onex_assert(      strcmp(random_uid_1, random_uid_2),      "UID generation creates unique UIDs");
