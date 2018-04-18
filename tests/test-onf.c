@@ -14,7 +14,7 @@ char textbuff[TEXTBUFFLEN];
 
 bool evaluate_setup_called=false;
 
-bool evaluate_setup(object* n1)
+bool evaluate_setup(object* n1, void* d)
 {
   evaluate_setup_called=true;
   return true;
@@ -178,7 +178,7 @@ void test_object_set_up()
 
 bool evaluate_local_state_n2_called=false;
 
-bool evaluate_local_state_n2(object* n2)
+bool evaluate_local_state_n2(object* n2, void* d)
 {
   evaluate_local_state_n2_called=true;
   return true;
@@ -188,7 +188,7 @@ bool evaluate_local_state_n3_called=false;
 
 #include <items.h>
 
-bool evaluate_local_state_n3(object* n3)
+bool evaluate_local_state_n3(object* n3, void* d)
 {
   evaluate_local_state_n3_called=true;
   // UID: uid-2  is: local-state  state: good
@@ -279,18 +279,39 @@ void test_local_state()
 
 // ---------------------------------------------------------------------------------
 
+bool pre_evaluate_n2_called=false;
+
+bool pre_evaluate_n2(object* n2, void* args)
+{
+  pre_evaluate_n2_called=true;
+  onex_assert_equal((char*)args, "arguments", "pre-evaluator gets passed the arguments");
+  onex_assert_equal(object_property(n2, "state"), "good",  "can see state");
+  return true;
+}
+
 bool evaluate_local_notify_n2_called=false;
 
-bool evaluate_local_notify_n2(object* n2)
+bool evaluate_local_notify_n2(object* n2, void* args)
 {
   evaluate_local_notify_n2_called=true;
+  onex_assert_equal((char*)args, "arguments", "evaluator gets passed the arguments");
   object_property_set(n2, "state", "better:");
+  return true;
+}
+
+bool post_evaluate_n2_called=false;
+
+bool post_evaluate_n2(object* n2, void* args)
+{
+  post_evaluate_n2_called=true;
+  onex_assert_equal((char*)args, "arguments", "post-evaluator gets passed the arguments");
+  onex_assert_equal(object_property(n2, "state"), "better:",  "can see evaluator's state update");
   return true;
 }
 
 bool evaluate_local_notify_n3_called=false;
 
-bool evaluate_local_notify_n3(object* n3)
+bool evaluate_local_notify_n3(object* n3, void* d)
 {
   evaluate_local_notify_n3_called=true;
   onex_assert_equal(object_property(n3, "n2:state"), "better:",      "n3/uid-3 can see state update");
@@ -319,7 +340,7 @@ void test_local_notify()
   object_set_evaluator(n2, "evaluate_local_notify_n2");
   object_set_evaluator(n3, "evaluate_local_notify_n3");
 
-                    onex_run_evaluator("uid-2", 0 ,0);
+                    onex_run_evaluator("uid-2", "arguments", pre_evaluate_n2, post_evaluate_n2);
 
   onex_assert(      object_property_is(n2, "state", "better:"),  "can see state update");
 }
@@ -348,7 +369,7 @@ void test_to_text()
 
 bool evaluate_remote_notify_n1_called=false;
 
-bool evaluate_remote_notify_n1(object* n1)
+bool evaluate_remote_notify_n1(object* n1, void* d)
 {
   evaluate_remote_notify_n1_called=true;
   return true;
@@ -356,7 +377,7 @@ bool evaluate_remote_notify_n1(object* n1)
 
 bool evaluate_remote_notify_n2_called=false;
 
-bool evaluate_remote_notify_n2(object* n2)
+bool evaluate_remote_notify_n2(object* n2, void* d)
 {
   evaluate_remote_notify_n2_called=true;
   return true;
@@ -364,7 +385,7 @@ bool evaluate_remote_notify_n2(object* n2)
 
 bool evaluate_remote_notify_n4_called=false;
 
-bool evaluate_remote_notify_n4(object* n4)
+bool evaluate_remote_notify_n4(object* n4, void* d)
 {
   evaluate_remote_notify_n4_called=true;
   return true;
@@ -428,7 +449,7 @@ void test_from_text()
 
 bool evaluate_persistence_n1_called=false;
 
-bool evaluate_persistence_n1(object* n1)
+bool evaluate_persistence_n1(object* n1, void* d)
 {
   if(evaluate_persistence_n1_called) return true;
   onex_assert_equal(object_property_values(n1, "state"), "good\\: good",  "can still see n1's state because it's refetched from persistence");
@@ -439,7 +460,7 @@ bool evaluate_persistence_n1(object* n1)
 
 bool evaluate_persistence_n4_before_called=false;
 
-bool evaluate_persistence_n4_before(object* n4)
+bool evaluate_persistence_n4_before(object* n4, void* d)
 {
   onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), "good\\: good",     "n4 can look through objects in the cache on notify before persist");
   evaluate_persistence_n4_before_called=true;
@@ -448,7 +469,7 @@ bool evaluate_persistence_n4_before(object* n4)
 
 bool evaluate_persistence_n4_after_called=false;
 
-bool evaluate_persistence_n4_after(object* n4)
+bool evaluate_persistence_n4_after(object* n4, void* d)
 {
   onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), ":better better\\:", "n4 can look through objects in the cache on notify after perist");
   evaluate_persistence_n4_after_called=true;
@@ -510,7 +531,9 @@ void run_onf_tests(char* dbpath)
 
   test_remote_object();
 
+  onex_assert(      pre_evaluate_n2_called,              "pre_evaluate_n2 was called");
   onex_assert(      evaluate_local_notify_n2_called,     "evaluate_local_notify_n2 was called");
+  onex_assert(      post_evaluate_n2_called,             "post_evaluate_n2 was called");
   onex_assert(      evaluate_local_notify_n3_called,     "evaluate_local_notify_n3 was called");
   onex_assert(      evaluate_remote_notify_n1_called,    "evaluate_remote_notify_n1 was called");
   onex_assert(      evaluate_remote_notify_n2_called,    "evaluate_remote_notify_n2 was called");

@@ -8,7 +8,7 @@
 
 object* light;
 
-bool evaluate_light(object* light);
+bool evaluate_light(object* light, void* d);
 
 int main()
 {
@@ -30,12 +30,12 @@ int main()
     onex_loop();
 
     if(todo<2 && time_ms() >2000+2000*todo){  todo++;
-      onex_run_evaluator(uid, 0, 0);
+      onex_run_evaluator(uid, 0, 0, 0);
     }
   }
 }
 
-bool evaluate_light(object* light)
+bool evaluate_light(object* light, void* d)
 {
   bool buttonpressed=object_property_is(light, "button:state", "down");
   char* s=(char*)(buttonpressed? "on": "off");

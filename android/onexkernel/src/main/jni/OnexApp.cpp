@@ -18,9 +18,9 @@ android_app* androidApp;
 
 bool button_pressed=false;
 
-bool evaluate_button(object* button)
+bool evaluate_button(object* button, void* pressed)
 {
-  char* s=(char*)(button_pressed? "down": "up");
+  char* s=(char*)(pressed? "down": "up");
   object_property_set(button, (char*)"state", s);
   log_write("evaluate_button: "); object_log(button);
   return true;
@@ -112,7 +112,7 @@ public:
       if(time_ms() > lasttime+1000){
          lasttime=time_ms();
          button_pressed=!button_pressed;
-         onex_run_evaluator(uid, 0, 0);
+         onex_run_evaluator(uid, (void*)button_pressed, 0, 0);
       }
     }
   }

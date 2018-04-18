@@ -646,7 +646,7 @@ void save_and_notify_observers(object* o)
     if(!o->notify[i]) continue;
     char* notify = value_string(o->notify[i]);
     if(is_uid(notify)){
-      onex_run_evaluator(notify, 0, 0);
+      onex_run_evaluator(notify, 0, 0, 0);
     }
     else{
       onp_send_object(o,notify);
@@ -787,15 +787,15 @@ void onex_set_evaluator(char* name, onex_evaluator evaluator)
   properties_set(evaluators, value_new(name), evaluator);
 }
 
-void onex_run_evaluator(char* uid, onex_evaluator pre, onex_evaluator post){
+void onex_run_evaluator(char* uid, void* data, onex_evaluator pre, onex_evaluator post){
   if(!uid) return;
   object* o=onex_get_from_cache(uid);
   if(!o) return;
-  if(pre)  pre(o);
+  if(pre)  pre(o, data);
   onex_evaluator eval=0;
   if(o->evaluator) eval=(onex_evaluator)properties_get(evaluators, o->evaluator);
-  if(eval) eval(o);
-  if(post) post(o);
+  if(eval) eval(o, data);
+  if(post) post(o, data);
 }
 
 void object_set_run_data(object* n, int32_t data)
@@ -937,7 +937,7 @@ void scan_objects_text_for_keep_active()
       free(key); free(val);
     }
     if(uid){
-      onex_run_evaluator(value_string(uid), 0, 0);
+      onex_run_evaluator(value_string(uid), 0, 0, 0);
     }
   }
 }

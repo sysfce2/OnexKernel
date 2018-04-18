@@ -12,7 +12,7 @@
 typedef struct object object;
 
 /** this is the sig for your object evaluator callback. */
-typedef bool (*onex_evaluator)(struct object* n);
+typedef bool (*onex_evaluator)(struct object* n, void* data);
 
 // --------------------------------------------------------------------
 
@@ -98,7 +98,7 @@ void onex_init(char* dbpath);
 
 /** call when you want your evaluator run so you can set some state within a transaction;
     also runs given pre and post evaluators if supplied. */
-void onex_run_evaluator(char* uid, onex_evaluator pre, onex_evaluator post);
+void onex_run_evaluator(char* uid, void* data, onex_evaluator pre, onex_evaluator post);
 
 /** set the evaluator mapping from name to function. */
 void onex_set_evaluator(char* name, onex_evaluator evaluator);
