@@ -194,19 +194,19 @@ bool evaluate_local_state_n3(object* n3, void* d)
   // UID: uid-2  is: local-state  state: good
   // UID: uid-3  is: local-state  n2: uid-2  self: uid-3  n* uid-1 uid-2 uid-3 uid-4 uid-5
   onex_assert(     !object_property(       n3, "is:foo"),                     "can't find is:foo");
-  onex_assert(      object_property_is(    n3, "n2", "uid-2"),                "can see UID of local object immediately: n2");
-  onex_assert(      object_property_is(    n3, "n2:", "uid-2"),               "can see UID of local object immediately: n2:");
-  onex_assert(      object_property_is(    n3, "n2:1", "uid-2"),              "can see UID of local object immediately: n2:1");
-  onex_assert(      object_property_is(    n3, "n2:1:", "uid-2"),             "can see UID of local object immediately: n2:1:");
-  onex_assert(      object_property_is(    n3, "n2:UID", "uid-2"),            "can see UID of local object immediately: n2:UID");
-  onex_assert(      object_property_is(    n3, "n2:1:UID", "uid-2"),          "can see UID of local object immediately: n2:1:UID");
-  onex_assert(      object_property_is(    n3, "n2:is",   "local-state"),     "can see 'is' of local object immediately");
-  onex_assert(      object_property_is(    n3, "n2:state", "good"),           "can see state prop of local object immediately");
+  onex_assert_equal(object_property(       n3, "n2"), "uid-2",                "can see UID of local object immediately: n2");
+  onex_assert_equal(object_property(       n3, "n2:"), "uid-2",               "can see UID of local object immediately: n2:");
+  onex_assert_equal(object_property(       n3, "n2:1"), "uid-2",              "can see UID of local object immediately: n2:1");
+  onex_assert_equal(object_property(       n3, "n2:1:"), "uid-2",             "can see UID of local object immediately: n2:1:");
+  onex_assert_equal(object_property(       n3, "n2:UID"), "uid-2",            "can see UID of local object immediately: n2:UID");
+  onex_assert_equal(object_property(       n3, "n2:1:UID"), "uid-2",          "can see UID of local object immediately: n2:1:UID");
+  onex_assert_equal(object_property(       n3, "n2:is"),   "local-state",     "can see 'is' of local object immediately");
+  onex_assert_equal(object_property(       n3, "n2:state"), "good",           "can see state prop of local object immediately");
   onex_assert(     !object_property(       n3, "n2:foo"),                     "can't find n2:foo");
-  onex_assert(      object_property_is(    n3, "self:UID", "uid-3"),          "can see through link to self");
+  onex_assert_equal(object_property(       n3, "self:UID"), "uid-3",          "can see through link to self");
   onex_assert(      object_property_length(n3, "self:n2")==1,                 "property 'n2' is a value (uid)");
   onex_assert(      object_property_length(n3, "self:n2:")==1,                "property 'n2:' is a value (uid)");
-  onex_assert(      object_property_is(    n3, "self:n2", "uid-2"),           "property 'n2' is uid-2");
+  onex_assert_equal(object_property(       n3, "self:n2"), "uid-2",           "property 'n2' is uid-2");
   onex_assert(      object_property_size(  n3, "self:n2")==3,                 "property 'n2' is also a properties");
   onex_assert(      object_property_size(  n3, "self:n2:")==3,                "property 'n2:' is also a properties");
   onex_assert_equal(object_property_val(   n3, "self:n2", 1), "local-state",  "value of n2 first item is 'local-state'");
@@ -332,8 +332,8 @@ void test_local_notify()
   object* n2=onex_get_from_cache("uid-2");
   object* n3=onex_get_from_cache("uid-3");
 
-  onex_assert(      object_property_is(n3, "n2",       "uid-2"),   "uid-3 links to uid-2");
-  onex_assert(      object_property_is(n3, "n2:state", "good"),    "can still see through link");
+  onex_assert_equal(object_property(n3, "n2"      ), "uid-2",   "uid-3 links to uid-2");
+  onex_assert_equal(object_property(n3, "n2:state"), "good",    "can still see through link");
 
   onex_set_evaluator("evaluate_local_notify_n2", evaluate_local_notify_n2);
   onex_set_evaluator("evaluate_local_notify_n3", evaluate_local_notify_n3);
@@ -342,7 +342,7 @@ void test_local_notify()
 
                     onex_run_evaluator("uid-2", "arguments", pre_evaluate_n2, post_evaluate_n2);
 
-  onex_assert(      object_property_is(n2, "state", "better:"),  "can see state update");
+  onex_assert_equal(object_property(n2, "state"), "better:",  "can see state update");
 }
 
 // ---------------------------------------------------------------------------------
@@ -407,7 +407,7 @@ void test_from_text()
   onex_assert(      !!n4,                                              "input text was parsed into an object");
   if(!n4) return;
 
-  onex_assert(      object_property_is(    n4, "UID", "uid-4"),           "object_new_from parses uid");
+  onex_assert_equal(object_property(       n4, "UID"), "uid-4",           "object_new_from parses uid");
   onex_assert_equal(object_property_values(n4, "is"), "remote state",     "object_new_from parses is");
   onex_assert_equal(object_property(       n4, "is:1"), "remote",         "object_new_from parses 'is' first list item" );
   onex_assert_equal(object_property(       n4, "is:2"), "state",          "object_new_from parses 'is' second list item" );
@@ -419,7 +419,7 @@ void test_from_text()
 
                     object_property_set(n4, "state", "good");
   onex_assert_equal(object_property(    n4, "n3:is"), "local-state",   "object_new_from traverses n3:is" );
-  onex_assert(      object_property_is( n4, "state", "good"),          "object_new_from creates usable object");
+  onex_assert_equal(object_property(    n4, "state"), "good",          "object_new_from creates usable object");
                     object_property_set(n3, "is", "local state");
 
   char fulltext[256];
