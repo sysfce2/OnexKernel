@@ -791,9 +791,9 @@ void onex_run_evaluator(char* uid, onex_evaluator pre, onex_evaluator post){
   if(!uid) return;
   object* o=onex_get_from_cache(uid);
   if(!o) return;
+  if(pre)  pre(o);
   onex_evaluator eval=0;
   if(o->evaluator) eval=(onex_evaluator)properties_get(evaluators, o->evaluator);
-  if(pre)  pre(o);
   if(eval) eval(o);
   if(post) post(o);
 }
