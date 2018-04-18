@@ -319,7 +319,7 @@ void test_local_notify()
   object_set_evaluator(n2, "evaluate_local_notify_n2");
   object_set_evaluator(n3, "evaluate_local_notify_n3");
 
-                    onex_run_evaluator(n2);
+                    onex_run_evaluator("uid-2", 0 ,0);
 
   onex_assert(      object_property_is(n2, "state", "better:"),  "can see state update");
 }

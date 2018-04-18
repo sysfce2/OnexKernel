@@ -101,6 +101,7 @@ public:
 
     onex_set_evaluator((char*)"evaluate_button", evaluate_button);
     button=object_new(0, (char*)"evaluate_button", (char*)"button", 4);
+    char* uid=object_property(button, (char*)"UID");
 
     int lasttime=0;
 
@@ -111,7 +112,7 @@ public:
       if(time_ms() > lasttime+1000){
          lasttime=time_ms();
          button_pressed=!button_pressed;
-         onex_run_evaluator(button);
+         onex_run_evaluator(uid, 0, 0);
       }
     }
   }

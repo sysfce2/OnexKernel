@@ -22,6 +22,7 @@ int main()
   onex_set_evaluator("evaluate_light", evaluate_light);
   light=object_new(0, "evaluate_light", "light", 4);
   object_property_set(light, "button", "uid-1-2-3");
+  char* uid=object_property(light, (char*)"UID");
 
   int todo=0;
   while(1){
@@ -29,7 +30,7 @@ int main()
     onex_loop();
 
     if(todo<2 && time_ms() >2000+2000*todo){  todo++;
-      onex_run_evaluator(light);
+      onex_run_evaluator(uid, 0, 0);
     }
   }
 }
