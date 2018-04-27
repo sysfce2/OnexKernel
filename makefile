@@ -259,7 +259,7 @@ microbit.blinky: blinky.microbit
 	$(SIZE) $(BUILD_DIRECTORY)/$(OUTPUT_FILENAME).out
 	cp build/$(OUTPUT_FILENAME).hex /media/duncan/MICROBIT/
 	sleep 2
-	miniterm.py -e --eol CR /dev/ttyACM1 9600
+	miniterm.py -e --eol CR /dev/ttyACM0 9600
 
 ############################################################################################
 

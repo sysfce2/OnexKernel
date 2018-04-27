@@ -78,7 +78,7 @@ static bool initialised=false;
 void serial_init(uart_rx_handler_t cb, uint32_t baudrate)
 {
   if(initialised) return;
-  char* devtty = "/dev/ttyACM1";
+  char* devtty = "/dev/ttyACM0";
   init_serial(devtty, baudrate);
   initialised=true;
 }
