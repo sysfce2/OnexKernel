@@ -48,6 +48,14 @@ bool onex_assert_equal(char* actual, char* expected, const char* fail_message)
   return onex_assert_i(actual && expected && !strcmp(actual, expected), fail_message, actual, expected);
 }
 
+bool onex_assert_equal_num(int actual, int expected, const char* fail_message)
+{
+  char a[32]; char e[32];
+  snprintf(a, 32, "%d", actual);
+  snprintf(e, 32, "%d", expected);
+  return onex_assert_i(actual==expected, fail_message, a, e);
+}
+
 // ---------------------------------------------------------------------------------------
 
 int onex_assert_summary()
