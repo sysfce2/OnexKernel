@@ -162,7 +162,7 @@ android.tests: android.library
 microbit.tests: tests.microbit.hex
 	cp $< /media/duncan/MICROBIT/
 	sleep 2
-	miniterm.py -e --eol CR /dev/ttyACM1 115200
+	miniterm.py -e --eol CR /dev/ttyACM0 115200
 
 
 linux.button: button.linux
