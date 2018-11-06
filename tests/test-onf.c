@@ -12,11 +12,11 @@
 #define TEXTBUFFLEN 256
 char textbuff[TEXTBUFFLEN];
 
-bool evaluate_setup_called=false;
+uint8_t evaluate_setup_called=0;
 
 bool evaluate_setup(object* n1, void* d)
 {
-  evaluate_setup_called=true;
+  evaluate_setup_called++;
   return true;
 }
 
@@ -176,21 +176,21 @@ void test_object_set_up()
 
 // ---------------------------------------------------------------------------------
 
-bool evaluate_local_state_n2_called=false;
+uint8_t evaluate_local_state_n2_called=0;
 
 bool evaluate_local_state_n2(object* n2, void* d)
 {
-  evaluate_local_state_n2_called=true;
+  evaluate_local_state_n2_called++;
   return true;
 }
 
-bool evaluate_local_state_n3_called=false;
+uint8_t evaluate_local_state_n3_called=0;
 
 #include <items.h>
 
 bool evaluate_local_state_n3(object* n3, void* d)
 {
-  evaluate_local_state_n3_called=true;
+  evaluate_local_state_n3_called++;
   // UID: uid-2  is: local-state  state: good
   // UID: uid-3  is: local-state  n2: uid-2  self: uid-3  n* uid-1 uid-2 uid-3 uid-4 uid-5
   onex_assert(     !object_property(       n3, "is:foo"),                     "can't find is:foo");
@@ -279,41 +279,43 @@ void test_local_state()
 
 // ---------------------------------------------------------------------------------
 
-bool pre_evaluate_n2_called=false;
+uint8_t pre_evaluate_n2_called=0;
 
 bool pre_evaluate_n2(object* n2, void* args)
 {
-  pre_evaluate_n2_called=true;
+  pre_evaluate_n2_called++;
   onex_assert_equal((char*)args, "arguments", "pre-evaluator gets passed the arguments");
   onex_assert_equal(object_property(n2, "state"), "good",  "can see state");
   return true;
 }
 
-bool evaluate_local_notify_n2_called=false;
+uint8_t evaluate_local_notify_n2_called=0;
 
 bool evaluate_local_notify_n2(object* n2, void* args)
 {
-  evaluate_local_notify_n2_called=true;
+  evaluate_local_notify_n2_called++;
   onex_assert_equal((char*)args, "arguments", "evaluator gets passed the arguments");
+  object_property_set(n2, "state", "better:");
+  object_property_set(n2, "state", "better:");
   object_property_set(n2, "state", "better:");
   return true;
 }
 
-bool post_evaluate_n2_called=false;
+uint8_t post_evaluate_n2_called=0;
 
 bool post_evaluate_n2(object* n2, void* args)
 {
-  post_evaluate_n2_called=true;
+  post_evaluate_n2_called++;
   onex_assert_equal((char*)args, "arguments", "post-evaluator gets passed the arguments");
   onex_assert_equal(object_property(n2, "state"), "better:",  "can see evaluator's state update");
   return true;
 }
 
-bool evaluate_local_notify_n3_called=false;
+uint8_t evaluate_local_notify_n3_called=0;
 
 bool evaluate_local_notify_n3(object* n3, void* d)
 {
-  evaluate_local_notify_n3_called=true;
+  evaluate_local_notify_n3_called++;
   onex_assert_equal(object_property(n3, "n2:state"), "better:",      "n3/uid-3 can see state update");
   return true;
 }
@@ -367,27 +369,27 @@ void test_to_text()
 
 // ---------------------------------------------------------------------------------
 
-bool evaluate_remote_notify_n1_called=false;
+uint8_t evaluate_remote_notify_n1_called=0;
 
 bool evaluate_remote_notify_n1(object* n1, void* d)
 {
-  evaluate_remote_notify_n1_called=true;
+  evaluate_remote_notify_n1_called++;
   return true;
 }
 
-bool evaluate_remote_notify_n2_called=false;
+uint8_t evaluate_remote_notify_n2_called=0;
 
 bool evaluate_remote_notify_n2(object* n2, void* d)
 {
-  evaluate_remote_notify_n2_called=true;
+  evaluate_remote_notify_n2_called++;
   return true;
 }
 
-bool evaluate_remote_notify_n4_called=false;
+uint8_t evaluate_remote_notify_n4_called=0;
 
 bool evaluate_remote_notify_n4(object* n4, void* d)
 {
-  evaluate_remote_notify_n4_called=true;
+  evaluate_remote_notify_n4_called++;
   return true;
 }
 
@@ -447,32 +449,32 @@ void test_from_text()
   onex_assert_equal(object_to_text(nm,textbuff,TEXTBUFFLEN), fulltext, "gives better text back than messed up");
 }
 
-bool evaluate_persistence_n1_called=false;
+uint8_t evaluate_persistence_n1_called=0;
 
 bool evaluate_persistence_n1(object* n1, void* d)
 {
   if(evaluate_persistence_n1_called) return true;
   onex_assert_equal(object_property_values(n1, "state"), "good\\: good",  "can still see n1's state because it's refetched from persistence");
   onex_assert(      object_property_set(   n1, "state", ":better better:"), "can change n1 to :better better: (awaiting n4 to be notified)");
-  evaluate_persistence_n1_called=true;
+  evaluate_persistence_n1_called++;
   return true;
 }
 
-bool evaluate_persistence_n4_before_called=false;
+uint8_t evaluate_persistence_n4_before_called=0;
 
 bool evaluate_persistence_n4_before(object* n4, void* d)
 {
   onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), "good\\: good",     "n4 can look through objects in the cache on notify before persist");
-  evaluate_persistence_n4_before_called=true;
+  evaluate_persistence_n4_before_called++;
   return true;
 }
 
-bool evaluate_persistence_n4_after_called=false;
+uint8_t evaluate_persistence_n4_after_called=0;
 
 bool evaluate_persistence_n4_after(object* n4, void* d)
 {
   onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), ":better better\\:", "n4 can look through objects in the cache on notify after perist");
-  evaluate_persistence_n4_after_called=true;
+  evaluate_persistence_n4_after_called++;
   return true;
 }
 
@@ -517,39 +519,36 @@ void run_onf_tests(char* dbpath)
   test_object_set_up();
   test_local_state();
 
-  onex_loop();
-
-  onex_assert(     !evaluate_setup_called,              "evaluate_setup was not called");
-  onex_assert(     !evaluate_local_state_n2_called,     "evaluate_local_state_n2 was not called");
-  onex_assert(      evaluate_local_state_n3_called,     "evaluate_local_state_n3 was called");
+  onex_assert(         !evaluate_setup_called,              "evaluate_setup was not called");
+  onex_assert(         !evaluate_local_state_n2_called,     "evaluate_local_state_n2 was not called");
+  onex_assert_equal_num(evaluate_local_state_n3_called, 1,  "evaluate_local_state_n3 was called");
 
   test_local_notify();
+
+  onex_assert_equal_num(pre_evaluate_n2_called, 1,           "pre_evaluate_n2 was called");
+  onex_assert_equal_num(evaluate_local_notify_n2_called, 1,  "evaluate_local_notify_n2 was called");
+  onex_assert_equal_num(post_evaluate_n2_called, 1,          "post_evaluate_n2 was called");
+  onex_assert_equal_num(evaluate_local_notify_n3_called, 3,  "evaluate_local_notify_n3 was called three times (ug)");
+
   test_from_text();
   test_to_text();
 
-  onex_loop();
-
   test_remote_object();
 
-  onex_assert(      pre_evaluate_n2_called,              "pre_evaluate_n2 was called");
-  onex_assert(      evaluate_local_notify_n2_called,     "evaluate_local_notify_n2 was called");
-  onex_assert(      post_evaluate_n2_called,             "post_evaluate_n2 was called");
-  onex_assert(      evaluate_local_notify_n3_called,     "evaluate_local_notify_n3 was called");
-  onex_assert(      evaluate_remote_notify_n1_called,    "evaluate_remote_notify_n1 was called");
-  onex_assert(      evaluate_remote_notify_n2_called,    "evaluate_remote_notify_n2 was called");
-  onex_assert(      evaluate_remote_notify_n4_called,    "evaluate_remote_notify_n4 was called");
+  onex_assert_equal_num(evaluate_remote_notify_n1_called, 1, "evaluate_remote_notify_n1 was called");
+  onex_assert_equal_num(evaluate_remote_notify_n2_called, 1, "evaluate_remote_notify_n2 was called");
+  onex_assert_equal_num(evaluate_remote_notify_n4_called, 1, "evaluate_remote_notify_n4 was called");
 
-  evaluate_local_notify_n3_called=false;
+  evaluate_local_notify_n3_called=0;
+
   onex_show_cache();
 
   test_persistence();
 
-  onex_loop();
-
-  onex_assert(      evaluate_persistence_n1_called,        "evaluate_persistence_n1 was called");
-  onex_assert(      evaluate_persistence_n4_before_called, "evaluate_persistence_n4_before was called");
-  onex_assert(      evaluate_persistence_n4_after_called,  "evaluate_persistence_n4_after was called");
-  onex_assert(      evaluate_local_notify_n3_called,       "evaluate_local_notify_n3 was called");
+  onex_assert_equal_num(evaluate_persistence_n1_called, 1,        "evaluate_persistence_n1 was called");
+  onex_assert_equal_num(evaluate_persistence_n4_before_called, 1, "evaluate_persistence_n4_before was called");
+  onex_assert_equal_num(evaluate_persistence_n4_after_called, 1,  "evaluate_persistence_n4_after was called");
+  onex_assert_equal_num(evaluate_local_notify_n3_called, 2,       "evaluate_local_notify_n3 was called twice (?!)");
 }
 
 // ---------------------------------------------------------------------------------
