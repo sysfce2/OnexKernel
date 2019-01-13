@@ -123,10 +123,21 @@ tests.microbit.elf: TARGET=TARGET_MICRO_BIT
 tests.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) $(LIB_OBJECTS:.c=.o) $(TESTS_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
+tests.nano.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+tests.nano.elf: TARGET=TARGET_RBLAB_BLENANO
+tests.nano.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) $(LIB_OBJECTS:.c=.o) $(TESTS_OBJECTS:.c=.o)
+	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
+
 button.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
 button.microbit.elf: TARGET=TARGET_MICRO_BIT
 button.microbit.elf: CHANNELS=-DONP_CHANNEL_SERIAL
 button.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(BUTTON_OBJECTS:.c=.o)
+	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
+
+button.nano.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+button.nano.elf: TARGET=TARGET_RBLAB_BLENANO
+button.nano.elf: CHANNELS=-DONP_CHANNEL_SERIAL
+button.nano.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(BUTTON_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
 tag.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
@@ -135,10 +146,22 @@ tag.microbit.elf: CHANNELS=-DONP_CHANNEL_SERIAL
 tag.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(TAG_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
+tag.nano.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+tag.nano.elf: TARGET=TARGET_RBLAB_BLENANO
+tag.nano.elf: CHANNELS=-DONP_CHANNEL_SERIAL
+tag.nano.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(TAG_OBJECTS:.c=.o)
+	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
+
 light.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
 light.microbit.elf: TARGET=TARGET_MICRO_BIT
 light.microbit.elf: CHANNELS=-DONP_CHANNEL_SERIAL
 light.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(LIGHT_OBJECTS:.c=.o)
+	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
+
+light.nano.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+light.nano.elf: TARGET=TARGET_RBLAB_BLENANO
+light.nano.elf: CHANNELS=-DONP_CHANNEL_SERIAL
+light.nano.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(LIGHT_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
 button.linux: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
@@ -175,6 +198,11 @@ microbit.tests: tests.microbit.hex
 	sleep 2
 	miniterm.py -e --eol CR /dev/ttyACM0 115200
 
+nano.tests: tests.nano.hex
+	cp $< /media/duncan/MBED/
+	sleep 2
+	miniterm.py -e --eol CR /dev/ttyACM0 115200
+
 
 linux.button: button.linux
 	./button.linux
@@ -185,11 +213,20 @@ linux.light: light.linux
 microbit.button: button.microbit.hex
 	cp $< /media/duncan/MICROBIT/
 
+nano.button: button.nano.hex
+	cp $< /media/duncan/MBED/
+
 microbit.tag: tag.microbit.hex
 	cp $< /media/duncan/MICROBIT/
 
+nano.tag: tag.nano.hex
+	cp $< /media/duncan/MBED/
+
 microbit.light: light.microbit.hex
 	cp $< /media/duncan/MICROBIT/
+
+nano.light: light.nano.hex
+	cp $< /media/duncan/MBED/
 
 linux.library: libOnexKernel.a
 
