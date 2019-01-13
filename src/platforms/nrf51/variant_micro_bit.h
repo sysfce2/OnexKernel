@@ -8,7 +8,7 @@
 #define BUTTONS_NUMBER 2
 #define BUTTON_A       17
 #define BUTTON_B       26
-#define BUTTONS_LIST { BUTTON_A BUTTON_B }
+#define BUTTONS_LIST { BUTTON_A, BUTTON_B }
 
 #define RX_PIN_NUMBER  25
 #define TX_PIN_NUMBER  24
