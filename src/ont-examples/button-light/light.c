@@ -53,7 +53,12 @@ bool evaluate_light(object* light, void* d)
   bool buttonpressed=object_property_is(light, "button:state", "down");
   char* s=(char*)(buttonpressed? "on": "off");
   object_property_set(light, "light", s);
+#if defined(TARGET_MCU_NRF51822)
+  if(buttonpressed) for(uint8_t l=0; l< LEDS_NUMBER; l++){ gpio_set(leds_list[l], 0); time_delay_ms(300); gpio_set(leds_list[l], 1); }
+  else              for(uint8_t l=0; l< LEDS_NUMBER; l++){ gpio_set(leds_list[l], 0); time_delay_ms( 50); gpio_set(leds_list[l], 1); }
+#else
   log_write("evaluate_light: "); object_log(light);
+#endif
   return true;
 }
 
