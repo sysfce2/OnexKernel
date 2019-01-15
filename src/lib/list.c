@@ -9,7 +9,7 @@
   and do a proper list for Linux in src/platforms/unix
 */
 
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
 #define MAX_TEXT_LEN 128
 #else
 #define MAX_TEXT_LEN 4096

@@ -1,5 +1,5 @@
 
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
 #include <variant.h>
 #include <onex-kernel/gpio.h>
 #else
@@ -10,7 +10,7 @@
 
 object* light;
 
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
 const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 #endif
 
@@ -21,7 +21,7 @@ int main()
   time_init();
   onex_init("");
 
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
   for(uint8_t l=0; l< LEDS_NUMBER; l++) gpio_mode(leds_list[l], OUTPUT);
   for(uint8_t l=0; l< LEDS_NUMBER; l++) gpio_set(leds_list[l], 0);
   time_delay_ms(300);
@@ -53,7 +53,7 @@ bool evaluate_light(object* light, void* d)
   bool buttonpressed=object_property_is(light, "button:state", "down");
   char* s=(char*)(buttonpressed? "on": "off");
   object_property_set(light, "light", s);
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
   if(buttonpressed) for(uint8_t l=0; l< LEDS_NUMBER; l++){ gpio_set(leds_list[l], 0); time_delay_ms(300); gpio_set(leds_list[l], 1); }
   else              for(uint8_t l=0; l< LEDS_NUMBER; l++){ gpio_set(leds_list[l], 0); time_delay_ms( 50); gpio_set(leds_list[l], 1); }
 #else

@@ -4,7 +4,7 @@
 #include <onex-kernel/gpio.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
 #include <variant.h>
 #endif
 #include <assert.h>
@@ -14,7 +14,7 @@ extern void run_list_tests();
 extern void run_value_tests();
 extern void run_onf_tests(char* dbpath);
 
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
 const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 
 void flash_led(int t)
@@ -29,7 +29,7 @@ int main(void) {
   time_init();
   log_init(115200);
 
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
   time_delay_s(1);
 #endif
 
@@ -42,7 +42,7 @@ int main(void) {
 
   int failures=onex_assert_summary();
 
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
   flash_led(failures? 16: 128);
 #endif
 

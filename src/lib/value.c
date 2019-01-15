@@ -14,7 +14,7 @@ typedef struct value {
 
 static properties* all_values=0;
 
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
 #define MAX_VALUES 128
 #define MAX_TEXT_LEN 128
 #else

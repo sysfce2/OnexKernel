@@ -17,7 +17,7 @@
 // ---------------------------------------------------------------------------------
 
 
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
 #define MAX_LIST_SIZE 16
 #define MAX_TEXT_LEN 256
 #define MAX_OBJECTS 128
@@ -815,7 +815,7 @@ static properties* objects_to_save=0;
 
 static FILE* db=0;
 
-#if !defined(TARGET_MCU_NRF51822)
+#if !defined(NRF5)
 bool mkdir_p(char* filename)
 {
   char* fn=strdup(filename);
@@ -834,7 +834,7 @@ void persistence_init(char* filename)
 {
   objects_text=properties_new(MAX_OBJECTS);
   objects_to_save=properties_new(MAX_OBJECTS);
-#if !defined(TARGET_MCU_NRF51822)
+#if !defined(NRF5)
   if(!mkdir_p(filename)){
     log_write("Couldn't make directory for '%s' errno=%d\n", filename, errno);
     return;

@@ -261,7 +261,7 @@ CC_FLAGS = -c -std=gnu99 -Werror -Wall -Wextra -Wno-pointer-sign -Wno-format -Wn
 
 M0_CPU = -mcpu=cortex-m0 -mthumb
 M0_CC_FLAGS = -std=gnu99 -Werror -Wall -Wextra -Wno-pointer-sign -Wno-format -Wno-sign-compare -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-write-strings -Wno-old-style-declaration -Wno-strict-aliasing -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer -O0
-NRF51_CC_SYMBOLS = -DNRF51 -D${TARGET} ${CHANNELS} -DTARGET_MCU_NRF51822
+NRF51_CC_SYMBOLS = -DNRF5 -DNRF51 -D${TARGET} ${CHANNELS} -DTARGET_MCU_NRF51822
 
 CFLAGS  = -DNRF51 -DTARGET_MICRO_BIT -DBSP_DEFINES_ONLY -mcpu=cortex-m0 -mthumb -mabi=aapcs --std=gnu99 -Wall -Werror -O3 -g3 -mfloat-abi=soft -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin --short-enums
 
@@ -280,7 +280,7 @@ remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-ou
 
 ############################################################################################
 
-GNU_INSTALL_ROOT := /home/duncan/arm-gcc
+GNU_INSTALL_ROOT := /home/duncan/gcc-arm
 GCC_BIN=$(GNU_INSTALL_ROOT)/bin
 
 CC      = $(GCC_BIN)/arm-none-eabi-gcc

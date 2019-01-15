@@ -23,7 +23,8 @@ void UART0_IRQHandler(void)
 
 void serial_init(uart_rx_handler_t cb, uint32_t baudrate)
 {
-    if(initialised) return; initialised=true;
+    if(initialised) return;
+    initialised=true;
 
     rx_handler = cb;
 

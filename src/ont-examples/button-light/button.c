@@ -1,5 +1,5 @@
 
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
 #include <variant.h>
 #include <onex-kernel/gpio.h>
 #endif
@@ -15,7 +15,7 @@ int main()
 {
   time_init();
   onex_init("");
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
   gpio_mode(BUTTON_1, INPUT_PULLUP);
 #endif
 
@@ -27,7 +27,7 @@ int main()
   button=object_new("uid-1-2-3", "evaluate_button", "button", 4);
   object_property_set(button, "name", "£€§");
 
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
 #else
   int lasttime=0;
 #endif
@@ -38,7 +38,7 @@ int main()
     onex_loop();
 
     time_delay_ms(1);
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
     if(button_pressed != !gpio_get(BUTTON_1)){
       button_pressed = !gpio_get(BUTTON_1);
       onex_run_evaluator("uid-1-2-3", (void*)button_pressed, 0, 0);
@@ -57,7 +57,7 @@ bool evaluate_button(object* button, void* pressed)
 {
   char* s=(char*)(pressed? "down": "up");
   object_property_set(button, "state", s);
-#if defined(TARGET_MCU_NRF51822)
+#if defined(NRF5)
 #else
   log_write("evaluate_button: "); object_log(button);
 #endif
