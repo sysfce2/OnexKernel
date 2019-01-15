@@ -1,5 +1,5 @@
-#ifndef CUSTOM_BOARD_NORD_USB_H
-#define CUSTOM_BOARD_NORD_USB_H
+#ifndef VARIANT_NRF51_USB_H
+#define VARIANT_NRF51_USB_H
 
 #define LEDS_NUMBER    3
 

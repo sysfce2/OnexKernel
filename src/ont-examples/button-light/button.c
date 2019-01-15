@@ -16,7 +16,7 @@ int main()
   time_init();
   onex_init("");
 #if defined(TARGET_MCU_NRF51822)
-  gpio_mode(BUTTON_A, INPUT_PULLUP);
+  gpio_mode(BUTTON_1, INPUT_PULLUP);
 #endif
 
   time_delay_s(1);
@@ -39,8 +39,8 @@ int main()
 
     time_delay_ms(1);
 #if defined(TARGET_MCU_NRF51822)
-    if(button_pressed != !gpio_get(BUTTON_A)){
-      button_pressed = !gpio_get(BUTTON_A);
+    if(button_pressed != !gpio_get(BUTTON_1)){
+      button_pressed = !gpio_get(BUTTON_1);
       onex_run_evaluator("uid-1-2-3", (void*)button_pressed, 0, 0);
     }
 #else
