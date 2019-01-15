@@ -15,28 +15,28 @@ INCLUDES = \
 -I./tests \
 
 
-NRF51_INCLUDES = \
+NRF5_INCLUDES = \
 -I./include \
 -I./src/ \
 -I./src/onp/ \
 -I./tests \
--I./src/platforms/nrf51/ \
+-I./src/platforms/nrf5/ \
 
 
 SYS_C_SOURCE_FILES = \
-./src/platforms/nrf51/system_nrf51.c \
-./src/platforms/nrf51/syscalls.c \
+./src/platforms/nrf5/system_nrf51.c \
+./src/platforms/nrf5/syscalls.c \
 
 
-NRF51_C_SOURCE_FILES = \
-./src/platforms/nrf51/properties.c \
-./src/platforms/nrf51/serial.c \
-./src/platforms/nrf51/channel-serial.c \
-./src/platforms/nrf51/log.c \
-./src/platforms/nrf51/gpio.c \
-./src/platforms/nrf51/time.c \
-./src/platforms/nrf51/random.c \
-./src/platforms/nrf51/radio.c \
+NRF5_C_SOURCE_FILES = \
+./src/platforms/nrf5/properties.c \
+./src/platforms/nrf5/serial.c \
+./src/platforms/nrf5/channel-serial.c \
+./src/platforms/nrf5/log.c \
+./src/platforms/nrf5/gpio.c \
+./src/platforms/nrf5/time.c \
+./src/platforms/nrf5/random.c \
+./src/platforms/nrf5/radio.c \
 
 
 UNIX_C_SOURCE_FILES = \
@@ -52,19 +52,19 @@ BLINKY_C_SOURCE_FILES = \
 ./src/ont-examples/microbit/blink.c \
 
 
-ALL_BLINKY_C_SOURCE_FILES = $(SYS_C_SOURCE_FILES) $(NRF51_C_SOURCE_FILES) $(BLINKY_C_SOURCE_FILES)
+ALL_BLINKY_C_SOURCE_FILES = $(SYS_C_SOURCE_FILES) $(NRF5_C_SOURCE_FILES) $(BLINKY_C_SOURCE_FILES)
 
 
 NRF51_SYS_S_OBJECTS = \
-./src/platforms/nrf51/gcc_startup_nrf51.s \
+./src/platforms/nrf5/gcc_startup_nrf51.s \
 
 
 NRF51_SYS_C_OBJECTS = \
-./src/platforms/nrf51/system_nrf51.c \
-./src/platforms/nrf51/syscalls.c \
+./src/platforms/nrf5/system_nrf51.c \
+./src/platforms/nrf5/syscalls.c \
 
 
-ASM_SOURCE_FILES = src/platforms/nrf51/gcc_startup_nrf51.s
+ASM_SOURCE_FILES = src/platforms/nrf5/gcc_startup_nrf51.s
 
 
 LIB_OBJECTS = \
@@ -118,62 +118,62 @@ tests.linux: CHANNELS=-DONP_CHANNEL_SERIAL
 tests.linux: libOnexKernel.a ${TESTS_OBJECTS:.c=.o}
 	$(LD) ${TESTS_OBJECTS:.c=.o} -L. -lOnexKernel -o $@
 
-tests.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+tests.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5_INCLUDES)
 tests.microbit.elf: TARGET=TARGET_MICRO_BIT
-tests.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) $(LIB_OBJECTS:.c=.o) $(TESTS_OBJECTS:.c=.o)
+tests.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) $(LIB_OBJECTS:.c=.o) $(TESTS_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
-tests.nano.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+tests.nano.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5_INCLUDES)
 tests.nano.elf: TARGET=TARGET_RBLAB_BLENANO
-tests.nano.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) $(LIB_OBJECTS:.c=.o) $(TESTS_OBJECTS:.c=.o)
+tests.nano.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) $(LIB_OBJECTS:.c=.o) $(TESTS_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
-button.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+button.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5_INCLUDES)
 button.microbit.elf: TARGET=TARGET_MICRO_BIT
 button.microbit.elf: CHANNELS=-DONP_CHANNEL_SERIAL
-button.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(BUTTON_OBJECTS:.c=.o)
+button.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(BUTTON_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
-button.nano.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+button.nano.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5_INCLUDES)
 button.nano.elf: TARGET=TARGET_RBLAB_BLENANO
 button.nano.elf: CHANNELS=-DONP_CHANNEL_SERIAL
-button.nano.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(BUTTON_OBJECTS:.c=.o)
+button.nano.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(BUTTON_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
-button.nrf51usb.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+button.nrf51usb.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5_INCLUDES)
 button.nrf51usb.elf: TARGET=TARGET_NRF51_USB
 button.nrf51usb.elf: CHANNELS=-DONP_CHANNEL_SERIAL
-button.nrf51usb.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(BUTTON_OBJECTS:.c=.o)
+button.nrf51usb.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(BUTTON_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
-tag.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+tag.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5_INCLUDES)
 tag.microbit.elf: TARGET=TARGET_MICRO_BIT
 tag.microbit.elf: CHANNELS=-DONP_CHANNEL_SERIAL
-tag.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(TAG_OBJECTS:.c=.o)
+tag.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(TAG_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
-tag.nano.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+tag.nano.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5_INCLUDES)
 tag.nano.elf: TARGET=TARGET_RBLAB_BLENANO
 tag.nano.elf: CHANNELS=-DONP_CHANNEL_SERIAL
-tag.nano.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(TAG_OBJECTS:.c=.o)
+tag.nano.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(TAG_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
-light.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+light.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5_INCLUDES)
 light.microbit.elf: TARGET=TARGET_MICRO_BIT
 light.microbit.elf: CHANNELS=-DONP_CHANNEL_SERIAL
-light.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(LIGHT_OBJECTS:.c=.o)
+light.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(LIGHT_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
-light.nano.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+light.nano.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5_INCLUDES)
 light.nano.elf: TARGET=TARGET_RBLAB_BLENANO
 light.nano.elf: CHANNELS=-DONP_CHANNEL_SERIAL
-light.nano.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(LIGHT_OBJECTS:.c=.o)
+light.nano.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(LIGHT_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
-light.nrf51usb.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+light.nrf51usb.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5_INCLUDES)
 light.nrf51usb.elf: TARGET=TARGET_NRF51_USB
 light.nrf51usb.elf: CHANNELS=-DONP_CHANNEL_SERIAL
-light.nrf51usb.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(LIGHT_OBJECTS:.c=.o)
+light.nrf51usb.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(LIGHT_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
 button.linux: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
@@ -271,9 +271,10 @@ ASMFLAGS = -x assembler-with-cpp -DNRF51 -DTARGET_MICRO_BIT -DBSP_DEFINES_ONLY
 
 M0_LD_FLAGS = $(M0_CPU) -O0 --specs=nano.specs
 
-M0_TEMPLATE_PATH := ./src/platforms/nrf51/
+M0_TEMPLATE_PATH := ./src/platforms/nrf5/
 
-LINKER_SCRIPT_16K=./src/platforms/nrf51/memory-16K-no-sd.ld
+LINKER_SCRIPT_16K=./src/platforms/nrf5/memory-16K-no-sd.ld
+
 
 remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-out $(firstword $1),$1))))
 
@@ -336,10 +337,10 @@ $(BUILD_DIRECTORY):
 	mkdir $@
 
 $(BUILD_DIRECTORY)/%.o: %.c
-	$(CC) $(CFLAGS) $(NRF51_INCLUDES) -c -o $@ $<
+	$(CC) $(CFLAGS) $(NRF5_INCLUDES) -c -o $@ $<
 
 $(BUILD_DIRECTORY)/%.o: %.s
-	$(CC) $(ASMFLAGS) $(NRF51_INCLUDES) -c -o $@ $<
+	$(CC) $(ASMFLAGS) $(NRF5_INCLUDES) -c -o $@ $<
 
 ############################################################################################
 
