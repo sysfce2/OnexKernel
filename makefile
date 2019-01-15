@@ -140,6 +140,12 @@ button.nano.elf: CHANNELS=-DONP_CHANNEL_SERIAL
 button.nano.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(BUTTON_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
+button.nrf51usb.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+button.nrf51usb.elf: TARGET=TARGET_NRF51_USB
+button.nrf51usb.elf: CHANNELS=-DONP_CHANNEL_SERIAL
+button.nrf51usb.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(BUTTON_OBJECTS:.c=.o)
+	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
+
 tag.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
 tag.microbit.elf: TARGET=TARGET_MICRO_BIT
 tag.microbit.elf: CHANNELS=-DONP_CHANNEL_SERIAL
@@ -162,6 +168,12 @@ light.nano.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5
 light.nano.elf: TARGET=TARGET_RBLAB_BLENANO
 light.nano.elf: CHANNELS=-DONP_CHANNEL_SERIAL
 light.nano.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(LIGHT_OBJECTS:.c=.o)
+	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
+
+light.nrf51usb.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF51_INCLUDES)
+light.nrf51usb.elf: TARGET=TARGET_NRF51_USB
+light.nrf51usb.elf: CHANNELS=-DONP_CHANNEL_SERIAL
+light.nrf51usb.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF51_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(LIGHT_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
 button.linux: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
@@ -216,6 +228,9 @@ microbit.button: button.microbit.hex
 nano.button: button.nano.hex
 	cp $< /media/duncan/MBED/
 
+nrf51usb.button: button.nrf51usb.hex
+	cp $< /media/duncan/JLINK/
+
 microbit.tag: tag.microbit.hex
 	cp $< /media/duncan/MICROBIT/
 
@@ -227,6 +242,9 @@ microbit.light: light.microbit.hex
 
 nano.light: light.nano.hex
 	cp $< /media/duncan/MBED/
+
+nrf51usb.light: light.nrf51usb.hex
+	cp $< /media/duncan/JLINK/
 
 linux.library: libOnexKernel.a
 
