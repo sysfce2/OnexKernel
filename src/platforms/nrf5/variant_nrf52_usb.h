@@ -1,6 +1,8 @@
 #ifndef VARIANT_NRF52_USB_H
 #define VARIANT_NRF52_USB_H
 
+#define NRF_GPIO_PIN_MAP(port, pin) (((port) << 5) | ((pin) & 0x1F))
+
 #define LEDS_NUMBER    4
 
 #define LED1_G         NRF_GPIO_PIN_MAP(0,6)
