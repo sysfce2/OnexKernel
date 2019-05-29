@@ -58,9 +58,16 @@ ALL_BLINKY_C_SOURCE_FILES = $(SYS_C_SOURCE_FILES) $(NRF5_C_SOURCE_FILES) $(BLINK
 NRF51_SYS_S_OBJECTS = \
 ./src/platforms/nrf5/gcc_startup_nrf51.s \
 
+NRF52_SYS_S_OBJECTS = \
+./src/platforms/nrf5/gcc_startup_nrf52.S \
+
 
 NRF51_SYS_C_OBJECTS = \
 ./src/platforms/nrf5/system_nrf51.c \
+./src/platforms/nrf5/syscalls.c \
+
+NRF52_SYS_C_OBJECTS = \
+./src/platforms/nrf5/system_nrf52.c \
 ./src/platforms/nrf5/syscalls.c \
 
 
@@ -146,6 +153,18 @@ button.nrf51usb.elf: CHANNELS=-DONP_CHANNEL_SERIAL
 button.nrf51usb.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(BUTTON_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
+button.nrf52usb.elf: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(NRF52_CC_SYMBOLS) $(NRF5_INCLUDES)
+button.nrf52usb.elf: TARGET=TARGET_NRF52_USB
+button.nrf52usb.elf: CHANNELS=-DONP_CHANNEL_SERIAL
+button.nrf52usb.elf: $(NRF52_SYS_S_OBJECTS:.S=.o) $(NRF52_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(BUTTON_OBJECTS:.c=.o)
+	$(LD) $(M4_LD_FLAGS) -L${M4_TEMPLATE_PATH} -T$(LINKER_SCRIPT_256K) -o $@ $^
+
+button.nrf52dk.elf: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(NRF52_CC_SYMBOLS) $(NRF5_INCLUDES)
+button.nrf52dk.elf: TARGET=TARGET_NRF52_DK
+button.nrf52dk.elf: CHANNELS=-DONP_CHANNEL_SERIAL
+button.nrf52dk.elf: $(NRF52_SYS_S_OBJECTS:.S=.o) $(NRF52_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(BUTTON_OBJECTS:.c=.o)
+	$(LD) $(M4_LD_FLAGS) -L${M4_TEMPLATE_PATH} -T$(LINKER_SCRIPT_256K) -o $@ $^
+
 tag.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5_INCLUDES)
 tag.microbit.elf: TARGET=TARGET_MICRO_BIT
 tag.microbit.elf: CHANNELS=-DONP_CHANNEL_SERIAL
@@ -175,6 +194,18 @@ light.nrf51usb.elf: TARGET=TARGET_NRF51_USB
 light.nrf51usb.elf: CHANNELS=-DONP_CHANNEL_SERIAL
 light.nrf51usb.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(LIGHT_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
+
+light.nrf52usb.elf: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(NRF52_CC_SYMBOLS) $(NRF5_INCLUDES)
+light.nrf52usb.elf: TARGET=TARGET_NRF52_USB
+light.nrf52usb.elf: CHANNELS=-DONP_CHANNEL_SERIAL
+light.nrf52usb.elf: $(NRF52_SYS_S_OBJECTS:.S=.o) $(NRF52_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(LIGHT_OBJECTS:.c=.o)
+	$(LD) $(M4_LD_FLAGS) -L${M4_TEMPLATE_PATH} -T$(LINKER_SCRIPT_256K) -o $@ $^
+
+light.nrf52dk.elf: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(NRF52_CC_SYMBOLS) $(NRF5_INCLUDES)
+light.nrf52dk.elf: TARGET=TARGET_NRF52_DK
+light.nrf52dk.elf: CHANNELS=-DONP_CHANNEL_SERIAL
+light.nrf52dk.elf: $(NRF52_SYS_S_OBJECTS:.S=.o) $(NRF52_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(LIGHT_OBJECTS:.c=.o)
+	$(LD) $(M4_LD_FLAGS) -L${M4_TEMPLATE_PATH} -T$(LINKER_SCRIPT_256K) -o $@ $^
 
 button.linux: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
 button.linux: CC=/usr/bin/gcc
@@ -231,6 +262,13 @@ nano.button: button.nano.hex
 nrf51usb.button: button.nrf51usb.hex
 	cp $< /media/duncan/JLINK/
 
+nrf52usb.button: button.nrf52usb.hex
+	nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application $< app_dfu_package.zip
+	nrfutil dfu usb-serial -pkg app_dfu_package.zip -p /dev/ttyACM0
+
+nrf52dk.button: button.nrf52dk.hex
+	cp $< /media/duncan/JLINK/
+
 microbit.tag: tag.microbit.hex
 	cp $< /media/duncan/MICROBIT/
 
@@ -246,6 +284,13 @@ nano.light: light.nano.hex
 nrf51usb.light: light.nrf51usb.hex
 	cp $< /media/duncan/JLINK/
 
+nrf52usb.light: light.nrf52usb.hex
+	nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application $< app_dfu_package.zip
+	nrfutil dfu usb-serial -pkg app_dfu_package.zip -p /dev/ttyACM0
+
+nrf52dk.light: light.nrf52dk.hex
+	cp $< /media/duncan/JLINK/
+
 linux.library: libOnexKernel.a
 
 android.library: libOnexAndroidKernel.a
@@ -259,6 +304,10 @@ LINUX_CC_SYMBOLS = -D${TARGET} ${CHANNELS}
 
 CC_FLAGS = -c -std=gnu99 -Werror -Wall -Wextra -Wno-pointer-sign -Wno-format -Wno-sign-compare -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-write-strings -Wno-old-style-declaration -Wno-strict-aliasing -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer
 
+M4_CPU = -mcpu=cortex-m4 -mthumb -mabi=aapcs
+M4_CC_FLAGS = -std=c99 -MP -MD -Werror -Wall -Wextra -Wno-pointer-sign -Wno-format -Wno-sign-compare -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-write-strings -Wno-old-style-declaration -Wno-strict-aliasing -fno-common -fshort-enums -fno-builtin -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer -O3 -g3 -mfloat-abi=hard -mfpu=fpv4-sp-d16
+NRF52_CC_SYMBOLS = -DNRF5 -DNRF52 -D${TARGET} ${CHANNELS} -DTARGET_MCU_NRF52832 -DFLOAT_ABI_HARD -DNRF52840_XXAA -D__HEAP_SIZE=8192 -D__STACK_SIZE=8192
+
 M0_CPU = -mcpu=cortex-m0 -mthumb
 M0_CC_FLAGS = -std=gnu99 -Werror -Wall -Wextra -Wno-pointer-sign -Wno-format -Wno-sign-compare -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-write-strings -Wno-old-style-declaration -Wno-strict-aliasing -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer -O0
 NRF51_CC_SYMBOLS = -DNRF5 -DNRF51 -D${TARGET} ${CHANNELS} -DTARGET_MCU_NRF51822
@@ -271,10 +320,15 @@ ASMFLAGS = -x assembler-with-cpp -DNRF51 -DTARGET_MICRO_BIT -DBSP_DEFINES_ONLY
 
 M0_LD_FLAGS = $(M0_CPU) -O0 --specs=nano.specs
 
+M4_LD_FLAGS = $(M4_CPU) -O3 -g3 -mthumb -mabi=aapcs -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Wl,--gc-sections --specs=nano.specs
+
 M0_TEMPLATE_PATH := ./src/platforms/nrf5/
+
+M4_TEMPLATE_PATH := ./src/platforms/nrf5/
 
 LINKER_SCRIPT_16K=./src/platforms/nrf5/memory-16K-no-sd.ld
 
+LINKER_SCRIPT_256K=./src/platforms/nrf5/memory-256K-no-sd.ld
 
 remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-out $(firstword $1),$1))))
 

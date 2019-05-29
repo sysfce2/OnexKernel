@@ -17,6 +17,10 @@
 
   #include "variant_nrf52_usb.h"
 
+#elif defined(TARGET_NRF52_DK)
+
+  #include "variant_nrf52_dk.h"
+
 #elif defined(TARGET_RBL_UNO)
 
   #include "variant_rbl_uno.h"
