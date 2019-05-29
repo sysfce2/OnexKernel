@@ -6,9 +6,11 @@
 #define LEDS_MASK    ((1<<4) | (1<<5) | (1<<6) | (1<<7) | (1<<8) | (1<<9) | (1<<10) | (1<<11) | (1<<12) | (1<<13) | (1<<14) | (1<<15))
 
 #define BUTTONS_NUMBER 2
+#define BUTTON_1       17
+#define BUTTON_2       26
+#define BUTTONS_LIST { BUTTON_1, BUTTON_2 }
 #define BUTTON_A       17
 #define BUTTON_B       26
-#define BUTTONS_LIST { BUTTON_A, BUTTON_B }
 
 #define RX_PIN_NUMBER  25
 #define TX_PIN_NUMBER  24
