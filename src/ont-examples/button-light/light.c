@@ -2,6 +2,7 @@
 #if defined(NRF5)
 #include <variant.h>
 #include <onex-kernel/gpio.h>
+//#include <onex-kernel/serial.h>
 #else
 #include <onex-kernel/log.h>
 #endif
@@ -34,6 +35,7 @@ int main()
   object_property_set(light, "light", "off");
   object_property_set(light, "button", "uid-1-2-3");
   char* uid=object_property(light, "UID");
+//serial_printf("UID %s\n", uid);
 
   int todo=0;
   while(1){
