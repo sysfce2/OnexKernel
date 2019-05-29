@@ -31,8 +31,9 @@ int main()
 
   onex_set_evaluator("evaluate_light", evaluate_light);
   light=object_new(0, "evaluate_light", "light", 4);
+  object_property_set(light, "light", "off");
   object_property_set(light, "button", "uid-1-2-3");
-  char* uid=object_property(light, (char*)"UID");
+  char* uid=object_property(light, "UID");
 
   int todo=0;
   while(1){
