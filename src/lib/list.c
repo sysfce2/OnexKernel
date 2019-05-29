@@ -34,6 +34,20 @@ list* list_new(uint16_t max_size)
   return li;
 }
 
+list* list_new_from(char* text, uint16_t max_size)
+{
+  if(!text || !(*text) || !max_size) return 0;
+  list* li=list_new(max_size);
+  size_t m=strlen(text)+1;
+  char textcopy[m]; memcpy(textcopy, text, m);
+  char* t=strtok(textcopy, " \n");
+  while(t) {
+    if(!list_add(li,value_new(t))) break;
+    t=strtok(0, " \n");
+  }
+  return li;
+}
+
 bool list_add(list* li, void* val)
 {
   if(!li) return false;

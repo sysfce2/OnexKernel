@@ -65,6 +65,7 @@ void        properties_free(properties* op);
 /* List. */
 
 list*    list_new(uint16_t max_size);
+list*    list_new_from(char* text, uint16_t max_size);
 bool     list_add(list* li, void* val);
 bool     list_set_n(list* li, uint16_t index, void* val);
 void*    list_get_n(list* li, uint16_t index);
