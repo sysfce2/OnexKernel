@@ -511,17 +511,8 @@ bool set_value_or_list(object* n, char* key, char* val)
   if(!strchr(val, ' ') && !strchr(val, '\n')){
     return properties_set(n->properties, value_new(key), value_new(val));
   }
-  else{ // give to list type to parse!
-    list* l=list_new(MAX_LIST_SIZE);
-    size_t m=strlen(val)+1;
-    char vals[m]; memcpy(vals, val, m);
-    char* t=strtok(vals, " \n");
-    while(t) {
-      list_add(l,value_new(t));
-      t=strtok(0, " \n");
-    }
-    return properties_set(n->properties, value_new(key), l);
-  }
+  list* l=list_new_from(val, MAX_LIST_SIZE);
+  return properties_set(n->properties, value_new(key), l);
 }
 
 bool nested_property_set(object* n, char* path, char* val)
@@ -631,18 +622,12 @@ bool add_observer(object* o, value* notify)
 
 void set_observers(object* o, char* notify)
 {
-  if(!notify) return;
-  size_t m=strlen(notify)+1;
-  char s[m]; memcpy(s, notify, m);
-  char* t=s;
-  int i;
-  for(i=0; i< OBJECT_MAX_NOTIFIES; i++){ // use strtok
-    char* e=strchr(t, ' ');
-    if(!e){ o->notify[i]=value_new(t); break; }
-    (*e)=0;
-    o->notify[i]=value_new(t);
-    t=e+1;
+  list* li=list_new_from(notify, OBJECT_MAX_NOTIFIES);
+  if(!li) return;
+  int i; for(i=0; i < list_size(li); i++){
+    o->notify[i]=(value*)list_get_n(li, i+1);
   }
+  list_free(li);
 }
 
 void save_and_notify_observers(object* o)
