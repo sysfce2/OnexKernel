@@ -87,6 +87,7 @@ value* generate_uid()
 object* object_new_from(char* text, uint8_t max_size)
 {
   object* n=new_object_from(text, max_size);
+  if(!n) return 0;
   char* uid=value_string(n->uid);
   if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
   add_to_cache_and_persist(n);
@@ -114,7 +115,7 @@ object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size)
 object* new_object_from(char* text, uint8_t max_size)
 {
   size_t m=strlen(text)+1;
-  char t[m]; memcpy(t, text, m);
+  char t[m]; memcpy(t, text, m); // TODO: presumably to allow read-only strings, but seems expensive and risky
   object* n=0;
   value* uid=0;
   value* evaluator=0;
@@ -182,9 +183,10 @@ bool object_is_local(char* uid)
 char* get_key(char** p)
 {
   if(!strlen(*p)) return 0;
+  while(isspace(**p)) (*p)++;
   char* s=strchr(*p, ' ');
   char* c=strstr(*p, ": ");
-  if(s<c) return 0;
+  if(s<c || !c) return 0;
   (*c)=0;
   char* r=strdup(*p);
   (*c)=':';
@@ -194,19 +196,24 @@ char* get_key(char** p)
 
 char* get_val(char** p)
 {
+  while(isspace(**p)) (*p)++;
   char* c=strstr(*p, ": ");
   while(c && *(c-1)=='\\') c=strstr(c+1, ": ");
   char* r=0;
   if(!c){
-    r=strdup(*p+1);
-    (*p)+=strlen(*p+1)+1;
+    char* s=strrchr(*p, 0);
+    do s--; while(isspace(*s)); s++;
+    (*s)=0;
+    r=strdup(*p);
+    (*p)+=strlen(*p)+1;
   }
   else{
     (*c)=0;
     char* s=strrchr(*p, ' ');
+    do s--; while(isspace(*s)); s++;
     (*c)=':';
     (*s)=0;
-    r=strdup(*p+1);
+    r=strdup(*p);
     (*s)=' ';
     (*p)=s+1;
   }
@@ -501,7 +508,7 @@ bool object_property_set(object* n, char* path, char* val)
 
 bool set_value_or_list(object* n, char* key, char* val)
 {
-  if(!strchr(val, ' ')){
+  if(!strchr(val, ' ') && !strchr(val, '\n')){
     return properties_set(n->properties, value_new(key), value_new(val));
   }
   else{ // give to list type to parse!
