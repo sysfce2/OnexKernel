@@ -23,9 +23,6 @@ int main()
 
 #if defined(NRF5)
   for(uint8_t l=0; l< LEDS_NUMBER; l++) gpio_mode(leds_list[l], OUTPUT);
-  for(uint8_t l=0; l< LEDS_NUMBER; l++) gpio_set(leds_list[l], 0);
-  time_delay_ms(300);
-  for(uint8_t l=0; l< LEDS_NUMBER; l++) gpio_set(leds_list[l], 1);
 #else
   time_delay_s(2);
   log_init(9600);
@@ -42,7 +39,7 @@ int main()
 
     onex_loop();
 
-    if(todo<2 && time_ms() >2000+2000*todo){  todo++;
+    if(todo<2 && time_ms() >1000+2000*todo){  todo++;
       onex_run_evaluator(uid, 0, 0, 0);
     }
   }
@@ -54,8 +51,8 @@ bool evaluate_light(object* light, void* d)
   char* s=(char*)(buttonpressed? "on": "off");
   object_property_set(light, "light", s);
 #if defined(NRF5)
-  if(buttonpressed) for(uint8_t l=0; l< LEDS_NUMBER; l++){ gpio_set(leds_list[l], 0); time_delay_ms(300); gpio_set(leds_list[l], 1); }
-  else              for(uint8_t l=0; l< LEDS_NUMBER; l++){ gpio_set(leds_list[l], 0); time_delay_ms( 50); gpio_set(leds_list[l], 1); }
+  if(buttonpressed){ gpio_set(leds_list[3], 1); gpio_set(leds_list[10], 1); }
+  else             { gpio_set(leds_list[3], 0); gpio_set(leds_list[10], 0); }
 #else
   log_write("evaluate_light: "); object_log(light);
 #endif
