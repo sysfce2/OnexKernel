@@ -102,6 +102,10 @@ TAG_OBJECTS = \
 ./src/ont-examples/tag/tag.c \
 
 
+ONEXAPP_MICROBIT_OBJECTS = \
+../src/OnexAppMicroBit.c \
+
+
 ############################################################################################
 
 libOnexKernel.a: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
@@ -223,6 +227,12 @@ light.linux: CHANNELS=-DONP_CHANNEL_SERIAL
 light.linux: libOnexKernel.a ${LIGHT_OBJECTS:.c=.o}
 	$(LD) -static ${LIGHT_OBJECTS:.c=.o} -L. -lOnexKernel -o $@
 
+onexapp.microbit.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5_INCLUDES)
+onexapp.microbit.elf: TARGET=TARGET_MICRO_BIT
+onexapp.microbit.elf: CHANNELS=-DONP_CHANNEL_SERIAL
+onexapp.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o} $(ONEXAPP_MICROBIT_OBJECTS:.c=.o)
+	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
+
 #############################:
 
 linux.tests: tests.linux
@@ -294,6 +304,9 @@ nrf52dk.light: light.nrf52dk.hex
 linux.library: libOnexKernel.a
 
 android.library: libOnexAndroidKernel.a
+
+microbit.onexapp: onexapp.microbit.hex
+	cp $< /media/duncan/MICROBIT/
 
 ############################################################################################
 
