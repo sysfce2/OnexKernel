@@ -23,7 +23,7 @@ int main()
   log_init(9600);
   log_write("\n------Starting Button Test-----\n");
 
-  onex_set_evaluator("evaluate_button", evaluate_button);
+  onex_set_evaluators("evaluate_button", evaluate_button, 0);
   button=object_new("uid-1-2-3", "evaluate_button", "button", 4);
   object_property_set(button, "name", "£€§");
 
@@ -41,13 +41,13 @@ int main()
 #if defined(NRF5)
     if(button_pressed != !gpio_get(BUTTON_1)){
       button_pressed = !gpio_get(BUTTON_1);
-      onex_run_evaluator("uid-1-2-3", (void*)button_pressed, 0, 0);
+      onex_run_evaluators("uid-1-2-3", (void*)button_pressed);
     }
 #else
     if(time_ms() > lasttime+1000){
       lasttime=time_ms();
       button_pressed=!button_pressed;
-      onex_run_evaluator("uid-1-2-3", (void*)button_pressed, 0, 0);
+      onex_run_evaluators("uid-1-2-3", (void*)button_pressed);
     }
 #endif
   }

@@ -44,7 +44,7 @@ void test_object_set_up()
   onex_assert_equal(object_property_values( nr, "is:1:"), "random",  "object_new parses 'is' first list item" );
   onex_assert(      object_property_is(     nr, "is:2:",  "uid"),    "object_new parses 'is' second list item" );
 
-  onex_set_evaluator("default", evaluate_setup);
+  onex_set_evaluators("default", evaluate_setup, 0);
   object* n1=object_new("uid-1", "default", "setup", 4);
   // UID: uid-1  is: setup
   onex_assert(      n1,                                      "object_new created an object");
@@ -244,8 +244,8 @@ bool evaluate_local_state_n3(object* n3, void* d)
 
 void test_local_state()
 {
-  onex_set_evaluator("evaluate_local_state_n2", evaluate_local_state_n2);
-  onex_set_evaluator("evaluate_local_state_n3", evaluate_local_state_n3);
+  onex_set_evaluators("evaluate_local_state_n2", evaluate_local_state_n2, 0);
+  onex_set_evaluators("evaluate_local_state_n3", evaluate_local_state_n3, 0);
   // UID: uid-2  is: local-state
   // UID: uid-3  is: local-state
   object* n2=object_new("uid-2", "evaluate_local_state_n2", "local-state", 4);
@@ -337,12 +337,12 @@ void test_local_notify()
   onex_assert_equal(object_property(n3, "n2"      ), "uid-2",   "uid-3 links to uid-2");
   onex_assert_equal(object_property(n3, "n2:state"), "good",    "can still see through link");
 
-  onex_set_evaluator("evaluate_local_notify_n2", evaluate_local_notify_n2);
-  onex_set_evaluator("evaluate_local_notify_n3", evaluate_local_notify_n3);
+  onex_set_evaluators("evaluate_local_notify_n2", pre_evaluate_n2, evaluate_local_notify_n2, post_evaluate_n2, 0);
+  onex_set_evaluators("evaluate_local_notify_n3", evaluate_local_notify_n3, 0);
   object_set_evaluator(n2, "evaluate_local_notify_n2");
   object_set_evaluator(n3, "evaluate_local_notify_n3");
 
-                    onex_run_evaluator("uid-2", "arguments", pre_evaluate_n2, post_evaluate_n2);
+  onex_run_evaluators("uid-2", "arguments");
 
   onex_assert_equal(object_property(n2, "state"), "better:",  "can see state update");
 }
@@ -398,9 +398,9 @@ void test_from_text()
   object* n1=onex_get_from_cache("uid-1");
   object* n2=onex_get_from_cache("uid-2");
   object* n3=onex_get_from_cache("uid-3");
-  onex_set_evaluator("evaluate_remote_notify_n1", evaluate_remote_notify_n1);
-  onex_set_evaluator("evaluate_remote_notify_n2", evaluate_remote_notify_n2);
-  onex_set_evaluator("evaluate_remote_notify_n4", evaluate_remote_notify_n4);
+  onex_set_evaluators("evaluate_remote_notify_n1", evaluate_remote_notify_n1, 0);
+  onex_set_evaluators("evaluate_remote_notify_n2", evaluate_remote_notify_n2, 0);
+  onex_set_evaluators("evaluate_remote_notify_n4", evaluate_remote_notify_n4, 0);
   object_set_evaluator(n1, "evaluate_remote_notify_n1");
   object_set_evaluator(n2, "evaluate_remote_notify_n2");
 
@@ -487,8 +487,8 @@ void test_persistence()
 
   object_keep_active(n1, true);
 
-  onex_set_evaluator("evaluate_persistence_n1", evaluate_persistence_n1);
-  onex_set_evaluator("evaluate_persistence_n4", evaluate_persistence_n4_before);
+  onex_set_evaluators("evaluate_persistence_n1", evaluate_persistence_n1, 0);
+  onex_set_evaluators("evaluate_persistence_n4", evaluate_persistence_n4_before, 0);
 
   object_set_evaluator(n1, "evaluate_persistence_n1");
   object_set_evaluator(n4, "evaluate_persistence_n4");
@@ -496,7 +496,7 @@ void test_persistence()
   onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), "good mostly", "n4 can look through objects in the cache");
   onex_assert(      object_property_set(   n1, "state", "good: good"),           "can change n1 to good: good (awaiting n4 to be notified)");
 
-  onex_set_evaluator("evaluate_persistence_n4", evaluate_persistence_n4_after);
+  onex_set_evaluators("evaluate_persistence_n4", evaluate_persistence_n4_after, 0);
 
   onex_show_cache();
   onex_un_cache("uid-5");

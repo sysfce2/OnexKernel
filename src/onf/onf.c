@@ -1,6 +1,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
@@ -638,7 +639,7 @@ void save_and_notify_observers(object* o)
     if(!o->notify[i]) continue;
     char* notify = value_string(o->notify[i]);
     if(is_uid(notify)){
-      onex_run_evaluator(notify, 0, 0, 0);
+      onex_run_evaluators(notify, 0);
     }
     else{
       onp_send_object(o,notify);
@@ -773,21 +774,34 @@ void onex_un_cache(char* uid)
 
 static properties* evaluators=0;
 
-void onex_set_evaluator(char* name, onex_evaluator evaluator)
+void onex_set_evaluators(char* name, ...)
 {
   if(!evaluators) evaluators = properties_new(32);
-  properties_set(evaluators, value_new(name), evaluator);
+  list* evals = (list*)properties_get(evaluators, value_new(name));
+  if(!evals){
+    evals = list_new(6);
+    properties_set(evaluators, value_new(name), evals);
+  }
+  else list_clear(evals, false);
+
+  onex_evaluator evaluator;
+  va_list valist;
+  va_start(valist, name);
+  while((evaluator = va_arg(valist, onex_evaluator))){
+    list_add(evals, evaluator);
+  }
+  va_end(valist);
 }
 
-void onex_run_evaluator(char* uid, void* data, onex_evaluator pre, onex_evaluator post){
+void onex_run_evaluators(char* uid, void* data){
   if(!uid) return;
   object* o=onex_get_from_cache(uid);
-  if(!o) return;
-  if(pre)  pre(o, data);
-  onex_evaluator eval=0;
-  if(o->evaluator) eval=(onex_evaluator)properties_get(evaluators, o->evaluator);
-  if(eval) eval(o, data);
-  if(post) post(o, data);
+  if(!o || !o->evaluator) return;
+  list* evals = (list*)properties_get(evaluators, o->evaluator);
+  for(int i=1; i<=list_size(evals); i++){
+    onex_evaluator eval=(onex_evaluator)list_get_n(evals, i);
+    if(!eval(o, data)) break;
+  }
 }
 
 void object_set_run_data(object* n, int32_t data)
@@ -929,7 +943,7 @@ void scan_objects_text_for_keep_active()
       free(key); free(val);
     }
     if(uid){
-      onex_run_evaluator(value_string(uid), 0, 0, 0);
+      onex_run_evaluators(value_string(uid), 0);
     }
   }
 }

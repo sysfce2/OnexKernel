@@ -30,7 +30,7 @@ int main()
   log_write("\n------Starting Light Test-----\n");
 #endif
 
-  onex_set_evaluator("evaluate_light", evaluate_light);
+  onex_set_evaluators("evaluate_light", evaluate_light, 0);
   light=object_new(0, "evaluate_light", "light", 4);
   object_property_set(light, "light", "off");
   object_property_set(light, "button", "uid-1-2-3");
@@ -43,7 +43,7 @@ int main()
     onex_loop();
 
     if(todo<2 && time_ms() >1000+2000*todo){  todo++;
-      onex_run_evaluator(uid, 0, 0, 0);
+      onex_run_evaluators(uid, 0);
     }
   }
 }
