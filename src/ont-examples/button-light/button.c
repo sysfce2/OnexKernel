@@ -45,9 +45,9 @@ int main()
     }
 #else
     if(time_ms() > lasttime+1000){
-       lasttime=time_ms();
-       button_pressed=!button_pressed;
-       onex_run_evaluator("uid-1-2-3", (void*)button_pressed, 0, 0);
+      lasttime=time_ms();
+      button_pressed=!button_pressed;
+      onex_run_evaluator("uid-1-2-3", (void*)button_pressed, 0, 0);
     }
 #endif
   }
