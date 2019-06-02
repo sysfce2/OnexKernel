@@ -4,4 +4,6 @@ make clean linux.tests
 make clean microbit.tests
 make clean microbit.button
 make clean linux.light
+make clean microbit.light
+make clean linux.button
 
