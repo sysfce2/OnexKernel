@@ -85,6 +85,13 @@ void* list_del_n(list* li, uint16_t index)
   return v;
 }
 
+void list_clear(list* li, bool free_items)
+{
+  if(!li || !li->size) return;
+  if(free_items) for(int j=0; j<li->size; j++) item_free((item*)li->vals[j]);
+  li->size=0;
+}
+
 uint16_t list_size(list* li)
 {
   if(!li) return 0;
@@ -102,8 +109,7 @@ char* list_to_text(list* li, char* b, uint16_t s)
   *b=0;
   if(!li || !li->size) return b;
   int ln=0;
-  int j;
-  for(j=0; j<li->size; j++){
+  for(int j=0; j<li->size; j++){
     ln+=strlen(item_to_text(li->vals[j], b+ln, s-ln));
     if(ln>=s){ *b = 0; return b; }
     if(j!=li->size-1) ln+=snprintf(b+ln, s-ln, " ");

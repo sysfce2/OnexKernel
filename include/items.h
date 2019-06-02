@@ -73,6 +73,7 @@ void*    list_del_n(list* li, uint16_t index);
 uint16_t list_size(list* li);
 char*    list_to_text(list* li, char* b, uint16_t s);
 void     list_log(list* li);
+void     list_clear(list* li, bool free_items);
 void     list_free(list* li);
 
 // --------------------------------------------------------------------

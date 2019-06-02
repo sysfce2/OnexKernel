@@ -45,6 +45,8 @@ void test_list()
 
   onex_assert_equal(item_to_text(li, buf, 32), "y +", "serialise to string works");
 
+  list_log(li);
+
   onex_assert(                   list_del_n(li,2),                "can delete 2nd item");
   onex_assert(                   list_size( li)==1,               "size now 1");
 
@@ -58,7 +60,11 @@ void test_list()
   onex_assert(                   list_add(  li,value_new("*")),   "can add an item back");
   onex_assert(                   list_size( li)==1,               "size should be 1");
 
-                    list_log(li);
+  onex_assert(                   list_add(  li,value_new("X")),   "can add another 2nd item");
+  onex_assert(                   list_size( li)==2,               "size should be 2");
+
+                                 list_clear(li, true);
+  onex_assert_equal_num(         list_size( li), 0,               "can clear the list");
 
   li=list_new_from(" one\n", 1);
   onex_assert(         list_size(li)==1,              "size should be 1");
