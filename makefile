@@ -232,7 +232,7 @@ linux.valgrind: tests.linux
 	valgrind --leak-check=yes --undef-value-errors=no ./tests.linux
 
 android.tests: android.library
-	adb -d uninstall network.object.onexkernel
+	adb -d uninstall network.object.onexkernel || echo not found
 	adb -d install android/onexkernel/build/outputs/apk/onexkernel-debug.apk
 	adb logcat OnexApp:D *:S
 
