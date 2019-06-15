@@ -63,14 +63,14 @@ static void        scan_objects_text_for_keep_active();
 // ---------------------------------
 
 typedef struct object {
-  value*          uid;
-  value*          evaluator;
-  properties*     properties;
-  value*          cache;
-  value*          notify[OBJECT_MAX_NOTIFIES];
-  value*          remote;
-  uint32_t        last_observe;
-  int32_t         run_data;
+  value*      uid;
+  value*      evaluator;
+  properties* properties;
+  value*      cache;
+  value*      notify[OBJECT_MAX_NOTIFIES];
+  value*      remote;
+  bool        in_evaluator;
+  uint32_t    last_observe;
 } object;
 
 value* generate_uid()
@@ -490,6 +490,7 @@ bool object_property_contains(object* n, char* path, char* expected)
 
 bool object_property_set(object* n, char* path, char* val)
 {
+  if(!n->in_evaluator) log_write("\nNOT IN evaluator! uid: %s  %s: '%s'\n\n", value_string(n->uid), path, val? val: "");
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
   char* c=strrchr(p, ':');
@@ -575,6 +576,7 @@ bool nested_property_delete(object* n, char* path)
 
 bool object_property_add(object* n, char* path, char* val)
 {
+  if(!n->in_evaluator) log_write("\nNOT IN evaluator! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
   if(strchr(path, ':')) return false; // no sub-properties yet
   if(!val || !*val) return 0;
   item* i=properties_get(n->properties, value_new(path));
@@ -797,21 +799,13 @@ void onex_run_evaluators(char* uid, void* data){
   if(!uid) return;
   object* o=onex_get_from_cache(uid);
   if(!o || !o->evaluator) return;
+  o->in_evaluator=true;
   list* evals = (list*)properties_get(evaluators, o->evaluator);
   for(int i=1; i<=list_size(evals); i++){
     onex_evaluator eval=(onex_evaluator)list_get_n(evals, i);
     if(!eval(o, data)) break;
   }
-}
-
-void object_set_run_data(object* n, int32_t data)
-{
-  if(n) n->run_data=data;
-}
-
-int32_t object_get_run_data(object* n)
-{
-  return n? n->run_data: 0;
+  o->in_evaluator=false;
 }
 
 // -----------------------------------------------------------------------

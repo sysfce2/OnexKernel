@@ -36,10 +36,10 @@ void object_keep_active(object* n, bool keepactive);
 /** read keep-active flag. */
 bool object_is_keep_active(object* n);
 
-/** set property value. */
+/** set property value. only use inside an evaluator for 'n' */
 bool  object_property_set(object* n, char* path, char* val);
 
-/** add property value to list, or make a list. */
+/** add property value to list, or make a list. only use inside an evaluator for 'n' */
 bool  object_property_add(object* n, char* path, char* val);
 
 /** return property value, or space-separated list of values, including uids and sub-properties. */
@@ -69,18 +69,8 @@ char* object_property_key(object* n, char* path, uint16_t index);
 /** return property value at path and index into properties. */
 char* object_property_val(object* n, char* path, uint16_t index);
 
-/** free object, plus just the properties. */
-void object_free(object* n);
-
 /** object to text; supply your own buffer, b, of length s */
 char* object_to_text(object* n, char* b, uint16_t s);
-
-/** set run data. */
-void object_set_run_data(object* n, int32_t data);
-
-/** get run data. */
-int32_t object_get_run_data(object* n);
-
 
 /** log out the object */
 void object_log(object* n);
@@ -107,7 +97,7 @@ void onex_set_evaluators(char* name, ... /* onex_evaluator evaluator, ..., 0 */)
 /** call this to give CPU to Onex. */
 void onex_loop();
 
-/** get the given Object from the cache. */
+/** get the given Object from the cache. DEPRECATED. */
 object* onex_get_from_cache(char* uid);
 
 /** log out all the objects in the cache. */
