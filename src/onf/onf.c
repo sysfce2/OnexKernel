@@ -799,6 +799,7 @@ void onex_run_evaluators(char* uid, void* data){
   if(!uid) return;
   object* o=onex_get_from_cache(uid);
   if(!o || !o->evaluator) return;
+  if(o->running_evals){ log_write("Already in evaluators!\n"); return; }
   o->running_evals=true;
   list* evals = (list*)properties_get(evaluators, o->evaluator);
   for(int i=1; i<=list_size(evals); i++){
