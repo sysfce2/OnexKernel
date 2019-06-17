@@ -69,7 +69,7 @@ typedef struct object {
   value*      cache;
   value*      notify[OBJECT_MAX_NOTIFIES];
   value*      remote;
-  bool        in_evaluator;
+  bool        running_evals;
   uint32_t    last_observe;
 } object;
 
@@ -490,7 +490,7 @@ bool object_property_contains(object* n, char* path, char* expected)
 
 bool object_property_set(object* n, char* path, char* val)
 {
-  if(!n->in_evaluator) log_write("\nNOT IN evaluator! uid: %s  %s: '%s'\n\n", value_string(n->uid), path, val? val: "");
+  if(!n->running_evals) log_write("\nNot running evaluators! uid: %s  %s: '%s'\n\n", value_string(n->uid), path, val? val: "");
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
   char* c=strrchr(p, ':');
@@ -576,7 +576,7 @@ bool nested_property_delete(object* n, char* path)
 
 bool object_property_add(object* n, char* path, char* val)
 {
-  if(!n->in_evaluator) log_write("\nNOT IN evaluator! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
+  if(!n->running_evals) log_write("\nNot running evaluators! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
   if(strchr(path, ':')) return false; // no sub-properties yet
   if(!val || !*val) return 0;
   item* i=properties_get(n->properties, value_new(path));
@@ -799,13 +799,13 @@ void onex_run_evaluators(char* uid, void* data){
   if(!uid) return;
   object* o=onex_get_from_cache(uid);
   if(!o || !o->evaluator) return;
-  o->in_evaluator=true;
+  o->running_evals=true;
   list* evals = (list*)properties_get(evaluators, o->evaluator);
   for(int i=1; i<=list_size(evals); i++){
     onex_evaluator eval=(onex_evaluator)list_get_n(evals, i);
     if(!eval(o, data)) break;
   }
-  o->in_evaluator=false;
+  o->running_evals=false;
 }
 
 // -----------------------------------------------------------------------
