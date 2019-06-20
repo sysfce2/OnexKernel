@@ -46,6 +46,13 @@ char* value_string(value* v)
   return v->val;
 }
 
+bool value_equal(value* v1, value* v2)
+{
+  if(!v1) return !v2;
+  if(!v2) return false;
+  return v1->val == v2->val;
+}
+
 void value_free(value* v)
 {
 }

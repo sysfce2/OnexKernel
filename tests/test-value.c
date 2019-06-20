@@ -12,6 +12,7 @@ void test_value()
 
   onex_assert_equal(value_string(v1), "banana",           "get it back");
   onex_assert(      value_string(v1) == value_string(v2), "all bananas are the same");
+  onex_assert(      value_equal(v1, v2),                  "bananas are equal");
 
   value* vc=value_new(":banana:mango:");
 

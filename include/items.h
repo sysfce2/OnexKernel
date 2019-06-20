@@ -26,6 +26,14 @@ typedef struct value      value;
   item_is_type(i,ITEM_VALUE)     ? value_to_text((value*)i,b,n): "" \
 )))
 
+#define item_equal(i,j) (\
+  !i? !j: (\
+  !j? false: (\
+  item_is_type(i,ITEM_VALUE)      && item_is_type(j,ITEM_VALUE)?      value_equal((value*)i,(value*)j): (\
+  item_is_type(i,ITEM_LIST)       && item_is_type(j,ITEM_LIST)?       false: (\
+  item_is_type(i,ITEM_PROPERTIES) && item_is_type(j,ITEM_PROPERTIES)? false: false \
+)))))
+
 #define item_log(i) do{\
   if(!i)                              log_write("item_log(null)!\n"); else \
   if(item_is_type(i,ITEM_PROPERTIES)) properties_log((properties*)i); else \
@@ -82,6 +90,7 @@ void     list_free(list* li);
 
 value* value_new(char*);
 char*  value_string(value* v);
+bool   value_equal(value* v1, value* v2);
 void   value_log(value* v);
 char*  value_to_text(value* v, char* b, uint16_t s);
 void   value_free(value* v);
