@@ -38,6 +38,11 @@ void test_list()
   onex_assert(                  !list_add(  li,value_new("N")),   "shouldn't be able to add a fourth item");
   onex_assert(                   list_size( li)==3,               "size should still be 3");
 
+  onex_assert_equal_num(         list_find( li, (item*)value_new("y")), 1,          "y is found at location 1");
+  onex_assert_equal_num(         list_find( li, (item*)value_new("5")), 2,          "5 is found at location 2");
+  onex_assert_equal_num(         list_find( li, (item*)value_new("+")), 3,          "+ is found at location 3");
+  onex_assert_equal_num(         list_find( li, (item*)value_new("X")), 0,          "X is not found ");
+
   onex_assert_equal(item_to_text(li, buf, 32), "y 5 +", "serialise to string works");
 
   onex_assert(                   list_del_n(li,2),                "can delete 2nd item");

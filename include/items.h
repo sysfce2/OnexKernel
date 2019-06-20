@@ -79,6 +79,7 @@ bool     list_set_n(list* li, uint16_t index, void* val);
 void*    list_get_n(list* li, uint16_t index);
 void*    list_del_n(list* li, uint16_t index);
 uint16_t list_size(list* li);
+uint16_t list_find(list* li, item* it);
 char*    list_to_text(list* li, char* b, uint16_t s);
 void     list_log(list* li);
 void     list_clear(list* li, bool free_items);

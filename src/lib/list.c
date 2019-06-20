@@ -98,8 +98,18 @@ uint16_t list_size(list* li)
   return li->size;
 }
 
+uint16_t list_find(list* li, item* it)
+{
+  if(!li) return 0;
+  for(int j=0; j<li->size; j++){
+    if(item_equal((item*)li->vals[j], it)) return j+1;
+  }
+  return 0;
+}
+
 void list_free(list* li)
 {
+  if(!li) return;
   free(li->vals);
   free(li);
 }
