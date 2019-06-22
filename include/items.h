@@ -44,7 +44,7 @@ typedef struct value      value;
 
 #define item_free(i) do{\
   if(!i)                              log_write("item_free(null)!\n"); else \
-  if(item_is_type(i,ITEM_PROPERTIES)) properties_free((properties*)i); else \
+  if(item_is_type(i,ITEM_PROPERTIES)) properties_free((properties*)i, true); else \
   if(item_is_type(i,ITEM_LIST))       list_free((list*)i); else \
   if(item_is_type(i,ITEM_VALUE))      value_free((value*)i); else \
                                       log_write("item_free(not an item)!\n"); \
@@ -66,7 +66,7 @@ char*       properties_to_text(properties* op, char* b, uint16_t s);
 void        properties_log(properties* op);
 void*       properties_delete(properties* op, value* key);
 void        properties_clear(properties* op, bool free_items); // only set free_items if you've only saved items objects and only you have used them!
-void        properties_free(properties* op);
+void        properties_free(properties* op, bool free_items);
 
 // --------------------------------------------------------------------
 

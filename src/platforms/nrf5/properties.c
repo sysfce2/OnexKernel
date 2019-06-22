@@ -101,8 +101,9 @@ void properties_clear(properties* op, bool free_items)
   }
 }
 
-void properties_free(properties* op)
+void properties_free(properties* op, bool free_items)
 {
+  properties_clear(op, free_items);
   free(op->keys);
   free(op->vals);
   free(op);
