@@ -14,6 +14,8 @@ void test_items()
   onex_assert(item_is_type(op, ITEM_PROPERTIES), "properties has the right type");
   onex_assert(item_is_type(li, ITEM_LIST),       "list has the right type");
   onex_assert(item_is_type(va, ITEM_VALUE),      "value has the right type");
+  list_free(li);
+  properties_free(op, true);
 }
 
 void test_properties()
@@ -76,6 +78,7 @@ void test_properties()
   onex_assert_equal(item_to_text(op, buf, 64), "{\n}\n",                  "serialise to string works");
 
   onex_assert(      properties_set(op,value_new("x"), value_new("i")),      "can set x");
+                    list_free(li);
                     li=list_new(3);
                     list_add(li,value_new("l"));
                     list_add(li,value_new("m"));
@@ -85,6 +88,7 @@ void test_properties()
   onex_assert_equal(item_to_text(op, buf, 64), "{\n}\n",                   "properties_clear empties");
 
                     properties_log(op);
+  properties_free(op, true);
 }
 
 void run_properties_tests()

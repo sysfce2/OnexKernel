@@ -511,11 +511,15 @@ bool object_property_set(object* n, char* path, char* val)
 
 bool set_value_or_list(object* n, char* key, char* val)
 {
+  item* e=properties_get(n->properties, value_new(key));
+  if(e) item_free(e);
   if(!strchr(val, ' ') && !strchr(val, '\n')){
     return properties_set(n->properties, value_new(key), value_new(val));
   }
   list* l=list_new_from(val, MAX_LIST_SIZE);
-  return properties_set(n->properties, value_new(key), l);
+  bool ok=properties_set(n->properties, value_new(key), l);
+  if(!ok) list_free(l);
+  return ok;
 }
 
 bool nested_property_set(object* n, char* path, char* val)
