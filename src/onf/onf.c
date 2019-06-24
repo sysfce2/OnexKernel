@@ -844,6 +844,7 @@ void persistence_init(char* filename)
 {
   objects_text=properties_new(MAX_OBJECTS);
   objects_to_save=properties_new(MAX_OBJECTS);
+  if(!*filename) return;
 #if !defined(NRF5)
   if(!mkdir_p(filename)){
     log_write("Couldn't make directory for '%s' errno=%d\n", filename, errno);
