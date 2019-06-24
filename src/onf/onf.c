@@ -47,6 +47,7 @@ static bool        set_value_or_list(object* n, char* key, char* val);
 static bool        add_observer(object* o, value* notify);
 static void        set_observers(object* o, char* notify);
 static void        save_and_notify_observers(object* n);
+static bool        has_notifies(object* o);
 static void        show_notifies(object* o);
 static object*     new_object(value* uid, char* evaluator, char* is, uint8_t max_size);
 static object*     new_object_from(char* text, uint8_t max_size);
@@ -490,7 +491,7 @@ bool object_property_contains(object* n, char* path, char* expected)
 
 bool object_property_set(object* n, char* path, char* val)
 {
-  if(!n->running_evals) log_write("\nNot running evaluators! uid: %s  %s: '%s'\n\n", value_string(n->uid), path, val? val: "");
+  if(!n->running_evals && has_notifies(n)) log_write("\nNot running evaluators! uid: %s  %s: '%s'\n\n", value_string(n->uid), path, val? val: "");
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
   char* c=strrchr(p, ':');
@@ -576,7 +577,7 @@ bool nested_property_delete(object* n, char* path)
 
 bool object_property_add(object* n, char* path, char* val)
 {
-  if(!n->running_evals) log_write("\nNot running evaluators! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
+  if(!n->running_evals && has_notifies(n)) log_write("\nNot running evaluators! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
   if(strchr(path, ':')) return false; // no sub-properties yet
   if(!val || !*val) return 0;
   item* i=properties_get(n->properties, value_new(path));
@@ -647,6 +648,14 @@ void save_and_notify_observers(object* o)
       onp_send_object(o,notify);
     }
   }
+}
+
+bool has_notifies(object* o)
+{
+  for(int i=0; i< OBJECT_MAX_NOTIFIES; i++){
+    if(o->notify[i]) return true;
+  }
+  return false;
 }
 
 void show_notifies(object* o)
