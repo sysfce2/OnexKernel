@@ -564,6 +564,7 @@ bool nested_property_delete(object* n, char* path)
       if(!ok) break;
       if(list_size(l)==1){
         properties_set(n->properties, value_new(p), list_get_n(l,1));
+        list_free(l);
       }
       break;
     }
