@@ -16,7 +16,7 @@ static properties* all_values=0;
 
 #if defined(NRF5)
 #define MAX_VALUES 128
-#define MAX_TEXT_LEN 128
+#define MAX_TEXT_LEN 64
 #else
 #define MAX_VALUES 4096
 #define MAX_TEXT_LEN 4096

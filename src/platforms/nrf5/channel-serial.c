@@ -6,7 +6,11 @@
 
 static bool initialised=false;
 
-#define SERIAL_MAX_LENGTH 256
+#if defined(NRF5)
+#define SERIAL_MAX_LENGTH 192
+#else
+#define SERIAL_MAX_LENGTH 512
+#endif
 
 int  i=0;
 char ser_buff[SERIAL_MAX_LENGTH];

@@ -19,9 +19,9 @@
 
 
 #if defined(NRF5)
-#define MAX_LIST_SIZE 16
-#define MAX_TEXT_LEN 256
-#define MAX_OBJECTS 128
+#define MAX_LIST_SIZE 8
+#define MAX_TEXT_LEN 192
+#define MAX_OBJECTS 16
 #define MAX_OBJECT_SIZE 8
 #else
 #define MAX_LIST_SIZE 64
@@ -972,7 +972,7 @@ void recv_observe(char* b, char* from)
 
 void recv_object(char* text)
 {
-  object* n=new_object_from(text, 4);
+  object* n=new_object_from(text, MAX_OBJECT_SIZE);
   if(!n) return;
   object* s=onex_get_from_cache(value_string(n->uid));
   if(!s) return;
