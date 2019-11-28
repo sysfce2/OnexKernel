@@ -2,7 +2,7 @@
 #if defined(NRF5)
 #include <variant.h>
 #include <onex-kernel/gpio.h>
-//#include <onex-kernel/serial.h>
+// #include <onex-kernel/serial.h>
 #else
 #include <onex-kernel/log.h>
 #endif
@@ -35,7 +35,7 @@ int main()
   object_property_set(light, "light", "off");
   object_property_set(light, "button", "uid-1-2-3");
   char* uid=object_property(light, "UID");
-//serial_printf("UID %s\n", uid);
+// serial_printf("UID %s\n", uid);
 
   int todo=0;
   while(1){
@@ -54,8 +54,20 @@ bool evaluate_light(object* light, void* d)
   char* s=(char*)(buttonpressed? "on": "off");
   object_property_set(light, "light", s);
 #if defined(NRF5)
-  if(buttonpressed){ gpio_set(leds_list[3], 1); gpio_set(leds_list[10], 1); }
-  else             { gpio_set(leds_list[3], 0); gpio_set(leds_list[10], 0); }
+  if(buttonpressed){
+    gpio_set(leds_list[0], 1);
+    gpio_set(leds_list[1], 1);
+    gpio_set(leds_list[2], 0);
+    gpio_set(leds_list[3], 1);
+    gpio_set(leds_list[4], 1);
+    gpio_set(leds_list[5], 1);
+    gpio_set(leds_list[6], 1);
+    gpio_set(leds_list[7], 1);
+    gpio_set(leds_list[8], 1);
+    gpio_set(leds_list[10], 1);
+  } else {
+    gpio_set(leds_list[10], 0);
+  }
 #else
   log_write("evaluate_light: "); object_log(light);
 #endif
