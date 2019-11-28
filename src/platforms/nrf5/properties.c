@@ -19,8 +19,9 @@ properties* properties_new(uint16_t max_size)
   op->type=ITEM_PROPERTIES;
   op->max_size=max_size;
   op->keys=(value**)calloc(max_size,sizeof(value*));
+  if(!op->keys) return 0;
   op->vals=(void**)calloc(max_size,sizeof(void*));
-  if(!op->keys || !op->vals) return 0;
+  if(!op->vals) return 0;
   op->size=0;
   return op;
 }
