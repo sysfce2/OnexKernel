@@ -1,8 +1,15 @@
 
 #include <onex-kernel/random.h>
 
+#if defined(NRF51)
 #include <nrf51.h>
 #include <nrf51_bitfields.h>
+#endif
+
+#if defined(NRF52)
+#include <nrf52.h>
+#include <nrf52_bitfields.h>
+#endif
 
 uint8_t random_byte()
 {

@@ -2,8 +2,16 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#if defined(NRF51)
 #include <nrf51.h>
 #include <nrf51_bitfields.h>
+#endif
+
+#if defined(NRF52)
+#include <nrf52.h>
+#include <nrf52_bitfields.h>
+#endif
+
 #include <variant.h>
 
 #include <onex-kernel/serial.h>
