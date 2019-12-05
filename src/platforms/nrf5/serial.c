@@ -29,10 +29,9 @@ void UART0_IRQHandler(void)
     if(rx_handler) rx_handler(buf);
 }
 
-void serial_init(uart_rx_handler_t cb, uint32_t baudrate)
+bool serial_init(uart_rx_handler_t cb, uint32_t baudrate)
 {
-    if(initialised) return;
-    initialised=true;
+    if(initialised) return true;
 
     rx_handler = cb;
 
@@ -68,6 +67,9 @@ void serial_init(uart_rx_handler_t cb, uint32_t baudrate)
     NRF_UART0->TASKS_STARTTX = 1;
     NRF_UART0->TASKS_STARTRX = 1;
     NRF_UART0->EVENTS_RXDRDY = 0;
+
+    initialised=true;
+    return true;
 }
 
 void serial_cb(uart_rx_handler_t cb)

@@ -6,9 +6,7 @@ static bool initialised=false;
 
 void channel_serial_init()
 {
-  if(initialised) return;
-  serial_init(0, 9600);
-  initialised=true;
+  initialised=serial_init(0, 9600);
 }
 
 int channel_serial_recv(char* b, int l)

@@ -27,9 +27,7 @@ void on_data(char* ch)
 
 void channel_serial_init()
 {
-  if(initialised) return;
-  serial_init(on_data, 9600);
-  initialised=true;
+  initialised=serial_init(on_data, 9600);
 }
 
 int channel_serial_recv(char* b, int l)

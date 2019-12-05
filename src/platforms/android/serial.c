@@ -15,11 +15,13 @@ void on_serial_recv(char* b)
   if(rx_handler) rx_handler(b);
 }
 
-void serial_init(uart_rx_handler_t cb, uint32_t baudrate)
+bool serial_init(uart_rx_handler_t cb, uint32_t baudrate)
 {
-  if(initialised) return; initialised=true;
-
-  rx_handler = cb;
+  if(!initialised){
+    rx_handler = cb;
+    initialised=true;
+  }
+  return true;
 }
 
 void serial_cb(uart_rx_handler_t cb)

@@ -93,10 +93,11 @@ void onp_send_object(object* o, char* to)
 static void send(char* buff, char* to)
 {
   int size=0;
-  log_write("TODO: use 'to': '%s'\n", to);
+  log_write("TODO: use 'to': '%s' [%s]\n", to, buff);
 #ifdef ONP_CHANNEL_SERIAL
   size = channel_serial_send(buff, strlen(buff));
   handle_sent(buff,size,"Serial",0);
+  if(size<0) channel_serial_init();
 #endif
 #ifdef ONP_CHANNEL_IPV6
   size = channel_ipv6_send(buff, strlen(buff), single_peer);

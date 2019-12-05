@@ -75,12 +75,15 @@ static bool init_serial(char* devtty, int b){
 
 static bool initialised=false;
 
-void serial_init(uart_rx_handler_t cb, uint32_t baudrate)
+int currenttty=0;
+char* ttys[] = { "/dev/ttyACM0", "/dev/ttyACM1" , "/dev/ttyACM2" , "/dev/ttyACM3" };
+
+bool serial_init(uart_rx_handler_t cb, uint32_t baudrate)
 {
-  if(initialised) return;
-  char* devtty = "/dev/ttyACM0";
-  init_serial(devtty, baudrate);
-  initialised=true;
+  char* devtty = ttys[currenttty];
+  initialised=init_serial(devtty, baudrate);
+  if(!initialised) currenttty=(currenttty+1)%(sizeof(ttys)/sizeof(char*));
+  return initialised;
 }
 
 #define SERIAL_MAX_LENGTH 256
