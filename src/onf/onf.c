@@ -750,8 +750,6 @@ void onex_init(char* dbpath)
   onp_init();
 }
 
-bool first_time=true;
-
 void onex_loop()
 {
   persistence_loop();
