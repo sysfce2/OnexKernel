@@ -341,24 +341,36 @@ item* nested_property_item(object* n, char* path, object* t)
   return 0;
 }
 
-object* find_object(char* uid, object* n)
+void ping_object(char* uid, object* o)
 {
-  if(!is_uid(uid) || !n) return 0;
-  object* o=onex_get_from_cache(uid);
-  if(o && !is_shell(o)){
-    add_observer(o,n->uid);
-    return o;
-  }
-  if(!o){
-    o=new_shell(value_new(uid), value_string(n->uid), value_new("Serial"));
-    add_to_cache_and_persist(o);
-  }
   uint32_t curtime = time_ms();
   if(!o->last_observe || curtime > o->last_observe + 1000){
     o->last_observe = curtime + 1;
     onp_send_observe(uid, value_string(o->remote));
   }
-  return 0;
+}
+
+object* find_object(char* uid, object* n)
+{
+  if(!is_uid(uid) || !n){
+    return 0;
+  }
+  object* o=onex_get_from_cache(uid);
+  if(!o){
+    o=new_shell(value_new(uid), value_string(n->uid), value_new("Serial"));
+    add_to_cache_and_persist(o);
+    ping_object(uid, o);
+    return 0;
+  }
+  if(is_shell(o)){
+    ping_object(uid, o);
+    return 0;
+  }
+  add_observer(o,n->uid);
+  if(o->remote){
+    ping_object(uid, o);
+  }
+  return o;
 }
 
 bool is_uid(char* uid)
