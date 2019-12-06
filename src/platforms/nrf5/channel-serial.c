@@ -19,7 +19,7 @@ int  ser_size=0;
 void on_data(char* ch)
 {
   ser_buff[i++]=*ch;
-  if(i==SERIAL_MAX_LENGTH-1 || *ch=='\n'){
+  if(i==SERIAL_MAX_LENGTH-1 || *ch=='\n' || *ch=='\r'){
     ser_size = i;
     ser_buff[i]=0;
     i=0;
