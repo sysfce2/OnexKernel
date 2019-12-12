@@ -20,7 +20,7 @@ extern int _write(int file, const char* buf, int len);
 
 static bool initialised=false;
 
-static uart_rx_handler_t rx_handler;
+static serial_rx_cb rx_handler;
 
 void UART0_IRQHandler(void)
 {
@@ -29,7 +29,7 @@ void UART0_IRQHandler(void)
     if(rx_handler) rx_handler(buf);
 }
 
-bool serial_init(uart_rx_handler_t cb, uint32_t baudrate)
+bool serial_init(serial_rx_cb cb, uint32_t baudrate)
 {
     if(initialised) return true;
 
@@ -72,7 +72,7 @@ bool serial_init(uart_rx_handler_t cb, uint32_t baudrate)
     return true;
 }
 
-void serial_cb(uart_rx_handler_t cb)
+void serial_cb(serial_rx_cb cb)
 {
     rx_handler = cb;
 }
