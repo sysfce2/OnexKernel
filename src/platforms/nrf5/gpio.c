@@ -1,6 +1,7 @@
 
 #include <stdint.h>
 #include <nrf.h>
+#include <variant.h>
 #include <onex-kernel/gpio.h>
 
 void gpio_mode(uint32_t pin, uint32_t mode)

@@ -2,6 +2,7 @@
 // --------------------------------------------------------------------
 
 #if defined(NRF5)
+#include <variant.h>
 #include <onex-kernel/gpio.h>
 #endif
 #include <onex-kernel/time.h>

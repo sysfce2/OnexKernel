@@ -2,9 +2,6 @@
 #define GPIO_H
 
 #include <stdint.h>
-#if defined(NRF5)
-#include <variant.h>
-#endif
 
 #define HIGH		1
 #define LOW		0
