@@ -1,12 +1,11 @@
 
 // --------------------------------------------------------------------
 
+#if defined(NRF5)
 #include <onex-kernel/gpio.h>
+#endif
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
-#if defined(NRF5)
-#include <variant.h>
-#endif
 #include <assert.h>
 
 extern void run_properties_tests();

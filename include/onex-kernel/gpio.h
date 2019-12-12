@@ -2,6 +2,9 @@
 #define GPIO_H
 
 #include <stdint.h>
+#if defined(NRF5)
+#include <variant.h>
+#endif
 
 #define HIGH		1
 #define LOW		0
@@ -11,7 +14,11 @@
 //#define INPUT_PULLDOWN  3
 #define INPUT_PULLDOWN  4
 
+typedef void (*gpio_pin_cb)(int);
+
+void gpio_loop();
 void gpio_mode(      uint32_t pin, uint32_t mode);
+void gpio_mode_cb(   uint32_t pin, uint32_t mode, gpio_pin_cb cb);
 int  gpio_get(       uint32_t pin);
 void gpio_set(       uint32_t pin, uint32_t value);
 void gpio_toggle(    uint32_t pin);

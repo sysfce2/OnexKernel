@@ -9,6 +9,7 @@
 
 object* button;
 
+void button_1_change_cb(int);
 bool evaluate_button(object* button, void* pressed);
 
 int main()
@@ -16,7 +17,7 @@ int main()
   time_init();
   onex_init("");
 #if defined(NRF5)
-  gpio_mode(BUTTON_1, INPUT_PULLUP);
+  gpio_mode_cb(BUTTON_1, INPUT_PULLUP, button_1_change_cb);
 #endif
 
   time_delay_s(1);
@@ -27,38 +28,36 @@ int main()
   button=object_new("uid-1-2-3", "evaluate_button", "button", 4);
   object_property_set(button, "name", "£€§");
 
-#if defined(NRF5)
-#else
+#if !defined(NRF5)
   int lasttime=0;
-#endif
   bool button_pressed=false;
+#endif
 
   while(1){
 
     onex_loop();
 
     time_delay_ms(1);
-#if defined(NRF5)
-    if(button_pressed != !gpio_get(BUTTON_1)){
-      button_pressed = !gpio_get(BUTTON_1);
-      onex_run_evaluators("uid-1-2-3", (void*)button_pressed);
-    }
-#else
+#if !defined(NRF5)
     if(time_ms() > lasttime+1000){
       lasttime=time_ms();
       button_pressed=!button_pressed;
-      onex_run_evaluators("uid-1-2-3", (void*)button_pressed);
+      button_1_change_cb(button_pressed);
     }
 #endif
   }
+}
+
+void button_1_change_cb(int button_pressed)
+{
+  onex_run_evaluators("uid-1-2-3", (void*)(bool)button_pressed);
 }
 
 bool evaluate_button(object* button, void* pressed)
 {
   char* s=(char*)(pressed? "down": "up");
   object_property_set(button, "state", s);
-#if defined(NRF5)
-#else
+#if !defined(NRF5)
   log_write("evaluate_button: "); object_log(button);
 #endif
   return true;

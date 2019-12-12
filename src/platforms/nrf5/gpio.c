@@ -37,6 +37,27 @@ void gpio_mode(uint32_t pin, uint32_t mode)
     }
 }
 
+static int button_1_pressed=0;
+static gpio_pin_cb button_1_cb;
+
+void gpio_loop()
+{
+  int b1p = !gpio_get(BUTTON_1);
+  if(button_1_cb && button_1_pressed != b1p){
+     button_1_pressed = b1p;
+     button_1_cb(button_1_pressed);
+  }
+}
+
+void gpio_mode_cb(uint32_t pin, uint32_t mode, gpio_pin_cb cb)
+{
+  gpio_mode(pin, mode);
+
+  if(pin==BUTTON_1){
+    button_1_cb=cb;
+  }
+}
+
 int  gpio_get(uint32_t pin)
 {
   return (NRF_GPIO->IN >> pin) & 1UL;
