@@ -442,10 +442,11 @@ void test_from_text()
 
   text="is: messed up  : --";
   object* nm=object_new_from(text, 4);
+  onex_assert(!nm, "does not parse messed up text");
 
-  char* nmuid=object_property(nm, "UID");
-  snprintf(fulltext, 256, "UID: %s is: messed up --: --", nmuid);
-  onex_assert_equal(object_to_text(nm,textbuff,TEXTBUFFLEN), fulltext, "gives better text back than messed up");
+  text="UID: uid-1--2-3 is: messed up name: mangoUID: uid-1-2-3 is: messed up name: mango";
+  nm=object_new_from(text, 4);
+  onex_assert(!nm, "does not parse messed up text");
 }
 
 uint8_t evaluate_persistence_n1_called=0;

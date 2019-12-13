@@ -127,9 +127,8 @@ object* new_object_from(char* text, uint8_t max_size)
   char* notify=0;
   char* p=t;
   while(true){
-    char* key=get_key(&p); if(!key) break;
-    if(!*key){ free(key); key=strdup("--"); }
-    char* val=get_val(&p); if(!val){ free(key); break; }
+    char* key=get_key(&p); if(!key) break;            if(!*key){ free(key); object_free(n); n=0; break; }
+    char* val=get_val(&p); if(!val || !*val){ free(key); if(val) free(val); object_free(n); n=0; break; }
     if(!strcmp(key,"UID")) uid=value_new(val);
     else
     if(!strcmp(key,"Eval")) evaluator=value_new(val);
@@ -145,8 +144,7 @@ object* new_object_from(char* text, uint8_t max_size)
         if(evaluator) n->evaluator=evaluator;
         if(remote) n->remote=remote;
         if(cache) n->cache=cache;
-        set_observers(n, notify);
-        free(notify);
+        if(notify){ set_observers(n, notify); free(notify); }
       }
       if(!set_value_or_list(n, key, val)) break;
     }
@@ -168,6 +166,7 @@ object* new_shell(value* uid, char* notify, value* remote)
 
 void object_free(object* o)
 {
+  if(!o) return;
   item_free(o->properties);
   free(o);
 }
@@ -213,6 +212,7 @@ char* get_val(char** p)
   else{
     (*c)=0;
     char* s=strrchr(*p, ' ');
+    if(!s){ (*c)=':'; return 0; }
     do s--; while(isspace(*s)); s++;
     (*c)=':';
     (*s)=0;
@@ -953,8 +953,8 @@ void scan_objects_text_for_keep_active()
     value* uid=0;
     char* p=properties_get_n(objects_text, n);
     while(true){
-      char* key=get_key(&p); if(!key) break; if(!*key){ free(key); break; }
-      char* val=get_val(&p); if(!val){ free(key); break; }
+      char* key=get_key(&p); if(!key) break;            if(!*key){ free(key); break; }
+      char* val=get_val(&p); if(!val || !*val){ free(key); if(val) free(val); break; }
       if(!isupper((unsigned char)(*key))){
         free(key); free(val);
         break;
