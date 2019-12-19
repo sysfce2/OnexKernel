@@ -16,7 +16,7 @@
 #include <channel-ipv6.h>
 #endif
 
-#define ONP_DEBUG 1
+#define ONP_DEBUG
 
 static void handle_recv(char* buff, int size, char* from, uint16_t* fromip);
 static void handle_sent(char* buff, int size, char* to,   uint16_t* toip);
@@ -93,7 +93,9 @@ void onp_send_object(object* o, char* to)
 static void send(char* buff, char* to)
 {
   int size=0;
+#ifdef ONP_DEBUG
   log_write("TODO: use 'to': '%s' [%s]\n", to, buff);
+#endif
 #ifdef ONP_CHANNEL_SERIAL
   size = channel_serial_send(buff, strlen(buff));
   handle_sent(buff,size,"Serial",0);
