@@ -173,6 +173,15 @@ void test_object_set_up()
 
 // ---------------------------------------------------------------------------------
 
+void test_device()
+{
+  object* nd=onex_get_device();
+  onex_assert(!!nd,                                             "device object is set");
+  onex_assert(object_property_contains(nd, "is", "device"),     "it's a device");
+}
+
+// ---------------------------------------------------------------------------------
+
 uint8_t evaluate_local_state_n2_called=0;
 
 bool evaluate_local_state_n2(object* n2, void* d)
@@ -517,6 +526,7 @@ void run_onf_tests(char* dbpath)
   onex_init(dbpath);
 
   test_object_set_up();
+  test_device();
   test_local_state();
 
   onex_assert(         !evaluate_setup_called,              "evaluate_setup was not called");

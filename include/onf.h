@@ -103,6 +103,9 @@ void onex_loop();
 /** get the given Object from the cache. DEPRECATED. */
 object* onex_get_from_cache(char* uid);
 
+/** get the device object for this device. */
+object* onex_get_device();
+
 /** log out all the objects in the cache. */
 void onex_show_cache();
 

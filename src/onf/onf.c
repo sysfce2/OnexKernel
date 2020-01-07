@@ -55,6 +55,8 @@ static object*     new_object_from(char* text, uint8_t max_size);
 static object*     new_shell(value* uid, char* notify, value* remote);
 static bool        is_shell(object* o);
 
+static void        device_init();
+
 static void        persistence_init(char* filename);
 static void        persistence_loop();
 static object*     persistence_get(char* uid);
@@ -748,6 +750,7 @@ void object_log(object* o)
 void onex_init(char* dbpath)
 {
   persistence_init(dbpath);
+  device_init();
   onp_init();
 }
 
@@ -903,7 +906,22 @@ void persistence_init(char* filename)
   scan_objects_text_for_keep_active();
 }
 
-uint32_t lasttime=0;
+static object* device_object=0;
+
+void device_init()
+{
+  if(!device_object){
+    device_object=object_new(0, 0, "device", 8);
+    object_keep_active(device_object, true);
+  }
+}
+
+object* onex_get_device()
+{
+  return device_object;
+}
+
+static uint32_t lasttime=0;
 
 void persistence_loop()
 {
@@ -967,6 +985,8 @@ void scan_objects_text_for_keep_active()
       free(key); free(val);
     }
     if(uid){
+      object* o=onex_get_from_cache(value_string(uid));
+      if(object_property_contains(o, "is", "device")) device_object = o;
       onex_run_evaluators(value_string(uid), 0);
     }
   }
