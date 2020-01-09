@@ -906,7 +906,7 @@ void persistence_init(char* filename)
   scan_objects_text_for_keep_active();
 }
 
-static object* device_object=0;
+object* device_object=0;
 
 void device_init()
 {
