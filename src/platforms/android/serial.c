@@ -8,7 +8,7 @@ static bool initialised=false;
 
 static serial_recv_cb recv_cb;
 
-void on_serial_recv(char* b)
+void serial_on_recv(char* b)
 {
   if(recv_cb) recv_cb(b);
 }
