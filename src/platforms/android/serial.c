@@ -8,8 +8,6 @@ static bool initialised=false;
 
 static serial_recv_cb recv_cb;
 
-extern void serial_send(char* b);
-
 void on_serial_recv(char* b)
 {
   if(recv_cb) recv_cb(b);
@@ -29,11 +27,7 @@ void serial_cb(serial_recv_cb cb)
     recv_cb = cb;
 }
 
-int serial_recv(char* b, int l)
-{
-  if(!initialised) return -1;
-  return -1;
-}
+extern void serial_send(char* b);
 
 int serial_printf(const char* fmt, ...)
 {
