@@ -12,8 +12,14 @@ int  i=0;
 char ser_buff[SERIAL_MAX_LENGTH];
 int  ser_size=0;
 
-void on_data(char* ch)
+static channel_serial_connect_cb connect_cb;
+
+void channel_serial_on_recv(char* ch)
 {
+  if(!ch){
+    if(connect_cb) connect_cb();
+    return;
+  }
   while(*ch){
     ser_buff[i++]=*ch;
     if(i==SERIAL_MAX_LENGTH-1 || *ch=='\n'){
@@ -25,9 +31,10 @@ void on_data(char* ch)
   }
 }
 
-void channel_serial_init()
+void channel_serial_init(channel_serial_connect_cb cb)
 {
-  initialised=serial_init(on_data, 9600);
+  initialised=serial_init(channel_serial_on_recv, 9600);
+  connect_cb=cb;
 }
 
 int channel_serial_recv(char* b, int l)

@@ -18,6 +18,7 @@
 
 #define ONP_DEBUG
 
+static void onp_on_connect();
 static void handle_recv(char* buff, int size, char* from, uint16_t* fromip);
 static void handle_sent(char* buff, int size, char* to,   uint16_t* toip);
 
@@ -27,7 +28,7 @@ void recv_object(char* text);
 void onp_init()
 {
 #ifdef ONP_CHANNEL_SERIAL
-  channel_serial_init();
+  channel_serial_init(onp_on_connect);
 #endif
 #ifdef ONP_CHANNEL_IPV6
   channel_ipv6_init();
@@ -54,6 +55,11 @@ void onp_loop()
   size = channel_ipv6_recv(buff, 256, single_peer);
   if(size!= -1){ handle_recv(buff,size,0,single_peer); return; }
 #endif
+}
+
+void onp_on_connect()
+{
+  log_write("onp_on_connect");
 }
 
 static void handle_recv(char* buff, int size, char* from, uint16_t* fromip)
@@ -99,7 +105,7 @@ static void send(char* buff, char* to)
 #ifdef ONP_CHANNEL_SERIAL
   size = channel_serial_send(buff, strlen(buff));
   handle_sent(buff,size,"Serial",0);
-  if(size<0) channel_serial_init();
+  if(size<0) channel_serial_init(onp_on_connect);
 #endif
 #ifdef ONP_CHANNEL_IPV6
   size = channel_ipv6_send(buff, strlen(buff), single_peer);
