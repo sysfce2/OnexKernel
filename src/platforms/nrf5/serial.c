@@ -20,20 +20,20 @@ extern int _write(int file, const char* buf, int len);
 
 static bool initialised=false;
 
-static serial_rx_cb rx_handler;
+static serial_recv_cb recv_cb;
 
 void UART0_IRQHandler(void)
 {
     NRF_UART0->EVENTS_RXDRDY = 0;
     char buf[1]={NRF_UART0->RXD};
-    if(rx_handler) rx_handler(buf);
+    if(recv_cb) recv_cb(buf);
 }
 
-bool serial_init(serial_rx_cb cb, uint32_t baudrate)
+bool serial_init(serial_recv_cb cb, uint32_t baudrate)
 {
     if(initialised) return true;
 
-    rx_handler = cb;
+    recv_cb = cb;
 
     uint32_t              baud=UART_BAUDRATE_BAUDRATE_Baud9600;
     if(baudrate==   1200) baud=UART_BAUDRATE_BAUDRATE_Baud1200; else
@@ -72,9 +72,9 @@ bool serial_init(serial_rx_cb cb, uint32_t baudrate)
     return true;
 }
 
-void serial_cb(serial_rx_cb cb)
+void serial_cb(serial_recv_cb cb)
 {
-    rx_handler = cb;
+    recv_cb = cb;
 }
 
 void serial_putchar(uint32_t ch)

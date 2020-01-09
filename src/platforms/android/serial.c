@@ -6,27 +6,27 @@
 
 static bool initialised=false;
 
-static serial_rx_cb rx_handler;
+static serial_recv_cb recv_cb;
 
 extern void serial_send(char* b);
 
 void on_serial_recv(char* b)
 {
-  if(rx_handler) rx_handler(b);
+  if(recv_cb) recv_cb(b);
 }
 
-bool serial_init(serial_rx_cb cb, uint32_t baudrate)
+bool serial_init(serial_recv_cb cb, uint32_t baudrate)
 {
   if(!initialised){
-    rx_handler = cb;
+    recv_cb = cb;
     initialised=true;
   }
   return true;
 }
 
-void serial_cb(serial_rx_cb cb)
+void serial_cb(serial_recv_cb cb)
 {
-    rx_handler = cb;
+    recv_cb = cb;
 }
 
 int serial_recv(char* b, int l)

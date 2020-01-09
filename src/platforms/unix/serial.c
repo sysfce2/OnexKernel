@@ -78,7 +78,7 @@ static bool initialised=false;
 int currenttty=0;
 char* ttys[] = { "/dev/ttyACM0", "/dev/ttyACM1" , "/dev/ttyACM2" , "/dev/ttyACM3" };
 
-bool serial_init(serial_rx_cb cb, uint32_t baudrate)
+bool serial_init(serial_recv_cb cb, uint32_t baudrate)
 {
   char* devtty = ttys[currenttty];
   initialised=init_serial(devtty, baudrate);
