@@ -102,9 +102,6 @@ void onp_send_object(object* o, char* to)
 static void send(char* buff, char* to)
 {
   int size=0;
-#ifdef ONP_DEBUG
-  log_write("TODO: use 'to': '%s' [%s]\n", to, buff);
-#endif
 #ifdef ONP_CHANNEL_SERIAL
   size = channel_serial_send(buff, strlen(buff));
   handle_sent(buff,size,"Serial",0);
