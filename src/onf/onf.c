@@ -45,9 +45,9 @@ static bool        nested_property_set(object* n, char* path, char* val);
 static bool        nested_property_delete(object* n, char* path);
 static properties* nested_properties(object* n, char* path);
 static bool        set_value_or_list(object* n, char* key, char* val);
-static bool        add_observer(object* o, value* notify);
-static void        set_observers(object* o, char* notify);
-static void        save_and_notify_observers(object* n);
+static bool        add_notify(object* o, value* notify);
+static void        set_notifies(object* o, char* notify);
+static void        save_and_notify(object* n);
 static bool        has_notifies(object* o);
 static void        show_notifies(object* o);
 static object*     new_object(value* uid, char* evaluator, char* is, uint8_t max_size);
@@ -87,6 +87,11 @@ value* generate_uid()
     random_ish_byte(), random_ish_byte()
   );
   return value_new(b);
+}
+
+bool is_uid(char* uid)
+{
+  return uid && !strncmp(uid,"uid-",4);
 }
 
 object* object_new_from(char* text, uint8_t max_size)
@@ -146,7 +151,7 @@ object* new_object_from(char* text, uint8_t max_size)
         if(evaluator) n->evaluator=evaluator;
         if(remote) n->remote=remote;
         if(cache) n->cache=cache;
-        if(notify){ set_observers(n, notify); free(notify); }
+        if(notify){ set_notifies(n, notify); free(notify); }
       }
       if(!set_value_or_list(n, key, val)) break;
     }
@@ -162,7 +167,7 @@ object* new_shell(value* uid, char* notify, value* remote)
   n->uid=uid;
   n->remote=remote;
   n->last_observe = 0;
-  set_observers(n, notify);
+  set_notifies(n, notify);
   return n;
 }
 
@@ -369,16 +374,11 @@ object* find_object(char* uid, object* n)
     ping_object(uid, o);
     return 0;
   }
-  add_observer(o,n->uid);
+  add_notify(o,n->uid);
   if(o->remote){
     ping_object(uid, o);
   }
   return o;
-}
-
-bool is_uid(char* uid)
-{
-  return uid && !strncmp(uid,"uid-",4);
 }
 
 uint16_t object_property_length(object* n, char* path)
@@ -515,12 +515,12 @@ bool object_property_set(object* n, char* path, char* val)
   if(!val || !*val){
     if(c) return nested_property_delete(n, path);
     bool ok=!!properties_delete(n->properties, value_new(p));
-    if(ok) save_and_notify_observers(n);
+    if(ok) save_and_notify(n);
     return ok;
   }
   if(c) return nested_property_set(n, p, val);
   bool ok=set_value_or_list(n, p, val);
-  if(ok) save_and_notify_observers(n);
+  if(ok) save_and_notify(n);
   return ok;
 }
 
@@ -559,7 +559,7 @@ bool nested_property_set(object* n, char* path, char* val)
       break;
     }
   }
-  if(ok) save_and_notify_observers(n);
+  if(ok) save_and_notify(n);
   return ok;
 }
 
@@ -591,7 +591,7 @@ bool nested_property_delete(object* n, char* path)
       break;
     }
   }
-  if(ok) save_and_notify_observers(n);
+  if(ok) save_and_notify(n);
   return ok;
 }
 
@@ -624,13 +624,13 @@ bool object_property_add(object* n, char* path, char* val)
       break;
     }
   }
-  if(ok) save_and_notify_observers(n);
+  if(ok) save_and_notify(n);
   return ok;
 }
 
 // ------------------------------------------------------
 
-bool add_observer(object* o, value* notify)
+bool add_notify(object* o, value* notify)
 {
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
@@ -639,12 +639,12 @@ bool add_observer(object* o, value* notify)
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
     if(!o->notify[i]){ o->notify[i]=notify; return true; }
   }
-  log_write("can't add observer %s to %s\n", value_string(notify), value_string(o->uid));
+  log_write("can't add notify %s to %s\n", value_string(notify), value_string(o->uid));
   show_notifies(o);
   return false;
 }
 
-void set_observers(object* o, char* notify)
+void set_notifies(object* o, char* notify)
 {
   list* li=list_new_from(notify, OBJECT_MAX_NOTIFIES);
   if(!li) return;
@@ -654,7 +654,7 @@ void set_observers(object* o, char* notify)
   list_free(li);
 }
 
-void save_and_notify_observers(object* o)
+void save_and_notify(object* o)
 {
   persistence_put(o);
   int i;
@@ -994,24 +994,24 @@ void scan_objects_text_for_keep_active()
 
 // -----------------------------------------------------------------------
 
-void recv_observe(char* b, char* from)
+void onf_recv_observe(char* b, char* device)
 {
   char* uid=strchr(b,':')+2;
   char* u=uid; while(*u > ' ') u++; *u=0;
   object* o=onex_get_from_cache(uid);
   if(!o) return;
-  add_observer(o, value_new(from));
-  onp_send_object(o,from);
+  add_notify(o, value_new(device));
+  onp_send_object(o,device);
 }
 
-void recv_object(char* text)
+void onf_recv_object(char* text, char* device)
 {
   object* n=new_object_from(text, MAX_OBJECT_SIZE);
   if(!n) return;
   object* s=onex_get_from_cache(value_string(n->uid));
   if(!s) return;
   s->properties = n->properties;
-  save_and_notify_observers(s);
+  save_and_notify(s);
 }
 
 // -----------------------------------------------------------------------

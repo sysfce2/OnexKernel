@@ -20,11 +20,12 @@
 #define ONP_DEBUG
 
 static void onp_on_connect();
-static void handle_recv(char* buff, int size, char* from, uint16_t* fromip);
-static void handle_sent(char* buff, int size, char* to,   uint16_t* toip);
+static void handle_recv(char* buff, int size, char* device, uint16_t* fromip);
+static void send(char* buff, char* to);
+static void log_sent(char* buff, int size, char* to,   uint16_t* toip);
 
-void recv_observe(char* buff, char* source);
-void recv_object(char* text);
+void onf_recv_observe(char* buff, char* device);
+void onf_recv_object(char* text, char* device);
 
 void onp_init()
 {
@@ -66,54 +67,52 @@ void onp_on_connect()
   onp_send_object(device_object,0);
 }
 
-static void handle_recv(char* buff, int size, char* from, uint16_t* fromip)
+static void handle_recv(char* buff, int size, char* device, uint16_t* fromip)
 {
   buff[size]=0;
 
 #ifdef ONP_DEBUG
   log_write("ONP recv '%s'", buff);
-  if(from)    log_write(" from %s ", from);
+  if(device)    log_write(" from %s ", device);
 #ifdef ONP_CHANNEL_IPV6
   if(fromip){ log_write(" from "); channel_ipv6_show_host_and_port(fromip); }
 #endif
   log_write(" (%d bytes)\n", size);
 #endif
 
-  if(size>=5 && !strncmp(buff,"OBS: ",5)) recv_observe(buff, from);
-  if(size>=5 && !strncmp(buff,"UID: ",5)) recv_object(buff);
+  if(size>=5 && !strncmp(buff,"OBS: ",5)) onf_recv_observe(buff, device);
+  if(size>=5 && !strncmp(buff,"UID: ",5)) onf_recv_object(buff, device);
 }
 
-static void send(char* buff, char* to);
-
-void onp_send_observe(char* uid, char* to)
+void onp_send_observe(char* uid, char* device)
 {
   char buff[128];
   sprintf(buff,"OBS: %s", uid);
-  send(buff, to);
+  send(buff, device);
 }
 
-void onp_send_object(object* o, char* to)
+void onp_send_object(object* o, char* device)
 {
   char buff[256];
   object_to_text(o,buff,256,OBJECT_TO_TEXT_NETWORK);
-  send(buff, to);
+  send(buff, device);
 }
 
-static void send(char* buff, char* to)
+void send(char* buff, char* device)
 {
   int size=0;
 #ifdef ONP_CHANNEL_SERIAL
   size = channel_serial_send(buff, strlen(buff));
-  handle_sent(buff,size,"Serial",0);
+  log_sent(buff,size,"Serial",0);
   if(size<0) channel_serial_init(onp_on_connect);
 #endif
 #ifdef ONP_CHANNEL_IPV6
   size = channel_ipv6_send(buff, strlen(buff), single_peer);
-  handle_sent(buff,size,0,single_peer);
+  log_sent(buff,size,0,single_peer);
 #endif
 }
 
-static void handle_sent(char* buff, int size, char* to, uint16_t* toip)
+void log_sent(char* buff, int size, char* to, uint16_t* toip)
 {
 #ifdef ONP_DEBUG
   log_write("ONP sent '%s'", buff);
