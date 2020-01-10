@@ -690,7 +690,7 @@ void show_notifies(object* o)
 
 // ------------------------------------------------------
 
-char* object_to_text(object* n, char* b, uint16_t s)
+char* object_to_text(object* n, char* b, uint16_t s, int style)
 {
   if(!n){ *b = 0; return b; }
 
@@ -699,17 +699,17 @@ char* object_to_text(object* n, char* b, uint16_t s)
   ln+=snprintf(b+ln, s-ln, "UID: %s", value_string(n->uid));
   if(ln>=s){ *b = 0; return b; }
 
-  if(n->evaluator){
+  if(n->evaluator && style>=OBJECT_TO_TEXT_PERSIST){
     ln+=snprintf(b+ln, s-ln, " Eval: %s", value_string(n->evaluator));
     if(ln>=s){ *b = 0; return b; }
   }
 
-  if(n->remote){
+  if(n->remote && style>=OBJECT_TO_TEXT_PERSIST){
     ln+=snprintf(b+ln, s-ln, " Remote: %s", value_string(n->remote));
     if(ln>=s){ *b = 0; return b; }
   }
 
-  if(n->cache){
+  if(n->cache && style>=OBJECT_TO_TEXT_PERSIST){
     ln+=snprintf(b+ln, s-ln, " Cache: %s", value_string(n->cache));
     if(ln>=s){ *b = 0; return b; }
   }
@@ -742,7 +742,7 @@ char* object_to_text(object* n, char* b, uint16_t s)
 void object_log(object* o)
 {
   char buff[MAX_TEXT_LEN];
-  log_write("{ %s }\n", object_to_text(o,buff,MAX_TEXT_LEN));
+  log_write("{ %s }\n", object_to_text(o,buff,MAX_TEXT_LEN,OBJECT_TO_TEXT_LOG));
 }
 
 // -----------------------------------------------------------------------
@@ -791,7 +791,7 @@ void onex_show_cache()
   char buff[MAX_TEXT_LEN*8];
   for(int n=1; n<=properties_size(objects_cache); n++){
     object* o=properties_get_n(objects_cache,n);
-    log_write("| %s\n", object_to_text(o,buff,MAX_TEXT_LEN*8));
+    log_write("| %s\n", object_to_text(o,buff,MAX_TEXT_LEN*8,OBJECT_TO_TEXT_LOG));
   }
   log_write("+---------------------------------\n");
 }
@@ -956,7 +956,7 @@ void persistence_flush()
     value* uid=properties_get_n(objects_to_save, j);
     object* o=onex_get_from_cache(value_string(uid));
     char buff[MAX_TEXT_LEN];
-    char* text=object_to_text(o,buff,MAX_TEXT_LEN);
+    char* text=object_to_text(o,buff,MAX_TEXT_LEN,OBJECT_TO_TEXT_PERSIST);
     free(properties_delete(objects_text, uid));
     properties_set(objects_text, uid, strdup(text));
     if(db) fprintf(db, "%s\n", text);
