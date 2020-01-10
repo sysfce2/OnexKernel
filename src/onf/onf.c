@@ -52,7 +52,7 @@ static bool        has_notifies(object* o);
 static void        show_notifies(object* o);
 static object*     new_object(value* uid, char* evaluator, char* is, uint8_t max_size);
 static object*     new_object_from(char* text, uint8_t max_size);
-static object*     new_shell(value* uid, char* notify, value* remote);
+static object*     new_shell(value* uid, char* notify);
 static bool        is_shell(object* o);
 
 static void        device_init();
@@ -72,7 +72,7 @@ typedef struct object {
   properties* properties;
   value*      cache;
   value*      notify[OBJECT_MAX_NOTIFIES];
-  value*      remote;
+  value*      devices;
   bool        running_evals;
   uint32_t    last_observe;
 } object;
@@ -92,6 +92,17 @@ value* generate_uid()
 bool is_uid(char* uid)
 {
   return uid && !strncmp(uid,"uid-",4);
+}
+
+bool is_shell(object* o)
+{
+  return o->devices && value_is(o->devices, "shell") && !o->properties;
+}
+
+bool object_is_local(char* uid)
+{
+  object* o=onex_get_from_cache(uid);
+  return o && !o->devices;
 }
 
 object* object_new_from(char* text, uint8_t max_size)
@@ -129,7 +140,7 @@ object* new_object_from(char* text, uint8_t max_size)
   object* n=0;
   value* uid=0;
   value* evaluator=0;
-  value* remote=0;
+  value* devices=0;
   value* cache=0;
   char* notify=0;
   char* p=t;
@@ -140,7 +151,7 @@ object* new_object_from(char* text, uint8_t max_size)
     else
     if(!strcmp(key,"Eval")) evaluator=value_new(val);
     else
-    if(!strcmp(key,"Remote")) remote=value_new(val);
+    if(!strcmp(key,"Devices")) devices=value_new(val);
     else
     if(!strcmp(key,"Cache")) cache=value_new(val);
     else
@@ -149,7 +160,7 @@ object* new_object_from(char* text, uint8_t max_size)
       if(!n){
         n=new_object(uid, 0, 0, max_size);
         if(evaluator) n->evaluator=evaluator;
-        if(remote) n->remote=remote;
+        if(devices) n->devices=devices;
         if(cache) n->cache=cache;
         if(notify){ set_notifies(n, notify); free(notify); }
       }
@@ -160,12 +171,12 @@ object* new_object_from(char* text, uint8_t max_size)
   return n;
 }
 
-object* new_shell(value* uid, char* notify, value* remote)
+object* new_shell(value* uid, char* notify)
 {
   uint8_t max_size=4;
   object* n=(object*)calloc(1,sizeof(object));
   n->uid=uid;
-  n->remote=remote;
+  n->devices=value_new("shell");
   n->last_observe = 0;
   set_notifies(n, notify);
   return n;
@@ -176,17 +187,6 @@ void object_free(object* o)
   if(!o) return;
   item_free(o->properties);
   free(o);
-}
-
-bool is_shell(object* o)
-{
-  return o->remote && !o->properties;
-}
-
-bool object_is_local(char* uid)
-{
-  object* o=onex_get_from_cache(uid);
-  return o && !o->remote;
 }
 
 char* get_key(char** p)
@@ -354,7 +354,7 @@ void ping_object(char* uid, object* o)
   uint32_t curtime = time_ms();
   if(!o->last_observe || curtime > o->last_observe + 1000){
     o->last_observe = curtime + 1;
-    onp_send_observe(uid, value_string(o->remote));
+    onp_send_observe(uid, value_string(o->devices));
   }
 }
 
@@ -365,7 +365,7 @@ object* find_object(char* uid, object* n)
   }
   object* o=onex_get_from_cache(uid);
   if(!o){
-    o=new_shell(value_new(uid), value_string(n->uid), value_new("Serial"));
+    o=new_shell(value_new(uid), value_string(n->uid));
     add_to_cache_and_persist(o);
     ping_object(uid, o);
     return 0;
@@ -375,7 +375,7 @@ object* find_object(char* uid, object* n)
     return 0;
   }
   add_notify(o,n->uid);
-  if(o->remote){
+  if(o->devices){
     ping_object(uid, o);
   }
   return o;
@@ -704,8 +704,8 @@ char* object_to_text(object* n, char* b, uint16_t s, int style)
     if(ln>=s){ *b = 0; return b; }
   }
 
-  if(n->remote && style>=OBJECT_TO_TEXT_PERSIST){
-    ln+=snprintf(b+ln, s-ln, " Remote: %s", value_string(n->remote));
+  if(n->devices && style>=OBJECT_TO_TEXT_PERSIST){
+    ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(n->devices));
     if(ln>=s){ *b = 0; return b; }
   }
 
