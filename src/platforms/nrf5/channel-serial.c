@@ -6,30 +6,28 @@
 
 static bool initialised=false;
 
-#if defined(NRF5)
 #define SERIAL_MAX_LENGTH 192
-#else
-#define SERIAL_MAX_LENGTH 512
-#endif
 
-int  i=0;
+int  ser_curr=0;
 char ser_buff[SERIAL_MAX_LENGTH];
 int  ser_size=0;
 
 static channel_serial_connect_cb connect_cb;
 
-void channel_serial_on_recv(char* ch)
+void channel_serial_on_recv(char* ch, int len)
 {
   if(!ch){
     if(connect_cb) connect_cb();
     return;
   }
   if(ser_size) return; // !!
-  ser_buff[i++]=*ch;
-  if(i==SERIAL_MAX_LENGTH-1 || *ch=='\n' || *ch=='\r'){
-    ser_size = i;
-    ser_buff[i]=0;
-    i=0;
+  for(int i=0; i<len; i++){
+    ser_buff[ser_curr++]=ch[i];
+    if(ser_curr==SERIAL_MAX_LENGTH-1 || ch[i]=='\n' || ch[i]=='\r'){
+      ser_size = ser_curr;
+      ser_buff[ser_curr]=0;
+      ser_curr=0;
+    }
   }
 }
 

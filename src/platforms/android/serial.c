@@ -8,9 +8,9 @@ static bool initialised=false;
 
 static serial_recv_cb recv_cb;
 
-void serial_on_recv(char* b)
+void serial_on_recv(char* b, int len)
 {
-  if(recv_cb) recv_cb(b);
+  if(recv_cb) recv_cb(b, len);
 }
 
 bool serial_init(serial_recv_cb cb, uint32_t baudrate)

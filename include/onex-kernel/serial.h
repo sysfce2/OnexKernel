@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-typedef void (*serial_recv_cb) (char*);
+typedef void (*serial_recv_cb) (char*, int);
 
 bool serial_init(serial_recv_cb cb, uint32_t baudrate);
 void serial_cb(serial_recv_cb cb);

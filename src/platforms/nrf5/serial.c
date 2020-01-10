@@ -26,7 +26,7 @@ void UART0_IRQHandler(void)
 {
     NRF_UART0->EVENTS_RXDRDY = 0;
     char buf[1]={NRF_UART0->RXD};
-    if(recv_cb) recv_cb(buf);
+    if(recv_cb) recv_cb(buf, 1);
 }
 
 bool serial_init(serial_recv_cb cb, uint32_t baudrate)
