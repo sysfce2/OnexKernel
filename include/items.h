@@ -92,6 +92,7 @@ void     list_free(list* li);
 value* value_new(char*);
 char*  value_string(value* v);
 bool   value_equal(value* v1, value* v2);
+bool   value_is(value* v, char* s);
 void   value_log(value* v);
 char*  value_to_text(value* v, char* b, uint16_t s);
 void   value_free(value* v);

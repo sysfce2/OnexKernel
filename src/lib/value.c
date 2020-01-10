@@ -53,6 +53,12 @@ bool value_equal(value* v1, value* v2)
   return v1->val == v2->val;
 }
 
+bool value_is(value* v, char* s)
+{
+  if(!v) return !s;
+  return !strcmp(v->val, s);
+}
+
 void value_free(value* v)
 {
 }

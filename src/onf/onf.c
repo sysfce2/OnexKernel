@@ -246,7 +246,7 @@ void object_keep_active(object* n, bool keepactive)
 
 bool object_is_keep_active(object* n)
 {
-  return n->cache && !strcmp(value_string(n->cache), "keep-active");
+  return n->cache && value_is(n->cache, "keep-active");
 }
 
 // ------------------------------------------------------
@@ -471,12 +471,12 @@ bool object_property_is(object* n, char* path, char* expected)
 {
   if(!n) return false;
   if(!strcmp(path, "UID")){
-    return expected && !strcmp(value_string(n->uid), expected);
+    return expected && value_is(n->uid, expected);
   }
   item* i=property_item(n,path,n);
   if(!i) return (!expected || !*expected);
   if(i->type==ITEM_VALUE){
-    return expected && !strcmp(value_string((value*)i), expected);
+    return expected && value_is((value*)i, expected);
   }
   return false;
 }
@@ -485,19 +485,19 @@ bool object_property_contains(object* n, char* path, char* expected)
 {
   if(!n) return false;
   if(!strcmp(path, "UID")){
-    return expected && !strcmp(value_string(n->uid), expected);
+    return expected && value_is(n->uid, expected);
   }
   item* i=property_item(n,path,n);
   if(!i) return (!expected || !*expected);
   if(i->type==ITEM_VALUE){
-    return expected && !strcmp(value_string((value*)i), expected);
+    return expected && value_is((value*)i, expected);
   }
   if(i->type==ITEM_LIST){
     int j; int sz=list_size((list*)i);
     for(j=1; j<=sz; j++){
       item* y=list_get_n((list*)i, j);
       if(y->type!=ITEM_VALUE) continue;
-      if(expected && !strcmp(value_string((value*)y), expected)) return true;
+      if(expected && value_is((value*)y, expected)) return true;
     }
     return false;
   }
@@ -634,7 +634,7 @@ bool add_observer(object* o, value* notify)
 {
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    if(o->notify[i] && !strcmp(value_string(o->notify[i]), value_string(notify))) return true;
+    if(o->notify[i] && value_equal(o->notify[i], notify)) return true;
   }
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
     if(!o->notify[i]){ o->notify[i]=notify; return true; }
