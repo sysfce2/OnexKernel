@@ -20,6 +20,7 @@ static channel_serial_connect_cb connect_cb;
 
 void channel_serial_on_recv(char* ch)
 {
+  if(*ch<' ' && *ch!='\n' && *ch!='\r') return;
   if(!ch){
     if(connect_cb) connect_cb();
     return;
