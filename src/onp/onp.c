@@ -61,7 +61,7 @@ extern object* device_object;
 
 void onp_on_connect()
 {
-  log_write("onp_on_connect");
+  log_write("onp_on_connect\n");
   onp_send_object(device_object,0);
 }
 
