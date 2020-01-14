@@ -727,6 +727,11 @@ char* object_to_text(object* n, char* b, uint16_t s, int style)
   ln+=snprintf(b+ln, s-ln, "UID: %s", value_string(n->uid));
   if(ln>=s){ *b = 0; return b; }
 
+  if(style==OBJECT_TO_TEXT_NETWORK){
+    ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(onex_device_object->uid));
+    if(ln>=s){ *b = 0; return b; }
+  }
+
   if(n->evaluator && style>=OBJECT_TO_TEXT_PERSIST){
     ln+=snprintf(b+ln, s-ln, " Eval: %s", value_string(n->evaluator));
     if(ln>=s){ *b = 0; return b; }

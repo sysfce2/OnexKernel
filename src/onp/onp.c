@@ -82,11 +82,11 @@ static void handle_recv(char* buff, int size, char* channel, uint16_t* fromip)
   if(size>=5 && !strncmp(buff,"UID: ",5)) onf_recv_object(buff, channel);
 }
 
-void onp_send_observe(char* uid, char* device)
+void onp_send_observe(char* uid, char* channel)
 {
   char buff[128];
-  sprintf(buff,"OBS: %s", uid);
-  send(buff, device);
+  sprintf(buff,"OBS: %s Devices: %s", uid, object_property(onex_device_object, "UID"));
+  send(buff, channel);
 }
 
 void onp_send_object(object* o, char* channel)
