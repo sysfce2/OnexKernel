@@ -87,7 +87,7 @@ void object_log(object* n);
 bool is_uid(char* uid);
 
 /** true if it's a local object (hosted/animated in this Onex). */
-bool object_is_local(char* uid);
+bool is_local(char* uid);
 
 /** free object and properties */
 void object_free(object* n);

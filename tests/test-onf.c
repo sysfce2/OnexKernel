@@ -442,8 +442,8 @@ void test_from_text()
 
   char* nxuid=object_property(nx, "UID");
 
-  onex_assert(      object_is_local("uid-4"),   "n4 is local");
-  onex_assert(     !object_is_local(nxuid),     "nx is remote");
+  onex_assert(      is_local("uid-4"),          "n4 is local");
+  onex_assert(     !is_local(nxuid),            "nx is remote");
   onex_assert(      object_is_keep_active(nx),  "nx is Cache: keep-active");
 
   snprintf(fulltext, 256, "UID: %s %s", nxuid, text);
