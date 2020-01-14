@@ -5,7 +5,9 @@
 #include <onex-kernel/serial.h>
 #include <onex-kernel/log.h>
 
+#if !defined(ONP_CHANNEL_SERIAL)
 static bool initialised=false;
+#endif
 
 void log_init(uint32_t baudrate)
 {

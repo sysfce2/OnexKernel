@@ -19,10 +19,12 @@
 
 #define ONP_DEBUG
 
+#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
 static void onp_on_connect(char* channel);
 static void handle_recv(char* buff, int size, char* channel, uint16_t* fromip);
 static void send(char* buff, char* to);
 static void log_sent(char* buff, int size, char* to,   uint16_t* toip);
+#endif
 
 void onf_recv_observe(char* text, char* channel);
 void onf_recv_object(char* text, char* channel);
@@ -47,6 +49,7 @@ uint16_t single_peer[] = { 0x2002, 0xd417, 0x1f9e, 0x1234, 0x5e51, 0x4fff, 0xfe7
 
 void onp_loop()
 {
+#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
   char buff[256];
   int  size=0;
 #ifdef ONP_CHANNEL_SERIAL
@@ -57,8 +60,10 @@ void onp_loop()
   size = channel_ipv6_recv(buff, 256, single_peer);
   if(size!= -1){ handle_recv(buff,size,0,single_peer); return; }
 #endif
+#endif
 }
 
+#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
 void onp_on_connect(char* channel)
 {
   log_write("onp_on_connect %s\n", channel);
@@ -81,21 +86,27 @@ static void handle_recv(char* buff, int size, char* channel, uint16_t* fromip)
   if(size>=5 && !strncmp(buff,"OBS: ",5)) onf_recv_observe(buff, channel);
   if(size>=5 && !strncmp(buff,"UID: ",5)) onf_recv_object(buff, channel);
 }
+#endif
 
 void onp_send_observe(char* uid, char* channel)
 {
+#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
   char buff[128];
   sprintf(buff,"OBS: %s Devices: %s", uid, object_property(onex_device_object, "UID"));
   send(buff, channel);
+#endif
 }
 
 void onp_send_object(object* o, char* channel)
 {
+#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
   char buff[256];
   object_to_text(o,buff,256,OBJECT_TO_TEXT_NETWORK);
   send(buff, channel);
+#endif
 }
 
+#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
 void send(char* buff, char* channel)
 {
   int size=0;
@@ -124,6 +135,7 @@ void log_sent(char* buff, int size, char* to, uint16_t* toip)
   else        log_write(" (failed to send)\n");
 #endif
 }
+#endif
 
 // -----------------------------------------------------------------------
 
