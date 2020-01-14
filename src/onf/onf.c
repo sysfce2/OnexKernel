@@ -43,7 +43,6 @@ static item*       property_item(object* n, char* path, object* t);
 static item*       nested_property_item(object* n, char* path, object* t);
 static bool        nested_property_set(object* n, char* path, char* val);
 static bool        nested_property_delete(object* n, char* path);
-static properties* nested_properties(object* n, char* path);
 static bool        set_value_or_list(object* n, char* key, char* val);
 static bool        add_notify(object* o, value* notify);
 static void        set_notifies(object* o, char* notify);
@@ -196,7 +195,6 @@ object* new_object_from(char* text, uint8_t max_size)
 
 object* new_shell(value* uid, char* notify)
 {
-  uint8_t max_size=4;
   object* n=(object*)calloc(1,sizeof(object));
   n->uid=uid;
   n->devices=value_new("shell");

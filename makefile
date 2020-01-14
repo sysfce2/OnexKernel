@@ -307,14 +307,14 @@ BUILD_DIRECTORY = build
 LINUX_FLAGS=-g3 -ggdb
 LINUX_CC_SYMBOLS = -D${TARGET} ${CHANNELS}
 
-CC_FLAGS = -c -std=gnu99 -Werror -Wall -Wextra -Wno-pointer-sign -Wno-format -Wno-sign-compare -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-write-strings -Wno-old-style-declaration -Wno-strict-aliasing -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer
+CC_FLAGS = -c -std=gnu99 -Werror -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer
 
 M4_CPU = -mcpu=cortex-m4 -mthumb -mabi=aapcs
-M4_CC_FLAGS = -std=c99 -MP -MD -Werror -Wall -Wextra -Wno-pointer-sign -Wno-format -Wno-sign-compare -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-write-strings -Wno-old-style-declaration -Wno-strict-aliasing -fno-common -fshort-enums -fno-builtin -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer -O3 -g3 -mfloat-abi=hard -mfpu=fpv4-sp-d16
+M4_CC_FLAGS = -std=c99 -MP -MD -Werror -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -fno-common -fshort-enums -fno-builtin -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer -O3 -g3 -mfloat-abi=hard -mfpu=fpv4-sp-d16
 NRF52_CC_SYMBOLS = -DNRF5 -DNRF52 -D${TARGET} ${CHANNELS} -DTARGET_MCU_NRF52832 -DFLOAT_ABI_HARD -DNRF52840_XXAA -D__HEAP_SIZE=8192 -D__STACK_SIZE=8192
 
 M0_CPU = -mcpu=cortex-m0 -mthumb
-M0_CC_FLAGS = -std=gnu99 -Werror -Wall -Wextra -Wno-pointer-sign -Wno-format -Wno-sign-compare -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable -Wno-write-strings -Wno-old-style-declaration -Wno-strict-aliasing -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer -O0
+M0_CC_FLAGS = -std=gnu99 -Werror -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer -O0
 NRF51_CC_SYMBOLS = -DNRF5 -DNRF51 -D${TARGET} ${CHANNELS} -DTARGET_MCU_NRF51822
 
 CFLAGS  = -DNRF51 -DTARGET_MICRO_BIT -DBSP_DEFINES_ONLY -mcpu=cortex-m0 -mthumb -mabi=aapcs --std=gnu99 -Wall -Werror -O3 -g3 -mfloat-abi=soft -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin --short-enums
