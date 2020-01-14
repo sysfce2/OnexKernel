@@ -1012,17 +1012,17 @@ void scan_objects_text_for_keep_active()
 
 // -----------------------------------------------------------------------
 
-void onf_recv_observe(char* b, char* device)
+void onf_recv_observe(char* text, char* channel)
 {
-  char* uid=strchr(b,':')+2;
+  char* uid=strchr(text,':')+2;
   char* u=uid; while(*u > ' ') u++; *u=0;
   object* o=onex_get_from_cache(uid);
   if(!o) return;
-  add_notify(o, value_new(device));
-  onp_send_object(o,device);
+  add_notify(o, value_new("uid-of-device"));
+  onp_send_object(o, channel);
 }
 
-void onf_recv_object(char* text, char* device)
+void onf_recv_object(char* text, char* channel)
 {
   object* n=new_object_from(text, MAX_OBJECT_SIZE);
   if(!n) return;

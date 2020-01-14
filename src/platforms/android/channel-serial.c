@@ -17,7 +17,7 @@ static channel_serial_connect_cb connect_cb;
 void channel_serial_on_recv(char* ch, int len)
 {
   if(!ch){
-    if(connect_cb) connect_cb();
+    if(connect_cb) connect_cb("serial");
     return;
   }
   for(int i=0; i<len; i++){
