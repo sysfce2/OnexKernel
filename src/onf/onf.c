@@ -248,7 +248,7 @@ char* get_val(char** p)
     (*s)=' ';
     (*p)=s+1;
   }
-  int y=0;
+  unsigned int y=0;
   for(unsigned int x=0; x<strlen(r); x++){
     if(r[x]=='\\') continue;
     if(y!=x) r[y]=r[x];
@@ -326,7 +326,7 @@ item* property_item(object* n, char* path, object* t)
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
   char* c=strrchr(p, ':');
-  bool endsincolon=(c && c+1-p==strlen(p));
+  bool endsincolon=(c && c+1-p==(int)strlen(p));
   if(endsincolon){ *c=0; c=strrchr(p, ':'); }
   if(!c) return properties_get(n->properties, value_new(p));
   return nested_property_item(n, p, t);
@@ -537,7 +537,7 @@ bool object_property_set(object* n, char* path, char* val)
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
   char* c=strrchr(p, ':');
-  bool endsincolon=(c && c+1-p==strlen(p));
+  bool endsincolon=(c && c+1-p==(int)strlen(p));
   if(endsincolon){ *c=0; c=strrchr(p, ':'); }
   if(!val || !*val){
     if(c) return nested_property_delete(n, path);
