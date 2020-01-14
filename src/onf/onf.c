@@ -703,6 +703,9 @@ void save_and_notify(object* o)
       onp_send_object(o, channel_of(notify));
     }
   }
+  if(object_is_remote_device(o)){
+    run_evaluators(onex_device_object, 0, o);
+  }
 }
 
 bool has_notifies(object* o)
@@ -1047,10 +1050,18 @@ void onf_recv_object(char* text, char* channel)
 {
   object* n=new_object_from(text, MAX_OBJECT_SIZE);
   if(!n) return;
-  object* s=onex_get_from_cache(value_string(n->uid));
-  if(!s) return;
-  s->properties = n->properties;
-  save_and_notify(s);
+  object* o=onex_get_from_cache(value_string(n->uid));
+  if(!o){
+    add_to_cache(n);
+    o=n;
+  }
+  else{
+    item_free(o->properties);
+    item_free(o->devices);
+    o->properties = n->properties;
+    o->devices    = n->devices;
+  }
+  save_and_notify(o);
 }
 
 // -----------------------------------------------------------------------
