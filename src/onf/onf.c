@@ -768,6 +768,12 @@ char* object_to_text(object* n, char* b, uint16_t s, int style)
       if(ln>=s){ *b = 0; return b; }
     }
   }
+
+  if(n->observed && style>=OBJECT_TO_TEXT_PERSIST){
+    ln+=snprintf(b+ln, s-ln, " Observed: %s", value_string(n->observed->uid));
+    if(ln>=s){ *b = 0; return b; }
+  }
+
   properties* p=n->properties;
   for(j=1; j<=properties_size(p); j++){
     ln+=snprintf(b+ln, s-ln, " ");
