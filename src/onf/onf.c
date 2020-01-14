@@ -372,12 +372,18 @@ item* nested_property_item(object* n, char* path, object* t)
   return 0;
 }
 
+char* channel_of(char* device_uid)
+{
+  return "serial";
+}
+
 void ping_object(char* uid, object* o)
 {
   uint32_t curtime = time_ms();
   if(!o->last_observe || curtime > o->last_observe + 1000){
     o->last_observe = curtime + 1;
-    onp_send_observe(uid, value_string(o->devices));
+    char* device_uid = value_string(o->devices);
+    onp_send_observe(uid, channel_of(device_uid));
   }
 }
 
@@ -687,13 +693,14 @@ void save_and_notify(object* o)
     object* n=onex_get_from_cache(notify);
     if(!n){
       log_write("object to notify not found: '%s'\n", notify);
+;;;;;;onp_send_object(o, channel_of(notify));;;;;;;;;;;;;
       continue;
     }
     if(!object_is_device(n)){
       run_evaluators(n,0,o);
     }
     else{
-      onp_send_object(o,notify);
+      onp_send_object(o, channel_of(notify));
     }
   }
 }
