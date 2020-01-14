@@ -236,6 +236,11 @@ android.tests: android.library
 	adb -d install android/onexkernel/build/outputs/apk/onexkernel-debug.apk
 	adb logcat OnexApp:D *:S
 
+android.tests.lan: android.library
+	adb uninstall network.object.onexkernel || echo not found
+	adb install android/onexkernel/build/outputs/apk/onexkernel-debug.apk
+	adb logcat OnexApp:D *:S
+
 microbit.tests: tests.microbit.hex
 	cp $< /media/duncan/MICROBIT/
 	sleep 2
