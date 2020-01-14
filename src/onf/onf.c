@@ -54,6 +54,7 @@ static object*     new_object(value* uid, char* evaluator, char* is, uint8_t max
 static object*     new_object_from(char* text, uint8_t max_size);
 static object*     new_shell(value* uid, char* notify);
 static bool        is_shell(object* o);
+static void        run_evaluators(object* o, void* data, object* observed);
 
 static void        device_init();
 
@@ -72,6 +73,7 @@ typedef struct object {
   properties* properties;
   value*      cache;
   value*      notify[OBJECT_MAX_NOTIFIES];
+  object*     observed;
   value*      devices;
   bool        running_evals;
   uint32_t    last_observe;
@@ -682,8 +684,13 @@ void save_and_notify(object* o)
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
     if(!o->notify[i]) continue;
     char* notify = value_string(o->notify[i]);
-    if(is_uid(notify)){
-      onex_run_evaluators(notify, 0);
+    object* n=onex_get_from_cache(notify);
+    if(!n){
+      log_write("object to notify not found: '%s'\n", notify);
+      continue;
+    }
+    if(!object_is_device(n)){
+      run_evaluators(n,0,o);
     }
     else{
       onp_send_object(o,notify);
@@ -850,18 +857,20 @@ void onex_set_evaluators(char* name, ...)
 void onex_run_evaluators(char* uid, void* data){
   if(!uid) return;
   object* o=onex_get_from_cache(uid);
-  object_run_evaluators(o, data);
+  run_evaluators(o, data, 0);
 }
 
-void object_run_evaluators(object* o, void* data){
+void run_evaluators(object* o, void* data, object* observed){
   if(!o || !o->evaluator) return;
-  if(o->running_evals){ log_write("Already in evaluators! %s\n", o->uid); return; }
+  if(o->running_evals){ log_write("Already in evaluators! %s\n", value_string(o->uid)); return; }
   o->running_evals=true;
+  o->observed=observed;
   list* evals = (list*)properties_get(evaluators, o->evaluator);
   for(int i=1; i<=list_size(evals); i++){
     onex_evaluator eval=(onex_evaluator)list_get_n(evals, i);
     if(!eval(o, data)) break;
   }
+  o->observed=0;
   o->running_evals=false;
 }
 
@@ -1005,7 +1014,7 @@ void scan_objects_text_for_keep_active()
     if(uid){
       object* o=onex_get_from_cache(value_string(uid));
       if(object_is_local_device(o)) onex_device_object = o;
-      object_run_evaluators(o,0);
+      run_evaluators(o,0,0);
     }
   }
 }
