@@ -30,6 +30,9 @@ object* object_new_from(char* text, uint8_t max_size);
 /** re-set evaluator callback. */
 void object_set_evaluator(object* n, char* evaluator);
 
+/** as onex_run_evaluators but supply actual object. */
+void object_run_evaluators(object* n, void* data);
+
 /** set/unset flag to kick the object on restart. */
 void object_keep_active(object* n, bool keepactive);
 
