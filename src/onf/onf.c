@@ -100,15 +100,15 @@ bool is_uid(char* uid)
   return uid && !strncmp(uid,"uid-",4);
 }
 
-bool is_shell(object* o)
-{
-  return o->devices && value_is(o->devices, "shell") && !o->properties;
-}
-
 bool is_local(char* uid)
 {
   object* o=onex_get_from_cache(uid);
   return o && !o->devices;
+}
+
+bool is_shell(object* o)
+{
+  return o->devices && value_is(o->devices, "shell") && !o->properties;
 }
 
 bool object_is_device(object* o)
