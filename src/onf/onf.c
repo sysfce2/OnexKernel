@@ -249,7 +249,7 @@ char* get_val(char** p)
     (*p)=s+1;
   }
   int y=0;
-  for(int x=0; x<strlen(r); x++){
+  for(unsigned int x=0; x<strlen(r); x++){
     if(r[x]=='\\') continue;
     if(y!=x) r[y]=r[x];
     y++;
