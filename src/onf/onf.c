@@ -704,6 +704,9 @@ void save_and_notify(object* o)
   if(object_is_remote_device(o)){
     run_evaluators(onex_device_object, 0, o);
   }
+  if(o==onex_device_object){
+    onp_send_object(onex_device_object, channel_of("")); // all channels
+  }
 }
 
 bool has_notifies(object* o)
