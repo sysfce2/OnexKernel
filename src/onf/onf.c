@@ -77,6 +77,12 @@ typedef struct object {
   uint32_t    last_observe;
 } object;
 
+// ---------------------------------
+
+object* onex_device_object=0;
+
+// ---------------------------------
+
 value* generate_uid()
 {
   char b[24];
@@ -103,6 +109,21 @@ bool is_local(char* uid)
 {
   object* o=onex_get_from_cache(uid);
   return o && !o->devices;
+}
+
+bool object_is_device(object* o)
+{
+  return o && object_property_contains(o, "is", "device");
+}
+
+bool object_is_remote_device(object* o)
+{
+  return object_is_device(o) && o->devices;
+}
+
+bool object_is_local_device(object* o)
+{
+  return object_is_device(o) && !o->devices;
 }
 
 object* object_new_from(char* text, uint8_t max_size)
@@ -910,19 +931,12 @@ void persistence_init(char* filename)
   scan_objects_text_for_keep_active();
 }
 
-object* device_object=0;
-
 void device_init()
 {
-  if(!device_object){
-    device_object=object_new(0, 0, "device", 8);
-    object_keep_active(device_object, true);
+  if(!onex_device_object){
+    onex_device_object=object_new(0, 0, "device", 8);
+    object_keep_active(onex_device_object, true);
   }
-}
-
-object* onex_get_device()
-{
-  return device_object;
 }
 
 static uint32_t lasttime=0;
@@ -990,8 +1004,8 @@ void scan_objects_text_for_keep_active()
     }
     if(uid){
       object* o=onex_get_from_cache(value_string(uid));
-      if(object_property_contains(o, "is", "device")) device_object = o;
-      onex_run_evaluators(value_string(uid), 0);
+      if(object_is_local_device(o)) onex_device_object = o;
+      object_run_evaluators(o,0);
     }
   }
 }

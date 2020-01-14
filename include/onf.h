@@ -94,6 +94,9 @@ void object_free(object* n);
 
 // --------------------------------------------------------------------
 
+/** the device object for this device. */
+extern object* onex_device_object;
+
 /** set things up. */
 void onex_init(char* dbpath);
 
@@ -110,9 +113,6 @@ void onex_loop();
 
 /** get the given Object from the cache. DEPRECATED. */
 object* onex_get_from_cache(char* uid);
-
-/** get the device object for this device. */
-object* onex_get_device();
 
 /** log out all the objects in the cache. */
 void onex_show_cache();

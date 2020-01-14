@@ -175,7 +175,7 @@ void test_object_set_up()
 
 void test_device()
 {
-  object* nd=onex_get_device();
+  object* nd=onex_device_object;
   onex_assert(!!nd,                                             "device object is set");
   onex_assert(object_property_contains(nd, "is", "device"),     "it's a device");
 }

@@ -59,12 +59,10 @@ void onp_loop()
 #endif
 }
 
-extern object* device_object;
-
 void onp_on_connect()
 {
   log_write("onp_on_connect\n");
-  onp_send_object(device_object,0);
+  onp_send_object(onex_device_object,0);
 }
 
 static void handle_recv(char* buff, int size, char* device, uint16_t* fromip)
