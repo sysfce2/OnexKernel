@@ -320,9 +320,10 @@ char* object_property_values(object* n, char* path)
 
 item* property_item(object* n, char* path, object* t)
 {
-  if(!strcmp(path, "UID")) return (item*)n->uid;
-  if(!strcmp(path, ""))    return (item*)n->properties;
-  if(!strcmp(path, ":"))   return (item*)n->properties;
+  if(!strcmp(path, "UID"))     return (item*)n->uid;
+  if(!strcmp(path, ""))        return (item*)n->properties;
+  if(!strcmp(path, ":"))       return (item*)n->properties;
+  if(!strcmp(path, "Alerted")) return (item*)n->alerted;
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
   char* c=strrchr(p, ':');
