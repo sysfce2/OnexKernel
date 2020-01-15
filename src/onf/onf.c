@@ -534,7 +534,9 @@ bool object_property_contains(object* n, char* path, char* expected)
 
 bool object_property_set(object* n, char* path, char* val)
 {
-  if(!n->running_evals && has_notifies(n)) log_write("\nNot running evaluators! uid: %s  %s: '%s'\n\n", value_string(n->uid), path, val? val: "");
+  if(!n->running_evals && has_notifies(n)){
+    log_write("\nSetting property in an object but not running in an evaluator! uid: %s  %s: '%s'\n\n", value_string(n->uid), path, val? val: "");
+  }
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
   char* c=strrchr(p, ':');
