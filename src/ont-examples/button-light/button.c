@@ -29,7 +29,7 @@ int main()
   object_property_set(button, "name", "£€§");
 
 #if !defined(NRF5)
-  int lasttime=0;
+  uint32_t lasttime=0;
   bool button_pressed=false;
 #endif
 
@@ -39,7 +39,7 @@ int main()
 
     time_delay_ms(1);
 #if !defined(NRF5)
-    if(time_ms() > lasttime+1000){
+    if(time_ms() > lasttime+1000u){
       lasttime=time_ms();
       button_pressed=!button_pressed;
       button_1_change_cb(button_pressed);

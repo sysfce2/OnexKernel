@@ -322,28 +322,35 @@ uint8_t evaluate_local_notify_n3_called=0;
 bool evaluate_local_notify_n3(object* n3, void* d)
 {
   evaluate_local_notify_n3_called++;
-  if(evaluate_local_notify_n3_called==1){
-    onex_assert_equal(object_property(n3, "Alerted"),       "uid-2",   "1: n3/uid-3 can see that it was uid-2 update that triggered eval");
-    onex_assert_equal(object_property(n3, "Alerted:UID"),   "uid-2",   "1: n3/uid-3 can see that it was uid-2 update that triggered eval");
-    onex_assert_equal(object_property(n3, "Alerted:state"), "better:", "1: n3/uid-3 can see state update");
-    onex_assert_equal(object_property(n3, "n2:state"),      "better:", "1: n3/uid-3 can see state update");
+
+  if(evaluate_local_notify_n3_called>=1 && evaluate_local_notify_n3_called<=3){
+    onex_assert_equal(object_property(n3, "Alerted"),       "uid-2",   "1-3: n3/uid-3 can see that it was uid-2 update that triggered eval");
+    onex_assert_equal(object_property(n3, "Alerted:UID"),   "uid-2",   "1-3: n3/uid-3 can see that it was uid-2 update that triggered eval");
+    onex_assert_equal(object_property(n3, "Alerted:state"), "better:", "1-3: n3/uid-3 can see state update");
+    onex_assert_equal(object_property(n3, "n2:state"),      "better:", "1-3: n3/uid-3 can see state update");
   }
-  if(evaluate_local_notify_n3_called==2){
-    onex_assert_equal(object_property(n3, "Alerted"),       "uid-2",   "2: n3/uid-3 can see that it was uid-2 update that triggered eval");
-    onex_assert_equal(object_property(n3, "n2:state"),      "better:", "2: n3/uid-3 can see state update");
-  }
-  if(evaluate_local_notify_n3_called==3){
-    onex_assert_equal(object_property(n3, "Alerted"),       "uid-2",   "3: n3/uid-3 can see that it was uid-2 update that triggered eval");
-    onex_assert_equal(object_property(n3, "n2:state"),      "better:", "3: n3/uid-3 can see state update");
-  }
+
   if(evaluate_local_notify_n3_called==4){
-    onex_assert_equal(object_property(n3, "Alerted"),       "uid-3",   "4: n3/uid-3 can see that it was uid-3 update that triggered eval");
+    onex_assert_equal(object_property(n3, "Alerted"),                  "uid-3",   "4: n3/uid-3 can see that it was itself that triggered eval");
+    onex_assert_equal(object_property(n3, "Alerted:UID"),              "uid-3",   "4: n3/uid-3 can see that it was itself that triggered eval");
+    onex_assert_equal(object_property(n3, "Alerted:Alerted:n2:state"), "better:", "4: n3/uid-3 can see through itself");
+    onex_assert_equal(object_property(n3, "Alerted:is:1"),             "local",   "4: n3/uid-3 can see state update through itself");
+    onex_assert_equal(object_property(n3, "Alerted:is:2"),             "state",   "4: n3/uid-3 can see state update through itself");
   }
+
   if(evaluate_local_notify_n3_called==5){
-    onex_assert_equal(object_property(n3, "Alerted"),       "uid-1",   "5: n3/uid-3 can see that it was uid-1 update that triggered eval");
+    onex_assert_equal(object_property(       n3, "Alerted"),         "uid-1",        "5: n3/uid-3 can see that it was uid-1 update that triggered eval");
+    onex_assert_equal(object_property(       n3, "Alerted:UID"),     "uid-1",        "5: n3/uid-3 can see that it was uid-1 update that triggered eval");
+    onex_assert_equal(object_property(       n3, "Alerted:state:1"), "good:",        "5: n3/uid-3 can see state update");
+    onex_assert_equal(object_property(       n3, "Alerted:state:2"), "good",         "5: n3/uid-3 can see state update");
+    onex_assert_equal(object_property_values(n3, "n2:n1:state"),     "good\\: good", "5: n3/uid-3 can see state update");
   }
   if(evaluate_local_notify_n3_called==6){
-    onex_assert_equal(object_property(n3, "Alerted"),       "uid-1",   "6: n3/uid-3 can see that it was uid-1 update that triggered eval");
+    onex_assert_equal(object_property(       n3, "Alerted"),       "uid-1",             "6: n3/uid-3 can see that it was uid-1 update that triggered eval");
+    onex_assert_equal(object_property(       n3, "Alerted:UID"),   "uid-1",             "6: n3/uid-3 can see that it was uid-1 update that triggered eval");
+    onex_assert_equal(object_property_values(n3, "Alerted:state"), ":better better\\:", "6: n3/uid-3 can see the state update");
+    onex_assert_equal(object_property(       n3, "n2:n1:state:1"), ":better",           "6: n3/uid-3 can see the state update");
+    onex_assert_equal(object_property(       n3, "n2:n1:state:2"), "better:",           "6: n3/uid-3 can see the state update");
   }
   return true;
 }
@@ -486,7 +493,7 @@ bool evaluate_persistence_n1(object* n1, void* d)
 {
   if(evaluate_persistence_n1_called) return true;
   onex_assert_equal(object_property_values(n1, "state"), "good\\: good",  "can still see n1's state because it's refetched from persistence");
-  onex_assert(      object_property_set(   n1, "state", ":better better:"), "can change n1 to :better better: (awaiting n4 to be notified)");
+  onex_assert(      object_property_set(   n1, "state", ":better better:"), "can change n1 to :better better: (awaiting n3/n4 to be notified)");
   evaluate_persistence_n1_called++;
   return true;
 }
@@ -523,7 +530,7 @@ void test_persistence()
   object_set_evaluator(n4, "evaluate_persistence_n4");
 
   onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), "good mostly", "n4 can look through objects in the cache");
-  onex_assert(      object_property_set(   n1, "state", "good: good"),           "can change n1 to good: good (awaiting n4 to be notified)");
+  onex_assert(      object_property_set(   n1, "state", "good: good"),           "can change n1 to good: good (awaiting n3/n4 to be notified)");
 
   onex_set_evaluators("evaluate_persistence_n4", evaluate_persistence_n4_after, 0);
 

@@ -37,12 +37,12 @@ int main()
   char* uid=object_property(light, "UID");
 // serial_printf("UID %s\n", uid);
 
-  int todo=0;
+  uint16_t todo=0;
   while(1){
 
     onex_loop();
 
-    if(todo<2 && time_ms() >1000+2000*todo){  todo++;
+    if(todo<2 && time_ms() >1000u+2000u*todo){  todo++;
       onex_run_evaluators(uid, 0);
     }
   }
