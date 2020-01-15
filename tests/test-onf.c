@@ -322,7 +322,29 @@ uint8_t evaluate_local_notify_n3_called=0;
 bool evaluate_local_notify_n3(object* n3, void* d)
 {
   evaluate_local_notify_n3_called++;
-  onex_assert_equal(object_property(n3, "n2:state"), "better:",      "n3/uid-3 can see state update");
+  if(evaluate_local_notify_n3_called==1){
+    onex_assert_equal(object_property(n3, "Alerted"),       "uid-2",   "1: n3/uid-3 can see that it was uid-2 update that triggered eval");
+    onex_assert_equal(object_property(n3, "Alerted:UID"),   "uid-2",   "1: n3/uid-3 can see that it was uid-2 update that triggered eval");
+    onex_assert_equal(object_property(n3, "Alerted:state"), "better:", "1: n3/uid-3 can see state update");
+    onex_assert_equal(object_property(n3, "n2:state"),      "better:", "1: n3/uid-3 can see state update");
+  }
+  if(evaluate_local_notify_n3_called==2){
+    onex_assert_equal(object_property(n3, "Alerted"),       "uid-2",   "2: n3/uid-3 can see that it was uid-2 update that triggered eval");
+    onex_assert_equal(object_property(n3, "n2:state"),      "better:", "2: n3/uid-3 can see state update");
+  }
+  if(evaluate_local_notify_n3_called==3){
+    onex_assert_equal(object_property(n3, "Alerted"),       "uid-2",   "3: n3/uid-3 can see that it was uid-2 update that triggered eval");
+    onex_assert_equal(object_property(n3, "n2:state"),      "better:", "3: n3/uid-3 can see state update");
+  }
+  if(evaluate_local_notify_n3_called==4){
+    onex_assert_equal(object_property(n3, "Alerted"),       "uid-3",   "4: n3/uid-3 can see that it was uid-3 update that triggered eval");
+  }
+  if(evaluate_local_notify_n3_called==5){
+    onex_assert_equal(object_property(n3, "Alerted"),       "uid-1",   "5: n3/uid-3 can see that it was uid-1 update that triggered eval");
+  }
+  if(evaluate_local_notify_n3_called==6){
+    onex_assert_equal(object_property(n3, "Alerted"),       "uid-1",   "6: n3/uid-3 can see that it was uid-1 update that triggered eval");
+  }
   return true;
 }
 
@@ -549,8 +571,6 @@ void run_onf_tests(char* dbpath)
   onex_assert_equal_num(evaluate_remote_notify_n2_called, 1, "evaluate_remote_notify_n2 was called");
   onex_assert_equal_num(evaluate_remote_notify_n4_called, 1, "evaluate_remote_notify_n4 was called");
 
-  evaluate_local_notify_n3_called=0;
-
   onex_show_cache();
 
   test_persistence();
@@ -558,7 +578,7 @@ void run_onf_tests(char* dbpath)
   onex_assert_equal_num(evaluate_persistence_n1_called, 1,        "evaluate_persistence_n1 was called");
   onex_assert_equal_num(evaluate_persistence_n4_before_called, 1, "evaluate_persistence_n4_before was called");
   onex_assert_equal_num(evaluate_persistence_n4_after_called, 1,  "evaluate_persistence_n4_after was called");
-  onex_assert_equal_num(evaluate_local_notify_n3_called, 2,       "evaluate_local_notify_n3 was called twice (?!)");
+  onex_assert_equal_num(evaluate_local_notify_n3_called, 6,       "evaluate_local_notify_n3 was called three more times (?!)");
 }
 
 // ---------------------------------------------------------------------------------
