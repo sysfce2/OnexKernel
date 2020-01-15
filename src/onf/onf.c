@@ -53,7 +53,7 @@ static object*     new_object(value* uid, char* evaluator, char* is, uint8_t max
 static object*     new_object_from(char* text, uint8_t max_size);
 static object*     new_shell(value* uid, char* notify);
 static bool        is_shell(object* o);
-static void        run_evaluators(object* o, void* data, object* observed);
+static void        run_evaluators(object* o, void* data, object* alerted);
 
 static void        device_init();
 
@@ -72,7 +72,7 @@ typedef struct object {
   properties* properties;
   value*      cache;
   value*      notify[OBJECT_MAX_NOTIFIES];
-  object*     observed;
+  value*      alerted;
   value*      devices;
   bool        running_evals;
   uint32_t    last_observe;
@@ -770,8 +770,8 @@ char* object_to_text(object* n, char* b, uint16_t s, int style)
     }
   }
 
-  if(n->observed && style>=OBJECT_TO_TEXT_PERSIST){
-    ln+=snprintf(b+ln, s-ln, " Observed: %s", value_string(n->observed->uid));
+  if(n->alerted && style>=OBJECT_TO_TEXT_PERSIST){
+    ln+=snprintf(b+ln, s-ln, " Alerted: %s", value_string(n->alerted));
     if(ln>=s){ *b = 0; return b; }
   }
 
@@ -882,17 +882,17 @@ void onex_run_evaluators(char* uid, void* data){
   run_evaluators(o, data, 0);
 }
 
-void run_evaluators(object* o, void* data, object* observed){
+void run_evaluators(object* o, void* data, object* alerted){
   if(!o || !o->evaluator) return;
   if(o->running_evals){ log_write("Already in evaluators! %s\n", value_string(o->uid)); return; }
   o->running_evals=true;
-  o->observed=observed;
+  o->alerted=alerted? alerted->uid: 0;
   list* evals = (list*)properties_get(evaluators, o->evaluator);
   for(int i=1; i<=list_size(evals); i++){
     onex_evaluator eval=(onex_evaluator)list_get_n(evals, i);
     if(!eval(o, data)) break;
   }
-  o->observed=0;
+  o->alerted=0;
   o->running_evals=false;
 }
 
