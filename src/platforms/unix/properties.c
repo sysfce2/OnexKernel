@@ -33,7 +33,7 @@ unsigned int string_hash(char* p)
 }
 
 #define BX 30
-#define WARN_SIZE(h) if((h)->size && !((h)->size % BX)) log_write("%s# %d", (h)->name, (h)->size);
+#define WARN_SIZE(h) if((h)->size && !((h)->size % BX)) log_write("%s# %d\n", (h)->name, (h)->size);
 #define WARN_SZLG(h) if((h)->size && !((h)->size % BX)) properties_log(h)
 
 properties* properties_new(uint16_t max_size)
