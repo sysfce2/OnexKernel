@@ -38,8 +38,8 @@ void test_object_set_up()
   onex_assert_equal(object_property_get_n(  nr, "is", 1),"random",   "object_new parses 'is' first list item passing index" );
   onex_assert_equal(object_property_values( nr, "is:1"), "random",   "object_new parses 'is' first list item" );
   onex_assert(      object_property_is(     nr, "is:2",  "uid"),     "object_new parses 'is' second list item" );
-  onex_assert_equal(object_property_values( nr, "is:1:"), "random",  "object_new parses 'is' first list item" );
-  onex_assert(      object_property_is(     nr, "is:2:",  "uid"),    "object_new parses 'is' second list item" );
+  onex_assert(     !object_property_values( nr, "is:1:"),            "cannot end in :" );
+  onex_assert(     !object_property_is(     nr, "is:2:",  "uid"),    "cannot end in :" );
 
   onex_set_evaluators("default", evaluate_setup, 0);
   object* n1=object_new("uid-1", "default", "setup", 4);
@@ -72,7 +72,7 @@ void test_object_set_up()
   onex_assert(      object_property_length(  n1, "1")==1,      "property '1' is a single value");
   onex_assert(      object_property_size(    n1, "1")== -1,    "not a properties");
   onex_assert_equal(object_property(         n1, "1:1"), "a",  "1st value in list can be found by path-indexing and is 'a'");
-  onex_assert_equal(object_property(         n1, "1:1:"), "a", "1st value in list can be found by path-indexing and is 'a'");
+  onex_assert(     !object_property(         n1, "1:1:"),      "cannot end in :");
   onex_assert(     !object_property(         n1, "1:2"),       "2nd value in list by path index is null");
   onex_assert(     !object_property(         n1, "1:0"),       "0th value in list by path index is null");
   onex_assert_equal(object_property_get_n(   n1, "1", 1), "a", "1st value in list can be found by index and is 'a'");
@@ -87,14 +87,14 @@ void test_object_set_up()
   onex_assert(     !object_property(         n1, "1:0"),       "0th value in list is null");
   onex_assert_equal(object_property(         n1, "1:1"), "a",  "1st value in list is 'a'");
   onex_assert_equal(object_property(         n1, "1:2"), "b",  "2nd value in list is 'b'");
-  onex_assert_equal(object_property(         n1, "1:1:"), "a", "1st value in list is 'a'");
-  onex_assert_equal(object_property(         n1, "1:2:"), "b", "2nd value in list is 'b'");
+  onex_assert(     !object_property(         n1, "1:1:"),      "cannot end in :");
+  onex_assert(     !object_property(         n1, "1:2:"),      "cannot end in :'");
   onex_assert(     !object_property(         n1, "1:3"),       "3rd value in list is null");
   onex_assert(     !object_property_get_n(   n1, "1", 0),       "0th value in list is null");
   onex_assert_equal(object_property_get_n(   n1, "1", 1), "a",  "1st value in list is 'a'");
   onex_assert_equal(object_property_get_n(   n1, "1", 2), "b",  "2nd value in list is 'b'");
-  onex_assert_equal(object_property_get_n(   n1, "1:", 1), "a", "1st value in list is 'a'");
-  onex_assert_equal(object_property_get_n(   n1, "1:", 2), "b", "2nd value in list is 'b'");
+  onex_assert(     !object_property_get_n(   n1, "1:", 1),      "cannot end in :");
+  onex_assert(     !object_property_get_n(   n1, "1:", 2),      "cannot end in :");
   onex_assert(     !object_property_get_n(   n1, "1", 3),       "3rd value in list is null");
   onex_assert(     !object_property(         n1, "1:four"),    "four-th value in list is null");
   // UID: uid-1  is: setup  state: good  1: a b c
@@ -201,9 +201,9 @@ bool evaluate_local_state_n3(object* n3, void* d)
   // UID: uid-3  is: local-state  n2: uid-2  self: uid-3  n* uid-1 uid-2 uid-3 uid-4 uid-5
   onex_assert(     !object_property(       n3, "is:foo"),                     "can't find is:foo");
   onex_assert_equal(object_property(       n3, "n2"), "uid-2",                "can see UID of local object immediately: n2");
-  onex_assert_equal(object_property(       n3, "n2:"), "uid-2",               "can see UID of local object immediately: n2:");
+  onex_assert(     !object_property(       n3, "n2:"),                        "cannot end in :");
   onex_assert_equal(object_property(       n3, "n2:1"), "uid-2",              "can see UID of local object immediately: n2:1");
-  onex_assert_equal(object_property(       n3, "n2:1:"), "uid-2",             "can see UID of local object immediately: n2:1:");
+  onex_assert(     !object_property(       n3, "n2:1:"),                      "cannot end in :");
   onex_assert_equal(object_property(       n3, "n2:UID"), "uid-2",            "can see UID of local object immediately: n2:UID");
   onex_assert_equal(object_property(       n3, "n2:1:UID"), "uid-2",          "can see UID of local object immediately: n2:1:UID");
   onex_assert_equal(object_property(       n3, "n2:is"),   "local-state",     "can see 'is' of local object immediately");
@@ -211,24 +211,27 @@ bool evaluate_local_state_n3(object* n3, void* d)
   onex_assert(     !object_property(       n3, "n2:foo"),                     "can't find n2:foo");
   onex_assert_equal(object_property(       n3, "self:UID"), "uid-3",          "can see through link to self");
   onex_assert(      object_property_length(n3, "self:n2")==1,                 "property 'n2' is a value (uid)");
-  onex_assert(      object_property_length(n3, "self:n2:")==1,                "property 'n2:' is a value (uid)");
+  onex_assert(      object_property_length(n3, "self:n2:")==1,                "property 'n2:' is a properties with length 1");
   onex_assert_equal(object_property(       n3, "self:n2"), "uid-2",           "property 'n2' is uid-2");
-  onex_assert(      object_property_size(  n3, "self:n2")==3,                 "property 'n2' is also a properties");
-  onex_assert(      object_property_size(  n3, "self:n2:")==3,                "property 'n2:' is also a properties");
-  onex_assert_equal(object_property_val(   n3, "self:n2", 1), "local-state",  "value of n2 first item is 'local-state'");
-  onex_assert_equal(object_property_val(   n3, "self:n2", 2), "good",         "value of n2 second item is 'good'");
-  onex_assert_equal(object_property_val(   n3, "self:n2", 3), "uid-1",        "value of n2 third item is uid-1");
-  onex_assert(     !object_property_val(   n3, "self:n2", 4),                 "value of n2 third item is null");
-  onex_assert(      object_property_size(  n3, "self:self:n2")==3,            "there are three properties at n3:n2:");
+  onex_assert(      object_property_size(  n3, "self:n2")==-1,                "property 'n2' is not a properties");
+  onex_assert(      object_property_size(  n3, "self:n2:")==3,                "property 'n2:' is a properties with length 3");
+  onex_assert_equal(object_property_val(   n3, "self:n2:", 1), "local-state", "value of n2 first item is 'local-state'");
+  onex_assert(     !object_property_val(   n3, "self:n2",  2),                "value of n2 second item is not found without :");
+  onex_assert_equal(object_property_val(   n3, "self:n2:", 2), "good",        "value of n2 second item is 'good'");
+  onex_assert_equal(object_property_val(   n3, "self:n2:", 3), "uid-1",       "value of n2 third item is uid-1");
+  onex_assert(     !object_property_val(   n3, "self:n2:", 4),                "value of n2 third item is null");
+  onex_assert(      object_property_size(  n3, "self:self:n2:")==3,           "there are three properties at n3:n2:");
   onex_assert(      object_property_length(n3, "n*")==5,                      "property 'n*' is a list of 5 values/uids");
-  onex_assert(      object_property_length(n3, "n*:")==5,                     "property 'n*:' is a list of 5 values/uids");
+  onex_assert(      object_property_length(n3, "n*:")==0,                     "cannot end in :");
 //onex_assert_equal(object_property(       n3, "n*:UID"), "uid-1 uid-2..",    "n*:UID is uid-1 uid-2.. (one day)");
   onex_assert_equal(object_property(       n3, "n*:1:UID"), "uid-1",          "n*:1:UID is uid-1");
   onex_assert_equal(object_property(       n3, "n*:2:UID"), "uid-2",          "n*:2:UID is uid-2");
   onex_assert_equal(object_property(       n3, "n*:3:UID"), "uid-3",          "n*:3:UID is uid-3");
   onex_assert_equal(object_property(       n3, "n*:1"), "uid-1",              "n*:1 is uid-1");
-  onex_assert_equal(object_property(       n3, "n*:1:"), "uid-1",             "n*:1: is uid-1");
+  onex_assert(     !object_property(       n3, "n*:1:"),                      "cannot end in :");
   onex_assert_equal(object_property(       n3, "n*:2"), "uid-2",              "n*:2 is uid-2");
+  onex_assert_equal(object_property(       n3, "n*:3"), "uid-3",              "n*:3 is uid-3");
+  onex_assert_equal(object_property(       n3, "n*:4"), "uid-4",              "n*:4 is uid-4");
   onex_assert_equal(object_property_get_n( n3, "n*", 1), "uid-1",             "n*,1 is uid-1");
   onex_assert_equal(object_property_get_n( n3, "n*", 2), "uid-2",             "n*,2 is uid-2");
   onex_assert_equal(object_property_key(   n3, ":", 2), "n2",                 "key of 2nd item is 'n2'");
@@ -450,8 +453,8 @@ void test_from_text()
   onex_assert_equal(object_property(       n4, "is:1"), "remote",         "object_new_from parses 'is' first list item" );
   onex_assert_equal(object_property(       n4, "is:2"), "state",          "object_new_from parses 'is' second list item" );
   onex_assert_equal(object_property(       n4, "n3"), "uid-3",            "object_new_from parses n3");
-  onex_assert_equal(object_property_values(n4, "ab:"), "m\\: :c:d\\: n",  "object_new_from parses all the escaped colons");
-  onex_assert_equal(object_property_values(n4, "xy:"), "a :z:q\\: b",     "object_new_from parses all the escaped colons");
+  onex_assert_equal(object_property_values(n4, "ab"), "m\\: :c:d\\: n",   "object_new_from parses all the escaped colons");
+  onex_assert_equal(object_property_values(n4, "xy"), "a :z:q\\: b",      "object_new_from parses all the escaped colons");
   onex_assert_equal(object_property(       n4, "last"), "one",            "object_new_from parses last one as single value without newline");
 
   onex_assert_equal(object_to_text(        n4,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), totext, "gives same text back from reconstruction");
