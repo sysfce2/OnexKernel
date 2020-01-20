@@ -112,6 +112,11 @@ bool is_shell(object* o)
   return o->devices && value_is(o->devices, "shell") && !o->properties;
 }
 
+bool object_is_remote(object* o)
+{
+  return o && o->devices;
+}
+
 bool object_is_device(object* o)
 {
   return o && object_property_contains(o, "is", "device");
