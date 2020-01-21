@@ -630,6 +630,11 @@ bool object_property_add(object* n, char* path, char* val)
   }
   if(strchr(path, ':')) return false; // no sub-properties yet
   if(!val || !*val) return 0;
+  if(!strcmp(path, "Notifying")){
+    if(!is_uid(val)) return false;
+    add_notify(n, value_new(val));
+    return true;
+  }
   item* i=properties_get(n->properties, value_new(path));
   bool ok=true;
   if(!i){
