@@ -342,27 +342,27 @@ bool evaluate_local_notify_n3(object* n3, void* d)
   i++; i++; i++;
   i++;
   if(evaluate_local_notify_n3_called==i){
-    onex_assert_equal(object_property(n3, "Alerted"),                  "uid-3",   "4: n3/uid-3 can see that it was itself that triggered eval");
-    onex_assert_equal(object_property(n3, "Alerted:UID"),              "uid-3",   "4: n3/uid-3 can see that it was itself that triggered eval");
-    onex_assert_equal(object_property(n3, "Alerted:Alerted:n2:state"), "better:", "4: n3/uid-3 can see through itself");
-    onex_assert_equal(object_property(n3, "Alerted:is:1"),             "local",   "4: n3/uid-3 can see state update through itself");
-    onex_assert_equal(object_property(n3, "Alerted:is:2"),             "state",   "4: n3/uid-3 can see state update through itself");
+    onex_assert_equal(object_property(n3, "Alerted"),                  "uid-3",   "5: n3/uid-3 can see that it was itself that triggered eval");
+    onex_assert_equal(object_property(n3, "Alerted:UID"),              "uid-3",   "5: n3/uid-3 can see that it was itself that triggered eval");
+    onex_assert_equal(object_property(n3, "Alerted:Alerted:n2:state"), "better:", "5: n3/uid-3 can see through itself");
+    onex_assert_equal(object_property(n3, "Alerted:is:1"),             "local",   "5: n3/uid-3 can see state update through itself");
+    onex_assert_equal(object_property(n3, "Alerted:is:2"),             "state",   "5: n3/uid-3 can see state update through itself");
   }
   i++;
   if(evaluate_local_notify_n3_called==i){
-    onex_assert_equal(object_property(       n3, "Alerted"),         "uid-1",        "5: n3/uid-3 can see that it was uid-1 update that triggered eval");
-    onex_assert_equal(object_property(       n3, "Alerted:UID"),     "uid-1",        "5: n3/uid-3 can see that it was uid-1 update that triggered eval");
-    onex_assert_equal(object_property(       n3, "Alerted:state:1"), "good:",        "5: n3/uid-3 can see state update");
-    onex_assert_equal(object_property(       n3, "Alerted:state:2"), "good",         "5: n3/uid-3 can see state update");
-    onex_assert_equal(object_property_values(n3, "n2:n1:state"),     "good\\: good", "5: n3/uid-3 can see state update");
+    onex_assert_equal(object_property(       n3, "Alerted"),         "uid-1",        "6: n3/uid-3 can see that it was uid-1 update that triggered eval");
+    onex_assert_equal(object_property(       n3, "Alerted:UID"),     "uid-1",        "6: n3/uid-3 can see that it was uid-1 update that triggered eval");
+    onex_assert_equal(object_property(       n3, "Alerted:state:1"), "good:",        "6: n3/uid-3 can see state update");
+    onex_assert_equal(object_property(       n3, "Alerted:state:2"), "good",         "6: n3/uid-3 can see state update");
+    onex_assert_equal(object_property_values(n3, "n2:n1:state"),     "good\\: good", "6: n3/uid-3 can see state update");
   }
   i++;
   if(evaluate_local_notify_n3_called==i){
-    onex_assert_equal(object_property(       n3, "Alerted"),       "uid-1",             "6: n3/uid-3 can see that it was uid-1 update that triggered eval");
-    onex_assert_equal(object_property(       n3, "Alerted:UID"),   "uid-1",             "6: n3/uid-3 can see that it was uid-1 update that triggered eval");
-    onex_assert_equal(object_property_values(n3, "Alerted:state"), ":better better\\:", "6: n3/uid-3 can see the state update");
-    onex_assert_equal(object_property(       n3, "n2:n1:state:1"), ":better",           "6: n3/uid-3 can see the state update");
-    onex_assert_equal(object_property(       n3, "n2:n1:state:2"), "better:",           "6: n3/uid-3 can see the state update");
+    onex_assert_equal(object_property(       n3, "Alerted"),       "uid-1",             "7: n3/uid-3 can see that it was uid-1 update that triggered eval");
+    onex_assert_equal(object_property(       n3, "Alerted:UID"),   "uid-1",             "7: n3/uid-3 can see that it was uid-1 update that triggered eval");
+    onex_assert_equal(object_property_values(n3, "Alerted:state"), ":better better\\:", "7: n3/uid-3 can see the state update");
+    onex_assert_equal(object_property(       n3, "n2:n1:state:1"), ":better",           "7: n3/uid-3 can see the state update");
+    onex_assert_equal(object_property(       n3, "n2:n1:state:2"), "better:",           "7: n3/uid-3 can see the state update");
   }
   return true;
 }
