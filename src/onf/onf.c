@@ -202,6 +202,7 @@ object* new_shell(value* uid, char* notify)
 {
   object* n=(object*)calloc(1,sizeof(object));
   n->uid=uid;
+  n->properties=properties_new(MAX_OBJECT_SIZE);
   n->devices=value_new("shell");
   n->last_observe = 0;
   set_notifies(n, notify);
