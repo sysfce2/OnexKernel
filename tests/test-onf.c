@@ -340,6 +340,9 @@ bool evaluate_local_notify_n3(object* n3, void* d)
     onex_assert_equal(object_property(n3, "n2:state"),      "better:", "1-3: n3/uid-3 can see state update");
   }
   i++; i++; i++;
+  if(evaluate_local_notify_n3_called==i){
+    onex_assert_equal(object_property(n3, "Alerted"),                  "uid-3",   "4: n3/uid-3 can see that it was itself that triggered eval");
+  }
   i++;
   if(evaluate_local_notify_n3_called==i){
     onex_assert_equal(object_property(n3, "Alerted"),                  "uid-3",   "5: n3/uid-3 can see that it was itself that triggered eval");
