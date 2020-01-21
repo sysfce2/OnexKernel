@@ -692,7 +692,7 @@ void save_and_notify(object* o)
     object* n=onex_get_from_cache(notify);
     if(!n){
       log_write("object to notify not found: '%s'\n", notify);
-;;;;;;onp_send_object(o, channel_of(notify));;;;;;;;;;;;;
+;;;;;;if(!object_is_remote(o)) onp_send_object(o, channel_of(notify));;;;;;;;;;;;;
       continue;
     }
     if(!object_is_device(n)){
@@ -1051,7 +1051,7 @@ void onf_recv_observe(char* text, char* channel)
   object* o=onex_get_from_cache(uid);
   if(!o) return;
   add_notify(o, value_new("uid-of-device"));
-  onp_send_object(o, channel);
+  if(!object_is_remote(o)) onp_send_object(o, channel);
 }
 
 void onf_recv_object(char* text, char* channel)
