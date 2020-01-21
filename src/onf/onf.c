@@ -625,7 +625,9 @@ bool nested_property_delete(object* n, char* path)
 
 bool object_property_add(object* n, char* path, char* val)
 {
-  if(!n->running_evals && has_notifies(n)) log_write("\nNot running evaluators! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
+  if(!n->running_evals && has_notifies(n)){
+    log_write("\nSetting property in an object but not running in an evaluator! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
+  }
   if(strchr(path, ':')) return false; // no sub-properties yet
   if(!val || !*val) return 0;
   item* i=properties_get(n->properties, value_new(path));
