@@ -8,25 +8,45 @@
 #include <onf.h>
 
 object* button;
+char* buttonuid;
 
 void button_1_change_cb(int);
 bool evaluate_button(object* button, void* pressed);
+
+// Copied from ONR Behaviours
+bool evaluate_device_logic(object* o, void* d)
+{
+  if(object_property_contains(o, (char*)"Alerted:is", (char*)"device")){
+    char* devuid=object_property(o, (char*)"Alerted");
+    if(!object_property_contains(o, (char*)"connected-devices", devuid)){
+      object_property_add(o, (char*)"connected-devices", devuid);
+    }
+  }
+  return true;
+}
 
 int main()
 {
   time_init();
   onex_init("");
+
 #if defined(NRF5)
   gpio_mode_cb(BUTTON_1, INPUT_PULLUP, button_1_change_cb);
 #endif
 
-  time_delay_s(1);
   log_init(9600);
   log_write("\n------Starting Button Test-----\n");
 
+  onex_set_evaluators("evaluate_device", evaluate_device_logic, 0);
   onex_set_evaluators("evaluate_button", evaluate_button, 0);
-  button=object_new("uid-1-2-3", "evaluate_button", "button", 4);
+
+  object_set_evaluator(onex_device_object, (char*)"evaluate_device");
+
+  button=object_new(0, "evaluate_button", "editable button", 4);
   object_property_set(button, "name", "£€§");
+
+  buttonuid=object_property(button, "UID");
+  object_property_add(onex_device_object, (char*)"io", buttonuid);
 
 #if !defined(NRF5)
   uint32_t lasttime=0;
@@ -50,7 +70,7 @@ int main()
 
 void button_1_change_cb(int button_pressed)
 {
-  onex_run_evaluators("uid-1-2-3", (void*)(bool)button_pressed);
+  onex_run_evaluators(buttonuid, (void*)(bool)button_pressed);
 }
 
 bool evaluate_button(object* button, void* pressed)

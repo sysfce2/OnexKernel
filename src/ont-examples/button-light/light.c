@@ -17,6 +17,18 @@ const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 
 bool evaluate_light(object* light, void* d);
 
+// Copied from ONR Behaviours
+bool evaluate_device_logic(object* o, void* d)
+{
+  if(object_property_contains(o, (char*)"Alerted:is", (char*)"device")){
+    char* devuid=object_property(o, (char*)"Alerted");
+    if(!object_property_contains(o, (char*)"connected-devices", devuid)){
+      object_property_add(o, (char*)"connected-devices", devuid);
+    }
+  }
+  return true;
+}
+
 int main()
 {
   time_init();
@@ -30,12 +42,19 @@ int main()
   log_write("\n------Starting Light Test-----\n");
 #endif
 
+  onex_set_evaluators("evaluate_device", evaluate_device_logic, 0);
   onex_set_evaluators("evaluate_light", evaluate_light, 0);
-  light=object_new(0, "evaluate_light", "light", 4);
+
+  object_set_evaluator(onex_device_object, (char*)"evaluate_device");
+
+  light=object_new(0, "evaluate_light", "editable light", 4);
+
+  char* lightuid=object_property(light, "UID");
+  object_property_add(onex_device_object, (char*)"io", lightuid);
+
+  char* deviceuid=object_property(onex_device_object, "UID");
+  object_property_set(light, "device", deviceuid);
   object_property_set(light, "light", "off");
-  object_property_set(light, "button", "uid-1-2-3");
-  char* uid=object_property(light, "UID");
-// serial_printf("UID %s\n", uid);
 
   uint16_t todo=0;
   while(1){
@@ -43,13 +62,16 @@ int main()
     onex_loop();
 
     if(todo<2 && time_ms() >1000u+2000u*todo){  todo++;
-      onex_run_evaluators(uid, 0);
+      onex_run_evaluators(lightuid, 0);
     }
   }
 }
 
 bool evaluate_light(object* light, void* d)
 {
+  char* buttonuid=object_property(light, "device:connected-devices:io");
+  if(buttonuid) object_property_set(light, "button", buttonuid);
+
   bool buttonpressed=object_property_is(light, "button:state", "down");
   char* s=(char*)(buttonpressed? "on": "off");
   object_property_set(light, "light", s);
