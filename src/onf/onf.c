@@ -704,7 +704,9 @@ void save_and_notify(object* o)
       continue;
     }
     if(!object_is_device(n)){
-      run_evaluators(n,0,o);
+      if(!object_is_remote(n)) run_evaluators(n,0,o);
+      else
+      if(!object_is_remote(o)) onp_send_object(o, channel_of(notify));
     }
     else{
       if(!object_is_remote(o)) onp_send_object(o, channel_of(notify));
