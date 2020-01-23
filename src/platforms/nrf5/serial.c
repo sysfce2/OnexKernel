@@ -69,6 +69,7 @@ bool serial_init(serial_recv_cb cb, uint32_t baudrate)
     NRF_UART0->EVENTS_RXDRDY = 0;
 
     initialised=true;
+    if(recv_cb) recv_cb(0,0);
     return true;
 }
 

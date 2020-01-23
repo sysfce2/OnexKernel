@@ -33,8 +33,9 @@ void channel_serial_on_recv(char* ch, int len)
 
 void channel_serial_init(channel_serial_connect_cb cb)
 {
-  initialised=serial_init(channel_serial_on_recv, 9600);
   connect_cb=cb;
+  initialised=true;
+  initialised=serial_init(channel_serial_on_recv, 9600);
 }
 
 int channel_serial_recv(char* b, int l)
