@@ -65,11 +65,13 @@ void onp_loop()
 #endif
 }
 
+static void onp_send_object_p(object* o, char* channel, bool preamble);
+
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
 void onp_on_connect(char* channel)
 {
   log_write("onp_on_connect %s\n", channel);
-  onp_send_object(onex_device_object, channel);
+  onp_send_object_p(onex_device_object, channel, true);
 }
 
 static void handle_recv(char* buff, int size, char* channel, uint16_t* fromip)
@@ -102,9 +104,15 @@ void onp_send_observe(char* uid, char* channel)
 
 void onp_send_object(object* o, char* channel)
 {
+  onp_send_object_p(o, channel, false);
+}
+
+void onp_send_object_p(object* o, char* channel, bool preamble)
+{
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
   char buff[256];
-  object_to_text(o,buff,256,OBJECT_TO_TEXT_NETWORK);
+  size_t p=preamble? snprintf(buff, 256, "\n\n"): 0;
+  object_to_text(o,buff+p,256-p,OBJECT_TO_TEXT_NETWORK);
   send(buff, channel);
 #endif
 }
