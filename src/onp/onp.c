@@ -47,17 +47,19 @@ uint16_t single_peer[] = { 0x2002, 0xd417, 0x1f9e, 0x1234, 0x5e51, 0x4fff, 0xfe7
 #endif
 #endif
 
+#define RECV_BUFF_SIZE 256
+
 void onp_loop()
 {
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
-  char buff[256];
+  char buff[RECV_BUFF_SIZE];
   int  size=0;
 #ifdef ONP_CHANNEL_SERIAL
-  size = channel_serial_recv(buff, 256);
+  size = channel_serial_recv(buff, RECV_BUFF_SIZE-1); // spare for term 0
   if(size!= -1){ handle_recv(buff,size,"serial",0); return; }
 #endif
 #ifdef ONP_CHANNEL_IPV6
-  size = channel_ipv6_recv(buff, 256, single_peer);
+  size = channel_ipv6_recv(buff, RECV_BUFF_SIZE-1, single_peer);
   if(size!= -1){ handle_recv(buff,size,0,single_peer); return; }
 #endif
 #endif
@@ -72,6 +74,7 @@ void onp_on_connect(char* channel)
 
 static void handle_recv(char* buff, int size, char* channel, uint16_t* fromip)
 {
+  if(size==255) log_write("ONP receive buffer probably over-filled!");
   buff[size]=0;
 
 #ifdef ONP_DEBUG
