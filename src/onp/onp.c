@@ -56,11 +56,11 @@ void onp_loop()
   int  size=0;
 #ifdef ONP_CHANNEL_SERIAL
   size = channel_serial_recv(buff, RECV_BUFF_SIZE-1); // spare for term 0
-  if(size!= -1){ handle_recv(buff,size,"serial",0); return; }
+  if(size){ handle_recv(buff,size,"serial",0); return; }
 #endif
 #ifdef ONP_CHANNEL_IPV6
   size = channel_ipv6_recv(buff, RECV_BUFF_SIZE-1, single_peer);
-  if(size!= -1){ handle_recv(buff,size,0,single_peer); return; }
+  if(size){ handle_recv(buff,size,0,single_peer); return; }
 #endif
 #endif
 }

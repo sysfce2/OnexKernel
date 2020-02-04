@@ -12,7 +12,7 @@ void channel_serial_init(channel_serial_connect_cb connect_cb)
 
 int channel_serial_recv(char* b, int l)
 {
-  if(!initialised) return -1;
+  if(!initialised) return 0;
   return serial_recv(b,l);
 }
 

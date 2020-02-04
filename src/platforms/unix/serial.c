@@ -94,10 +94,10 @@ int  ser_size=0;
 
 int serial_recv(char* b, int l)
 {
-  if(!initialised) return -1;
+  if(!initialised) return 0;
   int bytes_available_for_reading=0;
   ioctl(serialfd, FIONREAD, &bytes_available_for_reading);
-  if(!bytes_available_for_reading) return -1;
+  if(!bytes_available_for_reading) return 0;
   for(; read(serialfd, ser_buff+i, 1)==1; i++){
     if(i==SERIAL_MAX_LENGTH-1 || ser_buff[i]=='\n'){
       ser_buff[i]=0;
@@ -109,7 +109,7 @@ int serial_recv(char* b, int l)
       return size;
     }
   }
-  return -1;
+  return 0;
 }
 
 int serial_printf(const char* fmt, ...)
