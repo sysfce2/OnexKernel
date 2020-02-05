@@ -268,8 +268,8 @@ nrf51usb.button: button.nrf51usb.hex
 	cp $< /media/duncan/JLINK/
 
 nrf52usb.button: button.nrf52usb.hex
-	nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application $< app_dfu_package.zip
-	nrfutil dfu usb-serial -pkg app_dfu_package.zip -p /dev/ttyACM0
+	nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application $< $<.zip
+	nrfutil dfu usb-serial -pkg $<.zip -p /dev/ttyACM0
 
 nrf52dk.button: button.nrf52dk.hex
 	cp $< /media/duncan/JLINK/
@@ -290,8 +290,8 @@ nrf51usb.light: light.nrf51usb.hex
 	cp $< /media/duncan/JLINK/
 
 nrf52usb.light: light.nrf52usb.hex
-	nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application $< app_dfu_package.zip
-	nrfutil dfu usb-serial -pkg app_dfu_package.zip -p /dev/ttyACM0
+	nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application $< $<.zip
+	nrfutil dfu usb-serial -pkg $<.zip -p /dev/ttyACM0
 
 nrf52dk.light: light.nrf52dk.hex
 	cp $< /media/duncan/JLINK/
@@ -310,7 +310,7 @@ LINUX_CC_SYMBOLS = -D${TARGET} ${CHANNELS}
 CC_FLAGS = -c -std=gnu99 -Werror -Wall -Wextra -Wno-unused-parameter -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer
 
 M4_CPU = -mcpu=cortex-m4 -mthumb -mabi=aapcs
-M4_CC_FLAGS = -std=c99 -MP -MD -Werror -Wall -Wextra -Wno-unused-parameter -fno-common -fshort-enums -fno-builtin -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer -O3 -g3 -mfloat-abi=hard -mfpu=fpv4-sp-d16
+M4_CC_FLAGS = -std=gnu99 -MP -MD -Werror -Wall -Wextra -Wno-unused-parameter -fno-common -fshort-enums -fno-builtin -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer -O3 -g3 -mfloat-abi=hard -mfpu=fpv4-sp-d16
 NRF52_CC_SYMBOLS = -DNRF5 -DNRF52 -D${TARGET} ${CHANNELS} -DTARGET_MCU_NRF52832 -DFLOAT_ABI_HARD -DNRF52840_XXAA -D__HEAP_SIZE=8192 -D__STACK_SIZE=8192
 
 M0_CPU = -mcpu=cortex-m0 -mthumb

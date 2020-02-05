@@ -10,6 +10,7 @@
 #if defined(NRF52)
 #include <nrf52.h>
 #include <nrf52_bitfields.h>
+#include <nrf51_to_nrf52.h>
 #endif
 
 #include <variant.h>

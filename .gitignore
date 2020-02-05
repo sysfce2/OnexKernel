@@ -7,7 +7,9 @@ ndkBuild/
 .gradle
 local.properties
 *.o
+*.d
 *.hex
 *.elf
+*.zip
 *.linux
 Onex/

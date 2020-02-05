@@ -39,6 +39,8 @@
 
 #define BSP_SELF_PINRESET_PIN NRF_GPIO_PIN_MAP(0,19)
 
+#define RX_PIN_NUMBER  13
+#define TX_PIN_NUMBER  15
 #define HWFC           true
 
 #endif
