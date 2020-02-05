@@ -36,8 +36,8 @@
 static value*      generate_uid();
 static char*       get_key(char** p);
 static char*       get_val(char** p);
-static void        add_to_cache(object* n);
-static void        add_to_cache_and_persist(object* n);
+static bool        add_to_cache(object* n);
+static bool        add_to_cache_and_persist(object* n);
 static object*     find_object(char* uid, object* n, bool observe);
 static item*       property_item(object* n, char* path, object* t, bool observe);
 static item*       nested_property_item(object* n, char* path, object* t, bool observe);
@@ -138,7 +138,7 @@ object* object_new_from(char* text, uint8_t max_size)
   if(!n) return 0;
   char* uid=value_string(n->uid);
   if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
-  add_to_cache_and_persist(n);
+  if(!add_to_cache_and_persist(n)) return 0;
   return n;
 }
 
@@ -146,7 +146,7 @@ object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size)
 {
   if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
   object* n=new_object(value_new(uid), evaluator, is, max_size);
-  add_to_cache_and_persist(n);
+  if(!add_to_cache_and_persist(n)) return 0;
   return n;
 }
 
@@ -394,8 +394,7 @@ object* find_object(char* uid, object* n, bool observe)
   object* o=onex_get_from_cache(uid);
   if(!o){
     o=new_shell(value_new(uid), value_string(n->uid));
-    add_to_cache_and_persist(o);
-    ping_object(uid, o);
+    if(add_to_cache_and_persist(o)) ping_object(uid, o);
     return 0;
   }
   if(is_shell(o)){
@@ -826,10 +825,14 @@ void onex_loop()
 
 static properties* objects_cache=0;
 
-void add_to_cache(object* n)
+bool add_to_cache(object* n)
 {
   if(!objects_cache) objects_cache=properties_new(MAX_OBJECTS);
-  properties_set(objects_cache, n->uid, n);
+  if(!properties_set(objects_cache, n->uid, n)){
+    log_write("No more room for objects!!\n");
+    return false;
+  }
+  return true;
 }
 
 object* onex_get_from_cache(char* uid)
@@ -840,10 +843,11 @@ object* onex_get_from_cache(char* uid)
   return o;
 }
 
-void add_to_cache_and_persist(object* n)
+bool add_to_cache_and_persist(object* n)
 {
-  add_to_cache(n);
+  if(!add_to_cache(n)) return false;
   persistence_put(n);
+  return true;
 }
 
 void onex_show_cache()
@@ -998,7 +1002,8 @@ object* persistence_get(char* uid)
   char* text=properties_get(objects_text, uidv);
   if(!text) return 0;
   object* o=new_object_from(text, MAX_OBJECT_SIZE);
-  if(o) add_to_cache(o);
+  if(!o) return 0;
+  if(!add_to_cache(o)) return 0;
   return o;
 }
 
@@ -1070,7 +1075,7 @@ void onf_recv_object(char* text, char* channel)
   if(!n) return;
   object* o=onex_get_from_cache(value_string(n->uid));
   if(!o){
-    add_to_cache(n);
+    if(!add_to_cache(n)) return;
     o=n;
   }
   else{
