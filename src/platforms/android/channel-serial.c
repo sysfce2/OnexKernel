@@ -42,7 +42,23 @@ void channel_serial_init(channel_serial_connect_cb cb)
 
 int channel_serial_recv(char* b, int l)
 {
-  if(!initialised) return 0;
+  if(!initialised || !data_available) return 0;
+
+  int cr=current_read;
+  int da=data_available;
+  int s=0;
+  while(da && s<l){
+    char d=buffer[cr++]; s++;
+    if(cr==SERIAL_BUFFER_SIZE) cr=0;
+    da--;
+    if(d=='\r' || d=='\n') break;
+    if(!da) return 0;
+    if(s==l){
+      log_write("channel_serial_recv can fill all of the available buffer without hitting EOL!\n");
+      return 0;
+    }
+  }
+
   int size=0;
   while(data_available && size<l){
     b[size++]=buffer[current_read++];
