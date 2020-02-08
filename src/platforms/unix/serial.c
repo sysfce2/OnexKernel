@@ -101,27 +101,33 @@ void update_connected_serials()
 
 #define SERIAL_MAX_LENGTH 1024
 
-int  ser_index[TTYS_RANGE]={0,0,0};
-char ser_buff[TTYS_RANGE][SERIAL_MAX_LENGTH];
+static int  ser_index[TTYS_RANGE]={0,0,0};
+static char ser_buff[TTYS_RANGE][SERIAL_MAX_LENGTH];
+static int  nt=0;
 
 int serial_recv(char* b, int l)
 {
   update_connected_serials();
-  for(uint8_t t=0; t< TTYS_RANGE; t++){  // TODO: earlier ttys can starve later ttys
-    int fd=fds[t]; if(fd== -1) continue;
-    int bytes_available_for_reading=0;
-    ioctl(fd, FIONREAD, &bytes_available_for_reading);
-    if(!bytes_available_for_reading) return 0;
-    for(; read(fd, ser_buff[t]+ser_index[t], 1)==1; ser_index[t]++){
-      if(ser_index[t]==SERIAL_MAX_LENGTH-1 || ser_buff[t][ser_index[t]]=='\n'){
-        ser_buff[t][ser_index[t]]=0;
-        int ss = ser_index[t]+1;
-        ser_index[t]=0;
-        int size=l<ss? l: ss;
-        memcpy(b, ser_buff[t], size);
-        return size;
+  for(int n=0; n<TTYS_RANGE; n++){
+    int fd=fds[nt];
+    if(fd!= -1){
+      int bytes_available_for_reading=0;
+      ioctl(fd, FIONREAD, &bytes_available_for_reading);
+      if(bytes_available_for_reading){
+        for(; read(fd, ser_buff[nt]+ser_index[nt], 1)==1; ser_index[nt]++){
+          if(ser_index[nt]==SERIAL_MAX_LENGTH-1 || ser_buff[nt][ser_index[nt]]=='\n'){
+            ser_buff[nt][ser_index[nt]]=0;
+            int ss = ser_index[nt]+1;
+            ser_index[nt]=0;
+            int size=l<ss? l: ss;
+            memcpy(b, ser_buff[nt], size);
+            nt++; if(nt==TTYS_RANGE) nt=0;
+            return size;
+          }
+        }
       }
     }
+    nt++; if(nt==TTYS_RANGE) nt=0;
   }
   return 0;
 }
