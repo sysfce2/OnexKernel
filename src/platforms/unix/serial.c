@@ -13,10 +13,9 @@
 
 #include <onex-kernel/log.h>
 #include <onex-kernel/serial.h>
+#include <onex-kernel/time.h>
 
-int serialfd;
-
-static bool init_serial(char* devtty, int b){
+static int init_serial(char* devtty, int b){
 
     int baud=B9600;
     if(b==   1200) baud=   B1200; else
@@ -42,14 +41,14 @@ static bool init_serial(char* devtty, int b){
     if(b==3500000) baud=B3500000; else // not available in nrf51
     if(b==4000000) baud=B4000000; else log_write("speed %d not found: using default 9600 baud!\n", b);
 
-    log_write("opening %s @ %d\n", devtty, b);
+    // log_write("opening %s @ %d\n", devtty, b);
 
-    serialfd=open(devtty, O_RDWR | O_NOCTTY | O_SYNC | O_NDELAY);
-    if(serialfd< 0){ log_write("error %d %s opening %s\n", errno, strerror(errno), devtty); return false; }
+    int fd=open(devtty, O_RDWR | O_NOCTTY | O_SYNC | O_NDELAY);
+    if(fd< 0){ /* log_write("%s: %s (%d)\n", devtty, strerror(errno), errno); */ return -1; }
 
     struct termios tty;
     memset(&tty, 0, sizeof tty);
-    if(tcgetattr(serialfd, &tty)){ log_write("error %d %s in tcgetattr\n", errno, strerror(errno)); return false; }
+    if(tcgetattr(fd, &tty)){ log_write("error %d %s in tcgetattr\n", errno, strerror(errno)); return -1; }
 
     cfsetospeed(&tty, baud);
     cfsetispeed(&tty, baud);
@@ -69,59 +68,79 @@ static bool init_serial(char* devtty, int b){
     tty.c_cflag &= ~CSTOPB;
     tty.c_cflag &= ~CRTSCTS;
 
-    if(tcsetattr(serialfd, TCSANOW, &tty)){ log_write("error %d %s in tcsetattr\n", errno, strerror(errno)); return false; }
-    return true;
+    if(tcsetattr(fd, TCSANOW, &tty)){ log_write("error %d %s in tcsetattr\n", errno, strerror(errno)); return -1; }
+    return fd;
 }
 
-static bool initialised=false;
+static serial_recv_cb recv_cb;
+static uint32_t baudrate;
+static uint32_t nextupdate=0;
 
-int currenttty=0;
-char* ttys[] = { "/dev/ttyACM0", "/dev/ttyACM1" , "/dev/ttyACM2" , "/dev/ttyACM3" };
-
-bool serial_init(serial_recv_cb cb, uint32_t baudrate)
+bool serial_init(serial_recv_cb cb, uint32_t br)
 {
-  char* devtty = ttys[currenttty];
-  initialised=init_serial(devtty, baudrate);
-  if(!initialised) currenttty=(currenttty+1)%(sizeof(ttys)/sizeof(char*));
-  return initialised;
+  recv_cb=cb;
+  baudrate=br;
+  return true;
 }
 
-#define SERIAL_MAX_LENGTH 256
+#define TTYS_RANGE 3
+char* ttys[] = { "/dev/ttyACM0", "/dev/ttyACM1" , "/dev/ttyACM2" };
+int   fds[]  = {-1,-1,-1};
 
-int  i=0;
-char ser_buff[SERIAL_MAX_LENGTH];
-int  ser_size=0;
+void update_connected_serials()
+{
+  if(time_ms() < nextupdate) return;
+  nextupdate=time_ms()+1500;
+  for(uint8_t t=0; t< TTYS_RANGE; t++){
+    if(fds[t]== -1){
+      fds[t]=init_serial(ttys[t], baudrate);
+      if(fds[t]!= -1 && recv_cb) recv_cb(0,0);
+    }
+  }
+}
+
+#define SERIAL_MAX_LENGTH 1024
+
+int  ser_index[TTYS_RANGE]={0,0,0};
+char ser_buff[TTYS_RANGE][SERIAL_MAX_LENGTH];
 
 int serial_recv(char* b, int l)
 {
-  if(!initialised) return 0;
-  int bytes_available_for_reading=0;
-  ioctl(serialfd, FIONREAD, &bytes_available_for_reading);
-  if(!bytes_available_for_reading) return 0;
-  for(; read(serialfd, ser_buff+i, 1)==1; i++){
-    if(i==SERIAL_MAX_LENGTH-1 || ser_buff[i]=='\n'){
-      ser_buff[i]=0;
-      ser_size = i+1;
-      i=0;
-      int size=l<ser_size? l: ser_size;
-      memcpy(b, ser_buff, size);
-      ser_size=0;
-      return size;
+  update_connected_serials();
+  for(uint8_t t=0; t< TTYS_RANGE; t++){  // TODO: earlier ttys can starve later ttys
+    int fd=fds[t]; if(fd== -1) continue;
+    int bytes_available_for_reading=0;
+    ioctl(fd, FIONREAD, &bytes_available_for_reading);
+    if(!bytes_available_for_reading) return 0;
+    for(; read(fd, ser_buff[t]+ser_index[t], 1)==1; ser_index[t]++){
+      if(ser_index[t]==SERIAL_MAX_LENGTH-1 || ser_buff[t][ser_index[t]]=='\n'){
+        ser_buff[t][ser_index[t]]=0;
+        int ss = ser_index[t]+1;
+        ser_index[t]=0;
+        int size=l<ss? l: ss;
+        memcpy(b, ser_buff[t], size);
+        return size;
+      }
     }
   }
   return 0;
 }
 
+#define PRINT_BUFF_SIZE 1024
+char print_buff[PRINT_BUFF_SIZE];
+
 int serial_printf(const char* fmt, ...)
 {
-  if(!initialised) return -1;
-  va_list args;
-  va_start(args, fmt);
-  char b[256];
-  int n=vsnprintf(b, 256, fmt, args);
-  int i=write(serialfd, b, n); if(i<0) return -1;
-  va_end(args);
-  return i;
+  int i=0;
+  for(uint8_t t=0; t< TTYS_RANGE; t++){
+    int fd=fds[t]; if(fd== -1) continue;
+    va_list args;
+    va_start(args, fmt);
+    int n=vsnprintf(print_buff, PRINT_BUFF_SIZE, fmt, args);
+    int j=write(fd, print_buff, n); if(j>=0) i=j;
+    va_end(args);
+  }
+  return i; // TODO: returns last tty chars written
 }
 
 

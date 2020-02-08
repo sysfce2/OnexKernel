@@ -4,10 +4,21 @@
 
 static bool initialised=false;
 
-void channel_serial_init(channel_serial_connect_cb connect_cb)
+static channel_serial_connect_cb connect_cb;
+
+void channel_serial_on_recv(char* ch, int len)
 {
-  initialised=serial_init(0, 9600);
-  if(initialised && connect_cb) connect_cb("serial");
+  if(!ch){
+    if(connect_cb) connect_cb("serial");
+    return;
+  }
+}
+
+void channel_serial_init(channel_serial_connect_cb cb)
+{
+  connect_cb=cb;
+  serial_init(channel_serial_on_recv, 9600);
+  initialised=true;
 }
 
 int channel_serial_recv(char* b, int l)
