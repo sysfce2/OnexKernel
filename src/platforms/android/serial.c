@@ -29,16 +29,18 @@ void serial_cb(serial_recv_cb cb)
 
 extern void serial_send(char* b);
 
+#define PRINT_BUFF_SIZE 1024
+char print_buff[PRINT_BUFF_SIZE];
+
 int serial_printf(const char* fmt, ...)
 {
   if(!initialised) return -1;
   va_list args;
   va_start(args, fmt);
-  char b[256];
-  int n=vsnprintf(b, 256, fmt, args);
-  serial_send(b);
+  int n=vsnprintf(print_buff, PRINT_BUFF_SIZE, fmt, args);
+  serial_send(print_buff);
   va_end(args);
-  return strlen(b);
+  return strlen(print_buff);
 }
 
 
