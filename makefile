@@ -130,6 +130,11 @@ tests.microbit.elf: TARGET=TARGET_MICRO_BIT
 tests.microbit.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) $(LIB_OBJECTS:.c=.o) $(TESTS_OBJECTS:.c=.o)
 	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
 
+tests.uno.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5_INCLUDES)
+tests.uno.elf: TARGET=TARGET_RBL_UNO
+tests.uno.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) $(LIB_OBJECTS:.c=.o) $(TESTS_OBJECTS:.c=.o)
+	$(LD) $(M0_LD_FLAGS) -L${M0_TEMPLATE_PATH} -T$(LINKER_SCRIPT_16K) -o $@ $^
+
 tests.nano.elf: COMPILE_LINE=${M0_CPU} $(M0_CC_FLAGS) $(NRF51_CC_SYMBOLS) $(NRF5_INCLUDES)
 tests.nano.elf: TARGET=TARGET_RBLAB_BLENANO
 tests.nano.elf: $(NRF51_SYS_S_OBJECTS:.s=.o) $(NRF51_SYS_C_OBJECTS:.c=.o) $(NRF5_C_SOURCE_FILES:.c=.o) $(LIB_OBJECTS:.c=.o) $(TESTS_OBJECTS:.c=.o)
@@ -243,6 +248,11 @@ android.tests.lan: android.library
 
 microbit.tests: tests.microbit.hex
 	cp $< /media/duncan/MICROBIT/
+	sleep 2
+	miniterm.py -e --eol CR /dev/ttyACM0 115200
+
+uno.tests: tests.uno.hex
+	cp $< /media/duncan/MBED/
 	sleep 2
 	miniterm.py -e --eol CR /dev/ttyACM0 115200
 
