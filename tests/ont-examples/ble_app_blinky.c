@@ -99,7 +99,7 @@
 
 #define DEAD_BEEF                       0xDEADBEEF                              /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
-static char m_tx_buffer[NRF_DRV_USBD_EPSIZE];
+static unsigned char m_tx_buffer[NRF_DRV_USBD_EPSIZE];
 static bool m_send_flag = 0;
 
 BLE_NUS_DEF(m_nus, NRF_SDH_BLE_TOTAL_LINK_COUNT);                                   /**< BLE NUS service instance. */
@@ -272,21 +272,16 @@ static void nrf_qwr_error_handler(uint32_t nrf_error)
 
 static void nus_data_handler(ble_nus_evt_t * p_evt)
 {
-    ret_code_t err_code;
     if (p_evt->type == BLE_NUS_EVT_RX_DATA)
     {
-        do
-        {
-            uint16_t length = (uint16_t)p_evt->params.rx_data.length;
-            unsigned char* data = (unsigned char*)p_evt->params.rx_data.p_data;
-            err_code = ble_nus_data_send(&m_nus, data, &length, m_conn_handle);
-            if ((err_code != NRF_ERROR_INVALID_STATE) &&
-                (err_code != NRF_ERROR_RESOURCES) &&
-                (err_code != NRF_ERROR_NOT_FOUND))
-            {
-                APP_ERROR_CHECK(err_code);
-            }
-        } while (err_code == NRF_ERROR_RESOURCES);
+      uint16_t       length =     (uint16_t)p_evt->params.rx_data.length;
+      unsigned char* data = (unsigned char*)p_evt->params.rx_data.p_data;
+      if(length>NRF_DRV_USBD_EPSIZE-1) return;
+      unsigned char b[NRF_DRV_USBD_EPSIZE];
+      memcpy(b, data, length); b[length]=0;
+      size_t size = snprintf((char*)m_tx_buffer, NRF_DRV_USBD_EPSIZE, "%s\r\n", b);
+      if(size>=NRF_DRV_USBD_EPSIZE) size=NRF_DRV_USBD_EPSIZE-1;
+      serial_write(m_tx_buffer, size);
     }
 }
 
@@ -641,9 +636,7 @@ int main(void)
         if(m_send_flag)
         {
             static int  frame_counter;
-
-            size_t size = sprintf(m_tx_buffer, "Hello USB CDC FA demo: %u\r\n", frame_counter);
-
+            size_t size = sprintf((char*)m_tx_buffer, "Hello USB CDC FA demo: %u\r\n", frame_counter);
             if(serial_write(m_tx_buffer, size)) ++frame_counter;
         }
 

@@ -192,13 +192,13 @@ void serial_cb(serial_recv_cb cb)
     recv_cb = cb;
 }
 
-void serial_putchar(char ch)
+void serial_putchar(unsigned char ch)
 {
   if(!initialised) serial_init(0,0);
   serial_write(&ch, 1);
 }
 
-int serial_write(char* b, size_t l)
+int serial_write(unsigned char* b, size_t l)
 {
   ret_code_t ret = app_usbd_cdc_acm_write(&m_app_cdc_acm, b, l);
   return (ret == NRF_SUCCESS)? l: 0;
