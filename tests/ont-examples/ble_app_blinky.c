@@ -597,6 +597,22 @@ static void idle_state_handle(void)
     }
 }
 
+void serial_in(char* buf, uint16_t size)
+{
+  ret_code_t err_code;
+  do
+  {
+    err_code = ble_nus_data_send(&m_nus, (unsigned char*)buf, &size, m_conn_handle);
+
+    if ((err_code != NRF_ERROR_INVALID_STATE) &&
+        (err_code != NRF_ERROR_RESOURCES) &&
+        (err_code != NRF_ERROR_NOT_FOUND))
+    {
+        APP_ERROR_CHECK(err_code);
+    }
+  } while (err_code == NRF_ERROR_RESOURCES);
+}
+
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -605,7 +621,7 @@ int main(void)
     leds_init();
     timers_init();
     buttons_init();
-    serial_init(0,0);
+    serial_init(serial_in,0);
     power_management_init();
     ble_stack_init();
     gap_params_init();
