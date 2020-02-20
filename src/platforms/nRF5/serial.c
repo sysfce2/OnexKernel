@@ -91,7 +91,7 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
                 ret = app_usbd_cdc_acm_read(&m_app_cdc_acm,
                                             m_rx_buffer,
                                             READ_SIZE);
-                if(recv_cb) recv_cb(m_rx_buffer, READ_SIZE);
+                if(recv_cb && ret == NRF_SUCCESS) recv_cb(m_rx_buffer, READ_SIZE);
 
             } while (ret == NRF_SUCCESS);
 
