@@ -12,4 +12,8 @@ local.properties
 *.elf
 *.zip
 *.linux
+*.bin
+*.map
+*.in
+*.out
 Onex/

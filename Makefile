@@ -49,7 +49,7 @@ UNIX_C_SOURCE_FILES = \
 
 
 BLINKY_C_SOURCE_FILES = \
-./src/ont-examples/microbit/blink.c \
+./tests/ont-examples/microbit/blink.c \
 
 
 ALL_BLINKY_C_SOURCE_FILES = $(SYS_C_SOURCE_FILES) $(NRF5_C_SOURCE_FILES) $(BLINKY_C_SOURCE_FILES)
@@ -91,15 +91,15 @@ TESTS_OBJECTS = \
 
 
 LIGHT_OBJECTS = \
-./src/ont-examples/button-light/light.c \
+./tests/ont-examples/button-light/light.c \
 
 
 BUTTON_OBJECTS = \
-./src/ont-examples/button-light/button.c \
+./tests/ont-examples/button-light/button.c \
 
 
 TAG_OBJECTS = \
-./src/ont-examples/tag/tag.c \
+./tests/ont-examples/tag/tag.c \
 
 
 ############################################################################################
