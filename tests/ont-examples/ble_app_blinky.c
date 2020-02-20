@@ -272,16 +272,16 @@ static void nrf_qwr_error_handler(uint32_t nrf_error)
 
 static void nus_data_handler(ble_nus_evt_t * p_evt)
 {
-    if (p_evt->type == BLE_NUS_EVT_RX_DATA)
-    {
+    if (p_evt->type == BLE_NUS_EVT_RX_DATA) {
       uint16_t       length =     (uint16_t)p_evt->params.rx_data.length;
       unsigned char* data = (unsigned char*)p_evt->params.rx_data.p_data;
-      if(length>NRF_DRV_USBD_EPSIZE-1) return;
-      unsigned char b[NRF_DRV_USBD_EPSIZE];
+      if(length>=64){
+        serial_printf("NUS data too long; %d chars\n", length);
+        return;
+      }
+      unsigned char b[64];
       memcpy(b, data, length); b[length]=0;
-      size_t size = snprintf((char*)m_tx_buffer, NRF_DRV_USBD_EPSIZE, "%s\r\n", b);
-      if(size>=NRF_DRV_USBD_EPSIZE) size=NRF_DRV_USBD_EPSIZE-1;
-      serial_write(m_tx_buffer, size);
+      serial_printf("%s\r\n", b);
     }
 }
 

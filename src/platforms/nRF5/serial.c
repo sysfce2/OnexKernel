@@ -204,12 +204,17 @@ int serial_write(unsigned char* b, size_t l)
   return (ret == NRF_SUCCESS)? l: 0;
 }
 
+#define PRINT_BUF_SIZE 1024
+static unsigned char print_buf[PRINT_BUF_SIZE];
+
 int serial_printf(const char* fmt, ...)
 {
   if(!initialised) serial_init(0,0);
   va_list args;
   va_start(args, fmt);
-  // hmmm .. int r=vfprintf(stdout, fmt, args);
+  size_t r=vsnprintf((char*)print_buf, PRINT_BUF_SIZE, fmt, args);
+  if(r>=PRINT_BUF_SIZE) r=PRINT_BUF_SIZE-1;
+  serial_write(print_buf, r);
   va_end(args);
   return 0;//r;
 }
