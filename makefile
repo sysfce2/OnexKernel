@@ -5,7 +5,6 @@ VERBOSE = 1
 PRETTY  = 1
 
 SDK_ROOT := ./sdk
-PROJ_DIR := ./tests
 
 $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
   LINKER_SCRIPT  := src/platforms/nRF5/ble_app_blinky_gcc_nrf52.ld
@@ -64,7 +63,6 @@ SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uarte.c \
   $(SDK_ROOT)/components/libraries/bsp/bsp.c \
   $(SDK_ROOT)/components/libraries/bsp/bsp_cli.c \
-  $(PROJ_DIR)/ont-examples/ble_app_blinky.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
@@ -82,9 +80,12 @@ SRC_FILES += \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_ble.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
+  ./src/platforms/nRF5/serial.c \
+  ./tests/ont-examples/ble_app_blinky.c \
 
 # Include folders common to all targets
 INC_FOLDERS += \
+  ./include \
   $(SDK_ROOT)/components/nfc/ndef/generic/message \
   $(SDK_ROOT)/components/nfc/t2t_lib \
   $(SDK_ROOT)/components/nfc/t4t_parser/hl_detection_procedure \
