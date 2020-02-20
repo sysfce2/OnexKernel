@@ -49,9 +49,8 @@ APP_USBD_CDC_ACM_GLOBAL_DEF(m_app_cdc_acm,
 static serial_recv_cb recv_cb;
 
 
-#define READ_SIZE 1
-
-static char m_rx_buffer[READ_SIZE];
+#define INPUT_BUF_SIZE 1024
+static char m_cdc_data_array[INPUT_BUF_SIZE];
 
 static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
                                     app_usbd_cdc_acm_user_event_t event)
@@ -64,11 +63,12 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
         {
             bsp_board_led_on(LED_CDC_ACM_OPEN);
 
-            /*Setup first transfer*/
+            /*Set up the first transfer*/
             ret_code_t ret = app_usbd_cdc_acm_read(&m_app_cdc_acm,
-                                                   m_rx_buffer,
-                                                   READ_SIZE);
+                                                   m_cdc_data_array,
+                                                   1);
             UNUSED_VARIABLE(ret);
+            NRF_LOG_INFO("CDC ACM port opened");
             break;
         }
         case APP_USBD_CDC_ACM_USER_EVT_PORT_CLOSE:
@@ -80,22 +80,39 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
         case APP_USBD_CDC_ACM_USER_EVT_RX_DONE:
         {
             ret_code_t ret;
-            NRF_LOG_INFO("Bytes waiting: %d", app_usbd_cdc_acm_bytes_stored(p_cdc_acm));
+            static uint8_t index = 0;
+            index++;
+
             do
             {
-                /*Get amount of data transfered*/
+                if ((m_cdc_data_array[index - 1] == '\n') ||
+                    (m_cdc_data_array[index - 1] == '\r') ||
+                    (index >= (INPUT_BUF_SIZE)))
+                {
+                    if (index > 1)
+                    {
+                        bsp_board_led_invert(LED_CDC_ACM_RX);
+                        uint16_t length = (uint16_t)index;
+                        if(recv_cb) recv_cb(m_cdc_data_array, length);
+                    }
+                    index = 0;
+                }
+
+                /*Get amount of data transferred*/
                 size_t size = app_usbd_cdc_acm_rx_size(p_cdc_acm);
-                NRF_LOG_INFO("RX: size: %lu char: %c", size, m_rx_buffer[0]);
+                NRF_LOG_DEBUG("RX: size: %lu char: %c", size, m_cdc_data_array[index - 1]);
 
                 /* Fetch data until internal buffer is empty */
                 ret = app_usbd_cdc_acm_read(&m_app_cdc_acm,
-                                            m_rx_buffer,
-                                            READ_SIZE);
-                if(recv_cb && ret == NRF_SUCCESS) recv_cb(m_rx_buffer, READ_SIZE);
+                                            &m_cdc_data_array[index],
+                                            1);
+                if (ret == NRF_SUCCESS)
+                {
+                    index++;
+                }
+            }
+            while (ret == NRF_SUCCESS);
 
-            } while (ret == NRF_SUCCESS);
-
-            bsp_board_led_invert(LED_CDC_ACM_RX);
             break;
         }
         default:

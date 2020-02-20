@@ -599,13 +599,21 @@ void serial_in(char* buf, uint16_t size)
   {
     err_code = ble_nus_data_send(&m_nus, (unsigned char*)buf, &size, m_conn_handle);
 
-    if ((err_code != NRF_ERROR_INVALID_STATE) &&
-        (err_code != NRF_ERROR_RESOURCES) &&
-        (err_code != NRF_ERROR_NOT_FOUND))
+    if (err_code == NRF_ERROR_NOT_FOUND)
+    {
+        NRF_LOG_INFO("BLE NUS unavailable");
+        break;
+    }
+    if (err_code == NRF_ERROR_RESOURCES)
+    {
+        NRF_LOG_ERROR("BLE NUS Too many notifications queued.");
+        break;
+    }
+    if ((err_code != NRF_ERROR_INVALID_STATE) && (err_code != NRF_ERROR_BUSY))
     {
         APP_ERROR_CHECK(err_code);
     }
-  } while (err_code == NRF_ERROR_RESOURCES);
+  } while (err_code == NRF_ERROR_BUSY);
 }
 
 /**@brief Function for application main entry.
