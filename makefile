@@ -1,6 +1,8 @@
 PROJECT_NAME     := ble_app_blinky_pca10059_s140
 TARGETS          := nrf52840_xxaa
 OUTPUT_DIRECTORY := _build
+VERBOSE = 1
+PRETTY  = 1
 
 SDK_ROOT := ./sdk
 PROJ_DIR := ./tests
@@ -302,7 +304,7 @@ flash_softdevice:
 erase:
 	nrfjprog -f nrf52 --eraseall
 
-SDK_CONFIG_FILE := ../config/sdk_config.h
+SDK_CONFIG_FILE := ./src/platforms/nRF5/sdk_config.h
 CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar
 sdk_config:
 	java -jar $(CMSIS_CONFIG_TOOL) $(SDK_CONFIG_FILE)
