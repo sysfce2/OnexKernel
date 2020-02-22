@@ -9,6 +9,43 @@ SDK_ROOT := ./sdk
 $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
   LINKER_SCRIPT  := src/platforms/nRF5/ble_app_blinky_gcc_nrf52.ld
 
+
+NRF5_INCLUDES = \
+./include \
+./src/platforms/nRF5/ \
+#./src/ \
+./src/onp/ \
+./tests \
+
+
+TESTS_OBJECTS = \
+./tests/ont-examples/ble_app_blinky.c \
+#./tests/assert.c \
+./tests/test-properties.c \
+./tests/test-list.c \
+./tests/test-value.c \
+./tests/test-onf.c \
+./tests/main.c \
+
+
+LIB_OBJECTS = \
+#./src/lib/list.c \
+./src/lib/value.c \
+./src/onp/onp.c \
+./src/onf/onf.c \
+
+
+NRF5_C_SOURCE_FILES = \
+./src/platforms/nRF5/serial.c \
+#./src/platforms/nRF5/properties.c \
+./src/platforms/nRF5/channel-serial.c \
+./src/platforms/nRF5/log.c \
+./src/platforms/nRF5/gpio.c \
+./src/platforms/nRF5/time.c \
+./src/platforms/nRF5/random.c \
+./src/platforms/nRF5/radio.c \
+
+
 # Source files common to all targets
 SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52840.S \
@@ -80,12 +117,10 @@ SRC_FILES += \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_ble.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
-  ./src/platforms/nRF5/serial.c \
-  ./tests/ont-examples/ble_app_blinky.c \
+  $(NRF5_C_SOURCE_FILES) $(LIB_OBJECTS) $(TESTS_OBJECTS)
 
 # Include folders common to all targets
 INC_FOLDERS += \
-  ./include \
   $(SDK_ROOT)/components/nfc/ndef/generic/message \
   $(SDK_ROOT)/components/nfc/t2t_lib \
   $(SDK_ROOT)/components/nfc/t4t_parser/hl_detection_procedure \
@@ -154,7 +189,6 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/nfc/t4t_parser/apdu \
   $(SDK_ROOT)/components/libraries/util \
   $(SDK_ROOT)/components/libraries/bsp \
-  ./src/platforms/nRF5 \
   $(SDK_ROOT)/components/libraries/usbd/class/cdc \
   $(SDK_ROOT)/components/libraries/csense \
   $(SDK_ROOT)/components/libraries/balloc \
@@ -217,6 +251,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/nfc/ndef/conn_hand_parser/ac_rec_parser \
   $(SDK_ROOT)/components/libraries/stack_guard \
   $(SDK_ROOT)/components/libraries/log/src \
+  $(NRF5_INCLUDES)
 
 # Libraries common to all targets
 LIB_FILES += \
