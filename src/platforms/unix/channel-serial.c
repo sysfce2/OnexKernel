@@ -6,7 +6,7 @@ static bool initialised=false;
 
 static channel_serial_connect_cb connect_cb;
 
-void channel_serial_on_recv(char* ch, int len)
+void channel_serial_on_recv(char* ch, uint16_t len)
 {
   if(!ch){
     if(connect_cb) connect_cb("serial");
