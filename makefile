@@ -20,12 +20,12 @@ NRF5_INCLUDES = \
 
 TESTS_OBJECTS = \
 ./tests/ont-examples/ble_app_blinky.c \
-#./tests/assert.c \
+./tests/assert.c \
 ./tests/test-properties.c \
 ./tests/test-list.c \
 ./tests/test-value.c \
 ./tests/test-onf.c \
-./tests/main.c \
+#./tests/main.c \
 
 
 LIB_OBJECTS = \
