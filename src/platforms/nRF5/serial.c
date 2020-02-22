@@ -1,6 +1,5 @@
 
 #include <stdio.h>
-#include <stdarg.h>
 
 #include "nrf_drv_usbd.h"
 #include "nrf_log.h"
@@ -215,25 +214,29 @@ void serial_putchar(unsigned char ch)
   serial_write(&ch, 1);
 }
 
-int serial_write(unsigned char* b, size_t l)
+size_t serial_write(unsigned char* b, size_t l)
 {
   ret_code_t ret = app_usbd_cdc_acm_write(&m_app_cdc_acm, b, l);
   return (ret == NRF_SUCCESS)? l: 0;
 }
 
-#define PRINT_BUF_SIZE 1024
-static unsigned char print_buf[PRINT_BUF_SIZE];
-
-int serial_printf(const char* fmt, ...)
+size_t serial_printf(const char* fmt, ...)
 {
   if(!initialised) serial_init(0,0);
   va_list args;
   va_start(args, fmt);
-  size_t r=vsnprintf((char*)print_buf, PRINT_BUF_SIZE, fmt, args);
-  if(r>=PRINT_BUF_SIZE) r=PRINT_BUF_SIZE-1;
-  serial_write(print_buf, r);
+  size_t r=serial_vprintf(fmt,args);
   va_end(args);
-  return 0;//r;
+  return r;
 }
 
+#define PRINT_BUF_SIZE 1024
+static unsigned char print_buf[PRINT_BUF_SIZE];
+
+size_t serial_vprintf(const char* fmt, va_list args)
+{
+  size_t r=vsnprintf((char*)print_buf, PRINT_BUF_SIZE, fmt, args);
+  if(r>=PRINT_BUF_SIZE) r=PRINT_BUF_SIZE-1;
+  return serial_write(print_buf, r);
+}
 

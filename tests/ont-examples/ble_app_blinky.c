@@ -71,6 +71,7 @@
 #include "nrf_log_default_backends.h"
 
 #include <onex-kernel/serial.h>
+#include <assert.h>
 
 #define ADVERTISING_LED                 BSP_BOARD_LED_0                         /**< Is on when device is advertising. */
 #define CONNECTED_LED                   BSP_BOARD_LED_1                         /**< Is on when device has connected. */
@@ -616,6 +617,8 @@ void serial_in(char* buf, uint16_t size)
   } while (err_code == NRF_ERROR_BUSY);
 }
 
+extern void run_properties_tests();
+
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -643,9 +646,14 @@ int main(void)
 
         if(m_send_flag)
         {
-            static int  frame_counter;
-            size_t size = sprintf((char*)m_tx_buffer, "Hello USB CDC FA demo: %u\r\n", frame_counter);
-            if(serial_write(m_tx_buffer, size)) ++frame_counter;
+            static int frame_counter;
+            if(frame_counter==1000){
+              run_properties_tests();
+              onex_assert_summary();
+            }
+            size_t size = sprintf((char*)m_tx_buffer, "-- %u\r\n", frame_counter);
+            serial_write(m_tx_buffer, size);
+            frame_counter++;
         }
 
         idle_state_handle();

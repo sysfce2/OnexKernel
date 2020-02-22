@@ -135,7 +135,7 @@ int serial_recv(char* b, int l)
 #define PRINT_BUFF_SIZE 1024
 char print_buff[PRINT_BUFF_SIZE];
 
-int serial_printf(const char* fmt, ...)
+size_t serial_printf(const char* fmt, ...)
 {
   int i=0;
   for(uint8_t t=0; t< TTYS_RANGE; t++){

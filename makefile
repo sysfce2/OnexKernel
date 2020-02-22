@@ -37,9 +37,9 @@ LIB_OBJECTS = \
 
 NRF5_C_SOURCE_FILES = \
 ./src/platforms/nRF5/serial.c \
-#./src/platforms/nRF5/properties.c \
-./src/platforms/nRF5/channel-serial.c \
+./src/platforms/nRF5/properties.c \
 ./src/platforms/nRF5/log.c \
+#./src/platforms/nRF5/channel-serial.c \
 ./src/platforms/nRF5/gpio.c \
 ./src/platforms/nRF5/time.c \
 ./src/platforms/nRF5/random.c \

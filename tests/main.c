@@ -4,6 +4,7 @@
 #if defined(NRF5)
 #include <variant.h>
 #include <onex-kernel/gpio.h>
+#include <onex-kernel/serial.h>
 #endif
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
@@ -27,9 +28,8 @@ void flash_led(int t)
 int main(void) {
 
   time_init();
-  log_init(115200);
-
 #if defined(NRF5)
+  serial_init(0, 115200);
   time_delay_s(1);
 #endif
 
