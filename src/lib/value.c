@@ -4,8 +4,13 @@
 #include <items.h>
 #include <onex-kernel/log.h>
 
-/*
-*/
+char* strdup(const char* s)
+{
+  size_t len=strlen(s)+1;
+  char* r=malloc(len);
+  if(r) memcpy(r,s,len);
+  return r;
+}
 
 typedef struct value {
   item_type type;

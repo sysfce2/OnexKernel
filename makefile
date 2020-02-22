@@ -13,7 +13,7 @@ $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
 NRF5_INCLUDES = \
 ./include \
 ./src/platforms/nRF5/ \
-#./src/ \
+./src/ \
 ./src/onp/ \
 ./tests \
 
@@ -29,7 +29,7 @@ TESTS_OBJECTS = \
 
 
 LIB_OBJECTS = \
-#./src/lib/list.c \
+./src/lib/list.c \
 ./src/lib/value.c \
 ./src/onp/onp.c \
 ./src/onf/onf.c \
