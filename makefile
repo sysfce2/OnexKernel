@@ -19,13 +19,13 @@ NRF5_INCLUDES = \
 
 
 TESTS_OBJECTS = \
-./tests/ont-examples/ble_app_blinky.c \
 ./tests/assert.c \
 ./tests/test-properties.c \
 ./tests/test-list.c \
 ./tests/test-value.c \
 ./tests/test-onf.c \
-#./tests/main.c \
+./tests/main.c \
+#./tests/ont-examples/ble_app_blinky.c \
 
 
 LIB_OBJECTS = \
@@ -39,11 +39,11 @@ NRF5_C_SOURCE_FILES = \
 ./src/platforms/nRF5/serial.c \
 ./src/platforms/nRF5/properties.c \
 ./src/platforms/nRF5/log.c \
-#./src/platforms/nRF5/channel-serial.c \
+./src/platforms/nRF5/channel-serial.c \
 ./src/platforms/nRF5/gpio.c \
 ./src/platforms/nRF5/time.c \
 ./src/platforms/nRF5/random.c \
-./src/platforms/nRF5/radio.c \
+#./src/platforms/nRF5/radio.c \
 
 
 # Source files common to all targets

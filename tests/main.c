@@ -2,10 +2,11 @@
 // --------------------------------------------------------------------
 
 #if defined(NRF5)
-#include <variant.h>
+#include <boards.h>
 #include <onex-kernel/gpio.h>
 #include <onex-kernel/serial.h>
 #endif
+
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 #include <assert.h>
@@ -25,13 +26,13 @@ void flash_led(int t)
 }
 #endif
 
-int main(void) {
+void serial_in(char* buf, uint16_t size)
+{
+  if(!size) return;
 
-  time_init();
-#if defined(NRF5)
-  serial_init(0, 115200);
-  time_delay_s(1);
-#endif
+  log_write("serial_in (%c)\n", buf[0]);
+
+  if(buf[0]!='t') return;
 
   log_write("-----------------OnexKernel tests------------------------\n");
 
@@ -40,13 +41,24 @@ int main(void) {
   run_properties_tests();
   run_onf_tests("Onex/onex.ondb");
 
-  int failures=onex_assert_summary();
-
 #if defined(NRF5)
+  int failures=onex_assert_summary();
   flash_led(failures? 16: 128);
+#else
+  onex_assert_summary();
 #endif
+}
 
-  return failures;
+int main(void)
+{
+  log_init();
+  time_init();
+#if defined(NRF5)
+  serial_init(serial_in,0);
+  while(1) serial_loop();
+#else
+  serial_in("t", 1);
+#endif
 }
 
 // --------------------------------------------------------------------

@@ -4,7 +4,7 @@
 
 #include <onex-kernel/log.h>
 
-void log_init(uint32_t baudrate)
+void log_init()
 {
 }
 

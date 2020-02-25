@@ -1,25 +1,22 @@
-
 #include <stdio.h>
 
-#include "nrf_drv_usbd.h"
 #include "nrf_log.h"
 
-#include "bsp.h"
-#include "bsp_cli.h"
+#include "boards.h"
 
+#include "app_error.h"
 #include "app_util.h"
-#include "app_usbd_cdc_acm.h"
 #include "app_usbd_core.h"
 #include "app_usbd.h"
 #include "app_usbd_string_desc.h"
+#include "app_usbd_cdc_acm.h"
 #include "app_usbd_serial_num.h"
 
 #include <onex-kernel/serial.h>
 
-#define LED_USB_RESUME      (BSP_BOARD_LED_0)
-#define LED_CDC_ACM_OPEN    (BSP_BOARD_LED_1)
-#define LED_CDC_ACM_RX      (BSP_BOARD_LED_2)
-#define LED_CDC_ACM_TX      (BSP_BOARD_LED_3)
+static bool initialised=false;
+
+static serial_recv_cb recv_cb;
 
 #ifndef USBD_POWER_DETECTION
 #define USBD_POWER_DETECTION true
@@ -45,9 +42,6 @@ APP_USBD_CDC_ACM_GLOBAL_DEF(m_app_cdc_acm,
                             APP_USBD_CDC_COMM_PROTOCOL_AT_V250
 );
 
-static serial_recv_cb recv_cb;
-
-
 #define INPUT_BUF_SIZE 1024
 static char m_cdc_data_array[INPUT_BUF_SIZE];
 
@@ -60,21 +54,17 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
     {
         case APP_USBD_CDC_ACM_USER_EVT_PORT_OPEN:
         {
-            bsp_board_led_on(LED_CDC_ACM_OPEN);
-
-            /*Set up the first transfer*/
             ret_code_t ret = app_usbd_cdc_acm_read(&m_app_cdc_acm,
                                                    m_cdc_data_array,
                                                    1);
             UNUSED_VARIABLE(ret);
+            if(recv_cb) recv_cb(0,0);
             NRF_LOG_INFO("CDC ACM port opened");
             break;
         }
         case APP_USBD_CDC_ACM_USER_EVT_PORT_CLOSE:
-            bsp_board_led_off(LED_CDC_ACM_OPEN);
             break;
         case APP_USBD_CDC_ACM_USER_EVT_TX_DONE:
-            bsp_board_led_invert(LED_CDC_ACM_TX);
             break;
         case APP_USBD_CDC_ACM_USER_EVT_RX_DONE:
         {
@@ -90,18 +80,15 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
                 {
                     if (index > 1)
                     {
-                        bsp_board_led_invert(LED_CDC_ACM_RX);
                         uint16_t length = (uint16_t)index;
                         if(recv_cb) recv_cb(m_cdc_data_array, length);
                     }
                     index = 0;
                 }
 
-                /*Get amount of data transferred*/
                 size_t size = app_usbd_cdc_acm_rx_size(p_cdc_acm);
                 NRF_LOG_DEBUG("RX: size: %lu char: %c", size, m_cdc_data_array[index - 1]);
 
-                /* Fetch data until internal buffer is empty */
                 ret = app_usbd_cdc_acm_read(&m_app_cdc_acm,
                                             &m_cdc_data_array[index],
                                             1);
@@ -124,16 +111,13 @@ static void usbd_user_ev_handler(app_usbd_event_type_t event)
     switch (event)
     {
         case APP_USBD_EVT_DRV_SUSPEND:
-            bsp_board_led_off(LED_USB_RESUME);
             break;
         case APP_USBD_EVT_DRV_RESUME:
-            bsp_board_led_on(LED_USB_RESUME);
             break;
         case APP_USBD_EVT_STARTED:
             break;
         case APP_USBD_EVT_STOPPED:
             app_usbd_disable();
-            bsp_board_leds_off();
             break;
         case APP_USBD_EVT_POWER_DETECTED:
             NRF_LOG_INFO("USB power detected");
@@ -156,21 +140,17 @@ static void usbd_user_ev_handler(app_usbd_event_type_t event)
     }
 }
 
-
-static bool initialised=false;
-
 bool serial_init(serial_recv_cb cb, uint32_t baudrate)
 {
     if(initialised) return true;
-
     recv_cb = cb;
+
+    app_usbd_serial_num_generate();
 
     ret_code_t ret;
     static const app_usbd_config_t usbd_config = {
         .ev_state_proc = usbd_user_ev_handler
     };
-
-    app_usbd_serial_num_generate();
 
     ret = app_usbd_init(&usbd_config);
     APP_ERROR_CHECK(ret);
@@ -192,9 +172,8 @@ bool serial_init(serial_recv_cb cb, uint32_t baudrate)
         app_usbd_enable();
         app_usbd_start();
     }
-
     initialised=true;
-    if(recv_cb) recv_cb(0,0);
+
     return true;
 }
 

@@ -1,29 +1,58 @@
 
+#include <stdbool.h>
+#include <stdlib.h>
+
+#include <app_error.h>
+#include <nrf_sdh.h>
+#include <nrf_soc.h>
+
 #include <onex-kernel/random.h>
+#include <onex-kernel/log.h>
 
-#if defined(NRF51)
-#include <nrf51.h>
-#include <nrf51_bitfields.h>
-#endif
+// Thanks to Espruino for these
 
-#if defined(NRF52)
-#include <nrf52.h>
-#include <nrf52_bitfields.h>
-#endif
+unsigned int get_rand() {
+  if(!nrf_sdh_is_enabled()){
+    ret_code_t r = nrf_sdh_enable_request();
+    APP_ERROR_CHECK(r);
+  }
+  unsigned int r=0;
+  uint8_t bytes_needed=sizeof(r);
+  uint8_t bytes_avail=0;
+  unsigned int c;
+  for(c=600000; c && bytes_avail < bytes_needed; c--) sd_rand_application_bytes_available_get(&bytes_avail);
+  if(bytes_avail >= bytes_needed) sd_rand_application_vector_get((uint8_t*)&r, bytes_needed);
+  else log_write("Timeout on get_rand\n");
+  return r;
+}
 
 uint8_t random_byte()
 {
-  volatile uint8_t random_value;
-
-  NRF_RNG->CONFIG = RNG_CONFIG_DERCEN_Enabled << RNG_CONFIG_DERCEN_Pos;
-  NRF_RNG->SHORTS = RNG_SHORTS_VALRDY_STOP_Enabled << RNG_SHORTS_VALRDY_STOP_Pos;
-  NRF_RNG->EVENTS_VALRDY = 0;
-  NRF_RNG->TASKS_START = 1;
-  while (NRF_RNG->EVENTS_VALRDY == 0);
-  NRF_RNG->EVENTS_VALRDY = 0;
-  random_value = NRF_RNG->VALUE;
-  return random_value;
+  return get_rand() & 0xFF;
 }
 
-uint8_t random_ish_byte(){ return random_byte(); }
+unsigned int rand_m_w = 0xDEADBEEF;
+unsigned int rand_m_z = 0xCAFEBABE;
+
+void srand(unsigned int seed) {
+  rand_m_w = (seed&0xFFFF) | (seed<<16);
+  rand_m_z = (seed&0xFFFF0000) | (seed>>16);
+}
+
+int rand() {
+  rand_m_z = 36969 * (rand_m_z & 65535) + (rand_m_z >> 16);
+  rand_m_w = 18000 * (rand_m_w & 65535) + (rand_m_w >> 16);
+  return (int)RAND_MAX & (int)((rand_m_z << 16) + rand_m_w);
+}
+
+static bool random_initialised=false;
+
+uint8_t random_ish_byte(){
+  if(!random_initialised){
+    srand(get_rand());
+    random_initialised=true;
+  }
+  return rand() & 0xFF;
+}
+
 
