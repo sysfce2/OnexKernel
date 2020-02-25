@@ -71,6 +71,8 @@
 #include "nrf_log_default_backends.h"
 
 #include <onex-kernel/serial.h>
+#include <onex-kernel/time.h>
+#include <onex-kernel/log.h>
 #include <assert.h>
 
 #define ADVERTISING_LED                 BSP_BOARD_LED_0                         /**< Is on when device is advertising. */
@@ -154,18 +156,6 @@ void assert_nrf_callback(uint16_t line_num, const uint8_t * p_file_name)
 static void leds_init(void)
 {
     bsp_board_init(BSP_INIT_LEDS);
-}
-
-
-/**@brief Function for the Timer initialization.
- *
- * @details Initializes the timer module.
- */
-static void timers_init(void)
-{
-    // Initialize timer module, making it use the scheduler
-    ret_code_t err_code = app_timer_init();
-    APP_ERROR_CHECK(err_code);
 }
 
 
@@ -562,15 +552,6 @@ static void buttons_init(void)
 }
 
 
-static void log_init(void)
-{
-    ret_code_t err_code = NRF_LOG_INIT(NULL);
-    APP_ERROR_CHECK(err_code);
-
-    NRF_LOG_DEFAULT_BACKENDS_INIT();
-}
-
-
 /**@brief Function for initializing power management.
  */
 static void power_management_init(void)
@@ -624,10 +605,11 @@ extern void run_properties_tests();
 int main(void)
 {
     log_init();
-    leds_init();
-    timers_init();
-    buttons_init();
+    time_init();
     serial_init(serial_in,0);
+
+    leds_init();
+    buttons_init();
     power_management_init();
     ble_stack_init();
     gap_params_init();
