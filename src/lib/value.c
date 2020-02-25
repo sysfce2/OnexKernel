@@ -4,6 +4,7 @@
 #include <items.h>
 #include <onex-kernel/log.h>
 
+#if defined(NRF5)
 char* strdup(const char* s)
 {
   size_t len=strlen(s)+1;
@@ -11,6 +12,7 @@ char* strdup(const char* s)
   if(r) memcpy(r,s,len);
   return r;
 }
+#endif
 
 typedef struct value {
   item_type type;
