@@ -26,7 +26,7 @@ void flash_led(int t)
 }
 #endif
 
-void serial_in(char* buf, uint16_t size)
+void serial_in(unsigned char* buf, size_t size)
 {
   if(!size) return;
 
@@ -57,7 +57,7 @@ int main(void)
   serial_init(serial_in,0);
   while(1) serial_loop();
 #else
-  serial_in("t", 1);
+  serial_in((unsigned char*)"t", 1);
 #endif
 }
 

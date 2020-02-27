@@ -43,7 +43,7 @@ APP_USBD_CDC_ACM_GLOBAL_DEF(m_app_cdc_acm,
 );
 
 #define INPUT_BUF_SIZE 1024
-static char m_cdc_data_array[INPUT_BUF_SIZE];
+static unsigned char m_cdc_data_array[INPUT_BUF_SIZE];
 
 static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
                                     app_usbd_cdc_acm_user_event_t event)
