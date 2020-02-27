@@ -10,7 +10,7 @@
 */
 
 #if defined(NRF5)
-#define MAX_TEXT_LEN 128
+#define MAX_TEXT_LEN 512
 #else
 #define MAX_TEXT_LEN 4096
 #endif
