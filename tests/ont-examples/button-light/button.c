@@ -41,7 +41,6 @@ int main()
   gpio_mode_cb(BUTTON_1, INPUT_PULLUP, button_1_change_cb);
 #endif
 
-  log_init(9600);
   log_write("\n------Starting Button Test-----\n");
 
   onex_set_evaluators("evaluate_device", evaluate_device_logic, 0);
