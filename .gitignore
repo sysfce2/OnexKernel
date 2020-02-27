@@ -2,6 +2,7 @@
 doc/local
 android/doc
 ,*
+sdk
 build/
 ndkBuild/
 .gradle
