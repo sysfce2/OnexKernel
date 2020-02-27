@@ -80,7 +80,7 @@ public:
 
   void run()
   {
-    log_init(0);
+    log_init();
     time_init();
 
     log_write("---------------OnexKernel tests----------------------\n");

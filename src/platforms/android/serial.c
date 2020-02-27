@@ -8,7 +8,7 @@ static bool initialised=false;
 
 static serial_recv_cb recv_cb;
 
-void serial_on_recv(char* b, int len)
+void serial_on_recv(unsigned char* b, size_t len)
 {
   if(recv_cb) recv_cb(b, len);
 }
@@ -32,7 +32,7 @@ extern void serial_send(char* b);
 #define PRINT_BUFF_SIZE 1024
 char print_buff[PRINT_BUFF_SIZE];
 
-int serial_printf(const char* fmt, ...)
+size_t serial_printf(const char* fmt, ...)
 {
   if(!initialised) return -1;
   va_list args;

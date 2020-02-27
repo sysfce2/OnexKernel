@@ -1,7 +1,7 @@
 
 make cleanlibs android.tests
 make cleanlibs android.tests.lan
-make clean linux.tests
-make clean microbit.tests
-make clean microbit.button && make clean linux.light
-make clean microbit.light && make clean linux.button
+Make clean linux.tests
+make -j clean dongle.tests
+make -j clean dongle.button && Make clean linux.light
+make -j clean dongle.light && Make clean linux.button
