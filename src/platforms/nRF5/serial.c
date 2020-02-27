@@ -142,8 +142,9 @@ static void usbd_user_ev_handler(app_usbd_event_type_t event)
 
 bool serial_init(serial_recv_cb cb, uint32_t baudrate)
 {
-    if(initialised) return true;
     recv_cb = cb;
+
+    if(initialised) return true;
 
     app_usbd_serial_num_generate();
 
