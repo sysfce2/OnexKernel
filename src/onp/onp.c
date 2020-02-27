@@ -17,10 +17,11 @@
 #include <channel-ipv6.h>
 #endif
 
-#define ONP_DEBUG
+#define xONP_DEBUG
 
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
-static void onp_on_connect(char* channel);
+static void on_connect(char* channel);
+static void do_connect(char* channel);
 static void handle_recv(int size, char* channel, uint16_t* fromip);
 static void send(char* buff, char* to);
 static void log_sent(char* buff, int size, char* to,   uint16_t* toip);
@@ -32,7 +33,7 @@ void onf_recv_object(char* text, char* channel);
 void onp_init()
 {
 #ifdef ONP_CHANNEL_SERIAL
-  channel_serial_init(onp_on_connect);
+  channel_serial_init(on_connect);
 #endif
 #ifdef ONP_CHANNEL_IPV6
   channel_ipv6_init();
@@ -53,6 +54,9 @@ uint16_t single_peer[] = { 0x2002, 0xd417, 0x1f9e, 0x1234, 0x5e51, 0x4fff, 0xfe7
 char recv_buff[RECV_BUFF_SIZE];
 char send_buff[SEND_BUFF_SIZE];
 
+static char*    connect_channel=0;
+static uint16_t connect_count=0;
+
 void onp_loop()
 {
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
@@ -60,6 +64,10 @@ void onp_loop()
 #ifdef ONP_CHANNEL_SERIAL
   size = channel_serial_recv(recv_buff, RECV_BUFF_SIZE-1); // spare for term 0
   if(size){ handle_recv(size,"serial",0); return; }
+  if(connect_count){
+    connect_count--;
+    if(!connect_count) do_connect(connect_channel);
+  }
 #endif
 #ifdef ONP_CHANNEL_IPV6
   size = channel_ipv6_recv(recv_buff, RECV_BUFF_SIZE-1, single_peer);
@@ -71,9 +79,17 @@ void onp_loop()
 static void onp_send_object_p(object* o, char* channel, bool preamble);
 
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
-void onp_on_connect(char* channel)
+
+// TODO: use proper time-delay
+void on_connect(char* channel)
 {
-  log_write("onp_on_connect %s\n", channel);
+  connect_channel = channel;
+  connect_count = 1000;
+}
+
+void do_connect(char* channel)
+{
+  log_write("do_connect %s\n", channel);
   onp_send_object_p(onex_device_object, channel, true);
 }
 
@@ -126,7 +142,7 @@ void send(char* buff, char* channel)
   if(!strcmp(channel, "serial")){
     size = channel_serial_send(buff, strlen(buff));
     log_sent(buff,size,"Serial",0);
-    if(size<0) channel_serial_init(onp_on_connect);
+    if(size<0) channel_serial_init(on_connect);
   }
 #endif
 #ifdef ONP_CHANNEL_IPV6
