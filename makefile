@@ -1,13 +1,13 @@
-PROJECT_NAME     := ble_app_blinky_pca10059_s140
-TARGETS          := nrf52840_xxaa
+PROJECT_NAME     := onex
+TARGETS          := onex
 OUTPUT_DIRECTORY := _build
 VERBOSE = 1
 PRETTY  = 1
 
 SDK_ROOT := ./sdk
 
-$(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
-  LINKER_SCRIPT  := src/platforms/nRF5/ble_app_blinky_gcc_nrf52.ld
+$(OUTPUT_DIRECTORY)/onex.out: \
+  LINKER_SCRIPT  := src/platforms/nRF5/onex.ld
 
 
 NRF5_INCLUDES = \
@@ -308,10 +308,10 @@ LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs
 
-nrf52840_xxaa: CFLAGS += -D__HEAP_SIZE=8192
-nrf52840_xxaa: CFLAGS += -D__STACK_SIZE=8192
-nrf52840_xxaa: ASMFLAGS += -D__HEAP_SIZE=8192
-nrf52840_xxaa: ASMFLAGS += -D__STACK_SIZE=8192
+onex: CFLAGS += -D__HEAP_SIZE=8192
+onex: CFLAGS += -D__STACK_SIZE=8192
+onex: ASMFLAGS += -D__HEAP_SIZE=8192
+onex: ASMFLAGS += -D__STACK_SIZE=8192
 
 # Add standard libraries at the very end of the linker input, after all objects
 # that may need symbols provided by these libraries.
@@ -321,12 +321,12 @@ LIB_FILES += -lc -lnosys -lm
 .PHONY: default help
 
 # Default target - first one defined
-default: nrf52840_xxaa
+default: onex
 
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo		nrf52840_xxaa
+	@echo		onex
 	@echo		flash_softdevice
 	@echo		sdk_config - starting external tool for editing sdk_config.h
 	@echo		flash      - flashing binary
@@ -344,8 +344,8 @@ PRIVATE_PEM = ~/the-u-web/OnexKernel/doc/local/private.pem
 
 # Flash the program
 flash: default
-	@echo Flashing: $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex
-	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application _build/nrf52840_xxaa.hex --key-file $(PRIVATE_PEM) dfu.zip
+	@echo Flashing: $(OUTPUT_DIRECTORY)/onex.hex
+	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application _build/onex.hex --key-file $(PRIVATE_PEM) dfu.zip
 	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM0 -b 115200
 
 # Flash softdevice
