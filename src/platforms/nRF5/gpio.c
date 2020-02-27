@@ -1,38 +1,48 @@
 
+#include <boards.h>
 #include <stdint.h>
 #include <nrf.h>
+#include <nrf_gpio.h>
 #include <onex-kernel/gpio.h>
 
 void gpio_mode(uint32_t pin, uint32_t mode)
 {
     switch (mode){
     case INPUT:
-        NRF_GPIO->PIN_CNF[pin] =  (GPIO_PIN_CNF_SENSE_Disabled << GPIO_PIN_CNF_SENSE_Pos)
-                                | (GPIO_PIN_CNF_DRIVE_S0S1     << GPIO_PIN_CNF_DRIVE_Pos)
-                                | (GPIO_PIN_CNF_PULL_Disabled  << GPIO_PIN_CNF_PULL_Pos)
-                                | (GPIO_PIN_CNF_INPUT_Connect  << GPIO_PIN_CNF_INPUT_Pos)
-                                | (GPIO_PIN_CNF_DIR_Input      << GPIO_PIN_CNF_DIR_Pos);
+      nrf_gpio_cfg(pin,
+                   GPIO_PIN_CNF_DIR_Input,
+                   GPIO_PIN_CNF_INPUT_Connect,
+                   GPIO_PIN_CNF_PULL_Disabled,
+                   GPIO_PIN_CNF_DRIVE_S0S1,
+                   GPIO_PIN_CNF_SENSE_Disabled
+      );
     break;
     case INPUT_PULLUP:
-        NRF_GPIO->PIN_CNF[pin] =  (GPIO_PIN_CNF_SENSE_Disabled << GPIO_PIN_CNF_SENSE_Pos)
-                                | (GPIO_PIN_CNF_DRIVE_S0S1     << GPIO_PIN_CNF_DRIVE_Pos)
-                                | (GPIO_PIN_CNF_PULL_Pullup    << GPIO_PIN_CNF_PULL_Pos)
-                                | (GPIO_PIN_CNF_INPUT_Connect  << GPIO_PIN_CNF_INPUT_Pos)
-                                | (GPIO_PIN_CNF_DIR_Input      << GPIO_PIN_CNF_DIR_Pos);
+      nrf_gpio_cfg(pin,
+                   GPIO_PIN_CNF_DIR_Input,
+                   GPIO_PIN_CNF_INPUT_Connect,
+                   GPIO_PIN_CNF_PULL_Pullup,
+                   GPIO_PIN_CNF_DRIVE_S0S1,
+                   GPIO_PIN_CNF_SENSE_Disabled
+      );
     break;
     case INPUT_PULLDOWN:
-        NRF_GPIO->PIN_CNF[pin] =  (GPIO_PIN_CNF_SENSE_Disabled << GPIO_PIN_CNF_SENSE_Pos)
-                                | (GPIO_PIN_CNF_DRIVE_S0S1     << GPIO_PIN_CNF_DRIVE_Pos)
-                                | (GPIO_PIN_CNF_PULL_Pulldown  << GPIO_PIN_CNF_PULL_Pos)
-                                | (GPIO_PIN_CNF_INPUT_Connect  << GPIO_PIN_CNF_INPUT_Pos)
-                                | (GPIO_PIN_CNF_DIR_Input      << GPIO_PIN_CNF_DIR_Pos);
+      nrf_gpio_cfg(pin,
+                   GPIO_PIN_CNF_DIR_Input,
+                   GPIO_PIN_CNF_INPUT_Connect,
+                   GPIO_PIN_CNF_PULL_Pulldown,
+                   GPIO_PIN_CNF_DRIVE_S0S1,
+                   GPIO_PIN_CNF_SENSE_Disabled
+      );
     break;
     case OUTPUT:
-        NRF_GPIO->PIN_CNF[pin] =  (GPIO_PIN_CNF_SENSE_Disabled << GPIO_PIN_CNF_SENSE_Pos)
-                                | (GPIO_PIN_CNF_DRIVE_H0H1     << GPIO_PIN_CNF_DRIVE_Pos)
-                                | (GPIO_PIN_CNF_PULL_Disabled  << GPIO_PIN_CNF_PULL_Pos)
-                                | (GPIO_PIN_CNF_INPUT_Connect  << GPIO_PIN_CNF_INPUT_Pos)
-                                | (GPIO_PIN_CNF_DIR_Output     << GPIO_PIN_CNF_DIR_Pos);
+      nrf_gpio_cfg(pin,
+                   GPIO_PIN_CNF_DIR_Output,
+                   GPIO_PIN_CNF_INPUT_Connect,
+                   GPIO_PIN_CNF_PULL_Disabled,
+                   GPIO_PIN_CNF_DRIVE_H0H1,
+                   GPIO_PIN_CNF_SENSE_Disabled
+      );
     break;
     }
 }
@@ -64,22 +74,19 @@ void gpio_mode_cb(uint32_t pin, uint32_t mode, gpio_pin_cb cb)
 #endif
 }
 
-int  gpio_get(uint32_t pin)
+int gpio_get(uint32_t pin)
 {
-  return (NRF_GPIO->IN >> pin) & 1UL;
+  return nrf_gpio_pin_read(pin);
 }
 
 void gpio_set(uint32_t pin, uint32_t value)
 {
-  if (value) NRF_GPIO->OUTSET = (1 << pin);
-  else       NRF_GPIO->OUTCLR = (1 << pin);
+  if (value) nrf_gpio_pin_set(pin);
+  else       nrf_gpio_pin_clear(pin);
 }
 
 void gpio_toggle(uint32_t pin)
 {
-  uint32_t m=(1 << pin);
-  uint32_t gpio_state = NRF_GPIO->OUT;
-  NRF_GPIO->OUTSET = (m & ~gpio_state);
-  NRF_GPIO->OUTCLR = (m &  gpio_state);
+  nrf_gpio_pin_toggle(pin);
 }
 
