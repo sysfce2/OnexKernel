@@ -1,19 +1,16 @@
 
 #if defined(NRF5)
-#include <variant.h>
+#include <boards.h>
 #include <onex-kernel/gpio.h>
-// #include <onex-kernel/serial.h>
-#else
-#include <onex-kernel/log.h>
+#include <onex-kernel/serial.h>
+#include <onex-kernel/blenus.h>
 #endif
+
 #include <onex-kernel/time.h>
+#include <onex-kernel/log.h>
 #include <onf.h>
 
 object* light;
-
-#if defined(NRF5)
-const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
-#endif
 
 bool evaluate_light(object* light, void* d);
 
@@ -31,14 +28,19 @@ bool evaluate_device_logic(object* o, void* d)
 
 int main()
 {
+  log_init();
   time_init();
+#if defined(NRF5)
+  serial_init(0,0);
+  blenus_init(0);
+#endif
   onex_init("");
 
 #if defined(NRF5)
-  for(uint8_t l=0; l< LEDS_NUMBER; l++) gpio_mode(leds_list[l], OUTPUT);
+  gpio_mode(LED1_G, OUTPUT);
+  gpio_mode(LED2_B, OUTPUT);
 #else
   time_delay_s(2);
-  log_init(9600);
   log_write("\n------Starting Light Test-----\n");
 #endif
 
@@ -56,6 +58,10 @@ int main()
   object_property_set(light, "device", deviceuid);
   object_property_set(light, "light", "off");
 
+#if defined(NRF5)
+  gpio_set(LED1_G, 0);
+  gpio_set(LED2_B, 1);
+#endif
   uint16_t todo=0;
   while(1){
 
@@ -77,18 +83,9 @@ bool evaluate_light(object* light, void* d)
   object_property_set(light, "light", s);
 #if defined(NRF5)
   if(buttonpressed){
-    gpio_set(leds_list[0], 1);
-    gpio_set(leds_list[1], 1);
-    gpio_set(leds_list[2], 0);
-    gpio_set(leds_list[3], 1);
-    gpio_set(leds_list[4], 1);
-    gpio_set(leds_list[5], 1);
-    gpio_set(leds_list[6], 1);
-    gpio_set(leds_list[7], 1);
-    gpio_set(leds_list[8], 1);
-    gpio_set(leds_list[10], 1);
+    gpio_set(LED2_B, 0);
   } else {
-    gpio_set(leds_list[10], 0);
+    gpio_set(LED2_B, 1);
   }
 #else
   log_write("evaluate_light: "); object_log(light);

@@ -25,6 +25,8 @@ TESTS_OBJECTS = \
 ./tests/test-value.c \
 ./tests/test-onf.c \
 ./tests/main.c \
+#./tests/ont-examples/button-light/light.c \
+#./tests/ont-examples/button-light/button.c \
 #./tests/ont-examples/ble_app_blinky.c \
 
 

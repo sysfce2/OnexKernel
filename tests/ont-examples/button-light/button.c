@@ -1,10 +1,12 @@
 
 #if defined(NRF5)
-#include <variant.h>
+#include <boards.h>
 #include <onex-kernel/gpio.h>
+#include <onex-kernel/serial.h>
+#include <onex-kernel/blenus.h>
 #endif
-#include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
+#include <onex-kernel/log.h>
 #include <onf.h>
 
 object* button;
@@ -27,7 +29,12 @@ bool evaluate_device_logic(object* o, void* d)
 
 int main()
 {
+  log_init();
   time_init();
+#if defined(NRF5)
+  serial_init(0,0);
+  blenus_init(0);
+#endif
   onex_init("");
 
 #if defined(NRF5)
