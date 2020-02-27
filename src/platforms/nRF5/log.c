@@ -10,14 +10,19 @@
 
 void log_init()
 {
-  ret_code_t ret = NRF_LOG_INIT(NULL); APP_ERROR_CHECK(ret);
+  APP_ERROR_CHECK(NRF_LOG_INIT(NULL));
 }
+
+//#define LOG_BUF_SIZE 1024
+//static const char log_buf[LOG_BUF_SIZE];
 
 int log_write(const char* fmt, ...)
 {
+//size_t n=snprintf((char*)log_buf, LOG_BUF_SIZE, "LOG: %s", fmt);
+//if(n>=LOG_BUF_SIZE) n=LOG_BUF_SIZE-1;
   va_list args;
   va_start(args, fmt);
-  int r=serial_vprintf(fmt, args);
+  int r=serial_vprintf(fmt /*log_buf*/, args);
   va_end(args);
   return r;
 }
