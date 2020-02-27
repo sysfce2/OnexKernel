@@ -12,6 +12,7 @@
 #include <items.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/gpio.h>
+#include <onex-kernel/serial.h>
 #include <onex-kernel/log.h>
 #include <onex-kernel/random.h>
 #include <onf.h>
@@ -817,6 +818,7 @@ void onex_init(char* dbpath)
 void onex_loop()
 {
 #if defined(NRF5)
+  serial_loop();
   gpio_loop();
 #endif
   persistence_loop();
