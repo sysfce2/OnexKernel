@@ -5,6 +5,7 @@
 #include <boards.h>
 #include <onex-kernel/gpio.h>
 #include <onex-kernel/serial.h>
+#include <onex-kernel/blenus.h>
 #endif
 
 #include <onex-kernel/time.h>
@@ -55,6 +56,7 @@ int main(void)
   time_init();
 #if defined(NRF5)
   serial_init(serial_in,0);
+  blenus_init(0);
   while(1) serial_loop();
 #else
   serial_in((unsigned char*)"t", 1);

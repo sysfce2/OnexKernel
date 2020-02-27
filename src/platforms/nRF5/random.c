@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 #include <app_error.h>
-#include <nrf_sdh.h>
 #include <nrf_soc.h>
 
 #include <onex-kernel/random.h>
@@ -12,10 +11,6 @@
 // Thanks to Espruino for these
 
 unsigned int get_rand() {
-  if(!nrf_sdh_is_enabled()){
-    ret_code_t r = nrf_sdh_enable_request();
-    APP_ERROR_CHECK(r);
-  }
   unsigned int r=0;
   uint8_t bytes_needed=sizeof(r);
   uint8_t bytes_avail=0;
