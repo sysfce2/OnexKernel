@@ -26,6 +26,7 @@
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
+#include <items.h>
 #include <onex-kernel/serial.h>
 #include <onex-kernel/blenus.h>
 #include <onex-kernel/time.h>
@@ -39,6 +40,7 @@
 static bool initialised=false;
 
 static blenus_recv_cb recv_cb;
+static void write_a_chunk();
 
 #define DEVICE_NAME                     "Onex"    /**< Name of device. Will be included in the advertising data. */
 
@@ -148,6 +150,7 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             APP_ERROR_CHECK(err_code);
             err_code = app_button_enable();
             APP_ERROR_CHECK(err_code);
+            if(recv_cb) recv_cb(0,0);
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
@@ -279,12 +282,16 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
       uint16_t       length =     (uint16_t)p_evt->params.rx_data.length;
       unsigned char* data = (unsigned char*)p_evt->params.rx_data.p_data;
       if(length>=64){
-        serial_printf("NUS data too long; %d chars\n", length);
+        log_write("NUS data too long; %d chars\n", length);
         return;
       }
       unsigned char b[64];
       memcpy(b, data, length); b[length]=0;
-      serial_printf("%s\r\n", b);
+      if(recv_cb) recv_cb(b, length);
+    }
+    else
+    if (p_evt->type == BLE_NUS_EVT_TX_RDY) {
+      write_a_chunk();
     }
 }
 
@@ -419,6 +426,7 @@ bool blenus_init(blenus_recv_cb cb)
   recv_cb = cb;
 
   if(initialised) return true;
+  initialised=true;
 
   if(!nrf_sdh_is_enabled()) APP_ERROR_CHECK(nrf_sdh_enable_request());
 
@@ -435,9 +443,34 @@ bool blenus_init(blenus_recv_cb cb)
   return true;
 }
 
+#define MAX_CHUNKS 32
+#define MAX_TX_OCTETS 20
+list* chunks=0;
+bool chunks_in_use=false;
+
 size_t blenus_write(unsigned char* b, size_t l)
 {
-  ret_code_t err_code = ble_nus_data_send(&m_nus, b, (uint16_t*)&l, m_conn_handle);
-  return err_code;
+  chunks_in_use=true;
+  if(!chunks) chunks=list_new(MAX_CHUNKS);
+  size_t n=0;
+  while(n<l){
+    unsigned char* chunk=malloc(MAX_TX_OCTETS+1);
+    size_t i=0; while(i<MAX_TX_OCTETS && n<l){ chunk[i++]=b[n++]; }
+    chunk[i]=0;
+    list_add(chunks, chunk);
+  }
+  chunks_in_use=false;
+  write_a_chunk();
+  return l;
+}
+
+void write_a_chunk()
+{
+  if(!chunks || !list_size(chunks) || chunks_in_use) return;
+  unsigned char* chunk=list_get_n(chunks,1);
+  uint16_t i=0; while(true){ if(!chunk[i]) break; i++; }
+  ret_code_t e = ble_nus_data_send(&m_nus, chunk, &i, m_conn_handle);
+  if(!e) list_del_n(chunks,1);
+  else   log_write("failed writing chunk %d\n", e);
 }
 

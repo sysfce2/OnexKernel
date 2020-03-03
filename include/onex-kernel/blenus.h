@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-typedef void (*blenus_recv_cb) (unsigned char*, uint16_t);
+typedef void (*blenus_recv_cb) (unsigned char*, size_t);
 
 bool   blenus_init(blenus_recv_cb cb);
 void   blenus_cb(blenus_recv_cb cb);
