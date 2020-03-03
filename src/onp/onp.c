@@ -55,7 +55,7 @@ char recv_buff[RECV_BUFF_SIZE];
 char send_buff[SEND_BUFF_SIZE];
 
 static char*    connect_channel=0;
-static uint16_t connect_count=0;
+static uint32_t connect_count=0;
 
 void onp_loop()
 {
@@ -84,7 +84,7 @@ static void onp_send_object_p(object* o, char* channel, bool preamble);
 void on_connect(char* channel)
 {
   connect_channel = channel;
-  connect_count = 1000;
+  connect_count = 500000;
 }
 
 void do_connect(char* channel)

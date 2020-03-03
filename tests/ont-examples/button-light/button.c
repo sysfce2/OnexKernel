@@ -63,7 +63,6 @@ int main()
 
     onex_loop();
 
-    time_delay_ms(1);
 #if !defined(NRF5)
     if(time_ms() > lasttime+1000u){
       lasttime=time_ms();
