@@ -469,8 +469,14 @@ void write_a_chunk()
   if(!chunks || !list_size(chunks) || chunks_in_use) return;
   unsigned char* chunk=list_get_n(chunks,1);
   uint16_t i=0; while(true){ if(!chunk[i]) break; i++; }
-  ret_code_t e = ble_nus_data_send(&m_nus, chunk, &i, m_conn_handle);
+  ret_code_t e;
+  do{
+    e=ble_nus_data_send(&m_nus, chunk, &i, m_conn_handle);
+    if((e!=NRF_ERROR_INVALID_STATE) &&
+       (e!=NRF_ERROR_RESOURCES)     &&
+       (e!=NRF_ERROR_NOT_FOUND)        ) APP_ERROR_CHECK(e);
+  } while (e==NRF_ERROR_RESOURCES);
   if(!e) list_del_n(chunks,1);
-  else   log_write("failed writing chunk %d\n", e);
+  else   log_write("failed writing chunk %d %d %d %d\n", e, NRF_ERROR_INVALID_STATE, NRF_ERROR_RESOURCES, NRF_ERROR_NOT_FOUND);
 }
 
