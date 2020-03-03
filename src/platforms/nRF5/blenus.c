@@ -447,6 +447,7 @@ bool blenus_init(blenus_recv_cb cb)
 #define MAX_TX_OCTETS 20
 list* chunks=0;
 bool chunks_in_use=false;
+bool writes_in_progress=false;
 
 size_t blenus_write(unsigned char* b, size_t l)
 {
@@ -460,13 +461,16 @@ size_t blenus_write(unsigned char* b, size_t l)
     list_add(chunks, chunk);
   }
   chunks_in_use=false;
-  write_a_chunk();
+  if(!writes_in_progress) write_a_chunk();
   return l;
 }
 
 void write_a_chunk()
 {
-  if(!chunks || !list_size(chunks) || chunks_in_use) return;
+  if(!chunks || !list_size(chunks) || chunks_in_use){
+    writes_in_progress=false;
+    return;
+  }
   unsigned char* chunk=list_get_n(chunks,1);
   uint16_t i=0; while(true){ if(!chunk[i]) break; i++; }
   ret_code_t e;
@@ -476,7 +480,13 @@ void write_a_chunk()
        (e!=NRF_ERROR_RESOURCES)     &&
        (e!=NRF_ERROR_NOT_FOUND)        ) APP_ERROR_CHECK(e);
   } while (e==NRF_ERROR_RESOURCES);
-  if(!e) list_del_n(chunks,1);
-  else   log_write("failed writing chunk %d %d %d %d\n", e, NRF_ERROR_INVALID_STATE, NRF_ERROR_RESOURCES, NRF_ERROR_NOT_FOUND);
+  if(!e){
+    list_del_n(chunks,1);
+    writes_in_progress=true;
+  }
+  else{
+    log_write("failed writing chunk %d %d %d %d\n", e, NRF_ERROR_INVALID_STATE, NRF_ERROR_RESOURCES, NRF_ERROR_NOT_FOUND);
+    writes_in_progress=false;
+  }
 }
 
