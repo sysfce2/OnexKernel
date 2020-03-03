@@ -76,8 +76,6 @@ void onp_loop()
 #endif
 }
 
-static void onp_send_object_p(object* o, char* channel, bool preamble);
-
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
 
 // TODO: use proper time-delay
@@ -90,7 +88,7 @@ void on_connect(char* channel)
 void do_connect(char* channel)
 {
   log_write("do_connect %s\n", channel);
-  onp_send_object_p(onex_device_object, channel, true);
+  onp_send_object(onex_device_object, channel);
 }
 
 static void handle_recv(int size, char* channel, uint16_t* fromip)
@@ -122,14 +120,8 @@ void onp_send_observe(char* uid, char* channel)
 
 void onp_send_object(object* o, char* channel)
 {
-  onp_send_object_p(o, channel, false);
-}
-
-void onp_send_object_p(object* o, char* channel, bool preamble)
-{
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
-  size_t p=preamble? snprintf(send_buff, SEND_BUFF_SIZE, "\n\n"): 0;
-  object_to_text(o,send_buff+p,SEND_BUFF_SIZE-p,OBJECT_TO_TEXT_NETWORK);
+  object_to_text(o,send_buff,SEND_BUFF_SIZE,OBJECT_TO_TEXT_NETWORK);
   send(send_buff, channel);
 #endif
 }
