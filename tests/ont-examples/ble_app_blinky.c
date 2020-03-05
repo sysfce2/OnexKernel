@@ -39,22 +39,17 @@ static void idle_state_handle(void)
     }
 }
 
-void on_recv(unsigned char* buf, size_t size)
-{
-  blenus_write(buf, size);
-}
-
-int main(void)
+int main()
 {
     power_management_init();
 
     log_init();
     time_init();
 #ifdef HAS_SERIAL
-    serial_init(on_recv,0);
-    blenus_init(0); // should write to serial! (just use blenus_init(serial_write)?)
+    serial_init((serial_recv_cb)blenus_write,0);
+    blenus_init((blenus_recv_cb)serial_write);
 #else
-    blenus_init(on_recv);
+    blenus_init((blenus_recv_cb)blenus_write);
 #endif
 
     while (true)
