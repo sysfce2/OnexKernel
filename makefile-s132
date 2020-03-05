@@ -11,17 +11,22 @@ $(OUTPUT_DIRECTORY)/onex.out: \
 
 
 NRF5_INCLUDES = \
+./include \
 ./src/platforms/nRF5/s132 \
 
 
 TESTS_OBJECTS = \
-./tests/ont-examples/ble_app_blinky-s132.c \
+./tests/ont-examples/ble_app_blinky.c \
 
 
 LIB_OBJECTS = \
+./src/lib/list.c \
 
 
 NRF5_C_SOURCE_FILES = \
+./src/platforms/nRF5/time.c \
+./src/platforms/nRF5/log.c \
+./src/platforms/nRF5/blenus.c \
 
 
 # Source files common to all targets

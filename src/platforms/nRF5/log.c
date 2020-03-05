@@ -5,7 +5,9 @@
 #include "app_error.h"
 #include "nrf_log_ctrl.h"
 
+#ifdef HAS_SERIAL
 #include <onex-kernel/serial.h>
+#endif
 #include <onex-kernel/log.h>
 
 void log_init()
@@ -18,6 +20,7 @@ void log_init()
 
 int log_write(const char* fmt, ...)
 {
+#ifdef HAS_SERIAL
 //size_t n=snprintf((char*)log_buf, LOG_BUF_SIZE, "LOG: %s", fmt);
 //if(n>=LOG_BUF_SIZE) n=LOG_BUF_SIZE-1;
   va_list args;
@@ -25,6 +28,9 @@ int log_write(const char* fmt, ...)
   int r=serial_vprintf(fmt /*log_buf*/, args);
   va_end(args);
   return r;
+#else
+  return 0;
+#endif
 }
 
 

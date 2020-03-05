@@ -211,7 +211,7 @@ size_t serial_printf(const char* fmt, ...)
 }
 
 #define PRINT_BUF_SIZE 1024
-static unsigned char print_buf[PRINT_BUF_SIZE];
+static unsigned char print_buf[PRINT_BUF_SIZE]; // but see NRF_DRV_USBD_EPSIZE
 
 size_t serial_vprintf(const char* fmt, va_list args)
 {

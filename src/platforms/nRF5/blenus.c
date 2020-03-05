@@ -20,7 +20,6 @@
 #include "nrf_ble_gatt.h"
 #include "nrf_ble_qwr.h"
 #include "nrf_pwr_mgmt.h"
-#include "nrf_drv_usbd.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -446,7 +445,7 @@ bool blenus_init(blenus_recv_cb cb)
 }
 
 #define MAX_CHUNKS 32
-#define MAX_TX_OCTETS 20
+#define MAX_TX_OCTETS 20 // but see BLE_GATT_ATT_MTU_DEFAULT - 3
 list* chunks=0;
 bool chunks_in_use=false;
 
