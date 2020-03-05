@@ -4,7 +4,9 @@
 #if defined(NRF5)
 #include <boards.h>
 #include <onex-kernel/gpio.h>
+#if defined(HAS_SERIAL)
 #include <onex-kernel/serial.h>
+#endif
 #include <onex-kernel/blenus.h>
 #endif
 
@@ -27,11 +29,11 @@ void flash_led(int t)
 }
 #endif
 
-void serial_in(unsigned char* buf, size_t size)
+void on_recv(unsigned char* buf, size_t size)
 {
   if(!size) return;
 
-  log_write("serial_in (%c)\n", buf[0]);
+  log_write("on_recv (%c)\n", buf[0]);
 
   if(buf[0]!='t') return;
 
@@ -55,11 +57,16 @@ int main(void)
   log_init();
   time_init();
 #if defined(NRF5)
-  serial_init(serial_in,0);
+#if defined(HAS_SERIAL)
+  serial_init((serial_recv_cb)on_recv,0);
   blenus_init(0);
   while(1) serial_loop();
 #else
-  serial_in((unsigned char*)"t", 1);
+  blenus_init((blenus_recv_cb)on_recv);
+  while(1);
+#endif
+#else
+  on_recv((unsigned char*)"t", 1);
 #endif
 }
 
