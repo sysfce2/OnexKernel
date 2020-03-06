@@ -1,7 +1,7 @@
 
 #include <string.h>
 
-#if defined(HAS_SERIAL)
+#if defined(HAS_SERIAL) && defined(ONP_OVER_SERIAL)
 #include <onex-kernel/serial.h>
 #else
 #include <onex-kernel/blenus.h>
@@ -41,7 +41,7 @@ void channel_serial_init(channel_serial_connect_cb cb)
 {
   connect_cb=cb;
   initialised=true;
-#if defined(HAS_SERIAL)
+#if defined(HAS_SERIAL) && defined(ONP_OVER_SERIAL)
   initialised=serial_init(channel_serial_on_recv, 9600);
 #else
   initialised=blenus_init(channel_serial_on_recv);
@@ -83,7 +83,7 @@ int channel_serial_recv(char* b, int l)
 int channel_serial_send(char* b, int n)
 {
   if(!initialised) return -1;
-#if defined(HAS_SERIAL)
+#if defined(HAS_SERIAL) && defined(ONP_OVER_SERIAL)
   return serial_printf("%s\n", b);
 #else
   blenus_write((unsigned char*)b, (size_t)n);

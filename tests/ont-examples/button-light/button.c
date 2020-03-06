@@ -2,7 +2,9 @@
 #if defined(NRF5)
 #include <boards.h>
 #include <onex-kernel/gpio.h>
+#if defined(HAS_SERIAL)
 #include <onex-kernel/serial.h>
+#endif
 #include <onex-kernel/blenus.h>
 #endif
 #include <onex-kernel/time.h>
@@ -32,13 +34,19 @@ int main()
   log_init();
   time_init();
 #if defined(NRF5)
+#if defined(HAS_SERIAL)
   serial_init(0,0);
+#endif
   blenus_init(0);
 #endif
   onex_init("");
 
-#if defined(NRF5)
+#if defined(BOARD_PCA10059)
   gpio_mode_cb(BUTTON_1, INPUT_PULLUP, button_1_change_cb);
+#elif defined(BOARD_PINETIME)
+  gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, button_1_change_cb);
+  gpio_mode(   BUTTON_ENABLE, OUTPUT);
+  gpio_set(    BUTTON_ENABLE, 1);
 #endif
 
   log_write("\n------Starting Button Test-----\n");

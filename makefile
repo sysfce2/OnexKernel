@@ -351,7 +351,7 @@ PRIVATE_PEM = ~/the-u-web/OnexKernel/doc/local/private.pem
 flash: default
 	@echo Flashing: $(OUTPUT_DIRECTORY)/onex.hex
 	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application _build/onex.hex --key-file $(PRIVATE_PEM) dfu.zip
-	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM0 -b 115200
+	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM1 -b 115200
 
 # Flash softdevice
 flash_softdevice:

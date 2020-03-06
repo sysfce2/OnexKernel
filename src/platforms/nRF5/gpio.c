@@ -55,7 +55,7 @@ static gpio_pin_cb button_1_cb;
 void gpio_loop()
 {
 #if defined(BUTTON_1)
-  int b1p = !gpio_get(BUTTON_1);
+  int b1p = BUTTONS_ACTIVE_STATE==gpio_get(BUTTON_1);
   if(button_1_cb && button_1_pressed != b1p){
      button_1_pressed = b1p;
      button_1_cb(button_1_pressed);
