@@ -55,7 +55,7 @@ char recv_buff[RECV_BUFF_SIZE];
 char send_buff[SEND_BUFF_SIZE];
 
 static char*    connect_channel=0;
-static uint32_t connect_count=0;
+static uint32_t connect_time=0;
 
 void onp_loop()
 {
@@ -64,9 +64,9 @@ void onp_loop()
 #ifdef ONP_CHANNEL_SERIAL
   size = channel_serial_recv(recv_buff, RECV_BUFF_SIZE-1); // spare for term 0
   if(size){ handle_recv(size,"serial",0); return; }
-  if(connect_count){
-    connect_count--;
-    if(!connect_count) do_connect(connect_channel);
+  if(connect_time && time_ms() >= connect_time ){
+    connect_time=0;
+    do_connect(connect_channel);
   }
 #endif
 #ifdef ONP_CHANNEL_IPV6
@@ -82,7 +82,7 @@ void onp_loop()
 void on_connect(char* channel)
 {
   connect_channel = channel;
-  connect_count = 500000;
+  connect_time = time_ms()+1200;
 }
 
 void do_connect(char* channel)
