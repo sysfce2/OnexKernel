@@ -2,7 +2,9 @@
 #if defined(NRF5)
 #include <boards.h>
 #include <onex-kernel/gpio.h>
+#if defined(HAS_SERIAL)
 #include <onex-kernel/serial.h>
+#endif
 #include <onex-kernel/blenus.h>
 #endif
 
@@ -31,14 +33,18 @@ int main()
   log_init();
   time_init();
 #if defined(NRF5)
+#if defined(HAS_SERIAL)
   serial_init(0,0);
+#endif
   blenus_init(0);
 #endif
   onex_init("");
 
-#if defined(NRF5)
+#if defined(BOARD_PCA10059)
   gpio_mode(LED1_G, OUTPUT);
   gpio_mode(LED2_B, OUTPUT);
+#elif defined(BOARD_PINETIME)
+  gpio_mode(LED_3, OUTPUT);
 #else
   time_delay_s(2);
   log_write("\n------Starting Light Test-----\n");
@@ -58,9 +64,11 @@ int main()
   object_property_set(light, "device", deviceuid);
   object_property_set(light, "light", "off");
 
-#if defined(NRF5)
+#if defined(BOARD_PCA10059)
   gpio_set(LED1_G, 0);
   gpio_set(LED2_B, 1);
+#elif defined(BOARD_PINETIME)
+  gpio_set(LED_3, 1);
 #endif
   uint16_t todo=0;
   while(1){
@@ -83,9 +91,17 @@ bool evaluate_light(object* light, void* d)
   object_property_set(light, "light", s);
 #if defined(NRF5)
   if(buttonpressed){
+#if defined(BOARD_PCA10059)
     gpio_set(LED2_B, 0);
+#elif defined(BOARD_PINETIME)
+    gpio_set(LED_3, 0);
+#endif
   } else {
+#if defined(BOARD_PCA10059)
     gpio_set(LED2_B, 1);
+#elif defined(BOARD_PINETIME)
+    gpio_set(LED_3, 1);
+#endif
   }
 #else
   log_write("evaluate_light: "); object_log(light);
