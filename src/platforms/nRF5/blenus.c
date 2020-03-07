@@ -476,7 +476,10 @@ void write_chunks()
     unsigned char* chunk=list_get_n(chunks,1);
     uint16_t i=0; while(true){ if(!chunk[i]) break; i++; }
     ret_code_t e=ble_nus_data_send(&m_nus, chunk, &i, m_conn_handle);
-    if((e!=NRF_ERROR_INVALID_STATE) && (e!=NRF_ERROR_RESOURCES) && (e!=NRF_ERROR_NOT_FOUND)) APP_ERROR_CHECK(e);
+    if((e!=NRF_ERROR_INVALID_STATE) && (e!=NRF_ERROR_RESOURCES) && (e!=NRF_ERROR_NOT_FOUND)){
+      if(e!=NRF_SUCCESS) log_write("blenus %s\n", nrf_strerror_get(e));
+      APP_ERROR_CHECK(e);
+    }
     if(e) break;
     list_del_n(chunks,1);
     writes_in_progress++;
