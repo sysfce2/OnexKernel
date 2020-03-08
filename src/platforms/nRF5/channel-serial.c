@@ -86,9 +86,7 @@ int channel_serial_send(char* b, int n)
 #if defined(HAS_SERIAL) && defined(ONP_OVER_SERIAL)
   return serial_printf("%s\n", b);
 #else
-  blenus_write((unsigned char*)b, (size_t)n);
-  blenus_write((unsigned char*)"\n", (size_t)1);
-  return n;
+  return blenus_printf("%s\n", b);
 #endif
 }
 

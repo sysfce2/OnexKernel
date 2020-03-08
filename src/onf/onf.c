@@ -701,8 +701,8 @@ void save_and_notify(object* o)
     char* notify = value_string(o->notify[i]);
     object* n=onex_get_from_cache(notify);
     if(!n){
-      log_write("object to notify not found: '%s'\n", notify);
-;;;;;;if(!object_is_remote(o)) onp_send_object(o, channel_of(notify));;;;;;;;;;;;;
+      // TODO !!
+      if(!object_is_remote(o)) onp_send_object(o, channel_of(notify));
       continue;
     }
     if(!object_is_device(n)){

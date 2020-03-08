@@ -87,7 +87,6 @@ void on_connect(char* channel)
 
 void do_connect(char* channel)
 {
-  log_write("do_connect %s\n", channel);
   onp_send_object(onex_device_object, channel);
 }
 

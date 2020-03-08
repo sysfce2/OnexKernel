@@ -29,7 +29,9 @@
 #include <onex-kernel/serial.h>
 #include <onex-kernel/blenus.h>
 #include <onex-kernel/time.h>
+#if defined(HAS_SERIAL)
 #include <onex-kernel/log.h>
+#endif
 #include <assert.h>
 
 #include "app_error.h"
@@ -282,7 +284,9 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
       uint16_t       length =     (uint16_t)p_evt->params.rx_data.length;
       unsigned char* data = (unsigned char*)p_evt->params.rx_data.p_data;
       if(length>=64){
+#if defined(HAS_SERIAL)
         log_write("NUS data too long; %d chars\n", length);
+#endif
         return;
       }
       unsigned char b[64];
@@ -449,24 +453,38 @@ bool blenus_init(blenus_recv_cb cb)
 list* chunks=0;
 bool chunks_in_use=false;
 
-size_t blenus_write(unsigned char* b, size_t l)
+size_t blenus_write(unsigned char* buf, size_t size)
 {
   if(chunks_in_use){
+#if defined(HAS_SERIAL)
     log_write("blenus_write chunks_in_use! dropping\n");
+#endif
     return 0;
   }
   chunks_in_use=true;
   if(!chunks) chunks=list_new(MAX_CHUNKS);
-  size_t n=0;
-  while(n<l){
+  if(list_size(chunks)==MAX_CHUNKS){
+#if defined(HAS_SERIAL)
+    log_write("blenus_write chunks list full! dropping\n");
+#endif
+    chunks_in_use=false;
+    if(!writes_in_progress) write_chunks();
+    return 0;
+  }
+  for(size_t n=0; n<size; ){
+    if(list_size(chunks)==MAX_CHUNKS-1){
+      unsigned char* chunk=(unsigned char*)strdup("######\n");
+      list_add(chunks, chunk);
+      break;
+    }
     unsigned char* chunk=malloc(MAX_TX_OCTETS+1);
-    size_t i=0; while(i<MAX_TX_OCTETS && n<l){ chunk[i++]=b[n++]; }
+    size_t i=0; while(i<MAX_TX_OCTETS && n<size){ chunk[i++]=buf[n++]; }
     chunk[i]=0;
     list_add(chunks, chunk);
   }
   chunks_in_use=false;
   if(!writes_in_progress) write_chunks();
-  return l;
+  return size;
 }
 
 void write_chunks()
@@ -477,12 +495,34 @@ void write_chunks()
     uint16_t i=0; while(true){ if(!chunk[i]) break; i++; }
     ret_code_t e=ble_nus_data_send(&m_nus, chunk, &i, m_conn_handle);
     if((e!=NRF_ERROR_INVALID_STATE) && (e!=NRF_ERROR_RESOURCES) && (e!=NRF_ERROR_NOT_FOUND)){
+#if defined(HAS_SERIAL)
       if(e!=NRF_SUCCESS) log_write("blenus %s\n", nrf_strerror_get(e));
+#endif
       APP_ERROR_CHECK(e);
     }
     if(e) break;
-    list_del_n(chunks,1);
+    free(list_del_n(chunks,1));
     writes_in_progress++;
   }
+}
+
+size_t blenus_printf(const char* fmt, ...)
+{
+  if(!initialised) blenus_init(0);
+  va_list args;
+  va_start(args, fmt);
+  size_t r=blenus_vprintf(fmt,args);
+  va_end(args);
+  return r;
+}
+
+#define PRINT_BUF_SIZE 1024
+static unsigned char print_buf[PRINT_BUF_SIZE];
+
+size_t blenus_vprintf(const char* fmt, va_list args)
+{
+  size_t r=vsnprintf((char*)print_buf, PRINT_BUF_SIZE, fmt, args);
+  if(r>=PRINT_BUF_SIZE) r=PRINT_BUF_SIZE-1;
+  return blenus_write(print_buf, r);
 }
 
