@@ -1,6 +1,6 @@
 
-make cleanlibs android.tests
-make cleanlibs android.tests.lan
+Make cleanlibs android.tests
+Make cleanlibs android.tests.lan
 Make clean linux.tests
 make -j clean dongle.tests
 make -j clean dongle.button && Make clean linux.light
