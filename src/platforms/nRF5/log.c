@@ -17,8 +17,10 @@ void log_init()
   APP_ERROR_CHECK(NRF_LOG_INIT(NULL));
 }
 
+#if !defined(HAS_SERIAL)
 #define LOG_BUF_SIZE 1024
 static char log_buf[LOG_BUF_SIZE];
+#endif
 
 int log_write(const char* fmt, ...)
 {
