@@ -82,7 +82,7 @@ void onp_loop()
 void on_connect(char* channel)
 {
   connect_channel = channel;
-  connect_time = time_ms()+1200;
+  connect_time = time_ms()+900;
 }
 
 void do_connect(char* channel)
