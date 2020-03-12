@@ -39,11 +39,13 @@ static volatile bool display_state=LEDS_ACTIVE_STATE;
 #endif
 
 #if defined(BOARD_PINETIME)
-int irqs=0;
+static void show_touch();
+static bool was_touched=false;
+static int irqs=0;
+
 void touched()
 {
-  show_touch();
-  display_state = LEDS_ACTIVE_STATE;
+  was_touched=true;
   irqs++;
 }
 
@@ -122,6 +124,11 @@ int main(void)
 #endif
   while(1){
 #if defined(BOARD_PINETIME)
+    if(was_touched){
+      was_touched=false;
+      display_state = LEDS_ACTIVE_STATE;
+      show_touch();
+    }
     if (display_state_prev != display_state){
       display_state_prev = display_state;
       gpio_set(LCD_BACKLIGHT_LOW,  display_state);
