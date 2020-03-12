@@ -28,7 +28,7 @@ void time_init()
   initialised=true;
 }
 
-#define APP_TIMER_PRESCALER 0 // not sure what this is
+#define APP_TIMER_PRESCALER 1 // not sure what this is but it has to be one
 
 uint32_t time_ms(){
   uint32_t ticks=app_timer_cnt_get();
@@ -42,7 +42,7 @@ uint32_t time_us(){
 
 void time_delay_us(uint32_t us)
 {
-  nrf_delay_us(us*2); // *2??
+  nrf_delay_us(us*(APP_TIMER_PRESCALER+1));
 }
 
 void time_delay_ms(uint32_t ms)
