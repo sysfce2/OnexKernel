@@ -1,10 +1,13 @@
 
+#include <boards.h>
+
 #include <nrfx_twi.h>
 #include <nrfx_log.h>
-#include <legacy/nrf_drv_gpiote.h>
+#include <nrfx_gpiote.h>
 
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
+#include <onex-kernel/gpio.h>
 #include <onex-kernel/touch.h>
 
 #define TOUCH_SDA_PIN 6
@@ -27,6 +30,12 @@
 
 nrfx_twi_t twi = NRFX_TWI_INSTANCE(1);
 
+static touch_touched_cb touch_cb = 0;
+
+static void nrfx_gpiote_evt_handler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action) {
+  if(touch_cb) touch_cb();
+}
+
 void touch_reset()
 {
   time_delay_ms(20);
@@ -36,19 +45,30 @@ void touch_reset()
   time_delay_ms(200);
 }
 
-void touch_init()
+void touch_init(touch_touched_cb cb)
 {
+  touch_cb = cb;
+
   nrf_gpio_cfg_output(TOUCH_RESET_PIN);
   nrf_gpio_pin_set(TOUCH_RESET_PIN);
 
-  nrfx_twi_config_t config;
-  config.frequency = NRF_TWI_FREQ_400K;
-  config.sda = TOUCH_SDA_PIN;
-  config.scl = TOUCH_SCL_PIN;
-  config.interrupt_priority = NRFX_TWI_DEFAULT_CONFIG_IRQ_PRIORITY;
-  config.hold_bus_uninit = NRFX_TWI_DEFAULT_CONFIG_HOLD_BUS_UNINIT;
+  nrf_gpio_cfg_sense_input(TOUCH_IRQ_PIN, (nrf_gpio_pin_pull_t)GPIO_PIN_CNF_PULL_Pullup, (nrf_gpio_pin_sense_t)GPIO_PIN_CNF_SENSE_Low);
 
-  nrfx_twi_init(&twi, &config, 0, 0);
+  nrfx_gpiote_in_config_t pinConfig;
+  pinConfig.skip_gpio_setup = true;
+  pinConfig.hi_accuracy = false;
+  pinConfig.is_watcher = false;
+  pinConfig.sense = (nrf_gpiote_polarity_t)NRF_GPIOTE_POLARITY_HITOLO;
+  pinConfig.pull = (nrf_gpio_pin_pull_t)GPIO_PIN_CNF_PULL_Pullup;
+  nrfx_gpiote_in_init(TOUCH_IRQ_PIN, &pinConfig, nrfx_gpiote_evt_handler);
+
+  nrfx_twi_config_t twiConfig;
+  twiConfig.frequency = NRF_TWI_FREQ_400K;
+  twiConfig.sda = TOUCH_SDA_PIN;
+  twiConfig.scl = TOUCH_SCL_PIN;
+  twiConfig.interrupt_priority = NRFX_TWI_DEFAULT_CONFIG_IRQ_PRIORITY;
+  twiConfig.hold_bus_uninit = NRFX_TWI_DEFAULT_CONFIG_HOLD_BUS_UNINIT;
+  nrfx_twi_init(&twi, &twiConfig, 0, 0);
   nrfx_twi_enable(&twi);
 }
 

@@ -21,8 +21,10 @@ typedef struct touch_info {
   uint8_t  action;
 } touch_info;
 
+typedef void (*touch_touched_cb)();
+
 void       touch_reset();
-void       touch_init();
+void       touch_init(touch_touched_cb);
 touch_info touch_get_info();
 void       touch_disable();
 
