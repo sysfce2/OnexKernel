@@ -52,12 +52,12 @@ void show_touch()
   touch_info ti=touch_get_info();
   char buf[64];
 
-  snprintf(buf, 64, "|%03d|%03d|", ti.x, ti.y);
-  gfx_pos(30, 90);
+  snprintf(buf, 64, "-%03d-%03d-", ti.x, ti.y);
+  gfx_pos(10, 60);
   gfx_text(buf);
 
-  snprintf(buf, 64, "|%02d|%02d|%02d", ti.action, ti.gesture, irqs);
-  gfx_pos(30, 150);
+  snprintf(buf, 64, "-%02d-%02d-%02d-", ti.action, ti.gesture, irqs);
+  gfx_pos(10, 110);
   gfx_text(buf);
 
   if(ti.gesture==TOUCH_GESTURE_TAP_LONG){
@@ -91,7 +91,7 @@ void on_recv(unsigned char* buf, size_t size)
 #if defined(BOARD_PCA10059)
   flash_led(failures? 16: 128);
 #elif defined(BOARD_PINETIME)
-  gfx_pos(30, 30);
+  gfx_pos(10, 10);
   gfx_text(failures? "FAIL": "SUCCESS");
 #endif
 #else
@@ -116,7 +116,7 @@ int main(void)
   gfx_screen_colour(0xC618);
   gfx_text_colour(0x001F);
   gfx_screen_fill();
-  gfx_pos(30, 30);
+  gfx_pos(10, 10);
   gfx_text("Onex");
   touch_init(touched);
 #endif
