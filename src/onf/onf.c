@@ -381,7 +381,7 @@ char* channel_of(char* device_uid)
 
 void ping_object(char* uid, object* o)
 {
-  uint32_t curtime = time_ms();
+  uint64_t curtime = time_ms();
   if(!o->last_observe || curtime > o->last_observe + 10000){
     o->last_observe = curtime + 1;
     char* device_uid = value_string(o->devices);
@@ -995,7 +995,7 @@ static uint32_t lasttime=0;
 
 void persistence_loop()
 {
-  uint32_t curtime = time_ms();
+  uint64_t curtime = time_ms();
   if(curtime > lasttime+100){
     persistence_flush();
     lasttime = curtime;

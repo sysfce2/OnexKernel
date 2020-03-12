@@ -5,8 +5,8 @@
 #include <stdbool.h>
 
 void     time_init();
-uint32_t time_ms();
-uint32_t time_us();
+uint64_t time_ms();
+uint64_t time_us();
 
 #if defined(TARGET_LINUX) || defined(__ANDROID__)
 

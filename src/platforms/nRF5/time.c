@@ -30,13 +30,13 @@ void time_init()
 
 #define APP_TIMER_PRESCALER 1 // not sure what this is but it has to be one
 
-uint32_t time_ms(){
-  uint32_t ticks=app_timer_cnt_get();
+uint64_t time_ms(){
+  uint64_t ticks=app_timer_cnt_get();
   return ticks*((APP_TIMER_PRESCALER+1)*1000)/APP_TIMER_CLOCK_FREQ;
 }
 
-uint32_t time_us(){
-  uint32_t ticks=app_timer_cnt_get();
+uint64_t time_us(){
+  uint64_t ticks=app_timer_cnt_get();
   return ticks*((APP_TIMER_PRESCALER+1)*1000000L)/APP_TIMER_CLOCK_FREQ;
 }
 
