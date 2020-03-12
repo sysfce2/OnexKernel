@@ -39,7 +39,15 @@ static volatile bool display_state=LEDS_ACTIVE_STATE;
 #endif
 
 #if defined(BOARD_PINETIME)
+int irqs=0;
 void touched()
+{
+  show_touch();
+  display_state = LEDS_ACTIVE_STATE;
+  irqs++;
+}
+
+void show_touch()
 {
   touch_info ti=touch_get_info();
   char buf[64];
@@ -48,9 +56,13 @@ void touched()
   gfx_pos(30, 90);
   gfx_text(buf);
 
-  snprintf(buf, 64, "|%02d|%02d|", ti.action, ti.gesture);
+  snprintf(buf, 64, "|%02d|%02d|%02d", ti.action, ti.gesture, irqs);
   gfx_pos(30, 150);
   gfx_text(buf);
+
+  if(ti.gesture==TOUCH_GESTURE_TAP_LONG){
+    display_state = !LEDS_ACTIVE_STATE;
+  }
 }
 #endif
 
@@ -105,7 +117,7 @@ int main(void)
   gfx_text_colour(0x001F);
   gfx_screen_fill();
   gfx_pos(30, 30);
-  gfx_text("'t'=tests");
+  gfx_text("Onex");
   touch_init(touched);
 #endif
   while(1){
