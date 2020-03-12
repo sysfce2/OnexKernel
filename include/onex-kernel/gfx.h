@@ -1,6 +1,7 @@
 #ifndef GFX_H
 #define GFX_H
 
+void gfx_reset();
 void gfx_init();
 
 void gfx_screen_colour(uint16_t colour);

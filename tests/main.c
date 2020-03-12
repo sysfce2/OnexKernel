@@ -66,6 +66,7 @@ int main(void)
   time_init();
 #if defined(NRF5)
 #if defined(BOARD_PINETIME)
+  gfx_reset();
   gfx_init();
   gfx_screen_colour(0xC618);
   gfx_text_colour(0x001F);
