@@ -4,7 +4,7 @@
 #if defined(NRF5)
 #include <boards.h>
 #if defined(BOARD_PINETIME)
-#include <nrf_gfx.h>
+#include <onex-kernel/gfx.h>
 #endif
 #include <onex-kernel/gpio.h>
 #if defined(HAS_SERIAL)
@@ -30,11 +30,6 @@ void flash_led(int t)
     for(uint8_t l=0; l< LEDS_NUMBER; l++) gpio_mode(leds_list[l], OUTPUT);
     for(;;) for(int8_t l=LEDS_NUMBER-1; l>=0; l--){ gpio_toggle(leds_list[l]); time_delay_ms(t); }
 }
-#elif defined(BOARD_PINETIME)
-extern const nrf_lcd_t nrf_lcd_st7789;
-extern const nrf_gfx_font_desc_t orkney_24ptFontInfo;
-static const nrf_lcd_t * p_lcd = &nrf_lcd_st7789;
-static const nrf_gfx_font_desc_t * p_font = &orkney_24ptFontInfo;
 #endif
 
 void on_recv(unsigned char* buf, size_t size)
@@ -57,10 +52,8 @@ void on_recv(unsigned char* buf, size_t size)
 #if defined(BOARD_PCA10059)
   flash_led(failures? 16: 128);
 #elif defined(BOARD_PINETIME)
-  nrf_gfx_init(p_lcd);
-  nrf_gfx_screen_fill(p_lcd, 0xC618);
-  nrf_gfx_point_t text_start = NRF_GFX_POINT(5,55);
-  nrf_gfx_print_fast2(p_lcd, &text_start, 0x001F, failures? "FAIL": "SUCCESS", p_font, true);
+  gfx_pos(30, 30);
+  gfx_text(failures? "FAIL": "SUCCESS");
 #endif
 #else
   onex_assert_summary();
@@ -72,6 +65,14 @@ int main(void)
   log_init();
   time_init();
 #if defined(NRF5)
+#if defined(BOARD_PINETIME)
+  gfx_init();
+  gfx_screen_colour(0xC618);
+  gfx_text_colour(0x001F);
+  gfx_screen_fill();
+  gfx_pos(30, 30);
+  gfx_text("'t'=tests");
+#endif
 #if defined(HAS_SERIAL)
   serial_init((serial_recv_cb)on_recv,0);
   blenus_init(0);
