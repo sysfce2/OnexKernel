@@ -5,6 +5,7 @@
 #include <boards.h>
 #if defined(BOARD_PINETIME)
 #include <onex-kernel/gfx.h>
+#include <onex-kernel/touch.h>
 #endif
 #include <onex-kernel/gpio.h>
 #if defined(HAS_SERIAL)
@@ -32,12 +33,25 @@ void flash_led(int t)
 }
 #endif
 
+#if defined(BOARD_PINETIME)
+static volatile bool display_state_prev=false;
+static volatile bool display_state=true;
+#endif
+
 void on_recv(unsigned char* buf, size_t size)
 {
   if(!size) return;
 
   log_write("on_recv (%c)\n", buf[0]);
+#if defined(BOARD_PINETIME)
+  touch_info ti=touch_get_info();
+  log_write("%d %d %d %d\n", ti.x, ti.y, ti.action, ti.gesture);
 
+  if(buf[0]=='d'){
+    display_state = !display_state;
+    return;
+  }
+#endif
   if(buf[0]!='t') return;
 
   log_write("-----------------OnexKernel tests------------------------\n");
@@ -73,6 +87,8 @@ int main(void)
   gfx_screen_fill();
   gfx_pos(30, 30);
   gfx_text("'t'=tests");
+
+  touch_init();
 #endif
 #if defined(HAS_SERIAL)
   serial_init((serial_recv_cb)on_recv,0);
@@ -80,7 +96,16 @@ int main(void)
   while(1) serial_loop();
 #else
   blenus_init((blenus_recv_cb)on_recv);
-  while(1);
+  while(1){
+#if defined(BOARD_PINETIME)
+    if (display_state_prev != display_state){
+      display_state_prev = display_state;
+      gpio_set(LCD_BACKLIGHT_LOW,  display_state);
+      gpio_set(LCD_BACKLIGHT_MID,  display_state);
+      gpio_set(LCD_BACKLIGHT_HIGH, display_state);
+    }
+#endif
+  }
 #endif
 #else
   on_recv((unsigned char*)"t", 1);
