@@ -45,6 +45,22 @@ void gfx_pos(uint16_t x, uint16_t y)
   y_pos = y;
 }
 
+uint16_t x_pos_save_this_is_not_really_a_stack=0;
+uint16_t y_pos_save_this_is_not_really_a_stack=0;
+void gfx_push(uint16_t x, uint16_t y)
+{
+  x_pos_save_this_is_not_really_a_stack=x_pos;
+  y_pos_save_this_is_not_really_a_stack=y_pos;
+  x_pos = x;
+  y_pos = y;
+}
+
+void gfx_pop()
+{
+  x_pos=x_pos_save_this_is_not_really_a_stack;
+  y_pos=y_pos_save_this_is_not_really_a_stack;
+}
+
 uint16_t text_colour;
 void gfx_text_colour(uint16_t colour)
 {
