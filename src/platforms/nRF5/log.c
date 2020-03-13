@@ -39,7 +39,7 @@ int log_write(const char* fmt, ...)
 #if defined(BOARD_PINETIME)
   vsnprintf((char*)log_buf, LOG_BUF_SIZE, fmt, args);
   if(strlen(log_buf)>9) log_buf[9]=0;
-  gfx_push(200,10);
+  gfx_push(10,160);
   gfx_text(log_buf);
   gfx_pop();
 #endif

@@ -457,7 +457,7 @@ size_t blenus_write(unsigned char* buf, size_t size)
 {
   if(chunks_in_use){
 #if defined(HAS_SERIAL) || defined(LOG_TO_GFX)
-    log_write("blenus_write chunks_in_use! dropping\n");
+    log_write("chunks_in_use! dropping\n");
 #endif
     return 0;
   }
@@ -465,7 +465,7 @@ size_t blenus_write(unsigned char* buf, size_t size)
   if(!chunks) chunks=list_new(MAX_CHUNKS);
   if(list_size(chunks)==MAX_CHUNKS){
 #if defined(HAS_SERIAL) || defined(LOG_TO_GFX)
-    log_write("blenus_write chunks list full! dropping\n");
+    log_write("chunks list full! dropping\n");
 #endif
     chunks_in_use=false;
     if(!writes_in_progress) write_chunks();
@@ -496,7 +496,7 @@ void write_chunks()
     ret_code_t e=ble_nus_data_send(&m_nus, chunk, &i, m_conn_handle);
     if((e!=NRF_ERROR_INVALID_STATE) && (e!=NRF_ERROR_RESOURCES) && (e!=NRF_ERROR_NOT_FOUND)){
 #if defined(HAS_SERIAL) || defined(LOG_TO_GFX)
-      if(e!=NRF_SUCCESS) log_write("blenus %s\n", nrf_strerror_get(e));
+      if(e!=NRF_SUCCESS) log_write("%s\n", nrf_strerror_get(e));
 #endif
       APP_ERROR_CHECK(e);
     }

@@ -72,13 +72,8 @@ void on_recv(unsigned char* buf, size_t size)
 {
   if(!size) return;
 
-  log_write("on_recv (%c)\n", buf[0]);
-#if defined(BOARD_PINETIME)
-  if(buf[0]=='d'){
-    display_state = !display_state;
-    return;
-  }
-#endif
+  log_write(">%c\n", buf[0]);
+
   if(buf[0]!='t') return;
 
   log_write("-----------------OnexKernel tests------------------------\n");
