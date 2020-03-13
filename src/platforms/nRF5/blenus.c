@@ -29,7 +29,7 @@
 #include <onex-kernel/serial.h>
 #include <onex-kernel/blenus.h>
 #include <onex-kernel/time.h>
-#if defined(HAS_SERIAL)
+#if defined(HAS_SERIAL) || defined(LOG_TO_GFX)
 #include <onex-kernel/log.h>
 #endif
 #include <assert.h>
@@ -284,7 +284,7 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
       uint16_t       length =     (uint16_t)p_evt->params.rx_data.length;
       unsigned char* data = (unsigned char*)p_evt->params.rx_data.p_data;
       if(length>=64){
-#if defined(HAS_SERIAL)
+#if defined(HAS_SERIAL) || defined(LOG_TO_GFX)
         log_write("NUS data too long; %d chars\n", length);
 #endif
         return;
@@ -456,7 +456,7 @@ bool chunks_in_use=false;
 size_t blenus_write(unsigned char* buf, size_t size)
 {
   if(chunks_in_use){
-#if defined(HAS_SERIAL)
+#if defined(HAS_SERIAL) || defined(LOG_TO_GFX)
     log_write("blenus_write chunks_in_use! dropping\n");
 #endif
     return 0;
@@ -464,7 +464,7 @@ size_t blenus_write(unsigned char* buf, size_t size)
   chunks_in_use=true;
   if(!chunks) chunks=list_new(MAX_CHUNKS);
   if(list_size(chunks)==MAX_CHUNKS){
-#if defined(HAS_SERIAL)
+#if defined(HAS_SERIAL) || defined(LOG_TO_GFX)
     log_write("blenus_write chunks list full! dropping\n");
 #endif
     chunks_in_use=false;
@@ -495,7 +495,7 @@ void write_chunks()
     uint16_t i=0; while(true){ if(!chunk[i]) break; i++; }
     ret_code_t e=ble_nus_data_send(&m_nus, chunk, &i, m_conn_handle);
     if((e!=NRF_ERROR_INVALID_STATE) && (e!=NRF_ERROR_RESOURCES) && (e!=NRF_ERROR_NOT_FOUND)){
-#if defined(HAS_SERIAL)
+#if defined(HAS_SERIAL) || defined(LOG_TO_GFX)
       if(e!=NRF_SUCCESS) log_write("blenus %s\n", nrf_strerror_get(e));
 #endif
       APP_ERROR_CHECK(e);
