@@ -24,9 +24,14 @@ extern void run_value_tests();
 extern void run_onf_tests(char* dbpath);
 
 #if defined(NRF5)
+void button_changed(int pressed)
+{
+  log_write("#%d\n", pressed);
+}
 
 static void set_up_gpio(void)
 {
+  gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, button_changed);
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
   gpio_set(    BUTTON_ENABLE, 1);
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
