@@ -37,17 +37,14 @@ static app_button_cfg_t buttons[] = {
 };
 
 #define DEBOUNCE APP_TIMER_TICKS(50)
-static void buttons_init(void)
+static void gpio_init(void)
 {
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
   gpio_set(    BUTTON_ENABLE, 1);
+  gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
+
   APP_ERROR_CHECK(app_button_init(buttons, ARRAY_SIZE(buttons), DEBOUNCE));
   APP_ERROR_CHECK(app_button_enable());
-}
-
-static void bsp_init(void)
-{
-    bsp_board_init(BSP_INIT_LEDS|BSP_INIT_BUTTONS);
 }
 #endif
 
@@ -128,7 +125,6 @@ int main(void)
 {
   log_init();
   time_init();
-  bsp_init();
 #if defined(NRF5)
 #if defined(HAS_SERIAL)
   serial_init((serial_recv_cb)on_recv,0);
@@ -137,7 +133,6 @@ int main(void)
 #else
   blenus_init((blenus_recv_cb)on_recv);
 #if defined(BOARD_PINETIME)
-  buttons_init();
   gfx_reset();
   gfx_init();
   gfx_screen_colour(0xC618);
@@ -145,6 +140,7 @@ int main(void)
   gfx_screen_fill();
   gfx_pos(10, 10);
   gfx_text("Onex");
+  gpio_init();
   touch_init(touched);
 #endif
   while(1){
@@ -156,8 +152,6 @@ int main(void)
     }
     if (display_state_prev != display_state){
       display_state_prev = display_state;
-      gpio_set(LCD_BACKLIGHT_LOW,  display_state);
-      gpio_set(LCD_BACKLIGHT_MID,  display_state);
       gpio_set(LCD_BACKLIGHT_HIGH, display_state);
     }
 #endif
