@@ -34,10 +34,6 @@
 #endif
 #include <assert.h>
 
-#include "app_error.h"
-#include <nrf_sdh.h>
-#include <onex-kernel/blenus.h>
-
 static bool initialised=false;
 
 static blenus_recv_cb recv_cb;
