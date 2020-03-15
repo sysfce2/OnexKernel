@@ -54,33 +54,6 @@ void gpio_mode(uint32_t pin, uint32_t mode)
     }
 }
 
-#if defined(BUTTON_1)
-static int button_1_pressed=0;
-static gpio_pin_cb button_1_cb;
-#endif
-
-void gpio_loop()
-{
-#if defined(BUTTON_1)
-  int b1p = BUTTONS_ACTIVE_STATE==gpio_get(BUTTON_1);
-  if(button_1_cb && button_1_pressed != b1p){
-     button_1_pressed = b1p;
-     button_1_cb(button_1_pressed);
-  }
-#endif
-}
-
-void gpio_mode_cb_2(uint32_t pin, uint32_t mode, gpio_pin_cb cb)
-{
-  gpio_mode(pin, mode);
-
-#if defined(BUTTON_1)
-  if(pin==BUTTON_1){
-    button_1_cb=cb;
-  }
-#endif
-}
-
 static gpio_pin_cb pin_cb=0;
 
 void in_pin_handler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
