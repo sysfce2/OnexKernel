@@ -3,6 +3,8 @@
 
 #if defined(NRF5)
 #include <boards.h>
+#include "app_button.h"
+#include "app_timer.h"
 #if defined(BOARD_PINETIME)
 #include <onex-kernel/gfx.h>
 #include <onex-kernel/touch.h>
@@ -22,6 +24,27 @@ extern void run_properties_tests();
 extern void run_list_tests();
 extern void run_value_tests();
 extern void run_onf_tests(char* dbpath);
+
+#if defined(NRF5)
+static void button_event_handler(uint8_t pin, uint8_t action)
+{
+  if(pin!=BUTTON_1) return;
+  log_write("!%d\n", action);
+}
+
+static app_button_cfg_t buttons[] = {
+  { BUTTON_1, false, BUTTON_PULL, button_event_handler }
+};
+
+#define DEBOUNCE APP_TIMER_TICKS(50)
+static void buttons_init(void)
+{
+  gpio_mode(   BUTTON_ENABLE, OUTPUT);
+  gpio_set(    BUTTON_ENABLE, 1);
+  APP_ERROR_CHECK(app_button_init(buttons, ARRAY_SIZE(buttons), DEBOUNCE));
+  APP_ERROR_CHECK(app_button_enable());
+}
+#endif
 
 #if defined(BOARD_PCA10059)
 const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
@@ -108,6 +131,7 @@ int main(void)
 #else
   blenus_init((blenus_recv_cb)on_recv);
 #if defined(BOARD_PINETIME)
+  buttons_init();
   gfx_reset();
   gfx_init();
   gfx_screen_colour(0xC618);

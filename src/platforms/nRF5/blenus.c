@@ -14,7 +14,6 @@
 #include "nrf_sdh_ble.h"
 #include "boards.h"
 #include "app_timer.h"
-#include "app_button.h"
 #include "ble_nus.h"
 #include "ble_lbs.h"
 #include "nrf_ble_gatt.h"
@@ -62,9 +61,6 @@ static uint16_t writes_in_progress=0;
 #define NEXT_CONN_PARAMS_UPDATE_DELAY   APP_TIMER_TICKS(5000)                   /**< Time between each call to sd_ble_gap_conn_param_update after the first call (5 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT    3                                       /**< Number of attempts before giving up the connection parameter negotiation. */
 
-#define LEDBUTTON_BUTTON                BSP_BUTTON_0                            /**< Button that will trigger the notification event with the LED Button Service */
-#define BUTTON_DETECTION_DELAY          APP_TIMER_TICKS(50)                     /**< Delay from a GPIOTE event until a button is reported as pushed (in number of timer ticks). */
-
 BLE_NUS_DEF(m_nus, NRF_SDH_BLE_TOTAL_LINK_COUNT);                                   /**< BLE NUS service instance. */
 BLE_LBS_DEF(m_lbs);                                                             /**< LED Button Service instance. */
 NRF_BLE_GATT_DEF(m_gatt);                                                       /**< GATT module instance. */
@@ -79,48 +75,6 @@ static uint8_t m_enc_scan_response_data[BLE_GAP_ADV_SET_DATA_SIZE_MAX];         
 static void leds_init(void)
 {
     bsp_board_init(BSP_INIT_LEDS);
-}
-
-// static bool m_send_flag = 0;
-
-static void button_event_handler(uint8_t pin_no, uint8_t button_action)
-{
-    ret_code_t err_code;
-
-    switch (pin_no)
-    {
-        case LEDBUTTON_BUTTON:
-            NRF_LOG_INFO("Send button state change.");
-  //        m_send_flag = button_action;
-            err_code = ble_lbs_on_button_change(m_conn_handle, &m_lbs, button_action);
-            if (err_code != NRF_SUCCESS &&
-                err_code != BLE_ERROR_INVALID_CONN_HANDLE &&
-                err_code != NRF_ERROR_INVALID_STATE &&
-                err_code != BLE_ERROR_GATTS_SYS_ATTR_MISSING)
-            {
-                APP_ERROR_CHECK(err_code);
-            }
-            break;
-
-        default:
-            APP_ERROR_HANDLER(pin_no);
-            break;
-    }
-}
-
-static void buttons_init(void)
-{
-    ret_code_t err_code;
-
-    //The array must be static because a pointer to it will be saved in the button handler module.
-    static app_button_cfg_t buttons[] =
-    {
-        {LEDBUTTON_BUTTON, false, BUTTON_PULL, button_event_handler}
-    };
-
-    err_code = app_button_init(buttons, ARRAY_SIZE(buttons),
-                               BUTTON_DETECTION_DELAY);
-    APP_ERROR_CHECK(err_code);
 }
 
 static void advertising_start(void)
@@ -146,8 +100,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
             APP_ERROR_CHECK(err_code);
-            err_code = app_button_enable();
-            APP_ERROR_CHECK(err_code);
             if(recv_cb) recv_cb(0,0);
             break;
 
@@ -155,8 +107,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             NRF_LOG_INFO("Disconnected");
             bsp_board_led_off(CONNECTED_LED);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
-            err_code = app_button_disable();
-            APP_ERROR_CHECK(err_code);
             advertising_start();
             break;
 
@@ -432,7 +382,6 @@ bool blenus_init(blenus_recv_cb cb)
   if(!nrf_sdh_is_enabled()) APP_ERROR_CHECK(nrf_sdh_enable_request());
 
   leds_init();
-  buttons_init();
   ble_stack_init();
   gap_params_init();
   gatt_init();
