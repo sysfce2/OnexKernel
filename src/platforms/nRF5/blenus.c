@@ -43,10 +43,6 @@ static uint16_t writes_in_progress=0;
 #define APP_BLE_OBSERVER_PRIO           3 /**< Application's BLE observer priority. You shouldn't need to modify this value. */
 #define APP_BLE_CONN_CFG_TAG            1 /**< A tag identifying the SoftDevice BLE configuration. */
 
-#define ADVERTISING_LED                 BSP_BOARD_LED_0                         /**< Is on when device is advertising. */
-#define CONNECTED_LED                   BSP_BOARD_LED_1                         /**< Is on when device has connected. */
-#define LEDBUTTON_LED                   BSP_BOARD_LED_2                         /**< LED to be toggled with the help of the LED Button Service. */
-
 #define APP_ADV_INTERVAL                64                                      /**< The advertising interval (in units of 0.625 ms; this value corresponds to 40 ms). */
 #define APP_ADV_DURATION                BLE_GAP_ADV_TIMEOUT_GENERAL_UNLIMITED   /**< The advertising time-out (in units of seconds). When set to 0, we will never time out. */
 
@@ -69,19 +65,12 @@ static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID;                        
 static uint8_t m_adv_handle = BLE_GAP_ADV_SET_HANDLE_NOT_SET;                   /**< Advertising handle used to identify an advertising set. */
 static uint8_t m_enc_advdata[BLE_GAP_ADV_SET_DATA_SIZE_MAX];                    /**< Buffer for storing an encoded advertising set. */
 
-static void leds_init(void)
-{
-    bsp_board_init(BSP_INIT_LEDS);
-}
-
 static void advertising_start(void)
 {
     ret_code_t           err_code;
 
     err_code = sd_ble_gap_adv_start(m_adv_handle, APP_BLE_CONN_CFG_TAG);
     APP_ERROR_CHECK(err_code);
-
-    bsp_board_led_on(ADVERTISING_LED);
 }
 
 static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
@@ -92,8 +81,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
     {
         case BLE_GAP_EVT_CONNECTED:
             NRF_LOG_INFO("Connected");
-            bsp_board_led_on(CONNECTED_LED);
-            bsp_board_led_off(ADVERTISING_LED);
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
             APP_ERROR_CHECK(err_code);
@@ -102,7 +89,6 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
 
         case BLE_GAP_EVT_DISCONNECTED:
             NRF_LOG_INFO("Disconnected");
-            bsp_board_led_off(CONNECTED_LED);
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
             advertising_start();
             break;
@@ -332,7 +318,6 @@ bool blenus_init(blenus_recv_cb cb)
 
   if(!nrf_sdh_is_enabled()) APP_ERROR_CHECK(nrf_sdh_enable_request());
 
-  leds_init();
   ble_stack_init();
   gap_params_init();
   gatt_init();

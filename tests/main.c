@@ -44,6 +44,11 @@ static void buttons_init(void)
   APP_ERROR_CHECK(app_button_init(buttons, ARRAY_SIZE(buttons), DEBOUNCE));
   APP_ERROR_CHECK(app_button_enable());
 }
+
+static void bsp_init(void)
+{
+    bsp_board_init(BSP_INIT_LEDS|BSP_INIT_BUTTONS);
+}
 #endif
 
 #if defined(BOARD_PCA10059)
@@ -123,6 +128,7 @@ int main(void)
 {
   log_init();
   time_init();
+  bsp_init();
 #if defined(NRF5)
 #if defined(HAS_SERIAL)
   serial_init((serial_recv_cb)on_recv,0);
