@@ -3,8 +3,8 @@
 
 #if defined(NRF5)
 #include <boards.h>
-#include "app_button.h"
-#include "app_timer.h"
+#include <app_timer.h>
+#include <app_button.h>
 #if defined(BOARD_PINETIME)
 #include <onex-kernel/gfx.h>
 #include <onex-kernel/touch.h>
@@ -37,7 +37,7 @@ static app_button_cfg_t buttons[] = {
 };
 
 #define DEBOUNCE APP_TIMER_TICKS(50)
-static void gpio_init(void)
+static void set_up_gpio(void)
 {
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
   gpio_set(    BUTTON_ENABLE, 1);
@@ -125,6 +125,7 @@ int main(void)
 {
   log_init();
   time_init();
+  gpio_init();
 #if defined(NRF5)
 #if defined(HAS_SERIAL)
   serial_init((serial_recv_cb)on_recv,0);
@@ -140,7 +141,7 @@ int main(void)
   gfx_screen_fill();
   gfx_pos(10, 10);
   gfx_text("Onex");
-  gpio_init();
+  set_up_gpio();
   touch_init(touched);
 #endif
   while(1){

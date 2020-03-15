@@ -13,6 +13,7 @@
 
 typedef void (*gpio_pin_cb)(int);
 
+void gpio_init();
 void gpio_loop();
 void gpio_mode(      uint32_t pin, uint32_t mode);
 void gpio_mode_cb(   uint32_t pin, uint32_t mode, gpio_pin_cb cb);

@@ -7,28 +7,10 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/gpio.h>
 
-/*
-static void nrfx_gpiote_evt_handler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action) {
-  log_write("irq %d %d\n", pin, action);
-}
-
-static void set_up_buttons()
+void gpio_init()
 {
-  nrf_gpio_cfg_output(BUTTON_ENABLE);
-  nrf_gpio_pin_set(BUTTON_ENABLE);
-
-  nrf_gpio_cfg_sense_input(BUTTON_1, (nrf_gpio_pin_pull_t)GPIO_PIN_CNF_PULL_Pulldown, (nrf_gpio_pin_sense_t)GPIO_PIN_CNF_SENSE_High);
-
-  nrfx_gpiote_in_config_t pinConfig;
-  pinConfig.skip_gpio_setup = true;
-  pinConfig.hi_accuracy = false;
-  pinConfig.is_watcher = false;
-  pinConfig.sense = (nrf_gpiote_polarity_t)NRF_GPIOTE_POLARITY_HITOLO;
-  pinConfig.pull = (nrf_gpio_pin_pull_t)GPIO_PIN_CNF_PULL_Pulldown;
-
-  nrfx_gpiote_in_init(BUTTON_1, &pinConfig, nrfx_gpiote_evt_handler);
+  if(!nrfx_gpiote_is_init()) APP_ERROR_CHECK(nrfx_gpiote_init());
 }
-*/
 
 void gpio_mode(uint32_t pin, uint32_t mode)
 {
