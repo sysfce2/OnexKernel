@@ -32,9 +32,11 @@ void button_changed(int pressed)
 static void set_up_gpio(void)
 {
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, button_changed);
-  gpio_mode(   BUTTON_ENABLE, OUTPUT);
-  gpio_set(    BUTTON_ENABLE, 1);
+#if defined(BOARD_PINETIME)
+  gpio_mode(BUTTON_ENABLE, OUTPUT);
+  gpio_set( BUTTON_ENABLE, 1);
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
+#endif
 }
 #endif
 
@@ -116,11 +118,12 @@ int main(void)
 {
   log_init();
   time_init();
-  gpio_init();
 #if defined(NRF5)
+  gpio_init();
 #if defined(HAS_SERIAL)
   serial_init((serial_recv_cb)on_recv,0);
   blenus_init(0);
+  set_up_gpio();
   while(1) serial_loop();
 #else
   blenus_init((blenus_recv_cb)on_recv);
@@ -132,9 +135,9 @@ int main(void)
   gfx_screen_fill();
   gfx_pos(10, 10);
   gfx_text("Onex");
-  set_up_gpio();
   touch_init(touched);
 #endif
+  set_up_gpio();
   while(1){
 #if defined(BOARD_PINETIME)
     if(new_touch_info){

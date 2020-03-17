@@ -19,13 +19,13 @@ void time_init()
   initialised=true;
 }
 
-uint32_t time_us()
+uint64_t time_us()
 {
   time_init();
   return get_time_us()-startus;
 }
 
-uint32_t time_ms()
+uint64_t time_ms()
 {
   time_init();
   return time_us()/1000;
