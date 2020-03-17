@@ -7,14 +7,10 @@
 
 static bool initialised=false;
 
-APP_TIMER_DEF(m_timer_0);
+#define EFFECTIVE_TIMER_CLOCK_FREQ (APP_TIMER_CLOCK_FREQ/(APP_TIMER_CONFIG_RTC_FREQUENCY+1))
+#define TICKS_TO_MS(ticks) (((ticks)*1000)/EFFECTIVE_TIMER_CLOCK_FREQ)
 
-
-#define APP_TIMER_PRESCALER 1 // where is this defined?
-#define EFFECTIVE_TIMER_CLOCK_FREQ (APP_TIMER_CLOCK_FREQ/(APP_TIMER_PRESCALER+1))
-#define OVERFLOW_TICKS 16777216
-
-static uint64_t seconds=0;
+static uint32_t seconds=0;
 static uint32_t ticks_at_second=0;
 
 static void every_second(void* p)
@@ -22,6 +18,8 @@ static void every_second(void* p)
   seconds++;
   ticks_at_second = app_timer_cnt_get();
 }
+
+APP_TIMER_DEF(m_timer_0);
 
 void time_init()
 {
@@ -35,23 +33,29 @@ void time_init()
   initialised=true;
 }
 
-uint64_t time_s(){
+uint32_t time_s(){
+  if(!initialised) return 0;
   return seconds;
 }
 
 uint64_t time_ms(){
-  int32_t ticks = app_timer_cnt_get()-ticks_at_second;
-  if(ticks<0) ticks+=OVERFLOW_TICKS;
-  return (seconds*1000)+(ticks*1000)/EFFECTIVE_TIMER_CLOCK_FREQ;
+  if(!initialised) return 0;
+  NVIC_DisableIRQ(RTC1_IRQn);
+    uint32_t tix=app_timer_cnt_get();
+    uint32_t dif=app_timer_cnt_diff_compute(tix, ticks_at_second);
+    uint64_t r=((uint64_t)(seconds*1000))+TICKS_TO_MS(dif);
+  NVIC_EnableIRQ(RTC1_IRQn);
+  return r;
 }
 
 uint64_t time_us(){
+  if(!initialised) return 0;
   return time_ms()*1000;
 }
 
 void time_delay_us(uint32_t us)
 {
-  nrf_delay_us(us*(APP_TIMER_PRESCALER+1));
+  nrf_delay_us(us*(APP_TIMER_CONFIG_RTC_FREQUENCY+1));
 }
 
 void time_delay_ms(uint32_t ms)
