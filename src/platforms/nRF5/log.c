@@ -38,9 +38,21 @@ int log_write(const char* fmt, ...)
 #elif defined(LOG_TO_GFX)
 #if defined(BOARD_PINETIME)
   vsnprintf((char*)log_buf, LOG_BUF_SIZE, fmt, args);
+  char* nl=strchr(log_buf, '\n');
+  char* s2;
+  if(nl){
+    *nl=0;
+    s2=nl+1;
+  }
   if(strlen(log_buf)>9) log_buf[9]=0;
-  gfx_push(10,160);
+  if(nl && strlen(s2)>9) s2[9]=0;
+  gfx_push(10,150);
   gfx_text(log_buf);
+  if(nl){
+    gfx_push(10,190);
+    gfx_text(s2);
+    gfx_pop();
+  }
   gfx_pop();
 #endif
 #else
