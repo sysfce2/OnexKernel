@@ -14,19 +14,19 @@
 #define TOUCH_ACTION_UP      1
 #define TOUCH_ACTION_CONTACT 2
 
-typedef struct touch_info {
+typedef struct touch_info_t {
   uint16_t x;
   uint16_t y;
   uint8_t  gesture;
   uint8_t  action;
-} touch_info;
+} touch_info_t;
 
-typedef void (*touch_touched_cb)();
+typedef void (*touch_touched_cb)(touch_info_t);
 
-void       touch_reset();
-void       touch_init(touch_touched_cb);
-touch_info touch_get_info();
-void       touch_disable();
+void         touch_reset();
+void         touch_init(touch_touched_cb);
+touch_info_t touch_get_info();
+void         touch_disable();
 
 #endif
 

@@ -55,18 +55,19 @@ static bool display_state=LEDS_ACTIVE_STATE;
 
 #if defined(BOARD_PINETIME)
 static void show_touch();
-static bool was_touched=false;
+static bool new_touch_info=false;
+static touch_info_t ti;
 static int irqs=0;
 
-void touched()
+void touched(touch_info_t touchinfo)
 {
-  was_touched=true;
+  ti=touchinfo;
+  new_touch_info=true;
   irqs++;
 }
 
 void show_touch()
 {
-  touch_info ti=touch_get_info();
   char buf[64];
 
   snprintf(buf, 64, "-%03d-%03d-", ti.x, ti.y);
@@ -136,8 +137,8 @@ int main(void)
 #endif
   while(1){
 #if defined(BOARD_PINETIME)
-    if(was_touched){
-      was_touched=false;
+    if(new_touch_info){
+      new_touch_info=false;
       display_state = LEDS_ACTIVE_STATE;
       show_touch();
     }

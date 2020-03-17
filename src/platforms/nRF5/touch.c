@@ -2,8 +2,8 @@
 #include <boards.h>
 
 #include <nrfx_twi.h>
-#include <nrfx_log.h>
 #include <nrfx_gpiote.h>
+#include <app_timer.h>
 
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
@@ -33,7 +33,8 @@ nrfx_twi_t twi = NRFX_TWI_INSTANCE(1);
 static touch_touched_cb touch_cb = 0;
 
 static void nrfx_gpiote_evt_handler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action) {
-  if(touch_cb) touch_cb();
+  touch_info_t ti=touch_get_info();
+  if(touch_cb) touch_cb(ti);
 }
 
 void touch_reset()
@@ -45,8 +46,13 @@ void touch_reset()
   time_delay_ms(200);
 }
 
+APP_TIMER_DEF(touch_timer);
+static void every_50ms(void* p);
+
 void touch_init(touch_touched_cb cb)
 {
+  ret_code_t e;
+
   touch_cb = cb;
 
   nrf_gpio_cfg_output(TOUCH_RESET_PIN);
@@ -70,13 +76,28 @@ void touch_init(touch_touched_cb cb)
   twiConfig.hold_bus_uninit = NRFX_TWI_DEFAULT_CONFIG_HOLD_BUS_UNINIT;
   nrfx_twi_init(&twi, &twiConfig, 0, 0);
   nrfx_twi_enable(&twi);
+
+  e=app_timer_create(&touch_timer, APP_TIMER_MODE_REPEATED, every_50ms); APP_ERROR_CHECK(e);
+  e=app_timer_start(touch_timer, APP_TIMER_TICKS(50), NULL); APP_ERROR_CHECK(e);
+}
+
+static bool pressed=false;
+
+void every_50ms(void* xx)
+{
+  touch_info_t ti=touch_get_info();
+  bool p=(ti.action==TOUCH_ACTION_CONTACT);
+  if(p!=pressed){
+    pressed=p;
+    if(pressed && touch_cb) touch_cb(ti);
+  }
 }
 
 uint8_t buf[63];
 
-touch_info touch_get_info()
+touch_info_t touch_get_info()
 {
-  touch_info info;
+  touch_info_t info;
 
   nrfx_twi_rx(&twi, TOUCH_ADDRESS, buf, 63);
 
