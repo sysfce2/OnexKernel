@@ -36,7 +36,6 @@ static bool initialised=false;
 
 static blenus_recv_cb recv_cb;
 static void write_chunks();
-static uint16_t writes_in_progress=0;
 
 #define DEVICE_NAME                     "Onex"    /**< Name of device. Will be included in the advertising data. */
 
@@ -210,7 +209,6 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
     }
     else
     if (p_evt->type == BLE_NUS_EVT_TX_RDY) {
-      writes_in_progress--;
       write_chunks();
     }
 }
@@ -346,10 +344,10 @@ size_t blenus_write(unsigned char* buf, size_t size)
   if(!chunks) chunks=list_new(MAX_CHUNKS);
   if(list_size(chunks)==MAX_CHUNKS){
 #if defined(HAS_SERIAL) || defined(LOG_TO_GFX)
-    log_write("chunks list full! dropping\n");
+    log_write("\nNUS full");
 #endif
     chunks_in_use=false;
-    if(!writes_in_progress) write_chunks();
+    write_chunks();
     return 0;
   }
   for(size_t n=0; n<size; ){
@@ -364,26 +362,37 @@ size_t blenus_write(unsigned char* buf, size_t size)
     list_add(chunks, chunk);
   }
   chunks_in_use=false;
-  if(!writes_in_progress) write_chunks();
+  write_chunks();
   return size;
 }
 
 void write_chunks()
 {
+  ret_code_t e;
   if(!chunks || !list_size(chunks) || chunks_in_use) return;
   while(list_size(chunks)){
     unsigned char* chunk=list_get_n(chunks,1);
     uint16_t i=0; while(true){ if(!chunk[i]) break; i++; }
-    ret_code_t e=ble_nus_data_send(&m_nus, chunk, &i, m_conn_handle);
-    if((e!=NRF_ERROR_INVALID_STATE) && (e!=NRF_ERROR_RESOURCES) && (e!=NRF_ERROR_NOT_FOUND)){
+    uint16_t j=i;
+
+    e=ble_nus_data_send(&m_nus, chunk, &i, m_conn_handle);
+
+    if((e!=NRF_ERROR_INVALID_STATE) && (e!=NRF_ERROR_RESOURCES) && (e!=NRF_ERROR_NOT_FOUND)){ // NRF_ERROR_BUSY?
 #if defined(HAS_SERIAL) || defined(LOG_TO_GFX)
-      if(e!=NRF_SUCCESS) log_write("%s\n", nrf_strerror_get(e));
+      if(e!=NRF_SUCCESS){
+#if defined(LOG_TO_GFX)
+        const char* ers=nrf_strerror_get(e);
+        log_write("%.4s", ers+4);
+#else
+        log_write("%s\n", nrf_strerror_get(e));
+#endif
+      }
 #endif
       APP_ERROR_CHECK(e);
     }
-    if(e) break;
+    if(j!=i) log_write("%d,%d",j,i);
+    if(e!=NRF_SUCCESS || j!=i) break;
     free(list_del_n(chunks,1));
-    writes_in_progress++;
   }
 }
 
