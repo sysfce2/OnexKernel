@@ -8,7 +8,7 @@
 #include <onex-kernel/serial.h>
 #include <onex-kernel/random.h>
 
-static volatile uint16_t speed = 128;
+static uint16_t speed = 128;
 
 static void serial_received(char* ch)
 {

@@ -49,8 +49,8 @@ void flash_led(int t)
 #endif
 
 #if defined(BOARD_PINETIME)
-static volatile bool display_state_prev=!LEDS_ACTIVE_STATE;
-static volatile bool display_state=LEDS_ACTIVE_STATE;
+static bool display_state_prev=!LEDS_ACTIVE_STATE;
+static bool display_state=LEDS_ACTIVE_STATE;
 #endif
 
 #if defined(BOARD_PINETIME)
