@@ -31,8 +31,10 @@ void button_changed(int pressed)
 
 static void set_up_gpio(void)
 {
+#if defined(BOARD_PCA10059)
+  gpio_mode_cb(BUTTON_1, INPUT_PULLUP, button_changed);
+#elif defined(BOARD_PINETIME)
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, button_changed);
-#if defined(BOARD_PINETIME)
   gpio_mode(BUTTON_ENABLE, OUTPUT);
   gpio_set( BUTTON_ENABLE, 1);
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);

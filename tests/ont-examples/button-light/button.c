@@ -34,6 +34,7 @@ int main()
   log_init();
   time_init();
 #if defined(NRF5)
+  gpio_init();
 #if defined(HAS_SERIAL)
   serial_init(0,0);
 #endif
