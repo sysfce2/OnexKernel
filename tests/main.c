@@ -38,6 +38,8 @@ static void set_up_gpio(void)
   gpio_mode(BUTTON_ENABLE, OUTPUT);
   gpio_set( BUTTON_ENABLE, 1);
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
+#define ADC_CHANNEL 0
+  gpio_adc_init(BATTERY_V, ADC_CHANNEL);
 #endif
 }
 #endif
@@ -86,11 +88,25 @@ void show_touch()
     display_state = !LEDS_ACTIVE_STATE;
   }
 }
+
+void show_battery()
+{
+  int16_t bv = gpio_read(ADC_CHANNEL);
+  int16_t mv = bv*2000/(1024/(33/10));
+  int8_t  pc = ((mv-3520)*100/5200)*10;
+  char buf[16]; snprintf(buf, 16, "%d%%(%d)", pc, mv);
+  gfx_pos(10, 60);
+  gfx_text(buf);
+}
 #endif
 
 void on_recv(unsigned char* buf, size_t size)
 {
   if(!size) return;
+
+#if defined(BOARD_PINETIME)
+  if(buf[0]=='b'){ show_battery(); return; }
+#endif
 
   log_write(">%c\n", buf[0]);
 

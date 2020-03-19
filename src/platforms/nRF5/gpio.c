@@ -4,6 +4,7 @@
 #include <nrf.h>
 #include <nrf_gpio.h>
 #include <nrfx_gpiote.h>
+#include <nrfx_saadc.h>
 #include <onex-kernel/log.h>
 #include <onex-kernel/gpio.h>
 
@@ -102,5 +103,32 @@ void gpio_set(uint32_t pin, uint32_t value)
 void gpio_toggle(uint32_t pin)
 {
   nrf_gpio_pin_toggle(pin);
+}
+
+void saadc_event(nrfx_saadc_evt_t const * event) { }
+
+void gpio_adc_init(uint32_t pin, uint8_t channel) {
+
+  nrfx_saadc_config_t adc_config = NRFX_SAADC_DEFAULT_CONFIG;
+  nrfx_saadc_init(&adc_config, saadc_event);
+
+  nrf_saadc_channel_config_t adc_channel_config = {
+          .resistor_p = NRF_SAADC_RESISTOR_DISABLED,
+          .resistor_n = NRF_SAADC_RESISTOR_DISABLED,
+          .gain       = NRF_SAADC_GAIN1_5,
+          .reference  = NRF_SAADC_REFERENCE_INTERNAL,
+          .acq_time   = NRF_SAADC_ACQTIME_3US,
+          .mode       = NRF_SAADC_MODE_SINGLE_ENDED,
+          .burst      = NRF_SAADC_BURST_DISABLED,
+          .pin_p      = pin,
+          .pin_n      = NRF_SAADC_INPUT_DISABLED
+  };
+  nrfx_saadc_channel_init(channel, &adc_channel_config);
+}
+
+int16_t gpio_read(uint8_t channel) {
+  nrf_saadc_value_t value = 0;
+  nrfx_saadc_sample_convert(channel, &value);
+  return value;
 }
 

@@ -13,13 +13,15 @@
 
 typedef void (*gpio_pin_cb)(int);
 
-void gpio_init();
-void gpio_mode(      uint32_t pin, uint32_t mode);
-void gpio_mode_cb(   uint32_t pin, uint32_t mode, gpio_pin_cb cb);
-int  gpio_get(       uint32_t pin);
-void gpio_set(       uint32_t pin, uint32_t value);
-void gpio_toggle(    uint32_t pin);
-int  gpio_touch_read(uint32_t pin);
+void    gpio_init();
+void    gpio_mode(      uint32_t pin, uint32_t mode);
+void    gpio_mode_cb(   uint32_t pin, uint32_t mode, gpio_pin_cb cb);
+int     gpio_get(       uint32_t pin);
+void    gpio_adc_init(  uint32_t pin, uint8_t channel);
+int16_t gpio_read(      uint8_t  channel);
+void    gpio_set(       uint32_t pin, uint32_t value);
+void    gpio_toggle(    uint32_t pin);
+int     gpio_touch_read(uint32_t pin);
 
 #endif
 

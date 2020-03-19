@@ -78,7 +78,7 @@ typedef struct object {
   value*      alerted;
   value*      devices;
   bool        running_evals;
-  uint32_t    last_observe;
+  uint64_t    last_observe;
 } object;
 
 // ---------------------------------
