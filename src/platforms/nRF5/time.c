@@ -53,6 +53,45 @@ uint64_t time_us(){
   return time_ms()*1000;
 }
 
+
+time_up_cb up_cb_1=0;
+time_up_cb up_cb_2=0;
+
+static void time_up_1(void* p)
+{
+  if(up_cb_1) up_cb_1();
+}
+
+static void time_up_2(void* p)
+{
+  if(up_cb_2) up_cb_2();
+}
+
+APP_TIMER_DEF(m_timer_1);
+APP_TIMER_DEF(m_timer_2);
+
+uint8_t instance=1;
+
+void time_ticker(time_up_cb cb, uint32_t every)
+{
+  ret_code_t e;
+  switch(instance){
+    case 1: {
+      up_cb_1=cb;
+      e = app_timer_create(&m_timer_1, APP_TIMER_MODE_REPEATED, time_up_1); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_1, APP_TIMER_TICKS(every), NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 2: {
+      up_cb_2=cb;
+      e = app_timer_create(&m_timer_2, APP_TIMER_MODE_REPEATED, time_up_2); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_2, APP_TIMER_TICKS(every), NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+  }
+  instance++;
+}
+
 void time_delay_us(uint32_t us)
 {
   nrf_delay_us(us*(APP_TIMER_CONFIG_RTC_FREQUENCY+1));

@@ -4,9 +4,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef void (*time_up_cb)();
+
 void     time_init();
 uint64_t time_ms();
 uint64_t time_us();
+void     time_ticker(time_up_cb cb, uint32_t every);
 
 #if defined(TARGET_LINUX) || defined(__ANDROID__)
 
