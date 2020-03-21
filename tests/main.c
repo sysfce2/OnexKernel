@@ -148,10 +148,31 @@ int main(void)
 #if defined(BOARD_PINETIME)
   gfx_reset();
   gfx_init();
-  gfx_screen_colour(0xC618);
-  gfx_text_colour(0x001F);
+  gfx_screen_colour(0x0);
   gfx_screen_fill();
+  gfx_rect_line(  0,  0, 240,240, GFX_GREY_F, 3);
+  gfx_rect_fill( 15,180,  20, 20, GFX_RGB256(255,255,255));
+  gfx_rect_fill( 15,210,  20, 20, GFX_WHITE);
+  gfx_rect_fill( 35,180,  20, 20, GFX_RGB256(63,63,63));
+  gfx_rect_fill( 35,210,  20, 20, GFX_GREY_7);
+  gfx_rect_fill( 55,180,  20, 20, GFX_RGB256(31,31,31));
+  gfx_rect_fill( 55,210,  20, 20, GFX_GREY_3);
+  gfx_rect_fill( 75,180,  20, 20, GFX_RGB256(15,15,15));
+  gfx_rect_fill( 75,210,  20, 20, GFX_GREY_1);
+  gfx_rect_fill( 95,180,  20, 20, GFX_RGB256(255,0,0));
+  gfx_rect_fill( 95,210,  20, 20, GFX_RED);
+  gfx_rect_fill(115,180,  20, 20, GFX_RGB256(0,255,0));
+  gfx_rect_fill(115,210,  20, 20, GFX_GREEN);
+  gfx_rect_fill(135,180,  20, 20, GFX_RGB256(0,0,255));
+  gfx_rect_fill(135,210,  20, 20, GFX_BLUE);
+  gfx_rect_fill(155,180,  20, 20, GFX_RGB256(255,255,0));
+  gfx_rect_fill(155,210,  20, 20, GFX_YELLOW);
+  gfx_rect_fill(175,180,  20, 20, GFX_RGB256(255,0,255));
+  gfx_rect_fill(175,210,  20, 20, GFX_MAGENTA);
+  gfx_rect_fill(195,180,  20, 20, GFX_RGB256(0,255,255));
+  gfx_rect_fill(195,210,  20, 20, GFX_CYAN);
   gfx_pos(10, 10);
+  gfx_text_colour(GFX_BLUE);
   gfx_text("Onex");
   touch_init(touched);
 #endif

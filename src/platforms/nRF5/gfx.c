@@ -37,6 +37,18 @@ void gfx_screen_fill()
   nrf_gfx_screen_fill(lcd, screen_colour);
 }
 
+uint8_t gfx_rect_line(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t colour, uint16_t thickness)
+{
+  nrf_gfx_rect_t r=NRF_GFX_RECT(x,y, w,h);
+  return nrf_gfx_rect_draw(lcd, &r, thickness, colour, false);
+}
+
+uint8_t gfx_rect_fill(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t colour)
+{
+  nrf_gfx_rect_t r=NRF_GFX_RECT(x,y, w,h);
+  return nrf_gfx_rect_draw(lcd, &r, 0, colour, true);
+}
+
 uint16_t x_pos=0;
 uint16_t y_pos=0;
 void gfx_pos(uint16_t x, uint16_t y)
