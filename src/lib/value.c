@@ -91,4 +91,8 @@ void value_log(value* v)
   log_write("%s\n", value_to_text(v,buf,MAX_TEXT_LEN));
 }
 
+void value_dump()
+{
+  properties_log(all_values);
+}
 
