@@ -7,8 +7,11 @@
 typedef void (*time_up_cb)();
 
 void     time_init();
-uint64_t time_ms();
-uint64_t time_us();
+
+uint64_t time_es(); // Unix epoch seconds
+uint64_t time_ms(); // ms since startup
+uint64_t time_us(); // us since startup
+
 void     time_ticker(time_up_cb cb, uint32_t every);
 
 #if defined(TARGET_LINUX) || defined(__ANDROID__)

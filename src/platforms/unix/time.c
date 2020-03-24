@@ -31,4 +31,10 @@ uint64_t time_ms()
   return time_us()/1000;
 }
 
+uint64_t time_es()
+{
+  struct timespec t;
+  clock_gettime(CLOCK_REALTIME, &t);
+  return t.tv_sec;
+}
 

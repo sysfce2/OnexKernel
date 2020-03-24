@@ -11,11 +11,13 @@ static bool initialised=false;
 #define TICKS_TO_MS(ticks) (((ticks)*1000)/EFFECTIVE_TIMER_CLOCK_FREQ)
 
 static uint32_t seconds=0;
+static uint64_t epoch_seconds=1585045750;
 static uint32_t ticks_at_second=0;
 
 static void every_second(void* p)
 {
   seconds++;
+  epoch_seconds++;
   ticks_at_second = app_timer_cnt_get();
 }
 
@@ -36,6 +38,12 @@ void time_init()
 uint32_t time_s(){
   if(!initialised) return 0;
   return seconds;
+}
+
+uint64_t time_es()
+{
+  if(!initialised) return 0;
+  return epoch_seconds;
 }
 
 uint64_t time_ms(){
