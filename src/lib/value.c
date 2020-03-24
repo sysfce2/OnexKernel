@@ -33,10 +33,7 @@ value* value_new(char* val)
 {
   if(!val) return 0;
   if(!all_values) all_values=properties_new(MAX_VALUES);
-  value ourstemp;
-  ourstemp.type=ITEM_VALUE;
-  ourstemp.val=val;
-  value* ours=(value*)properties_get_same(all_values, &ourstemp);
+  value* ours=(value*)properties_get_str(all_values, val);
   if(ours) return ours;
   ours=(value*)calloc(1,sizeof(value));
   if(!ours) return 0;

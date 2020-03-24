@@ -51,11 +51,11 @@ void* properties_get(properties* op, value* key)
   return 0;
 }
 
-void* properties_get_same(properties* op, value* key)
+void* properties_get_str(properties* op, char* key)
 {
   if(!op) return 0;
   int j;
-  for(j=0; j<op->size; j++) if(!strcmp(value_string(op->keys[j]), value_string(key))) return op->vals[j];
+  for(j=0; j<op->size; j++) if(!strcmp(value_string(op->keys[j]), key)) return op->vals[j];
   return 0;
 }
 

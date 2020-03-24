@@ -90,12 +90,12 @@ void* properties_get(properties* op, value* key)
   return list? list->item: 0;
 }
 
-void* properties_get_same(properties* op, value* key)
+void* properties_get_str(properties* op, char* key)
 {
   if(!(op && key)) return 0;
   hash_item* list;
-  list=op->lists[string_hash(value_string(key)) % op->buckets];
-  while(list && strcmp(value_string(list->key),value_string(key))){
+  list=op->lists[string_hash(key) % op->buckets];
+  while(list && strcmp(value_string(list->key),key)){
     list=list->next;
   }
   return list? list->item: 0;

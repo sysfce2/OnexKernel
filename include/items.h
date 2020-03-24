@@ -58,7 +58,7 @@ typedef struct value      value;
 properties* properties_new(uint16_t max_size);
 bool        properties_set(properties* op, value* key, void* i);
 void*       properties_get(properties* op, value* key);
-void*       properties_get_same(properties* op, value* key);
+void*       properties_get_str(properties* op, char* key);
 value*      properties_key_n(properties* op, uint16_t index);
 void*       properties_get_n(properties* op, uint16_t index);
 uint16_t    properties_size(properties* op);
