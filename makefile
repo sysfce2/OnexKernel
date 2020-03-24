@@ -349,7 +349,12 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 PRIVATE_PEM = ~/the-u-web/OnexKernel/doc/local/private.pem
 
 # Flash the program
-flash: default
+flash0: default
+	@echo Flashing: $(OUTPUT_DIRECTORY)/onex.hex
+	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application _build/onex.hex --key-file $(PRIVATE_PEM) dfu.zip
+	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM0 -b 115200
+
+flash1: default
 	@echo Flashing: $(OUTPUT_DIRECTORY)/onex.hex
 	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application _build/onex.hex --key-file $(PRIVATE_PEM) dfu.zip
 	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM1 -b 115200
