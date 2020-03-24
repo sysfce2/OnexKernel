@@ -20,8 +20,23 @@ char* clockuid;
 void button_1_change_cb(int);
 bool evaluate_button(object* button, void* pressed);
 
+void every_second()
+{
+  onex_run_evaluators(clockuid, 0);
+}
+
 bool evaluate_clock(object* o, void* d)
 {
+  uint64_t es=time_es();
+  char ess[16];
+#if defined(NRF5)
+  if(es>>32) snprintf(ess, 16, "%lu%lu", ((uint32_t)(es>>32)),(uint32_t)es);
+  else       snprintf(ess, 16,    "%lu",                      (uint32_t)es);
+#else
+  if(es>>32) snprintf(ess, 16, "%u%u", ((uint32_t)(es>>32)),(uint32_t)es);
+  else       snprintf(ess, 16,   "%u",                      (uint32_t)es);
+#endif
+  object_property_set(oclock, "timestamp", ess);
   return true;
 }
 
@@ -69,18 +84,21 @@ int main()
   button=object_new(0, "evaluate_button", "editable button", 4);
   object_property_set(button, "name", "£€§");
 
-  oclock=object_new(0, "evaluate_clock", "clock event", 6);
+  oclock=object_new(0, "evaluate_clock", "clock event", 7);
+  object_property_set(oclock, "title", "OnexApp Clock");
   object_property_set(oclock, "timestamp", "1585045750");
   object_property_set(oclock, "timezone", "GMT");
   object_property_set(oclock, "daylight", "BST");
-  object_property_set(oclock, "time", "12:00:00");
   object_property_set(oclock, "date", "2020-03-24");
+  object_property_set(oclock, "time", "12:00:00");
 
   buttonuid=object_property(button, "UID");
   clockuid =object_property(oclock, "UID");
 
   object_property_add(onex_device_object, (char*)"io", buttonuid);
   object_property_add(onex_device_object, (char*)"io", clockuid);
+
+  time_ticker(every_second, 1000);
 
 #if !defined(NRF5)
   uint32_t lasttime=0;
@@ -92,7 +110,7 @@ int main()
     onex_loop();
 
 #if !defined(NRF5)
-    if(time_ms() > lasttime+1000u){
+    if(time_ms() > lasttime+1200u){
       lasttime=time_ms();
       button_pressed=!button_pressed;
       button_1_change_cb(button_pressed);
