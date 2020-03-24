@@ -44,9 +44,10 @@ static bool        add_to_cache_and_persist(object* n);
 static object*     find_object(char* uid, object* n, bool observe);
 static item*       property_item(object* n, char* path, object* t, bool observe);
 static item*       nested_property_item(object* n, char* path, object* t, bool observe);
-static bool        nested_property_set(object* n, char* path, char* val);
+static bool        nested_property_set_free(object* n, char* path, char* val, bool free);
 static bool        nested_property_delete(object* n, char* path);
 static bool        set_value_or_list(object* n, char* key, char* val);
+static bool        set_value_or_list_free(object* n, char* key, char* val, bool free);
 static bool        add_notify(object* o, value* notify);
 static void        set_notifies(object* o, char* notify);
 static void        save_and_notify(object* n);
@@ -565,7 +566,7 @@ bool object_property_contains_peek(object* n, char* path, char* expected)
   return object_property_contains_observe(n, path, expected, false);
 }
 
-bool object_property_set(object* n, char* path, char* val)
+static bool object_property_set_free(object* n, char* path, char* val, bool free)
 {
   if(!n->running_evals && has_notifies(n)){
     log_write("\nSetting property in an object but not running in an evaluator! uid: %s  %s: '%s'\n\n", value_string(n->uid), path, val? val: "");
@@ -579,16 +580,26 @@ bool object_property_set(object* n, char* path, char* val)
     if(ok) save_and_notify(n);
     return ok;
   }
-  if(c) return nested_property_set(n, p, val);
-  bool ok=set_value_or_list(n, p, val);
+  if(c) return nested_property_set_free(n, p, val, free);
+  bool ok=set_value_or_list_free(n, p, val, free);
   if(ok) save_and_notify(n);
   return ok;
 }
 
-bool set_value_or_list(object* n, char* key, char* val)
+bool object_property_set(object* n, char* path, char* val)
 {
-  item* e=properties_get(n->properties, value_new(key));
-  if(e) item_free(e);
+  return object_property_set_free(n, path, val, false);
+}
+
+bool object_property_set_volatile(object* n, char* path, char* val)
+{
+  return object_property_set_free(n, path, val, true);
+}
+
+bool set_value_or_list_free(object* n, char* key, char* val, bool free)
+{
+  item* i=properties_get(n->properties, value_new(key));
+  if(i && (i->type!=ITEM_VALUE || free)) item_free(i);
   if(!strchr(val, ' ') && !strchr(val, '\n')){
     return properties_set(n->properties, value_new(key), value_new(val));
   }
@@ -598,7 +609,12 @@ bool set_value_or_list(object* n, char* key, char* val)
   return ok;
 }
 
-bool nested_property_set(object* n, char* path, char* val)
+bool set_value_or_list(object* n, char* key, char* val)
+{
+  return set_value_or_list_free(n, key, val, false);
+}
+
+bool nested_property_set_free(object* n, char* path, char* val, bool free)
 {
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
@@ -608,12 +624,12 @@ bool nested_property_set(object* n, char* path, char* val)
   bool ok=false;
   if(i) switch(i->type){
     case ITEM_VALUE: {
-      if(!strcmp(c,"1")) ok=properties_set(n->properties, value_new(p), value_new(val)); // not singled like above fn
+      if(!strcmp(c,"1")) ok=set_value_or_list_free(n, p, val, free); // not single
       break;
     }
     case ITEM_LIST: {
       char* e; uint32_t index=strtol(c,&e,10);
-      ok=list_set_n((list*)i, index, value_new(val)); // not single
+      ok=list_set_n((list*)i, index, value_new(val)); // not single; doesn't free like set_value_or_list
       break;
     }
     case ITEM_PROPERTIES: {
@@ -1115,7 +1131,6 @@ void onf_recv_object(char* text, char* channel)
   }
   else{
     item_free(o->properties);
-    item_free(o->devices);
     o->properties = n->properties;
     o->devices    = n->devices;
   }

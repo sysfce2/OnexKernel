@@ -36,7 +36,7 @@ bool evaluate_clock(object* o, void* d)
   if(es>>32) snprintf(ess, 16, "%u%u", ((uint32_t)(es>>32)),(uint32_t)es);
   else       snprintf(ess, 16,   "%u",                      (uint32_t)es);
 #endif
-  object_property_set(oclock, "timestamp", ess);
+  object_property_set_volatile(oclock, "timestamp", ess);
   return true;
 }
 

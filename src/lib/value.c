@@ -65,6 +65,9 @@ bool value_is(value* v, char* s)
 
 void value_free(value* v)
 {
+  value* w=(value*)properties_delete(all_values, v);
+  free(w->val);
+  free(w);
 }
 
 char* value_to_text(value* v, char* b, uint16_t s)
