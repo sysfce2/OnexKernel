@@ -84,9 +84,15 @@ int main()
 
 bool evaluate_light(object* light, void* d)
 {
-  char* buttonuid=object_property(light, "device:connected-devices:io");
-  if(buttonuid) object_property_set(light, "button", buttonuid);
-
+  if(!object_property_contains(light, "button:is", "button")){
+    int ln=object_property_length(light, "device:connected-devices:io");
+    for(int i=1; i<=ln; i++){
+      char* uid=object_property_get_n(light, "device:connected-devices:io", i);
+      if(!is_uid(uid)) continue;
+      object_property_set(light, "button", uid);
+      if(object_property_contains_peek(light, "button:is", "button")) break;
+    }
+  }
   bool buttonpressed=object_property_is(light, "button:state", "down");
   char* s=(char*)(buttonpressed? "on": "off");
   object_property_set(light, "light", s);
