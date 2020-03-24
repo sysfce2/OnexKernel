@@ -117,7 +117,7 @@ void* properties_get_n(properties* op, uint16_t index)
 
 void* properties_delete(properties* op, value* key)
 {
-  if(!op) return false;
+  if(!op) return 0;
   void* v=0;
   hash_item** lisp;
   lisp=&op->lists[string_hash(value_string(key)) % op->buckets];
