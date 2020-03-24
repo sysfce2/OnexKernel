@@ -42,8 +42,14 @@ bool  object_property_set(object* n, char* path, char* val);
 /** add property value to list, or make a list. only use inside an evaluator for 'n' */
 bool  object_property_add(object* n, char* path, char* val);
 
-/** return property value, or space-separated list of values, including uids and sub-properties. */
+// object_property_add to ensure in the set
+// object_property_append to add to end of list
+
+/** return property value or nothing if it's a list. */
 char* object_property(object* n, char* path);
+
+/** return property value or nothing if it's a list; don't observe any sub-objects on the path. */
+char* object_property_peek(object* n, char* path);
 
 /** return property value, or space-separated list of values, excluding uids and sub-properties. */
 char* object_property_values(object* n, char* path);
@@ -51,8 +57,14 @@ char* object_property_values(object* n, char* path);
 /** return whether property at path is a single value and it matches supplied string. */
 bool  object_property_is(object* n, char* path, char* expected);
 
+/** return whether property at path is a single value and it matches supplied string; don't observe any sub-objects on the path. */
+bool  object_property_is_peek(object* n, char* path, char* expected);
+
 /** return whether property at path is a single value or a list and supplied string found. */
 bool  object_property_contains(object* n, char* path, char* expected);
+
+/** return whether property at path is a single value or a list and supplied string found; don't observe any sub-objects on the path. */
+bool  object_property_contains_peek(object* n, char* path, char* expected);
 
 /** return how many items there are at a path. */
 uint16_t object_property_length(object* n, char* path);

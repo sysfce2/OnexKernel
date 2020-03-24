@@ -286,13 +286,23 @@ bool object_is_keep_active(object* n)
 
 // ------------------------------------------------------
 
-char* object_property(object* n, char* path)
+static char* object_property_observe(object* n, char* path, bool observe)
 {
   if(!n) return 0;
   if(!strcmp(path, "UID")) return value_string(n->uid);
-  item* i=property_item(n,path,n,true);
+  item* i=property_item(n,path,n,observe);
   if(i && i->type==ITEM_VALUE) return value_string((value*)i);
   return 0;
+}
+
+char* object_property(object* n, char* path)
+{
+  return object_property_observe(n, path, true);
+}
+
+char* object_property_peek(object* n, char* path)
+{
+  return object_property_observe(n, path, false);
 }
 
 char* object_property_values(object* n, char* path)
@@ -498,13 +508,13 @@ char* object_property_val(object* n, char* path, uint16_t index)
   return value_string((value*)v);
 }
 
-bool object_property_is(object* n, char* path, char* expected)
+static bool object_property_is_observe(object* n, char* path, char* expected, bool observe)
 {
   if(!n) return false;
   if(!strcmp(path, "UID")){
     return expected && value_is(n->uid, expected);
   }
-  item* i=property_item(n,path,n,true);
+  item* i=property_item(n,path,n,observe);
   if(!i) return (!expected || !*expected);
   if(i->type==ITEM_VALUE){
     return expected && value_is((value*)i, expected);
@@ -512,13 +522,23 @@ bool object_property_is(object* n, char* path, char* expected)
   return false;
 }
 
-bool object_property_contains(object* n, char* path, char* expected)
+bool object_property_is(object* n, char* path, char* expected)
+{
+  return object_property_is_observe(n, path, expected, true);
+}
+
+bool object_property_is_peek(object* n, char* path, char* expected)
+{
+  return object_property_is_observe(n, path, expected, false);
+}
+
+static bool object_property_contains_observe(object* n, char* path, char* expected, bool observe)
 {
   if(!n) return false;
   if(!strcmp(path, "UID")){
     return expected && value_is(n->uid, expected);
   }
-  item* i=property_item(n,path,n,true);
+  item* i=property_item(n,path,n,observe);
   if(!i) return (!expected || !*expected);
   if(i->type==ITEM_VALUE){
     return expected && value_is((value*)i, expected);
@@ -533,6 +553,16 @@ bool object_property_contains(object* n, char* path, char* expected)
     return false;
   }
   return false;
+}
+
+bool object_property_contains(object* n, char* path, char* expected)
+{
+  return object_property_contains_observe(n, path, expected, true);
+}
+
+bool object_property_contains_peek(object* n, char* path, char* expected)
+{
+  return object_property_contains_observe(n, path, expected, false);
 }
 
 bool object_property_set(object* n, char* path, char* val)
