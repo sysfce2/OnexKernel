@@ -85,7 +85,7 @@ int main()
   object_property_set(button, "name", "£€§");
 
   oclock=object_new(0, "evaluate_clock", "clock event", 7);
-  object_property_set(oclock, "title", "OnexApp Clock");
+  object_property_set(oclock, "title", "OnexOS Clock");
   object_property_set(oclock, "timestamp", "1585045750");
   object_property_set(oclock, "timezone", "GMT");
   object_property_set(oclock, "daylight", "BST");
