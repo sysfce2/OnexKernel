@@ -1,4 +1,5 @@
 
+#include <time.h>
 #if defined(NRF5)
 #include <boards.h>
 #include <onex-kernel/gpio.h>
@@ -37,6 +38,17 @@ bool evaluate_clock(object* o, void* d)
   else       snprintf(ess, 16,   "%u",                      (uint32_t)es);
 #endif
   object_property_set_volatile(oclock, "timestamp", ess);
+
+  time_t estt = (time_t)es;
+  struct tm* tms = localtime(&estt);
+  char ts[32];
+
+  strftime(ts, 32, "%Y/%m/%d", tms);
+  object_property_set_volatile(o, "date", ts);
+
+  strftime(ts, 32, "%H:%M:%S", tms);
+  object_property_set_volatile(o, "time", ts);
+
   return true;
 }
 

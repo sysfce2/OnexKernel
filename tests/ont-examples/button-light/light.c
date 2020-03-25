@@ -52,7 +52,7 @@ int main()
 #endif
 
   onex_set_evaluators("evaluate_device", evaluate_device_logic, 0);
-  onex_set_evaluators("evaluate_light", evaluate_light, 0);
+  onex_set_evaluators("evaluate_light",  evaluate_light, 0);
 
   object_set_evaluator(onex_device_object, (char*)"evaluate_device");
 
