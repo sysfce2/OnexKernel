@@ -28,6 +28,16 @@ void every_second()
 
 bool evaluate_clock(object* o, void* d)
 {
+  if(!object_property_contains(oclock, "sync-clock:is", "clock")){
+    int ln=object_property_length(oclock, "device:connected-devices:io");
+    for(int i=1; i<=ln; i++){
+      char* uid=object_property_get_n(oclock, "device:connected-devices:io", i);
+      if(!is_uid(uid)) continue;
+      object_property_set(oclock, "sync-clock", uid);
+      if(object_property_contains_peek(oclock, "sync-clock:is", "clock")) break;
+    }
+  }
+
   uint64_t es=time_es();
   char ess[16];
 #if defined(NRF5)
@@ -92,23 +102,26 @@ int main()
   onex_set_evaluators("evaluate_clock",  evaluate_clock, 0);
 
   object_set_evaluator(onex_device_object, (char*)"evaluate_device");
+  char* deviceuid=object_property(onex_device_object, "UID");
 
   button=object_new(0, "evaluate_button", "editable button", 4);
   object_property_set(button, "name", "£€§");
 
-  oclock=object_new(0, "evaluate_clock", "clock event", 7);
+  oclock=object_new(0, "evaluate_clock", "clock event", 9);
   object_property_set(oclock, "title", "OnexOS Clock");
   object_property_set(oclock, "timestamp", "1585045750");
   object_property_set(oclock, "timezone", "GMT");
   object_property_set(oclock, "daylight", "BST");
   object_property_set(oclock, "date", "2020-03-24");
   object_property_set(oclock, "time", "12:00:00");
+  object_property_set(oclock, "device", deviceuid);
 
   buttonuid=object_property(button, "UID");
   clockuid =object_property(oclock, "UID");
 
   object_property_add(onex_device_object, (char*)"io", buttonuid);
   object_property_add(onex_device_object, (char*)"io", clockuid);
+
 
   time_ticker(every_second, 1000);
 
