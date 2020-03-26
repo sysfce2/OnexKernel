@@ -37,7 +37,6 @@ bool evaluate_clock(object* o, void* d)
       if(object_property_contains_peek(oclock, "sync-clock:is", "clock")) break;
     }
   }
-
   uint64_t es=time_es();
   char ess[16];
 #if defined(NRF5)
@@ -47,18 +46,20 @@ bool evaluate_clock(object* o, void* d)
   if(es>>32) snprintf(ess, 16, "%u%u", ((uint32_t)(es>>32)),(uint32_t)es);
   else       snprintf(ess, 16,   "%u",                      (uint32_t)es);
 #endif
-  object_property_set_volatile(oclock, "timestamp", ess);
+  if(!object_property_is(oclock, "timestamp", ess)){
 
-  time_t estt = (time_t)es;
-  struct tm* tms = localtime(&estt);
-  char ts[32];
+    object_property_set_volatile(oclock, "timestamp", ess);
 
-  strftime(ts, 32, "%Y/%m/%d", tms);
-  object_property_set_volatile(o, "date", ts);
+    time_t estt = (time_t)es;
+    struct tm* tms = localtime(&estt);
+    char ts[32];
 
-  strftime(ts, 32, "%H:%M:%S", tms);
-  object_property_set_volatile(o, "time", ts);
+    strftime(ts, 32, "%Y/%m/%d", tms);
+    object_property_set_volatile(o, "date", ts);
 
+    strftime(ts, 32, "%H:%M:%S", tms);
+    object_property_set_volatile(o, "time", ts);
+  }
   return true;
 }
 

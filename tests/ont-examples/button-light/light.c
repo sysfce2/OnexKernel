@@ -95,24 +95,26 @@ bool evaluate_light(object* light, void* d)
   }
   bool buttonpressed=object_property_is(light, "button:state", "down");
   char* s=(char*)(buttonpressed? "on": "off");
-  object_property_set(light, "light", s);
+  if(!object_property_is(light, "light", s)){
+    object_property_set(light, "light", s);
 #if defined(NRF5)
-  if(buttonpressed){
+    if(buttonpressed){
 #if defined(BOARD_PCA10059)
-    gpio_set(LED2_B, 0);
+      gpio_set(LED2_B, 0);
 #elif defined(BOARD_PINETIME)
-    gpio_set(LED_3, 0);
+      gpio_set(LED_3, 0);
 #endif
-  } else {
+    } else {
 #if defined(BOARD_PCA10059)
-    gpio_set(LED2_B, 1);
+      gpio_set(LED2_B, 1);
 #elif defined(BOARD_PINETIME)
-    gpio_set(LED_3, 1);
+      gpio_set(LED_3, 1);
+#endif
+    }
+#else
+    log_write("evaluate_light changed: "); object_log(light);
 #endif
   }
-#else
-  log_write("evaluate_light: "); object_log(light);
-#endif
   return true;
 }
 
