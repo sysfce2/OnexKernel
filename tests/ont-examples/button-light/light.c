@@ -1,4 +1,5 @@
 
+#include <time.h>
 #if defined(NRF5)
 #include <boards.h>
 #include <onex-kernel/gpio.h>
@@ -7,14 +8,64 @@
 #endif
 #include <onex-kernel/blenus.h>
 #endif
-
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 #include <onf.h>
 
 char* lightuid;
+char* clockuid;
 
 bool evaluate_light(object* light, void* d);
+
+void every_second()
+{
+  onex_run_evaluators(clockuid, 0);
+}
+
+bool evaluate_clock(object* oclock, void* d)
+{
+#if defined(NRF5)
+  if(!object_property_contains(oclock, "sync-clock:is", "clock")){
+    int ln=object_property_length(oclock, "device:connected-devices:io");
+    for(int i=1; i<=ln; i++){
+      char* uid=object_property_get_n(oclock, "device:connected-devices:io", i);
+      if(!is_uid(uid)) continue;
+      object_property_set(oclock, "sync-clock", uid);
+      if(object_property_contains_peek(oclock, "sync-clock:is", "clock")) break;
+    }
+  }
+  char* ses=object_property(oclock, "sync-clock:timestamp");
+  if(ses && !object_property_is(oclock, "sync-ts", ses)){
+    object_property_set_volatile(oclock, "sync-ts", ses);
+    object_property_set_volatile(oclock, "timestamp", ses);
+  }
+#endif
+
+  uint64_t es=time_es();
+  char ess[16];
+#if defined(NRF5)
+  if(es>>32) snprintf(ess, 16, "%lu%lu", ((uint32_t)(es>>32)),(uint32_t)es);
+  else       snprintf(ess, 16,    "%lu",                      (uint32_t)es);
+#else
+  if(es>>32) snprintf(ess, 16, "%u%u", ((uint32_t)(es>>32)),(uint32_t)es);
+  else       snprintf(ess, 16,   "%u",                      (uint32_t)es);
+#endif
+  if(!object_property_is(oclock, "timestamp", ess)){
+
+    object_property_set_volatile(oclock, "timestamp", ess);
+
+    time_t estt = (time_t)es;
+    struct tm* tms = localtime(&estt);
+    char ts[32];
+
+    strftime(ts, 32, "%Y/%m/%d", tms);
+    object_property_set_volatile(oclock, "date", ts);
+
+    strftime(ts, 32, "%H:%M:%S", tms);
+    object_property_set_volatile(oclock, "time", ts);
+  }
+  return true;
+}
 
 // Copied from ONR Behaviours
 bool evaluate_device_logic(object* device, void* d)
@@ -53,6 +104,7 @@ int main()
 
   onex_set_evaluators("evaluate_device", evaluate_device_logic, 0);
   onex_set_evaluators("evaluate_light",  evaluate_light, 0);
+  onex_set_evaluators("evaluate_clock",  evaluate_clock, 0);
 
   object_set_evaluator(onex_device_object, (char*)"evaluate_device");
   char* deviceuid=object_property(onex_device_object, "UID");
@@ -62,8 +114,22 @@ int main()
   object_property_set(light, "device", deviceuid);
   lightuid=object_property(light, "UID");
 
-  object_property_add(onex_device_object, (char*)"io", lightuid);
+  object* oclock=object_new(0, "evaluate_clock", "clock event", 9);
+  object_property_set(oclock, "title", "OnexOS Clock");
+  object_property_set(oclock, "timestamp", "1585045750");
+  object_property_set(oclock, "timezone", "GMT");
+  object_property_set(oclock, "daylight", "BST");
+  object_property_set(oclock, "date", "2020-03-24");
+  object_property_set(oclock, "time", "12:00:00");
+#if defined(NRF5)
+  object_property_set(oclock, "device", deviceuid);
+#endif
+  clockuid =object_property(oclock, "UID");
 
+  object_property_add(onex_device_object, (char*)"io", lightuid);
+  object_property_add(onex_device_object, (char*)"io", clockuid);
+
+  time_ticker(every_second, 1000);
 
 #if defined(BOARD_PCA10059)
   gpio_set(LED1_G, 0);
