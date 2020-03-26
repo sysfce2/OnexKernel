@@ -139,6 +139,9 @@ void send(char* buff, char* channel)
 void log_sent(char* buff, int size, char* to, uint16_t* toip)
 {
 #ifdef ONP_DEBUG
+#if defined(LOG_TO_BLE) || defined(LOG_TO_GFX) || defined(ONP_OVER_SERIAL)
+  log_write("> %d\n", size);
+#else
   log_write("ONP sent '%s'", buff);
   if(to)    log_write(" to %s ", to);
 #ifdef ONP_CHANNEL_IPV6
@@ -146,6 +149,7 @@ void log_sent(char* buff, int size, char* to, uint16_t* toip)
 #endif
   if(size>=0) log_write(" (%d bytes)\n", size);
   else        log_write(" (failed to send)\n");
+#endif
 #endif
 }
 
