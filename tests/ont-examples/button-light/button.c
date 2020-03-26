@@ -12,9 +12,6 @@
 #include <onex-kernel/log.h>
 #include <onf.h>
 
-object* button;
-object* oclock;
-
 char* buttonuid;
 char* clockuid;
 
@@ -26,7 +23,7 @@ void every_second()
   onex_run_evaluators(clockuid, 0);
 }
 
-bool evaluate_clock(object* o, void* d)
+bool evaluate_clock(object* oclock, void* d)
 {
   if(!object_property_contains(oclock, "sync-clock:is", "clock")){
     int ln=object_property_length(oclock, "device:connected-devices:io");
@@ -55,21 +52,21 @@ bool evaluate_clock(object* o, void* d)
     char ts[32];
 
     strftime(ts, 32, "%Y/%m/%d", tms);
-    object_property_set_volatile(o, "date", ts);
+    object_property_set_volatile(oclock, "date", ts);
 
     strftime(ts, 32, "%H:%M:%S", tms);
-    object_property_set_volatile(o, "time", ts);
+    object_property_set_volatile(oclock, "time", ts);
   }
   return true;
 }
 
 // Copied from ONR Behaviours
-bool evaluate_device_logic(object* o, void* d)
+bool evaluate_device_logic(object* device, void* d)
 {
-  if(object_property_contains(o, (char*)"Alerted:is", (char*)"device")){
-    char* devuid=object_property(o, (char*)"Alerted");
-    if(!object_property_contains(o, (char*)"connected-devices", devuid)){
-      object_property_add(o, (char*)"connected-devices", devuid);
+  if(object_property_contains(device, (char*)"Alerted:is", (char*)"device")){
+    char* devuid=object_property(device, (char*)"Alerted");
+    if(!object_property_contains(device, (char*)"connected-devices", devuid)){
+      object_property_add(device, (char*)"connected-devices", devuid);
     }
   }
   return true;
@@ -105,10 +102,11 @@ int main()
   object_set_evaluator(onex_device_object, (char*)"evaluate_device");
   char* deviceuid=object_property(onex_device_object, "UID");
 
-  button=object_new(0, "evaluate_button", "editable button", 4);
+  object* button=object_new(0, "evaluate_button", "editable button", 4);
   object_property_set(button, "name", "£€§");
+  buttonuid=object_property(button, "UID");
 
-  oclock=object_new(0, "evaluate_clock", "clock event", 9);
+  object* oclock=object_new(0, "evaluate_clock", "clock event", 9);
   object_property_set(oclock, "title", "OnexOS Clock");
   object_property_set(oclock, "timestamp", "1585045750");
   object_property_set(oclock, "timezone", "GMT");
@@ -116,8 +114,6 @@ int main()
   object_property_set(oclock, "date", "2020-03-24");
   object_property_set(oclock, "time", "12:00:00");
   object_property_set(oclock, "device", deviceuid);
-
-  buttonuid=object_property(button, "UID");
   clockuid =object_property(oclock, "UID");
 
   object_property_add(onex_device_object, (char*)"io", buttonuid);

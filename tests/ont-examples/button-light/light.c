@@ -12,17 +12,17 @@
 #include <onex-kernel/log.h>
 #include <onf.h>
 
-object* light;
+char* lightuid;
 
 bool evaluate_light(object* light, void* d);
 
 // Copied from ONR Behaviours
-bool evaluate_device_logic(object* o, void* d)
+bool evaluate_device_logic(object* device, void* d)
 {
-  if(object_property_contains(o, (char*)"Alerted:is", (char*)"device")){
-    char* devuid=object_property(o, (char*)"Alerted");
-    if(!object_property_contains(o, (char*)"connected-devices", devuid)){
-      object_property_add(o, (char*)"connected-devices", devuid);
+  if(object_property_contains(device, (char*)"Alerted:is", (char*)"device")){
+    char* devuid=object_property(device, (char*)"Alerted");
+    if(!object_property_contains(device, (char*)"connected-devices", devuid)){
+      object_property_add(device, (char*)"connected-devices", devuid);
     }
   }
   return true;
@@ -55,15 +55,15 @@ int main()
   onex_set_evaluators("evaluate_light",  evaluate_light, 0);
 
   object_set_evaluator(onex_device_object, (char*)"evaluate_device");
+  char* deviceuid=object_property(onex_device_object, "UID");
 
-  light=object_new(0, "evaluate_light", "editable light", 4);
+  object* light=object_new(0, "evaluate_light", "editable light", 4);
+  object_property_set(light, "light", "off");
+  object_property_set(light, "device", deviceuid);
+  lightuid=object_property(light, "UID");
 
-  char* lightuid=object_property(light, "UID");
   object_property_add(onex_device_object, (char*)"io", lightuid);
 
-  char* deviceuid=object_property(onex_device_object, "UID");
-  object_property_set(light, "device", deviceuid);
-  object_property_set(light, "light", "off");
 
 #if defined(BOARD_PCA10059)
   gpio_set(LED1_G, 0);
