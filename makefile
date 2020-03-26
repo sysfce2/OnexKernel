@@ -26,9 +26,15 @@ TESTS_OBJECTS = \
 ./tests/test-onf.c \
 ./tests/main.c \
 # \
-./tests/ont-examples/button-light/light.c \
-./tests/ont-examples/button-light/button.c \
 ./tests/ont-examples/ble_app_blinky.c \
+
+
+BUTTON_OBJECTS = \
+./tests/ont-examples/button-light/button.c \
+
+
+LIGHT_OBJECTS = \
+./tests/ont-examples/button-light/light.c \
 
 
 LIB_OBJECTS = \
@@ -120,7 +126,8 @@ SRC_FILES += \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_ble.c \
   $(SDK_ROOT)/components/softdevice/common/nrf_sdh_soc.c \
-  $(NRF5_C_SOURCE_FILES) $(LIB_OBJECTS) $(TESTS_OBJECTS)
+  $(SRC_FILES_MAIN)
+
 
 # Include folders common to all targets
 INC_FOLDERS += \
@@ -338,6 +345,8 @@ help:
 	@echo		flash      - flashing binary
 
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
+
+include target
 
 
 include $(TEMPLATE_PATH)/Makefile.common
