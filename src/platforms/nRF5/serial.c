@@ -12,6 +12,7 @@
 #include "app_usbd_cdc_acm.h"
 #include "app_usbd_serial_num.h"
 
+#include <onex-kernel/log.h>
 #include <onex-kernel/serial.h>
 
 static bool initialised=false;
@@ -197,7 +198,12 @@ void serial_putchar(unsigned char ch)
 size_t serial_write(unsigned char* b, size_t l)
 {
   ret_code_t ret = app_usbd_cdc_acm_write(&m_app_cdc_acm, b, l);
-  return (ret == NRF_SUCCESS)? l: 0;
+#if defined(LOG_TO_BLE) || defined(LOG_TO_GFX)
+  if(ret==NRF_ERROR_INVALID_STATE) log_write("closed\n");
+  if(ret==NRF_ERROR_BUSY         ) log_write("busy\n");
+//if(ret==NRF_SUCCESS            ) log_write("ok %d\n", l);
+#endif
+  return (ret==NRF_SUCCESS)? l: 0;
 }
 
 size_t serial_printf(const char* fmt, ...)

@@ -5,6 +5,9 @@
 #include "app_error.h"
 #include "nrf_log_ctrl.h"
 
+#if defined(LOG_TO_BLE) || defined(LOG_TO_GFX)
+#undef HAS_SERIAL
+#endif
 #if defined(HAS_SERIAL)
 #include <onex-kernel/serial.h>
 #elif defined(LOG_TO_GFX)
