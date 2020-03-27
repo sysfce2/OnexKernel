@@ -40,8 +40,8 @@ bool evaluate_clock(object* oclock, void* d)
   }
   char* ses=object_property(oclock, "sync-clock:timestamp");
   if(ses && !object_property_is(oclock, "sync-ts", ses)){
-    object_property_set_volatile(oclock, "sync-ts", ses);
-    object_property_set_volatile(oclock, "timestamp", ses);
+      object_property_set(oclock, "sync-ts", ses);
+      object_property_set(oclock, "timestamp", ses);
   }
 #endif
 
@@ -56,17 +56,17 @@ bool evaluate_clock(object* oclock, void* d)
 #endif
   if(!object_property_is(oclock, "timestamp", ess)){
 
-    object_property_set_volatile(oclock, "timestamp", ess);
+    object_property_set(oclock, "timestamp", ess);
 
     time_t estt = (time_t)es;
     struct tm* tms = localtime(&estt);
     char ts[32];
 
     strftime(ts, 32, "%Y/%m/%d", tms);
-    object_property_set_volatile(oclock, "date", ts);
+    object_property_set(oclock, "date", ts);
 
     strftime(ts, 32, "%H:%M:%S", tms);
-    object_property_set_volatile(oclock, "time", ts);
+    object_property_set(oclock, "time", ts);
   }
   return true;
 }
@@ -118,7 +118,7 @@ int main()
   object_property_set(light, "device", deviceuid);
   lightuid=object_property(light, "UID");
 
-  object* oclock=object_new(0, "evaluate_clock", "clock event", 9);
+  object* oclock=object_new(0, "evaluate_clock", "clock event", 12);
   object_property_set(oclock, "title", "OnexOS Clock");
   object_property_set(oclock, "timestamp", "1585045750");
   object_property_set(oclock, "timezone", "GMT");
