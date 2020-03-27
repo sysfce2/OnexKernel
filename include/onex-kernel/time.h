@@ -10,6 +10,8 @@ uint64_t time_es(); // Unix epoch seconds
 uint64_t time_ms(); // ms since startup
 uint64_t time_us(); // us since startup
 
+void time_es_set(uint64_t es); // set current epoch seconds
+
 typedef void (*time_up_cb)();
 
 void time_ticker(time_up_cb cb, uint32_t every); // cb every ms

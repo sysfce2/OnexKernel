@@ -46,6 +46,11 @@ uint64_t time_es()
   return epoch_seconds;
 }
 
+void time_es_set(uint64_t es)
+{
+  epoch_seconds=es;
+}
+
 uint64_t time_ms(){
   if(!initialised) return 0;
   NVIC_DisableIRQ(RTC1_IRQn);

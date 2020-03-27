@@ -43,11 +43,20 @@ uint64_t time_ms()
   return time_us()/1000;
 }
 
+static uint32_t offset=0;
+
 uint64_t time_es()
 {
   struct timespec t;
   clock_gettime(CLOCK_REALTIME, &t);
-  return t.tv_sec;
+  return t.tv_sec-offset;
+}
+
+void time_es_set(uint64_t es)
+{
+  struct timespec t;
+  clock_gettime(CLOCK_REALTIME, &t);
+  offset=t.tv_sec-es;
 }
 
 /* THANK YOU to https://qnaplus.com/implement-periodic-timer-linux/ !! */
