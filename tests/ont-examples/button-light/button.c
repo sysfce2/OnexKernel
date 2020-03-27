@@ -40,7 +40,6 @@ bool evaluate_clock(object* oclock, void* d)
       if(object_property_contains_peek(oclock, "sync-clock:is", "clock")) break;
     }
   }
-
   char* ses=object_property(oclock, "sync-clock:timestamp");
   if(ses && !object_property_is(oclock, "sync-ts", ses)){
     char* e; uint64_t sesn=strtoull(ses,&e,10);
