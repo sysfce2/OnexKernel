@@ -12,6 +12,10 @@
 #include <onex-kernel/log.h>
 #include <onf.h>
 
+#if defined(NRF5)
+#define SYNC_TO_PEER_CLOCK
+#endif
+
 char* buttonuid;
 char* clockuid;
 
@@ -25,7 +29,7 @@ void every_second()
 
 bool evaluate_clock(object* oclock, void* d)
 {
-#if defined(NRF5)
+#if defined(SYNC_TO_PEER_CLOCK)
   if(!object_property_contains(oclock, "sync-clock:is", "clock")){
     int ln=object_property_length(oclock, "device:connected-devices:io");
     for(int i=1; i<=ln; i++){
@@ -109,7 +113,7 @@ int main()
   onex_set_evaluators("evaluate_clock",  evaluate_clock, 0);
 
   object_set_evaluator(onex_device_object, (char*)"evaluate_device");
-#if defined(NRF5)
+#if defined(SYNC_TO_PEER_CLOCK)
   char* deviceuid=object_property(onex_device_object, "UID");
 #endif
 
@@ -124,7 +128,7 @@ int main()
   object_property_set(oclock, "daylight", "BST");
   object_property_set(oclock, "date", "2020-03-24");
   object_property_set(oclock, "time", "12:00:00");
-#if defined(NRF5)
+#if defined(SYNC_TO_PEER_CLOCK)
   object_property_set(oclock, "device", deviceuid);
 #endif
   clockuid =object_property(oclock, "UID");
