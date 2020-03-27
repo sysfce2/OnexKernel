@@ -1,5 +1,6 @@
 
 #include <time.h>
+#include <stdlib.h>
 #if defined(NRF5)
 #include <boards.h>
 #include <onex-kernel/gpio.h>
@@ -40,8 +41,12 @@ bool evaluate_clock(object* oclock, void* d)
   }
   char* ses=object_property(oclock, "sync-clock:timestamp");
   if(ses && !object_property_is(oclock, "sync-ts", ses)){
+    char* e; uint64_t sesn=strtoull(ses,&e,10);
+    if(sesn){
+      time_es_set(sesn);
       object_property_set(oclock, "sync-ts", ses);
       object_property_set(oclock, "timestamp", ses);
+    }
   }
 #endif
 
