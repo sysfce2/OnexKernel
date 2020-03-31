@@ -329,8 +329,8 @@ bool blenus_init(blenus_recv_cb cb)
 
 #define MAX_CHUNKS 32
 #define MAX_TX_OCTETS 20 // but see BLE_GATT_ATT_MTU_DEFAULT - 3
-list* chunks=0;
-bool chunks_in_use=false;
+static list* chunks=0;
+static bool chunks_in_use=false;
 
 size_t blenus_write(unsigned char* buf, size_t size)
 {
