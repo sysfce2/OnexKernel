@@ -198,7 +198,7 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
       uint16_t       length =     (uint16_t)p_evt->params.rx_data.length;
       unsigned char* data = (unsigned char*)p_evt->params.rx_data.p_data;
       if(length>=64){
-#if defined(HAS_SERIAL) || defined(LOG_TO_GFX)
+#if !defined(LOG_TO_BLE)
         log_write("NUS data too long; %d chars\n", length);
 #endif
         return;
@@ -335,7 +335,7 @@ static bool chunks_in_use=false;
 size_t blenus_write(unsigned char* buf, size_t size)
 {
   if(chunks_in_use){
-#if defined(HAS_SERIAL) || defined(LOG_TO_GFX)
+#if !defined(LOG_TO_BLE)
     log_write("chunks_in_use! dropping\n");
 #endif
     return 0;
@@ -343,7 +343,7 @@ size_t blenus_write(unsigned char* buf, size_t size)
   chunks_in_use=true;
   if(!chunks) chunks=list_new(MAX_CHUNKS);
   if(list_size(chunks)==MAX_CHUNKS){
-#if defined(HAS_SERIAL) || defined(LOG_TO_GFX)
+#if !defined(LOG_TO_BLE)
     log_write("\nNUS full");
 #endif
     chunks_in_use=false;
@@ -378,7 +378,7 @@ void write_chunks()
     e=ble_nus_data_send(&m_nus, chunk, &i, m_conn_handle);
 
     if((e!=NRF_ERROR_INVALID_STATE) && (e!=NRF_ERROR_RESOURCES) && (e!=NRF_ERROR_NOT_FOUND)){ // NRF_ERROR_BUSY?
-#if defined(HAS_SERIAL) || defined(LOG_TO_GFX)
+#if !defined(LOG_TO_BLE)
       if(e!=NRF_SUCCESS){
 #if defined(LOG_TO_GFX)
         const char* ers=nrf_strerror_get(e);
@@ -390,7 +390,9 @@ void write_chunks()
 #endif
       APP_ERROR_CHECK(e);
     }
+#if !defined(LOG_TO_BLE)
     if(j!=i) log_write("%d,%d",j,i);
+#endif
     if(e!=NRF_SUCCESS || j!=i) break;
     free(list_del_n(chunks,1));
   }
