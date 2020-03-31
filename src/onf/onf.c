@@ -24,7 +24,7 @@
 
 #if defined(NRF5)
 #define MAX_LIST_SIZE 8
-#define MAX_TEXT_LEN 192
+#define MAX_TEXT_LEN 512
 #define MAX_OBJECTS 16
 #define MAX_OBJECT_SIZE 8
 #else
