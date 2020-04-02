@@ -106,25 +106,25 @@ void time_ticker(time_up_cb cb, uint32_t every)
     case 1: {
       up_cb_1=cb;
       e = app_timer_create(&m_timer_1, APP_TIMER_MODE_REPEATED, time_up_1); APP_ERROR_CHECK(e);
-      e = app_timer_start(m_timer_1, APP_TIMER_TICKS(every), NULL); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_1, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
     case 2: {
       up_cb_2=cb;
       e = app_timer_create(&m_timer_2, APP_TIMER_MODE_REPEATED, time_up_2); APP_ERROR_CHECK(e);
-      e = app_timer_start(m_timer_2, APP_TIMER_TICKS(every), NULL); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_2, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
     case 3: {
       up_cb_3=cb;
       e = app_timer_create(&m_timer_3, APP_TIMER_MODE_REPEATED, time_up_3); APP_ERROR_CHECK(e);
-      e = app_timer_start(m_timer_3, APP_TIMER_TICKS(every), NULL); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_3, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
     case 4: {
       up_cb_4=cb;
       e = app_timer_create(&m_timer_4, APP_TIMER_MODE_REPEATED, time_up_4); APP_ERROR_CHECK(e);
-      e = app_timer_start(m_timer_4, APP_TIMER_TICKS(every), NULL); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_4, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
   }

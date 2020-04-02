@@ -14,7 +14,7 @@ void time_es_set(uint64_t es); // set current epoch seconds
 
 typedef void (*time_up_cb)();
 
-void time_ticker(time_up_cb cb, uint32_t every); // cb every ms
+void time_ticker(time_up_cb cb, uint32_t every); // cb every ms; or 1 tick if every=0
 
 #if defined(TARGET_LINUX) || defined(__ANDROID__)
 
