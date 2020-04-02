@@ -29,10 +29,16 @@ void button_changed(int pressed)
   log_write("#%d\n", pressed);
 }
 
+#if defined(BOARD_PCA10059)
+const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
+#endif
+
 static void set_up_gpio(void)
 {
 #if defined(BOARD_PCA10059)
   gpio_mode_cb(BUTTON_1, INPUT_PULLUP, button_changed);
+  for(uint8_t l=0; l< LEDS_NUMBER; l++){ gpio_mode(leds_list[l], OUTPUT); gpio_set(leds_list[l], 1); }
+  gpio_set(leds_list[0], 0);
 #elif defined(BOARD_PINETIME)
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, button_changed);
   gpio_mode(BUTTON_ENABLE, OUTPUT);
@@ -41,16 +47,6 @@ static void set_up_gpio(void)
 #define ADC_CHANNEL 0
   gpio_adc_init(BATTERY_V, ADC_CHANNEL);
 #endif
-}
-#endif
-
-#if defined(BOARD_PCA10059)
-const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
-
-void flash_led(int t)
-{
-    for(uint8_t l=0; l< LEDS_NUMBER; l++) gpio_mode(leds_list[l], OUTPUT);
-    for(;;) for(int8_t l=LEDS_NUMBER-1; l>=0; l--){ gpio_toggle(leds_list[l]); time_delay_ms(t); }
 }
 #endif
 
@@ -122,7 +118,8 @@ void on_recv(unsigned char* buf, size_t size)
 #if defined(NRF5)
   int failures=onex_assert_summary();
 #if defined(BOARD_PCA10059)
-  flash_led(failures? 16: 128);
+  if(failures) gpio_set(leds_list[1], 0);
+  else         gpio_set(leds_list[2], 0);
 #elif defined(BOARD_PINETIME)
   gfx_pos(10, 10);
   gfx_text(failures? "FAIL": "SUCCESS");
@@ -130,6 +127,7 @@ void on_recv(unsigned char* buf, size_t size)
 #else
   onex_assert_summary();
 #endif
+
 }
 
 int main(void)

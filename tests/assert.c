@@ -12,7 +12,7 @@
 static uint16_t success=0;
 static uint16_t failure=0;
 
-#ifdef __ANDROID__
+#if defined(__ANDROID__) || defined(BOARD_PCA10059)
 bool exit_on_fail=false;
 #else
 bool exit_on_fail=true;
