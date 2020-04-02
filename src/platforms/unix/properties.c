@@ -133,7 +133,7 @@ void properties_clear(properties* op, bool free_items)
   int sz=op->size;
   for(int j=0; j<sz; j++){
     void* v=properties_delete(op, op->keys[0]);
-    if(free_items && v && ((item*)v)->type!=ITEM_VALUE) item_free((item*)v);
+    if(free_items) item_free((item*)v);
   }
 }
 

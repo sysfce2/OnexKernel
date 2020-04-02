@@ -19,12 +19,13 @@ char* strdup(const char* s)
 typedef struct value {
   item_type type;
   char*  val;
+  uint16_t refs;
 } value;
 
 static properties* all_values=0;
 
 #if defined(NRF5)
-#define MAX_VALUES 128
+#define MAX_VALUES 256
 #define MAX_TEXT_LEN 64
 #else
 #define MAX_VALUES 4096
@@ -35,14 +36,32 @@ value* value_new(char* val)
 {
   if(!val) return 0;
   if(!all_values) all_values=properties_new(MAX_VALUES);
-  value* ours=(value*)properties_get_str(all_values, val);
-  if(ours) return ours;
+  value* ours=(value*)properties_get(all_values, val);
+  if(ours){
+    ours->refs++;
+    if(!ours->refs) log_write("VALS!?\n"); // this is serious
+    return ours;
+  }
   ours=(value*)calloc(1,sizeof(value));
-  if(!ours) return 0;
+  if(!ours){
+    log_write("VALS!!\n"); // this is serious
+    return 0;
+  }
   ours->type=ITEM_VALUE;
   ours->val=strdup(val);
-  if(!ours->val){ free(ours); return 0; }
-  if(!properties_set(all_values, ours, ours)) return 0;
+  ours->refs=1; // don't count our own 2 uses in all_values
+
+  if(!ours->val){
+    log_write("!VALS!\n"); // this is serious
+    free(ours);
+    return 0;
+  }
+  if(!properties_set(all_values, ours->val, ours)){
+    log_write("!!VALS\n"); // this is serious
+    free(ours->val);
+    free(ours);
+    return 0;
+  }
   return ours;
 }
 
@@ -67,9 +86,11 @@ bool value_is(value* v, char* s)
 
 void value_free(value* v)
 {
-  value* w=(value*)properties_delete(all_values, v);
-  free(w->val);
-  free(w);
+  v->refs--;
+  if(v->refs) return;
+  properties_delete(all_values, v->val);
+  free(v->val);
+  free(v);
 }
 
 char* value_to_text(value* v, char* b, uint16_t s)
