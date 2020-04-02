@@ -27,7 +27,7 @@
 #include <onex-kernel/serial.h>
 #include <onex-kernel/blenus.h>
 #include <onex-kernel/time.h>
-#if defined(HAS_SERIAL) || defined(LOG_TO_GFX)
+#if !defined(LOG_TO_BLE)
 #include <onex-kernel/log.h>
 #endif
 #include <assert.h>
