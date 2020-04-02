@@ -4,6 +4,8 @@
 #include <items.h>
 #include <onex-kernel/log.h>
 
+char* unknown_to_text(char* b){ *b='?'; *(b+1)=0; return b; }
+
 #if defined(NRF5)
 char* strdup(const char* s)
 {

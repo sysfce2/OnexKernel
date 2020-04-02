@@ -20,7 +20,7 @@ typedef struct properties properties;
 typedef struct list       list;
 typedef struct value      value;
 
-inline char* unknown_to_text(char* b){ *b='?'; *(b+1)=0; return b; }
+char* unknown_to_text(char* b);
 
 #define item_to_text(i,b,n) (\
   item_is_type(i,ITEM_PROPERTIES)? properties_to_text((properties*)i,b,n): (\
