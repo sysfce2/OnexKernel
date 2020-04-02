@@ -39,9 +39,6 @@ bool object_is_keep_active(object* n);
 /** set property value. only use inside an evaluator for 'n' */
 bool  object_property_set(object* n, char* path, char* val);
 
-/** set property value. only use inside an evaluator for 'n'; for setting values that change frequently and aren't reused. */
-bool  object_property_set_volatile(object* n, char* path, char* val);
-
 /** add property value to list, or make a list. only use inside an evaluator for 'n' */
 bool  object_property_add(object* n, char* path, char* val);
 
