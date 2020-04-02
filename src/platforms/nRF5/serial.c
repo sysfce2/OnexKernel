@@ -218,17 +218,31 @@ void serial_putchar(unsigned char ch)
   serial_write(&ch, 1);
 }
 
+bool drop_oldest_line()
+{
+  while(data_available){
+    char ch=buffer[current_read++];
+    if(current_read==SERIAL_BUFFER_SIZE) current_read=0;
+    data_available--;
+    if(ch=='\n') return true;
+  }
+  return false;
+}
+
 size_t serial_write(unsigned char* buf, size_t size)
 {
   if(buffer_in_use) return 0;
   buffer_in_use=true;
+  while(size > SERIAL_BUFFER_SIZE - data_available && drop_oldest_line());
+  if(   size > SERIAL_BUFFER_SIZE - data_available){
+#if !defined(LOG_TO_SERIAL)
+    log_write("ser_wr size %d\n", size);
+#endif
+    buffer_in_use=false;
+    write_chunk();
+    return 0;
+  }
   for(int i=0; i<size; i++){
-    if(data_available==SERIAL_BUFFER_SIZE){
-      log_write("SERIAL FULL\n");
-      buffer_in_use=false;
-      write_chunk();
-      return 0;
-    }
     buffer[current_write++]=buf[i];
     if(current_write==SERIAL_BUFFER_SIZE) current_write=0;
     data_available++;
@@ -251,10 +265,7 @@ void write_chunk()
     chunk[size++]=buffer[current_read++];
     if(current_read==SERIAL_BUFFER_SIZE) current_read=0;
     data_available--;
-    if(chunk[size-1]=='\r' || chunk[size-1]=='\n'){
-      if(buffer[current_read]=='\n') continue;
-      break;
-    }
+    if(chunk[size-1]=='\n') break;
   }
 
   ret_code_t e=app_usbd_cdc_acm_write(&m_app_cdc_acm, chunk, size);
