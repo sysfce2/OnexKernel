@@ -96,6 +96,8 @@ void show_battery()
 }
 #endif
 
+static volatile bool run_tests=false;
+
 void on_recv(unsigned char* buf, size_t size)
 {
   if(!size) return;
@@ -106,10 +108,15 @@ void on_recv(unsigned char* buf, size_t size)
 
   log_write(">%c\n", buf[0]);
 
-  if(buf[0]!='t') return;
+  if(buf[0]=='t') run_tests=true;
+}
+
+void run_tests_maybe()
+{
+  if(!run_tests) return;
+  run_tests=false;
 
   log_write("-----------------OnexKernel tests------------------------\n");
-
   run_value_tests();
   run_list_tests();
   run_properties_tests();
@@ -127,7 +134,6 @@ void on_recv(unsigned char* buf, size_t size)
 #else
   onex_assert_summary();
 #endif
-
 }
 
 int main(void)
@@ -140,7 +146,8 @@ int main(void)
   serial_init((serial_recv_cb)on_recv,0);
   blenus_init(0);
   set_up_gpio();
-  while(1) serial_loop();
+  time_ticker(serial_loop, 1);
+  while(1) run_tests_maybe();
 #else
   blenus_init((blenus_recv_cb)on_recv);
 #if defined(BOARD_PINETIME)
@@ -176,6 +183,7 @@ int main(void)
 #endif
   set_up_gpio();
   while(1){
+    run_tests_maybe();
 #if defined(BOARD_PINETIME)
     if(new_touch_info){
       new_touch_info=false;
@@ -191,6 +199,7 @@ int main(void)
 #endif
 #else
   on_recv((unsigned char*)"t", 1);
+  run_tests_maybe();
 #endif
 }
 
