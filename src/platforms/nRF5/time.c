@@ -5,14 +5,14 @@
 
 #include <onex-kernel/time.h>
 
-static bool initialised=false;
+static volatile bool initialised=false;
 
 #define EFFECTIVE_TIMER_CLOCK_FREQ (APP_TIMER_CLOCK_FREQ/(APP_TIMER_CONFIG_RTC_FREQUENCY+1))
 #define TICKS_TO_MS(ticks) (((ticks)*1000)/EFFECTIVE_TIMER_CLOCK_FREQ)
 
-static uint32_t seconds=0;
-static uint64_t epoch_seconds=1585045750;
-static uint32_t ticks_at_second=0;
+static volatile uint32_t seconds=0;
+static volatile uint64_t epoch_seconds=1585045750;
+static volatile uint32_t ticks_at_second=0;
 
 static void every_second(void* p)
 {
@@ -67,10 +67,10 @@ uint64_t time_us(){
 }
 
 
-time_up_cb up_cb_1=0;
-time_up_cb up_cb_2=0;
-time_up_cb up_cb_3=0;
-time_up_cb up_cb_4=0;
+static time_up_cb up_cb_1=0;
+static time_up_cb up_cb_2=0;
+static time_up_cb up_cb_3=0;
+static time_up_cb up_cb_4=0;
 
 static void time_up_1(void* p)
 {
@@ -97,7 +97,7 @@ APP_TIMER_DEF(m_timer_2);
 APP_TIMER_DEF(m_timer_3);
 APP_TIMER_DEF(m_timer_4);
 
-uint8_t instance=1;
+uint8_t volatile instance=1;
 
 void time_ticker(time_up_cb cb, uint32_t every)
 {

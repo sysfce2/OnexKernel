@@ -15,7 +15,7 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/serial.h>
 
-static bool initialised=false;
+static volatile bool initialised=false;
 
 static serial_recv_cb recv_cb;
 
@@ -27,11 +27,12 @@ static serial_recv_cb recv_cb;
 #define MAX_TX_OCTETS NRFX_USBD_EPSIZE
 static char buffer[SERIAL_BUFFER_SIZE];
 static char chunk[MAX_TX_OCTETS];
-static uint16_t current_write=0;
-static uint16_t current_read=0;
-static uint16_t data_available=0;
-static bool buffer_in_use=false;
-static bool chunk_in_use=false;
+static volatile uint16_t current_write=0;
+static volatile uint16_t current_read=0;
+static volatile uint16_t data_available=0;
+static volatile bool buffer_in_use=false;
+static volatile bool chunk_in_use=false;
+
 static void write_chunk();
 
 static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,

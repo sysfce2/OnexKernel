@@ -32,9 +32,9 @@
 #endif
 #include <assert.h>
 
-static bool initialised=false;
+static volatile bool initialised=false;
+static volatile blenus_recv_cb recv_cb;
 
-static blenus_recv_cb recv_cb;
 static void write_chunks();
 
 #define DEVICE_NAME                     "Onex"    /**< Name of device. Will be included in the advertising data. */
@@ -330,7 +330,7 @@ bool blenus_init(blenus_recv_cb cb)
 #define MAX_CHUNKS 32
 #define MAX_TX_OCTETS 20 // but see BLE_GATT_ATT_MTU_DEFAULT - 3
 static list* chunks=0;
-static bool chunks_in_use=false;
+static volatile bool chunks_in_use=false;
 
 size_t blenus_write(unsigned char* buf, size_t size)
 {
