@@ -7,6 +7,7 @@
 
 #if defined(LOG_TO_SERIAL)
 #include <onex-kernel/serial.h>
+#include <onex-kernel/time.h>
 #elif defined(LOG_TO_GFX)
 #if defined(BOARD_PINETIME)
 #include <onex-kernel/gfx.h>
@@ -35,6 +36,7 @@ int log_write(const char* fmt, ...)
 //size_t n=snprintf((char*)log_buf, LOG_BUF_SIZE, "LOG: %s", fmt);
 //if(n>=LOG_BUF_SIZE) n=LOG_BUF_SIZE-1;
   r=serial_vprintf(fmt, args);
+  time_delay_ms(1);
 #elif defined(LOG_TO_GFX)
 #if defined(BOARD_PINETIME)
   vsnprintf((char*)log_buf, LOG_BUF_SIZE, fmt, args);
