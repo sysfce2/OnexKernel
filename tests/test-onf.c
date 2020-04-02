@@ -51,7 +51,7 @@ void test_object_set_up()
   onex_assert(      object_property_is(    n1, "UID", "uid-1"),  "object_new saves uid as a (virtual) property");
   onex_assert_equal(object_property(       n1, "is"), "setup",   "object_property returns 'is'" );
   onex_assert(      object_property_is(    n1, "is",  "setup"),  "object_property_is says 'is' is 'setup'");
-  onex_assert(      object_property_length(n1, "is")==1,         "property 'is' is a single value");
+  onex_assert_equal_num(object_property_length(n1, "is"), 1,     "property 'is' is a single value");
   // UID: uid-1  is: setup  state: good
                     object_property_set(           n1, "state", "good");
   onex_assert(      object_property_is(            n1, "state", "good"), "object_property_is says 'state' is 'good'");
@@ -68,9 +68,9 @@ void test_object_set_up()
   onex_assert(      object_property_length(        n1, "state")==2,             "property 'state' is now a list of two");
   onex_assert(      object_property_size(          n1, "state")== -1,           "property 'state' is not a properties");
   // UID: uid-1  is: setup  state: good  1: a
-  onex_assert(      object_property_add(     n1, "1", "a"),    "can add new property");
-  onex_assert(      object_property_length(  n1, "1")==1,      "property '1' is a single value");
-  onex_assert(      object_property_size(    n1, "1")== -1,    "not a properties");
+  onex_assert(          object_property_add(     n1, "1", "a"),  "can add new property");
+  onex_assert_equal_num(object_property_length(  n1, "1"), 1,    "property '1' is a single value");
+  onex_assert(          object_property_size(    n1, "1")== -1,    "not a properties");
   onex_assert_equal(object_property(         n1, "1:1"), "a",  "1st value in list can be found by path-indexing and is 'a'");
   onex_assert(     !object_property(         n1, "1:1:"),      "cannot end in :");
   onex_assert(     !object_property(         n1, "1:2"),       "2nd value in list by path index is null");

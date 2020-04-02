@@ -15,13 +15,13 @@ typedef struct properties{
   int                buckets;
   uint16_t           size;
   hash_item**        lists;
-  value**            keys;
+  char**             keys;
   uint8_t            i;
 } properties;
 
 struct hash_item{
   hash_item* next;
-  value*     key;
+  char*      key;
   void*      item;
 };
 
@@ -47,26 +47,26 @@ properties* properties_new(uint16_t max_size)
   op->buckets=BX;
   op->size=0;
   op->lists=malloc((op->buckets)*sizeof(hash_item*));
-  op->keys=(value**)calloc(max_size,sizeof(value*));
+  op->keys=(char**)calloc(max_size,sizeof(char*));
   if(!op->lists || !op->keys) return 0;
   op->next=0;
   int i; for(i=0; i< op->buckets; i++) op->lists[i]=0;
   return op;
 }
 
-bool properties_set(properties* op, value* key, void* i)
+bool properties_set(properties* op, char* key, void* i)
 {
   if(!(op && key && i)) return false;
   hash_item** lisp;
-  lisp=&op->lists[string_hash(value_string(key)) % op->buckets];
-  while((*lisp) && (*lisp)->key != key){
+  lisp=&op->lists[string_hash(key) % op->buckets];
+  while((*lisp) && strcmp((*lisp)->key, key)){
     lisp=&(*lisp)->next;
   }
   if(!(*lisp)){
     if(op->size==op->max_size) return false;
     (*lisp)=malloc(sizeof(hash_item));
     if(!(*lisp)) return false;
-    (*lisp)->key=key;
+    (*lisp)->key=strdup(key);
     op->keys[op->size]=(*lisp)->key;
     (*lisp)->item=i;
     (*lisp)->next=0;
@@ -79,29 +79,18 @@ bool properties_set(properties* op, value* key, void* i)
   return true;
 }
 
-void* properties_get(properties* op, value* key)
-{
-  if(!(op && key)) return 0;
-  hash_item* list;
-  list=op->lists[string_hash(value_string(key)) % op->buckets];
-  while(list && list->key!=key){
-    list=list->next;
-  }
-  return list? list->item: 0;
-}
-
-void* properties_get_str(properties* op, char* key)
+void* properties_get(properties* op, char* key)
 {
   if(!(op && key)) return 0;
   hash_item* list;
   list=op->lists[string_hash(key) % op->buckets];
-  while(list && strcmp(value_string(list->key),key)){
+  while(list && strcmp(list->key,key)){
     list=list->next;
   }
   return list? list->item: 0;
 }
 
-value* properties_key_n(properties* op, uint16_t index)
+char* properties_key_n(properties* op, uint16_t index)
 {
   if(!op) return 0;
   if(index<=0 || index>op->size) return 0;
@@ -115,20 +104,21 @@ void* properties_get_n(properties* op, uint16_t index)
   return properties_get(op, op->keys[index-1]);
 }
 
-void* properties_delete(properties* op, value* key)
+void* properties_delete(properties* op, char* key)
 {
   if(!op) return 0;
   void* v=0;
   hash_item** lisp;
-  lisp=&op->lists[string_hash(value_string(key)) % op->buckets];
-  while((*lisp) && (*lisp)->key != key){
+  lisp=&op->lists[string_hash(key) % op->buckets];
+  while((*lisp) && strcmp((*lisp)->key,key)){
     lisp=&(*lisp)->next;
   }
   if((*lisp)){
-    hash_item* next=(*lisp)->next;
     int j;
-    for(j=0; j<op->size;   j++) if(op->keys[j]==key) break;
-    for(   ; j<op->size-1; j++) op->keys[j] = op->keys[j+1];
+    for(j=0; j<op->size; j++) if(!strcmp(op->keys[j], key)) break;
+    free(op->keys[j]);
+    for(; j<op->size-1; j++) op->keys[j]=op->keys[j+1];
+    hash_item* next=(*lisp)->next;
     v=(*lisp)->item;
     free((*lisp));
     (*lisp)=next;
@@ -171,7 +161,7 @@ char* properties_to_text(properties* op, char* b, uint16_t s)
   for(j=0; j<op->size; j++){
     ln+=snprintf(b+ln, s-ln, "  ");
     if(ln>=s){ *b = 0; return b; }
-    ln+=strlen(value_to_text(op->keys[j], b+ln, s-ln));
+    ln+=snprintf(b+ln, s-ln, "%s", op->keys[j]);
     if(ln>=s){ *b = 0; return b; }
     ln+=snprintf(b+ln, s-ln, ": ");
     if(ln>=s){ *b = 0; return b; }

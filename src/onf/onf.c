@@ -346,7 +346,7 @@ item* property_item(object* n, char* path, object* t, bool observe)
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
   char* c=strrchr(p, ':');
-  if(!c) return properties_get(n->properties, value_new(p));
+  if(!c) return properties_get(n->properties, p);
   return nested_property_item(n, p, t, observe);
 }
 
@@ -470,12 +470,12 @@ int16_t object_property_size(object* n, char* path)
 
 char* object_property_key(object* n, char* path, uint16_t index)
 {
-  value* k=0;
+  char* key=0;
   item* i=property_item(n,path,n,true);
   if(!i) return 0;
   switch(i->type){
     case ITEM_PROPERTIES: {
-      k=properties_key_n((properties*)i, index);
+      key=properties_key_n((properties*)i, index);
       break;
     }
     case ITEM_VALUE: {
@@ -485,7 +485,7 @@ char* object_property_key(object* n, char* path, uint16_t index)
       break;
     }
   }
-  return value_string(k);
+  return key;
 }
 
 char* object_property_val(object* n, char* path, uint16_t index)
@@ -576,7 +576,7 @@ bool object_property_set(object* n, char* path, char* val)
   char* c=strrchr(p, ':');
   if(!val || !*val){
     if(c) return nested_property_delete(n, path);
-    bool ok=!!properties_delete(n->properties, value_new(p));
+    bool ok=!!properties_delete(n->properties, p);
     if(ok) save_and_notify(n);
     return ok;
   }
@@ -588,13 +588,13 @@ bool object_property_set(object* n, char* path, char* val)
 
 bool set_value_or_list(object* n, char* key, char* val)
 {
-  item* i=properties_get(n->properties, value_new(key));
+  item* i=properties_get(n->properties, key);
   if(i) item_free(i);
   if(!strchr(val, ' ') && !strchr(val, '\n')){
-    return properties_set(n->properties, value_new(key), value_new(val));
+    return properties_set(n->properties, key, value_new(val));
   }
   list* l=list_new_from(val, MAX_LIST_SIZE);
-  bool ok=properties_set(n->properties, value_new(key), l);
+  bool ok=properties_set(n->properties, key, l);
   if(!ok) list_free(l);
   return ok;
 }
@@ -635,7 +635,7 @@ bool nested_property_delete(object* n, char* path)
   bool ok=false;
   if(i) switch(i->type){
     case ITEM_VALUE: {
-      if(!strcmp(c,"1")) ok=!!properties_delete(n->properties, value_new(p));
+      if(!strcmp(c,"1")) ok=!!properties_delete(n->properties, p);
       break;
     }
     case ITEM_LIST: {
@@ -644,7 +644,7 @@ bool nested_property_delete(object* n, char* path)
       ok=list_del_n(l, index);
       if(!ok) break;
       if(list_size(l)==1){
-        properties_set(n->properties, value_new(p), list_get_n(l,1));
+        properties_set(n->properties, p, list_get_n(l,1));
         list_free(l);
       }
       break;
@@ -669,10 +669,10 @@ bool object_property_add(object* n, char* path, char* val)
     add_notify(n, value_new(val));
     return true;
   }
-  item* i=properties_get(n->properties, value_new(path));
+  item* i=properties_get(n->properties, path);
   bool ok=true;
   if(!i){
-    ok=properties_set(n->properties, value_new(path), value_new(val)); // not single
+    ok=properties_set(n->properties, path, value_new(val)); // not single
   }
   else
   switch(i->type){
@@ -680,7 +680,7 @@ bool object_property_add(object* n, char* path, char* val)
       list* l=list_new(MAX_LIST_SIZE);
       ok=ok && list_add(l,i);
       ok=ok && list_add(l,value_new(val)); // not single
-      ok=ok && properties_set(n->properties, value_new(path), l);
+      ok=ok && properties_set(n->properties, path, l);
       break;
     }
     case ITEM_LIST: {
@@ -823,7 +823,7 @@ char* object_to_text(object* n, char* b, uint16_t s, int style)
   for(j=1; j<=properties_size(p); j++){
     ln+=snprintf(b+ln, s-ln, " ");
     if(ln>=s){ *b = 0; return b; }
-    ln+=strlen(value_to_text(properties_key_n(p,j), b+ln, s-ln));
+    ln+=snprintf(b+ln, s-ln, "%s", properties_key_n(p,j));
     if(ln>=s){ *b = 0; return b; }
     ln+=snprintf(b+ln, s-ln, ": ");
     if(ln>=s){ *b = 0; return b; }
@@ -864,7 +864,7 @@ static properties* objects_cache=0;
 bool add_to_cache(object* n)
 {
   if(!objects_cache) objects_cache=properties_new(MAX_OBJECTS);
-  if(!properties_set(objects_cache, n->uid, n)){
+  if(!properties_set(objects_cache, value_string(n->uid), n)){
     log_write("No more room for objects!!\n");
     return false;
   }
@@ -874,7 +874,7 @@ bool add_to_cache(object* n)
 object* onex_get_from_cache(char* uid)
 {
   if(!uid || !(*uid)) return 0;
-  object* o=properties_get(objects_cache, value_new(uid));
+  object* o=properties_get(objects_cache, uid);
   if(!o)  o=persistence_get(uid);
   return o;
 }
@@ -901,7 +901,7 @@ void onex_un_cache(char* uid)
 {
   persistence_flush();
   if(!uid || !(*uid)) return;
-  object* o=properties_delete(objects_cache, value_new(uid));
+  object* o=properties_delete(objects_cache, uid);
   object_free(o);
   scan_objects_text_for_keep_active();
 }
@@ -911,10 +911,10 @@ static properties* evaluators=0;
 void onex_set_evaluators(char* name, ...)
 {
   if(!evaluators) evaluators = properties_new(32);
-  list* evals = (list*)properties_get(evaluators, value_new(name));
+  list* evals = (list*)properties_get(evaluators, name);
   if(!evals){
     evals = list_new(6);
-    properties_set(evaluators, value_new(name), evals);
+    properties_set(evaluators, name, evals);
   }
   else list_clear(evals, false);
 
@@ -938,7 +938,7 @@ void run_evaluators(object* o, void* data, object* alerted){
   if(o->running_evals){ log_write("Already in evaluators! %s\n", value_string(o->uid)); return; }
   o->running_evals=true;
   o->alerted=alerted? alerted->uid: 0;
-  list* evals = (list*)properties_get(evaluators, o->evaluator);
+  list* evals = (list*)properties_get(evaluators, value_string(o->evaluator));
   for(int i=1; i<=list_size(evals); i++){
     onex_evaluator eval=(onex_evaluator)list_get_n(evals, i);
     if(!eval(o, data)) break;
@@ -1002,11 +1002,10 @@ void persistence_init(char* filename)
     char* uid=text+5;
     char* e=strchr(uid, ' ');
     if(e) *e=0;
-    value* uidv=value_new(uid);
-    if(e) *e=' ';
-    char* prevtext=properties_delete(objects_text, uidv);
+    char* prevtext=properties_delete(objects_text, uid);
     if(prevtext) free(prevtext);
-    properties_set(objects_text, uidv, strdup(text));
+    properties_set(objects_text, uid, strdup(text));
+    if(e) *e=' ';
     text=strtok(0, "\n");
   }
   free(alldbtext);
@@ -1034,8 +1033,7 @@ void persistence_loop()
 
 object* persistence_get(char* uid)
 {
-  value* uidv=value_new(uid);
-  char* text=properties_get(objects_text, uidv);
+  char* text=properties_get(objects_text, uid);
   if(!text) return 0;
   object* o=new_object_from(text, MAX_OBJECT_SIZE);
   if(!o) return 0;
@@ -1046,7 +1044,7 @@ object* persistence_get(char* uid)
 void persistence_put(object* o)
 {
   value* uid=o->uid;
-  properties_set(objects_to_save, uid, uid);
+  properties_set(objects_to_save, value_string(uid), uid);
 }
 
 void persistence_flush()
@@ -1054,8 +1052,8 @@ void persistence_flush()
   uint16_t sz=properties_size(objects_to_save);
   if(!sz) return;
   for(int j=1; j<=sz; j++){
-    value* uid=properties_get_n(objects_to_save, j);
-    object* o=onex_get_from_cache(value_string(uid));
+    char* uid=value_string(properties_get_n(objects_to_save, j));
+    object* o=onex_get_from_cache(uid);
     char buff[MAX_TEXT_LEN];
     char* text=object_to_text(o,buff,MAX_TEXT_LEN,OBJECT_TO_TEXT_PERSIST);
     free(properties_delete(objects_text, uid));
@@ -1069,7 +1067,7 @@ void persistence_flush()
 void scan_objects_text_for_keep_active()
 {
   for(int n=1; n<=properties_size(objects_text); n++){
-    value* uid=0;
+    char* uid=0;
     char* p=properties_get_n(objects_text, n);
     while(true){
       char* key=get_key(&p); if(!key) break;            if(!*key){ free(key); break; }
@@ -1086,7 +1084,7 @@ void scan_objects_text_for_keep_active()
       free(key); free(val);
     }
     if(uid){
-      object* o=onex_get_from_cache(value_string(uid));
+      object* o=onex_get_from_cache(uid);
       if(object_is_local_device(o)) onex_device_object = o;
       run_evaluators(o,0,0);
     }
