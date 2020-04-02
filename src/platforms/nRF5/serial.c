@@ -12,7 +12,9 @@
 #include "app_usbd_cdc_acm.h"
 #include "app_usbd_serial_num.h"
 
+#if !defined(LOG_TO_SERIAL)
 #include <onex-kernel/log.h>
+#endif
 #include <onex-kernel/serial.h>
 
 static volatile bool initialised=false;
@@ -263,11 +265,12 @@ void write_chunk()
   data_available=da;
   current_read=cr;
 
+#if !defined(LOG_TO_SERIAL)
   if(e==NRF_ERROR_BUSY         ){ log_write("busy\n"); return; }
   if(e==NRF_ERROR_INVALID_STATE){ log_write("closed\n"); return; }
-
   const char* ers=nrf_strerror_get(e);
   log_write("%s", ers+10);
+#endif
 }
 
 size_t serial_printf(const char* fmt, ...)
