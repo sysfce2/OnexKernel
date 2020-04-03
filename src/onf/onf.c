@@ -22,6 +22,7 @@
 // ---------------------------------------------------------------------------------
 
 
+#define MAX_UID_LEN 128
 #if defined(NRF5)
 #define MAX_LIST_SIZE 8
 #define MAX_TEXT_LEN 512
@@ -221,8 +222,8 @@ void object_free(object* o)
 
 char* get_key(char** p)
 {
-  if(!strlen(*p)) return 0;
   while(isspace(**p)) (*p)++;
+  if(!**p) return 0;
   char* s=strchr(*p, ' ');
   char* c=strstr(*p, ": ");
   if(s<c || !c) return 0;
@@ -236,6 +237,7 @@ char* get_key(char** p)
 char* get_val(char** p)
 {
   while(isspace(**p)) (*p)++;
+  if(!**p) return 0;
   char* c=strstr(*p, ": ");
   while(c && *(c-1)=='\\') c=strstr(c+1, ": ");
   char* r=0;
@@ -244,7 +246,7 @@ char* get_val(char** p)
     do s--; while(isspace(*s)); s++;
     (*s)=0;
     r=strdup(*p);
-    (*p)+=strlen(*p)+1;
+    (*p)+=strlen(*p);
   }
   else{
     (*c)=0;
@@ -998,14 +1000,17 @@ void persistence_init(char* filename)
   alldbtext[n] = '\0';
   char* text=strtok(alldbtext, "\n");
   while(text){
-    if(strncmp(text, "UID: ", 5)) continue;
-    char* uid=text+5;
-    char* e=strchr(uid, ' ');
-    if(e) *e=0;
-    char* prevtext=properties_delete(objects_text, uid);
-    if(prevtext) free(prevtext);
-    properties_set(objects_text, uid, strdup(text));
-    if(e) *e=' ';
+    if(!strncmp(text, "UID: ", 5)){
+      char* u=text+5;
+      char* e=strchr(u, ' ');
+      if(e) *e=0;
+      char uid[MAX_UID_LEN]; size_t m=snprintf(uid, MAX_UID_LEN, "%s", u);
+      if(e) *e=' ';
+      if(m<MAX_UID_LEN){
+        free(properties_delete(objects_text, uid));
+        properties_set(objects_text, uid, strdup(text));
+      }
+    }
     text=strtok(0, "\n");
   }
   free(alldbtext);
