@@ -30,14 +30,6 @@ TESTS_OBJECTS = \
 ./tests/ont-examples/ble_app_blinky.c \
 
 
-BUTTON_OBJECTS = \
-./tests/ont-examples/button-light/button.c \
-
-
-LIGHT_OBJECTS = \
-./tests/ont-examples/button-light/light.c \
-
-
 LIB_OBJECTS = \
 ./src/lib/list.c \
 ./src/lib/value.c \

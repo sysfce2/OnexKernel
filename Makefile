@@ -31,13 +31,6 @@ TESTS_OBJECTS = \
 ./tests/test-onf.c \
 ./tests/main.c \
 
-BUTTON_OBJECTS = \
-./tests/ont-examples/button-light/button.c \
-
-
-LIGHT_OBJECTS = \
-./tests/ont-examples/button-light/light.c \
-
 
 LINUX_FLAGS=-g3 -ggdb
 LINUX_CC_SYMBOLS = -D${TARGET} ${CHANNELS}
@@ -69,34 +62,11 @@ tests.linux: CHANNELS=-DONP_CHANNEL_SERIAL
 tests.linux: libOnexKernel.a ${TESTS_OBJECTS:.c=.o}
 	$(LD) ${TESTS_OBJECTS:.c=.o} -pthread -L. -lOnexKernel -o $@
 
-button.linux: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
-button.linux: CC=/usr/bin/gcc
-button.linux: LD=/usr/bin/gcc
-button.linux: TARGET=TARGET_LINUX
-button.linux: CHANNELS=-DONP_CHANNEL_SERIAL
-button.linux: libOnexKernel.a ${BUTTON_OBJECTS:.c=.o}
-	$(LD) -static ${BUTTON_OBJECTS:.c=.o} -pthread -L. -lOnexKernel -o $@
-
-light.linux: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
-light.linux: CC=/usr/bin/gcc
-light.linux: LD=/usr/bin/gcc
-light.linux: TARGET=TARGET_LINUX
-light.linux: CHANNELS=-DONP_CHANNEL_SERIAL
-light.linux: libOnexKernel.a ${LIGHT_OBJECTS:.c=.o}
-	$(LD) -static ${LIGHT_OBJECTS:.c=.o} -pthread -L. -lOnexKernel -o $@
-
-
 linux.tests: tests.linux
 	./tests.linux
 
 linux.valgrind: tests.linux
 	valgrind --leak-check=yes --undef-value-errors=no ./tests.linux
-
-linux.button: button.linux
-	./button.linux
-
-linux.light: light.linux
-	./light.linux
 
 android.tests: android.library
 	adb -d uninstall network.object.onexkernel || echo not found
