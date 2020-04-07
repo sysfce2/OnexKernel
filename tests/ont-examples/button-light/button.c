@@ -106,9 +106,9 @@ int main()
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, button_1_change_cb);
   gpio_mode(   BUTTON_ENABLE, OUTPUT);
   gpio_set(    BUTTON_ENABLE, 1);
-#endif
-
+#else
   log_write("\n------Starting Button Test-----\n");
+#endif
 
   onex_set_evaluators("evaluate_device", evaluate_device_logic, 0);
   onex_set_evaluators("evaluate_button", evaluate_button, 0);

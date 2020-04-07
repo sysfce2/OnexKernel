@@ -22,7 +22,7 @@ char* clockuid;
 
 bool evaluate_light(object* light, void* d);
 
-void every_second()
+static void every_second()
 {
   onex_run_evaluators(clockuid, 0);
 }
@@ -39,14 +39,11 @@ bool evaluate_clock(object* oclock, void* d)
       if(object_property_contains_peek(oclock, "sync-clock:is", "clock")) break;
     }
   }
-  char* ses=object_property(oclock, "sync-clock:timestamp");
-  if(ses && !object_property_is(oclock, "sync-ts", ses)){
-    char* e; uint64_t sesn=strtoull(ses,&e,10);
-    if(sesn){
-      time_es_set(sesn);
-      object_property_set(oclock, "sync-ts", ses);
-      object_property_set(oclock, "timestamp", ses);
-    }
+  char* sync_clock_ts_str=object_property(oclock, "sync-clock:timestamp");
+  if(sync_clock_ts_str && !object_property_is(oclock, "sync-ts", sync_clock_ts_str)){
+    object_property_set(oclock, "sync-ts", sync_clock_ts_str);
+    char* e; uint64_t sync_clock_ts=strtoull(sync_clock_ts_str,&e,10);
+    if(sync_clock_ts) time_es_set(sync_clock_ts);
   }
 #endif
 
@@ -59,20 +56,21 @@ bool evaluate_clock(object* oclock, void* d)
   if(es>>32) snprintf(ess, 16, "%u%u", ((uint32_t)(es>>32)),(uint32_t)es);
   else       snprintf(ess, 16,   "%u",                      (uint32_t)es);
 #endif
-  if(!object_property_is(oclock, "timestamp", ess)){
 
-    object_property_set(oclock, "timestamp", ess);
+  if(object_property_is(oclock, "timestamp", ess)) return true;
 
-    time_t estt = (time_t)es;
-    struct tm* tms = localtime(&estt);
-    char ts[32];
+  object_property_set(oclock, "timestamp", ess);
 
-    strftime(ts, 32, "%Y/%m/%d", tms);
-    object_property_set(oclock, "date", ts);
+  time_t est = (time_t)es;
+  struct tm* tms = localtime(&est);
+  char ts[32];
 
-    strftime(ts, 32, "%H:%M:%S", tms);
-    object_property_set(oclock, "time", ts);
-  }
+  strftime(ts, 32, "%Y/%m/%d", tms);
+  object_property_set(oclock, "date", ts);
+
+  strftime(ts, 32, "%H:%M:%S", tms);
+  object_property_set(oclock, "time", ts);
+
   return true;
 }
 
@@ -107,7 +105,6 @@ int main()
 #elif defined(BOARD_PINETIME)
   gpio_mode(LED_3, OUTPUT);
 #else
-  time_delay_s(2);
   log_write("\n------Starting Light Test-----\n");
 #endif
 
