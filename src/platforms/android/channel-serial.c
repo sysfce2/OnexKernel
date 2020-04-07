@@ -7,7 +7,7 @@
 
 static bool initialised=false;
 
-#define SERIAL_BUFFER_SIZE 512
+#define SERIAL_BUFFER_SIZE 4096
 
 static char buffer[SERIAL_BUFFER_SIZE];
 static int  current_write=0;
