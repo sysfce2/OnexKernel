@@ -66,9 +66,9 @@ typedef enum {
   TIMER_PERIODIC
 } t_timer;
 
-static size_t start_timer(uint32_t interval, time_up_cb handler, t_timer type);
+static uint64_t start_timer(uint32_t interval, time_up_cb handler, t_timer type);
 /*
-static void stop_timer(size_t timer_id);
+static void stop_timer(uint64_t timer_id);
 static void finalize();
 */
 
@@ -169,9 +169,12 @@ void* timer_thread(void * data)
 
   while(1) {
 
+#if !defined(__ANDROID__)
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, 0);
     pthread_testcancel();
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, 0);
+#else
+#endif
 
     memset(ufds, 0, sizeof(struct pollfd)*MAX_TIMER_COUNT);
     timer = timer_list;

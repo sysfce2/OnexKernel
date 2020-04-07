@@ -395,7 +395,6 @@ void ping_object(char* uid, object* o)
 {
   uint64_t curtime = time_ms();
   if(!o->last_observe || curtime > o->last_observe + 10000){
-    log_write("curtime %ld\n", (uint32_t)curtime);
     o->last_observe = curtime + 1;
     char* device_uid = value_string(o->devices);
     onp_send_observe(uid, channel_of(device_uid));
