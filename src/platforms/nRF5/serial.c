@@ -156,7 +156,7 @@ static void usbd_user_ev_handler(app_usbd_event_type_t event)
 #define MAX_TX_OCTETS NRFX_USBD_EPSIZE
 static char chunk[MAX_TX_OCTETS];
 
-static bool write_a_chunk(size_t size)
+static uint8_t write_a_chunk(size_t size)
 {
   ret_code_t e=app_usbd_cdc_acm_write(&m_app_cdc_acm, chunk, size);
 
@@ -174,7 +174,7 @@ static bool write_a_chunk(size_t size)
   }
 #endif
 
-  return e==NRF_SUCCESS;
+  return e==NRF_SUCCESS? BUFFER_WRITE_DONE: BUFFER_WRITE_FAILED;
 }
 
 bool serial_init(serial_recv_cb cb, uint32_t baudrate)

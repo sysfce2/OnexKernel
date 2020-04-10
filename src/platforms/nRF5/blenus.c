@@ -310,7 +310,7 @@ static void conn_params_init(void)
 #define MAX_TX_OCTETS (BLE_GATT_ATT_MTU_DEFAULT-3)
 static char chunk[MAX_TX_OCTETS];
 
-static bool write_a_chunk(size_t size)
+static uint8_t write_a_chunk(size_t size)
 {
   uint16_t i=(uint16_t)size;
   uint16_t j=i;
@@ -333,7 +333,7 @@ static bool write_a_chunk(size_t size)
 #if !defined(LOG_TO_BLE)
   if(j!=i) log_write("%d,%d",j,i);
 #endif
-  return (e==NRF_SUCCESS && j==i);
+  return (e==NRF_SUCCESS && j==i)? BUFFER_WRITE_CONTINUE: BUFFER_WRITE_FAILED;
 }
 
 bool blenus_init(blenus_recv_cb cb)

@@ -1,5 +1,9 @@
 
-typedef bool (*buffer_write_cb)(size_t);
+#define BUFFER_WRITE_CONTINUE 0
+#define BUFFER_WRITE_FAILED 1
+#define BUFFER_WRITE_DONE 2
+
+typedef uint8_t (*buffer_write_cb)(size_t);
 
 #define BUFFER_SIZE 1024
 static char              buffer_buffer[BUFFER_SIZE];
@@ -73,24 +77,30 @@ static void buffer_write_chunk_guard(bool done)
   if(buffer_chunk_in_use||buffer_in_use||!buffer_data_available) return;
   buffer_chunk_in_use=true;
 
-  uint16_t da=buffer_data_available;
-  uint16_t cr=buffer_current_read;
+  while(buffer_data_available){
+    uint16_t da=buffer_data_available;
+    uint16_t cr=buffer_current_read;
 
-  uint16_t size=0;
-  while(buffer_data_available && size<buffer_chunk_size){
-    buffer_chunk[size++]=buffer_buffer[buffer_current_read++];
-    if(buffer_current_read==BUFFER_SIZE) buffer_current_read=0;
-    buffer_data_available--;
-    if(buffer_chunk[size-1]=='\n') break;
+    uint16_t size=0;
+    while(buffer_data_available && size<buffer_chunk_size){
+      buffer_chunk[size++]=buffer_buffer[buffer_current_read++];
+      if(buffer_current_read==BUFFER_SIZE) buffer_current_read=0;
+      buffer_data_available--;
+      if(buffer_chunk[size-1]=='\n') break;
+    }
+
+    uint8_t r=buffer_do_write(size);
+
+    if(r==BUFFER_WRITE_DONE){
+      break;
+    }
+    if(r==BUFFER_WRITE_FAILED){
+      buffer_data_available=da;
+      buffer_current_read=cr;
+      buffer_chunk_in_use=false;
+      break;
+    }
   }
-
-  bool ok=buffer_do_write(size);
-
-  if(ok) return;
-
-  buffer_chunk_in_use=false;
-  buffer_data_available=da;
-  buffer_current_read=cr;
 }
 
 static void buffer_write_chunk()
