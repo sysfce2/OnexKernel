@@ -16,6 +16,7 @@
 #include <onex-kernel/log.h>
 #endif
 #include <onex-kernel/serial.h>
+#include <onex-kernel/buffer.h>
 
 static volatile bool initialised=false;
 
@@ -24,18 +25,6 @@ static serial_recv_cb recv_cb;
 #ifndef USBD_POWER_DETECTION
 #define USBD_POWER_DETECTION true
 #endif
-
-#define SERIAL_BUFFER_SIZE 1024
-#define MAX_TX_OCTETS NRFX_USBD_EPSIZE
-static char buffer[SERIAL_BUFFER_SIZE];
-static char chunk[MAX_TX_OCTETS];
-static volatile uint16_t current_write=0;
-static volatile uint16_t current_read=0;
-static volatile uint16_t data_available=0;
-static volatile bool buffer_in_use=false;
-static volatile bool chunk_in_use=false;
-
-static void write_chunk();
 
 static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
                                     app_usbd_cdc_acm_user_event_t event);
@@ -75,18 +64,17 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
             UNUSED_VARIABLE(ret);
             if(recv_cb) recv_cb(0,0);
             NRF_LOG_INFO("CDC ACM port opened");
-            chunk_in_use=false;
+            buffer_clear();
             break;
         }
         case APP_USBD_CDC_ACM_USER_EVT_PORT_CLOSE:
         {
-            chunk_in_use=false;
+            buffer_clear();
             break;
         }
         case APP_USBD_CDC_ACM_USER_EVT_TX_DONE:
         {
-            chunk_in_use=false;
-            write_chunk();
+            buffer_write_chunk();
             break;
         }
         case APP_USBD_CDC_ACM_USER_EVT_RX_DONE:
@@ -163,6 +151,30 @@ static void usbd_user_ev_handler(app_usbd_event_type_t event)
     }
 }
 
+#define MAX_TX_OCTETS NRFX_USBD_EPSIZE
+static char chunk[MAX_TX_OCTETS];
+
+static bool write_a_chunk(size_t size)
+{
+  ret_code_t e=app_usbd_cdc_acm_write(&m_app_cdc_acm, chunk, size);
+
+#if !defined(LOG_TO_SERIAL)
+  if(e==NRF_ERROR_BUSY){
+    log_write("busy\n");
+  }
+  else
+  if(e==NRF_ERROR_INVALID_STATE){
+    log_write("closed\n");
+  }
+  else{
+    const char* ers=nrf_strerror_get(e);
+    log_write("%s", ers+10);
+  }
+#endif
+
+  return e==NRF_SUCCESS;
+}
+
 bool serial_init(serial_recv_cb cb, uint32_t baudrate)
 {
     recv_cb = cb;
@@ -197,6 +209,7 @@ bool serial_init(serial_recv_cb cb, uint32_t baudrate)
         app_usbd_start();
     }
 
+    buffer_init(chunk, MAX_TX_OCTETS, write_a_chunk);
     initialised=true;
 
     return true;
@@ -218,70 +231,9 @@ void serial_putchar(unsigned char ch)
   serial_write(&ch, 1);
 }
 
-bool drop_oldest_line()
-{
-  while(data_available){
-    char ch=buffer[current_read++];
-    if(current_read==SERIAL_BUFFER_SIZE) current_read=0;
-    data_available--;
-    if(ch=='\n') return true;
-  }
-  return false;
-}
-
 size_t serial_write(unsigned char* buf, size_t size)
 {
-  if(buffer_in_use) return 0;
-  buffer_in_use=true;
-  while(size > SERIAL_BUFFER_SIZE - data_available && drop_oldest_line());
-  if(   size > SERIAL_BUFFER_SIZE - data_available){
-#if !defined(LOG_TO_SERIAL)
-    log_write("ser_wr size %d\n", size);
-#endif
-    buffer_in_use=false;
-    write_chunk();
-    return 0;
-  }
-  for(int i=0; i<size; i++){
-    buffer[current_write++]=buf[i];
-    if(current_write==SERIAL_BUFFER_SIZE) current_write=0;
-    data_available++;
-  }
-  buffer_in_use=false;
-  write_chunk();
-  return size;
-}
-
-void write_chunk()
-{
-  if(chunk_in_use||buffer_in_use||!data_available) return;
-
-  chunk_in_use=true;
-  uint16_t da=data_available;
-  uint16_t cr=current_read;
-
-  uint16_t size=0;
-  while(data_available && size<MAX_TX_OCTETS){
-    chunk[size++]=buffer[current_read++];
-    if(current_read==SERIAL_BUFFER_SIZE) current_read=0;
-    data_available--;
-    if(chunk[size-1]=='\n') break;
-  }
-
-  ret_code_t e=app_usbd_cdc_acm_write(&m_app_cdc_acm, chunk, size);
-
-  if(e==NRF_SUCCESS) return;
-
-  chunk_in_use=false;
-  data_available=da;
-  current_read=cr;
-
-#if !defined(LOG_TO_SERIAL)
-  if(e==NRF_ERROR_BUSY         ){ log_write("busy\n"); return; }
-  if(e==NRF_ERROR_INVALID_STATE){ log_write("closed\n"); return; }
-  const char* ers=nrf_strerror_get(e);
-  log_write("%s", ers+10);
-#endif
+  return buffer_write(buf, size);
 }
 
 size_t serial_printf(const char* fmt, ...)

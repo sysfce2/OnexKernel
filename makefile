@@ -31,6 +31,7 @@ TESTS_OBJECTS = \
 
 
 LIB_OBJECTS = \
+./src/lib/buffer.c \
 ./src/lib/list.c \
 ./src/lib/value.c \
 ./src/onp/onp.c \
