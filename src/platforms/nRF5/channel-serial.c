@@ -11,7 +11,7 @@
 
 static volatile bool initialised=false;
 
-#define SERIAL_BUFFER_SIZE 512
+#define SERIAL_BUFFER_SIZE 1024
 
 static char buffer[SERIAL_BUFFER_SIZE];
 static volatile int  current_write=0;
