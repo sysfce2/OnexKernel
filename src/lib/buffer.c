@@ -5,7 +5,7 @@
 
 typedef uint8_t (*buffer_write_cb)(size_t);
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 2048
 static char              buffer_buffer[BUFFER_SIZE];
 static volatile uint16_t buffer_current_write=0;
 static volatile uint16_t buffer_current_read=0;
@@ -34,29 +34,13 @@ static void buffer_clear()
 }
 #endif
 
-static bool buffer_drop_oldest_line()
-{
-  while(buffer_data_available){
-    char ch=buffer_buffer[buffer_current_read++];
-    if(buffer_current_read==BUFFER_SIZE) buffer_current_read=0;
-    buffer_data_available--;
-    if(ch=='\n') return true;
-  }
-  return false;
-}
-
 static void buffer_write_chunk_guard(bool done);
 
 static size_t buffer_write(unsigned char* buf, size_t size)
 {
   if(buffer_in_use) return 0;
   buffer_in_use=true;
-  while(size > BUFFER_SIZE - buffer_data_available && buffer_drop_oldest_line());
-  if(   size > BUFFER_SIZE - buffer_data_available){
-#define LOG_TO_THIS_ONE
-#if !defined(LOG_TO_THIS_ONE)
-    log_write("buf_wr size %d\n", size);
-#endif
+  if(size > BUFFER_SIZE - buffer_data_available){
     buffer_in_use=false;
     buffer_write_chunk_guard(false);
     return 0;
