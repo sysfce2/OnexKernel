@@ -7,7 +7,6 @@
 
 #if defined(LOG_TO_SERIAL)
 #include <onex-kernel/serial.h>
-#include <onex-kernel/time.h>
 #elif defined(LOG_TO_GFX)
 #if defined(BOARD_PINETIME)
 #include <onex-kernel/gfx.h>
@@ -15,6 +14,7 @@
 #elif defined(LOG_TO_BLE)
 #include <onex-kernel/blenus.h>
 #endif
+#include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 
 void log_init()
@@ -61,6 +61,7 @@ int log_write(const char* fmt, ...)
   vsnprintf((char*)log_buf, LOG_BUF_SIZE, fmt, args);
   //if(strlen(log_buf)>19){ log_buf[18]='\n'; log_buf[19]=0; }
   r=blenus_printf(log_buf);
+  time_delay_ms(5);
 #endif
   va_end(args);
   return r;
