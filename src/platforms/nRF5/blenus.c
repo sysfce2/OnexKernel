@@ -24,13 +24,14 @@
 #include "nrf_log_default_backends.h"
 
 #include <items.h>
-#include <onex-kernel/buffer.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/blenus.h>
 #if !defined(LOG_TO_BLE)
 #include <onex-kernel/log.h>
 #endif
 #include <assert.h>
+
+#include "../../lib/buffer.c"
 
 static volatile bool initialised=false;
 static volatile blenus_recv_cb recv_cb;

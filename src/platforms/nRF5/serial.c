@@ -16,7 +16,9 @@
 #include <onex-kernel/log.h>
 #endif
 #include <onex-kernel/serial.h>
-#include <onex-kernel/buffer.h>
+
+#define BUFFER_CLEAR_NEEDED
+#include "../../lib/buffer.c"
 
 static volatile bool initialised=false;
 
