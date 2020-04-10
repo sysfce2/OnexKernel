@@ -1,4 +1,6 @@
 
+#include <nrfx_atomic.h>
+
 #define BUFFER_WRITE_CONTINUE 0
 #define BUFFER_WRITE_FAILED 1
 #define BUFFER_WRITE_DONE 2
@@ -36,12 +38,20 @@ static void buffer_clear()
 
 static void buffer_write_chunk_guard(bool done);
 
+static volatile nrfx_atomic_u32_t buffer_in_use_lock=0;
+static volatile nrfx_atomic_u32_t chunk_in_use_lock=0;
+static uint32_t required_buffer_lock_state;
+static uint32_t required_chunk_lock_state;
+
 static size_t buffer_write(unsigned char* buf, size_t size)
 {
+  required_buffer_lock_state=0; if(!nrfx_atomic_u32_cmp_exch(&buffer_in_use_lock, &required_buffer_lock_state, 1)) return 0;
+
   if(buffer_in_use) return 0;
   buffer_in_use=true;
   if(size > BUFFER_SIZE - buffer_data_available){
     buffer_in_use=false;
+    required_buffer_lock_state=1; nrfx_atomic_u32_cmp_exch(&buffer_in_use_lock, &required_buffer_lock_state, 0);
     buffer_write_chunk_guard(false);
     return 0;
   }
@@ -50,14 +60,20 @@ static size_t buffer_write(unsigned char* buf, size_t size)
     if(buffer_current_write==BUFFER_SIZE) buffer_current_write=0;
     buffer_data_available++;
   }
+
   buffer_in_use=false;
+  required_buffer_lock_state=1; nrfx_atomic_u32_cmp_exch(&buffer_in_use_lock, &required_buffer_lock_state, 0);
   buffer_write_chunk_guard(false);
   return size;
 }
 
 static void buffer_write_chunk_guard(bool done)
 {
-  if(done) buffer_chunk_in_use=false;
+  if(done){
+    required_chunk_lock_state=1; nrfx_atomic_u32_cmp_exch(&chunk_in_use_lock, &required_chunk_lock_state, 0);
+    buffer_chunk_in_use=false;
+  }
+  required_chunk_lock_state=0; if(!nrfx_atomic_u32_cmp_exch(&chunk_in_use_lock, &required_chunk_lock_state, 1)) return;
   if(buffer_chunk_in_use||buffer_in_use||!buffer_data_available) return;
   buffer_chunk_in_use=true;
 
@@ -82,6 +98,7 @@ static void buffer_write_chunk_guard(bool done)
       buffer_data_available=da;
       buffer_current_read=cr;
       buffer_chunk_in_use=false;
+      required_chunk_lock_state=1; nrfx_atomic_u32_cmp_exch(&chunk_in_use_lock, &required_chunk_lock_state, 0);
       break;
     }
   }
