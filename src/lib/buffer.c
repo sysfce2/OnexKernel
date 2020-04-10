@@ -12,8 +12,9 @@ static char              buffer_buffer[BUFFER_SIZE];
 static volatile uint16_t buffer_current_write=0;
 static volatile uint16_t buffer_current_read=0;
 static volatile uint16_t buffer_data_available=0;
-static volatile bool     buffer_in_use=false;
-static volatile bool     buffer_chunk_in_use=false;
+static volatile nrfx_atomic_u32_t buffer_in_use=false;
+static volatile nrfx_atomic_u32_t buffer_chunk_in_use=false;
+
 static buffer_write_cb   buffer_do_write;
 static volatile char*    buffer_chunk;
 static volatile size_t   buffer_chunk_size;
@@ -38,20 +39,12 @@ static void buffer_clear()
 
 static void buffer_write_chunk_guard(bool done);
 
-static volatile nrfx_atomic_u32_t buffer_in_use_lock=0;
-static volatile nrfx_atomic_u32_t chunk_in_use_lock=0;
-static uint32_t required_buffer_lock_state;
-static uint32_t required_chunk_lock_state;
-
 static size_t buffer_write(unsigned char* buf, size_t size)
 {
-  required_buffer_lock_state=0; if(!nrfx_atomic_u32_cmp_exch(&buffer_in_use_lock, &required_buffer_lock_state, 1)) return 0;
+  uint32_t reqd=false; if(!nrfx_atomic_u32_cmp_exch(&buffer_in_use, &reqd, true)) return 0;
 
-  if(buffer_in_use) return 0;
-  buffer_in_use=true;
   if(size > BUFFER_SIZE - buffer_data_available){
     buffer_in_use=false;
-    required_buffer_lock_state=1; nrfx_atomic_u32_cmp_exch(&buffer_in_use_lock, &required_buffer_lock_state, 0);
     buffer_write_chunk_guard(false);
     return 0;
   }
@@ -62,20 +55,15 @@ static size_t buffer_write(unsigned char* buf, size_t size)
   }
 
   buffer_in_use=false;
-  required_buffer_lock_state=1; nrfx_atomic_u32_cmp_exch(&buffer_in_use_lock, &required_buffer_lock_state, 0);
   buffer_write_chunk_guard(false);
   return size;
 }
 
 static void buffer_write_chunk_guard(bool done)
 {
-  if(done){
-    required_chunk_lock_state=1; nrfx_atomic_u32_cmp_exch(&chunk_in_use_lock, &required_chunk_lock_state, 0);
-    buffer_chunk_in_use=false;
-  }
-  required_chunk_lock_state=0; if(!nrfx_atomic_u32_cmp_exch(&chunk_in_use_lock, &required_chunk_lock_state, 1)) return;
-  if(buffer_chunk_in_use||buffer_in_use||!buffer_data_available) return;
-  buffer_chunk_in_use=true;
+  if(done) buffer_chunk_in_use=false;
+  if(buffer_in_use||!buffer_data_available) return;
+  uint32_t reqd=false; if(!nrfx_atomic_u32_cmp_exch(&buffer_chunk_in_use, &reqd, true)) return;
 
   while(buffer_data_available){
     uint16_t da=buffer_data_available;
@@ -98,7 +86,6 @@ static void buffer_write_chunk_guard(bool done)
       buffer_data_available=da;
       buffer_current_read=cr;
       buffer_chunk_in_use=false;
-      required_chunk_lock_state=1; nrfx_atomic_u32_cmp_exch(&chunk_in_use_lock, &required_chunk_lock_state, 0);
       break;
     }
   }
