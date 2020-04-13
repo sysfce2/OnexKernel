@@ -17,7 +17,6 @@
 #endif
 #include <onex-kernel/serial.h>
 
-#define BUFFER_CLEAR_NEEDED
 #include "../../lib/buffer.c"
 
 static volatile bool initialised=false;
@@ -64,9 +63,9 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
                                                    m_cdc_data_array,
                                                    1);
             UNUSED_VARIABLE(ret);
+            buffer_clear();
             if(recv_cb) recv_cb(0,0);
             NRF_LOG_INFO("CDC ACM port opened");
-            buffer_clear();
             break;
         }
         case APP_USBD_CDC_ACM_USER_EVT_PORT_CLOSE:

@@ -82,12 +82,14 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
             err_code = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
             APP_ERROR_CHECK(err_code);
+            buffer_clear();
             if(recv_cb) recv_cb(0,0);
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
             NRF_LOG_INFO("Disconnected");
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
+            buffer_clear();
             advertising_start();
             break;
 
@@ -210,7 +212,6 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
     if (p_evt->type == BLE_NUS_EVT_TX_RDY) {
       buffer_write_chunk();
     }
-    // Connection closed/opened: call buffer_clear();
 }
 
 static void nrf_qwr_error_handler(uint32_t nrf_error)

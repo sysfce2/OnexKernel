@@ -26,7 +26,6 @@ static void buffer_init(char* ch, size_t chs, buffer_write_cb wrcb)
   buffer_do_write=wrcb;
 }
 
-#if defined(BUFFER_CLEAR_NEEDED)
 static void buffer_clear()
 {
   buffer_current_write=0;
@@ -35,7 +34,6 @@ static void buffer_clear()
   buffer_in_use=false;
   buffer_chunk_in_use=false;
 }
-#endif
 
 static void buffer_write_chunk_guard(bool done);
 
