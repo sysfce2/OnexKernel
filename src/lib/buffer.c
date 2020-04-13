@@ -77,13 +77,13 @@ static void buffer_write_chunk_guard(bool done)
 
     uint8_t r=buffer_do_write(size);
 
-    if(r==BUFFER_WRITE_DONE){
-      break;
-    }
     if(r==BUFFER_WRITE_FAILED){
       buffer_data_available=da;
       buffer_current_read=cr;
       buffer_chunk_in_use=false;
+      break;
+    }
+    if(r==BUFFER_WRITE_DONE){
       break;
     }
   }
