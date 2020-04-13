@@ -31,6 +31,10 @@
 #endif
 #include <assert.h>
 
+#define BUFFER_CHUNK_SIZE (BLE_GATT_ATT_MTU_DEFAULT-3)
+static char buffer_chunk[BUFFER_CHUNK_SIZE];
+#define BUFFER_USED_BY_BLENUS
+#define BUFFER_SIZE 2048
 #include "../../lib/buffer.c"
 
 static volatile bool initialised=false;
@@ -308,15 +312,12 @@ static void conn_params_init(void)
     APP_ERROR_CHECK(err_code);
 }
 
-#define MAX_TX_OCTETS (BLE_GATT_ATT_MTU_DEFAULT-3)
-static char chunk[MAX_TX_OCTETS];
-
-static uint8_t write_a_chunk(size_t size)
+static uint8_t buffer_do_write(size_t size)
 {
   uint16_t i=(uint16_t)size;
   uint16_t j=i;
 
-  ret_code_t e=ble_nus_data_send(&m_nus, (unsigned char*)chunk, &i, m_conn_handle);
+  ret_code_t e=ble_nus_data_send(&m_nus, (unsigned char*)buffer_chunk, &i, m_conn_handle);
 
   if((e!=NRF_ERROR_INVALID_STATE) && (e!=NRF_ERROR_RESOURCES) && (e!=NRF_ERROR_NOT_FOUND)){ // NRF_ERROR_BUSY?
 #if !defined(LOG_TO_BLE)
@@ -354,7 +355,6 @@ bool blenus_init(blenus_recv_cb cb)
   conn_params_init();
   advertising_start();
 
-  buffer_init(chunk, MAX_TX_OCTETS, write_a_chunk);
   return true;
 }
 

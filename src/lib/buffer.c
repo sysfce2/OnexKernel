@@ -5,9 +5,6 @@
 #define BUFFER_WRITE_FAILED 1
 #define BUFFER_WRITE_DONE 2
 
-typedef uint8_t (*buffer_write_cb)(size_t);
-
-#define BUFFER_SIZE 2048
 static char              buffer_buffer[BUFFER_SIZE];
 static volatile uint16_t buffer_current_write=0;
 static volatile uint16_t buffer_current_read=0;
@@ -15,16 +12,7 @@ static volatile uint16_t buffer_data_available=0;
 static volatile nrfx_atomic_u32_t buffer_in_use=false;
 static volatile nrfx_atomic_u32_t buffer_chunk_in_use=false;
 
-static buffer_write_cb   buffer_do_write;
-static volatile char*    buffer_chunk;
-static volatile size_t   buffer_chunk_size;
-
-static void buffer_init(char* ch, size_t chs, buffer_write_cb wrcb)
-{
-  buffer_chunk=ch;
-  buffer_chunk_size=chs;
-  buffer_do_write=wrcb;
-}
+static uint8_t buffer_do_write(size_t size);
 
 static void buffer_clear()
 {
@@ -68,7 +56,7 @@ static void buffer_write_chunk_guard(bool done)
     uint16_t cr=buffer_current_read;
 
     uint16_t size=0;
-    while(buffer_data_available && size<buffer_chunk_size){
+    while(buffer_data_available && size<BUFFER_CHUNK_SIZE){
       buffer_chunk[size++]=buffer_buffer[buffer_current_read++];
       if(buffer_current_read==BUFFER_SIZE) buffer_current_read=0;
       buffer_data_available--;

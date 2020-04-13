@@ -17,6 +17,10 @@
 #endif
 #include <onex-kernel/serial.h>
 
+#define BUFFER_CHUNK_SIZE NRFX_USBD_EPSIZE
+static char buffer_chunk[BUFFER_CHUNK_SIZE];
+#define BUFFER_USED_BY_SERIAL
+#define BUFFER_SIZE 2048
 #include "../../lib/buffer.c"
 
 static volatile bool initialised=false;
@@ -152,12 +156,9 @@ static void usbd_user_ev_handler(app_usbd_event_type_t event)
     }
 }
 
-#define MAX_TX_OCTETS NRFX_USBD_EPSIZE
-static char chunk[MAX_TX_OCTETS];
-
-static uint8_t write_a_chunk(size_t size)
+static uint8_t buffer_do_write(size_t size)
 {
-  ret_code_t e=app_usbd_cdc_acm_write(&m_app_cdc_acm, chunk, size);
+  ret_code_t e=app_usbd_cdc_acm_write(&m_app_cdc_acm, buffer_chunk, size);
 
 #if !defined(LOG_TO_SERIAL)
   if(e==NRF_ERROR_BUSY){
@@ -210,7 +211,6 @@ bool serial_init(serial_recv_cb cb, uint32_t baudrate)
         app_usbd_start();
     }
 
-    buffer_init(chunk, MAX_TX_OCTETS, write_a_chunk);
     initialised=true;
 
     return true;
