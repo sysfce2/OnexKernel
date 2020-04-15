@@ -936,7 +936,15 @@ void onex_run_evaluators(char* uid, void* data){
 
 void run_evaluators(object* o, void* data, object* alerted){
   if(!o || !o->evaluator) return;
-  if(o->running_evals){ log_write("Already in evaluators! %s\n", value_string(o->uid)); return; }
+  if(o->running_evals){
+#if defined(LOG_TO_GFX) || defined(LOG_TO_BLE)
+    char* uid=value_string(o->uid);
+    log_write("E!%.*s", 7, uid+4);
+#else
+    log_write("Already in evaluators! %s\n", value_string(o->uid));
+#endif
+    return;
+  }
   o->running_evals=true;
   o->alerted=alerted? alerted->uid: 0;
   list* evals = (list*)properties_get(evaluators, value_string(o->evaluator));
