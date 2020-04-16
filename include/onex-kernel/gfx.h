@@ -24,8 +24,9 @@ void gfx_text_colour(uint16_t colour);
 
 void gfx_screen_fill();
 
-uint8_t gfx_rect_line(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t colour, uint16_t thickness);
-uint8_t gfx_rect_fill(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t colour);
+bool gfx_pixel(uint16_t x, uint16_t y, uint32_t colour);
+bool gfx_rect_line(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t colour, uint16_t thickness);
+bool gfx_rect_fill(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t colour);
 
 void gfx_pos(uint16_t x, uint16_t y);
 void gfx_push(uint16_t x, uint16_t y);
