@@ -46,14 +46,8 @@ bool gfx_pixel(uint16_t x, uint16_t y, uint32_t colour)
 
 void gfx_draw_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint16_t* colours)
 {
-  int32_t x, y;
-  for(y = y1; y <= y2; y++) {
-    for(x = x1; x <= x2; x++) {
-      nrf_gfx_point_t p=NRF_GFX_POINT(x,y);
-      nrf_gfx_point_draw(lcd, &p, *colours);
-      colours++;
-    }
-  }
+  int n=(x2-x1+1)*(y2-y1+1)*2;
+  nrf_gfx_display(lcd, (uint8_t*)colours, n, x1, x2, y1, y2);
 }
 
 bool gfx_rect_line(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t colour, uint16_t thickness)
