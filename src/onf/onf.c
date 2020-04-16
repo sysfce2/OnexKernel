@@ -1128,6 +1128,7 @@ void onf_recv_object(char* text, char* channel)
     item_free(o->properties);
     o->properties = n->properties;
     o->devices    = n->devices;
+    free(n);
   }
   save_and_notify(o);
 }
