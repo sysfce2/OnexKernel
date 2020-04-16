@@ -324,16 +324,16 @@ static uint8_t buffer_do_write(size_t size)
     if(e!=NRF_SUCCESS){
 #if defined(LOG_TO_GFX)
       const char* ers=nrf_strerror_get(e);
-      log_write("%.4s", ers+4);
+      log_write("\n%.*s", 9, ers);
 #else
       log_write("%s\n", nrf_strerror_get(e));
 #endif
     }
 #endif
-    APP_ERROR_CHECK(e);
+    //APP_ERROR_CHECK(e);
   }
 #if !defined(LOG_TO_BLE)
-  if(j!=i) log_write("%d,%d",j,i);
+  if(j!=i) log_write("\n%d,%d",j,i);
 #endif
   return (e==NRF_SUCCESS && j==i)? BUFFER_WRITE_CONTINUE: BUFFER_WRITE_FAILED;
 }
