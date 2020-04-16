@@ -47,7 +47,8 @@ bool gfx_pixel(uint16_t x, uint16_t y, uint32_t colour)
 void gfx_draw_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint16_t* colours)
 {
   int n=(x2-x1+1)*(y2-y1+1)*2;
-  nrf_gfx_display(lcd, (uint8_t*)colours, n, x1, x2, y1, y2);
+  nrf_gfx_display(lcd, 0, 0xFFFF, x1, y1, x2, y2);
+  nrf_gfx_display(lcd, (uint8_t*)colours, n, 0,0,0,0);
 }
 
 bool gfx_rect_line(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint32_t colour, uint16_t thickness)
