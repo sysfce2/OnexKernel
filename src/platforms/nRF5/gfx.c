@@ -6,10 +6,10 @@
 #include <onex-kernel/gfx.h>
 
 extern const nrf_lcd_t           nrf_lcd_st7789;
-extern const nrf_gfx_font_desc_t orkney_24ptFontInfo;
+extern const nrf_gfx_font_desc_t orkney_8ptFontInfo;
 
 static const nrf_lcd_t*           lcd  = &nrf_lcd_st7789;
-static const nrf_gfx_font_desc_t* font = &orkney_24ptFontInfo;
+static const nrf_gfx_font_desc_t* font = &orkney_8ptFontInfo;
 
 void gfx_reset()
 {
