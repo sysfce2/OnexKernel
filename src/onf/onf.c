@@ -24,10 +24,10 @@
 
 #define MAX_UID_LEN 128
 #if defined(NRF5)
-#define MAX_LIST_SIZE 8
-#define MAX_TEXT_LEN 512
-#define MAX_OBJECTS 16
-#define MAX_OBJECT_SIZE 8
+#define MAX_LIST_SIZE 16
+#define MAX_TEXT_LEN 1024
+#define MAX_OBJECTS 64
+#define MAX_OBJECT_SIZE 16
 #else
 #define MAX_LIST_SIZE 64
 #define MAX_TEXT_LEN 2048
