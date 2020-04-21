@@ -391,10 +391,10 @@ char* channel_of(char* device_uid)
   return "serial";
 }
 
-void ping_object(char* uid, object* o)
+void ping_object(char* uid, object* o, uint32_t timeout)
 {
   uint64_t curtime = time_ms();
-  if(!o->last_observe || curtime > o->last_observe + 10000){
+  if(!o->last_observe || curtime > o->last_observe + timeout){
     o->last_observe = curtime + 1;
     char* device_uid = value_string(o->devices);
     onp_send_observe(uid, channel_of(device_uid));
@@ -409,17 +409,17 @@ object* find_object(char* uid, object* n, bool observe)
   object* o=onex_get_from_cache(uid);
   if(!o){
     o=new_shell(value_new(uid), value_string(n->uid));
-    if(add_to_cache_and_persist(o)) ping_object(uid, o);
+    if(add_to_cache_and_persist(o)) ping_object(uid, o, 0);
     return 0;
   }
   if(is_shell(o)){
-    ping_object(uid, o);
+    ping_object(uid, o, 1000);
     return 0;
   }
   if(observe){
     add_notify(o,n->uid);
     if(object_is_remote(o)){
-      ping_object(uid, o);
+      ping_object(uid, o, 10000);
     }
   }
   return o;

@@ -1,3 +1,4 @@
+#if !defined(__ANDROID__)
 
 #include <nrfx_atomic.h>
 
@@ -82,3 +83,4 @@ static void buffer_write_chunk()
   buffer_write_chunk_guard(true);
 }
 
+#endif
