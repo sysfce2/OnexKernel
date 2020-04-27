@@ -75,6 +75,7 @@ bool value_equal(value* v1, value* v2)
 {
   if(!v1) return !v2;
   if(!v2) return false;
+  if(v1==v2) return true;
   return v1->val == v2->val;
 }
 

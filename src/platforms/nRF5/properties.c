@@ -67,7 +67,7 @@ void* properties_get_n(properties* op, uint16_t index)
 
 void* properties_delete(properties* op, char* key)
 {
-  if(!op) return false;
+  if(!op) return 0;
   void* v=0;
   int j;
   for(j=0; j<op->size; j++){
