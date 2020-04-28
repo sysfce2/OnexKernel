@@ -37,7 +37,7 @@ int log_write(const char* fmt, ...)
   r=serial_vprintf(fmt, args);
   time_delay_ms(1);
 #elif defined(LOG_TO_GFX)
-  vsnprintf(log_buffer, LOG_BUF_SIZE, fmt, args);
+  vsnprintf((char*)log_buffer, LOG_BUF_SIZE, fmt, args);
   event_log_buffer=log_buffer;
 #elif defined(LOG_TO_BLE)
   vsnprintf((char*)log_buffer, LOG_BUF_SIZE, fmt, args);
