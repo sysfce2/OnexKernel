@@ -577,7 +577,12 @@ bool object_property_contains_peek(object* n, char* path, char* expected)
 bool object_property_set(object* n, char* path, char* val)
 {
   if(!n->running_evals && has_notifies(n)){
+#if defined(LOG_TO_GFX) || defined(LOG_TO_BLE)
+    char* uid=value_string(n->uid);
+    log_write("N!%.*s", 12, uid+4);
+#else
     log_write("\nSetting property in an object but not running in an evaluator! uid: %s  %s: '%s'\n\n", value_string(n->uid), path, val? val: "");
+#endif
   }
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
@@ -668,7 +673,12 @@ bool nested_property_delete(object* n, char* path)
 bool object_property_add(object* n, char* path, char* val)
 {
   if(!n->running_evals && has_notifies(n)){
+#if defined(LOG_TO_GFX) || defined(LOG_TO_BLE)
+    char* uid=value_string(n->uid);
+    log_write("N+%.*s", 12, uid+4);
+#else
     log_write("\nSetting property in an object but not running in an evaluator! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
+#endif
   }
   if(strchr(path, ':')) return false; // no sub-properties yet
   if(!val || !*val) return 0;
@@ -1020,7 +1030,7 @@ void run_evaluators(object* o, void* data, value* alerted){
   if(o->running_evals){
 #if defined(LOG_TO_GFX) || defined(LOG_TO_BLE)
     char* uid=value_string(o->uid);
-    log_write("E!%.*s", 7, uid+4);
+    log_write("E!%.*s", 12, uid+4);
 #else
     log_write("Already in evaluators! %s\n", value_string(o->uid));
 #endif
