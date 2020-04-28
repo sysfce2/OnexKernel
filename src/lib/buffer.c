@@ -6,7 +6,7 @@
 #define BUFFER_WRITE_FAILED 1
 #define BUFFER_WRITE_DONE 2
 
-static char              buffer_buffer[BUFFER_SIZE];
+static volatile char     buffer_buffer[BUFFER_SIZE];
 static volatile uint16_t buffer_current_write=0;
 static volatile uint16_t buffer_current_read=0;
 static volatile uint16_t buffer_data_available=0;

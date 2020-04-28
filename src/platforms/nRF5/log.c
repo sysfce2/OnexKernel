@@ -20,7 +20,7 @@ void log_init()
 
 #if defined(LOG_TO_BLE) || defined(LOG_TO_GFX)
 #define LOG_BUF_SIZE 1024
-static char log_buffer[LOG_BUF_SIZE];
+static volatile char log_buffer[LOG_BUF_SIZE];
 #if defined(LOG_TO_GFX)
 volatile char* event_log_buffer=0;
 #endif

@@ -18,14 +18,14 @@
 #include <onex-kernel/serial.h>
 
 #define BUFFER_CHUNK_SIZE NRFX_USBD_EPSIZE
-static char buffer_chunk[BUFFER_CHUNK_SIZE];
+static volatile char buffer_chunk[BUFFER_CHUNK_SIZE];
 #define BUFFER_USED_BY_SERIAL
 #define BUFFER_SIZE 2048
 #include "../../lib/buffer.c"
 
 static volatile bool initialised=false;
 
-static serial_recv_cb recv_cb;
+static volatile serial_recv_cb recv_cb;
 
 #ifndef USBD_POWER_DETECTION
 #define USBD_POWER_DETECTION true
