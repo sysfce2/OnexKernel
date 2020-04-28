@@ -42,7 +42,7 @@ int log_write(const char* fmt, ...)
 #elif defined(LOG_TO_BLE)
   vsnprintf((char*)log_buffer, LOG_BUF_SIZE, fmt, args);
   //if(strlen(log_buffer)>19){ log_buffer[18]='\n'; log_buffer[19]=0; }
-  r=blenus_printf(log_buffer);
+  r=blenus_printf((char*)log_buffer);
   time_delay_ms(5);
 #endif
   va_end(args);
