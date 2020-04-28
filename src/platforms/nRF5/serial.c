@@ -168,9 +168,9 @@ static uint8_t buffer_do_write(size_t size)
   if(e==NRF_ERROR_INVALID_STATE){
     log_write("closed\n");
   }
-  else{
-    const char* ers=nrf_strerror_get(e);
-    log_write("%s", ers+10);
+  else
+  if(e!=NRF_SUCCESS){
+    log_write("%s\n", nrf_strerror_get(e));
   }
 #endif
 
