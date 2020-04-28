@@ -200,6 +200,7 @@ int main(void)
 #else
   on_recv((unsigned char*)"t", 1);
   run_tests_maybe();
+  time_end();
 #endif
 }
 

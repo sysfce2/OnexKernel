@@ -22,6 +22,14 @@ static void every_second(void* p)
 }
 
 APP_TIMER_DEF(m_timer_0);
+APP_TIMER_DEF(m_timer_1);
+APP_TIMER_DEF(m_timer_2);
+APP_TIMER_DEF(m_timer_3);
+APP_TIMER_DEF(m_timer_4);
+APP_TIMER_DEF(m_timer_5);
+APP_TIMER_DEF(m_timer_6);
+
+static app_timer_id_t timer_ids[7];
 
 void time_init()
 {
@@ -32,6 +40,13 @@ void time_init()
   e = app_timer_init(); APP_ERROR_CHECK(e);
   e = app_timer_create(&m_timer_0, APP_TIMER_MODE_REPEATED, every_second); APP_ERROR_CHECK(e);
   e = app_timer_start(m_timer_0, APP_TIMER_TICKS(1000), NULL); APP_ERROR_CHECK(e);
+  timer_ids[0]=m_timer_0;
+  timer_ids[1]=m_timer_1;
+  timer_ids[2]=m_timer_2;
+  timer_ids[3]=m_timer_3;
+  timer_ids[4]=m_timer_4;
+  timer_ids[5]=m_timer_5;
+  timer_ids[6]=m_timer_6;
   initialised=true;
 }
 
@@ -71,6 +86,8 @@ static time_up_cb up_cb_1=0;
 static time_up_cb up_cb_2=0;
 static time_up_cb up_cb_3=0;
 static time_up_cb up_cb_4=0;
+static time_up_cb up_cb_5=0;
+static time_up_cb up_cb_6=0;
 
 static void time_up_1(void* p)
 {
@@ -92,14 +109,19 @@ static void time_up_4(void* p)
   if(up_cb_4) up_cb_4();
 }
 
-APP_TIMER_DEF(m_timer_1);
-APP_TIMER_DEF(m_timer_2);
-APP_TIMER_DEF(m_timer_3);
-APP_TIMER_DEF(m_timer_4);
+static void time_up_5(void* p)
+{
+  if(up_cb_5) up_cb_5();
+}
 
-uint8_t volatile instance=1;
+static void time_up_6(void* p)
+{
+  if(up_cb_6) up_cb_6();
+}
 
-void time_ticker(time_up_cb cb, uint32_t every)
+static uint8_t volatile instance=1;
+
+uint16_t time_ticker(time_up_cb cb, uint32_t every)
 {
   ret_code_t e;
   switch(instance){
@@ -127,8 +149,77 @@ void time_ticker(time_up_cb cb, uint32_t every)
       e = app_timer_start(m_timer_4, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
+    case 5: {
+      up_cb_5=cb;
+      e = app_timer_create(&m_timer_5, APP_TIMER_MODE_REPEATED, time_up_5); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_5, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 6: {
+      up_cb_6=cb;
+      e = app_timer_create(&m_timer_6, APP_TIMER_MODE_REPEATED, time_up_6); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_6, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
   }
   instance++;
+  return instance;
+}
+
+uint16_t time_timeout(time_up_cb cb, uint32_t timeout)
+{
+  ret_code_t e;
+  switch(instance){
+    case 1: {
+      up_cb_1=cb;
+      e = app_timer_create(&m_timer_1, APP_TIMER_MODE_SINGLE_SHOT, time_up_1); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_1, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 2: {
+      up_cb_2=cb;
+      e = app_timer_create(&m_timer_2, APP_TIMER_MODE_SINGLE_SHOT, time_up_2); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_2, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 3: {
+      up_cb_3=cb;
+      e = app_timer_create(&m_timer_3, APP_TIMER_MODE_SINGLE_SHOT, time_up_3); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_3, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 4: {
+      up_cb_4=cb;
+      e = app_timer_create(&m_timer_4, APP_TIMER_MODE_SINGLE_SHOT, time_up_4); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_4, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 5: {
+      up_cb_5=cb;
+      e = app_timer_create(&m_timer_5, APP_TIMER_MODE_SINGLE_SHOT, time_up_5); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_5, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 6: {
+      up_cb_6=cb;
+      e = app_timer_create(&m_timer_6, APP_TIMER_MODE_SINGLE_SHOT, time_up_6); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_6, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+  }
+  instance++;
+  return instance;
+}
+
+void time_stop_timer(uint16_t id)
+{
+  if(id<1 || id>6) return;
+  app_timer_stop(timer_ids[id]);
+}
+
+void time_end()
+{
+  app_timer_stop_all();
 }
 
 void time_delay_us(uint32_t us)
