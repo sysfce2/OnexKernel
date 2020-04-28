@@ -724,6 +724,7 @@ typedef struct notification {
 } notification;
 
 static volatile notification to_notify[MAX_TO_NOTIFY];
+static volatile int highest_to_notify=0;
 
 void set_to_notify(value* uid, void* data, value* alerted)
 {
@@ -731,20 +732,24 @@ void set_to_notify(value* uid, void* data, value* alerted)
   CRITICAL_REGION_ENTER();
 #endif
   int n=0;
+  int h=0;
   for(; n<MAX_TO_NOTIFY; n++){
     if(to_notify[n].type==TO_NOTIFY_FREE) continue;
+    h=n;
     if(!value_equal(to_notify[n].uid, uid)) continue;
     if(to_notify[n].type==TO_NOTIFY_NONE    && !data && !alerted) break;
     if(to_notify[n].type==TO_NOTIFY_ALERTED && value_equal(to_notify[n].details.alerted, alerted)) break;
     if(to_notify[n].type==TO_NOTIFY_DATA    &&             to_notify[n].details.data==data) break;
   }
   if(n==MAX_TO_NOTIFY){
+    highest_to_notify=h;
     for(n=0; n<MAX_TO_NOTIFY; n++){
       if(to_notify[n].type!=TO_NOTIFY_FREE) continue;
       ;            to_notify[n].uid=uid;
       ;            to_notify[n].type=TO_NOTIFY_NONE;    to_notify[n].details.timer=0;
       if(data){    to_notify[n].type=TO_NOTIFY_DATA;    to_notify[n].details.data    = data; }
       if(alerted){ to_notify[n].type=TO_NOTIFY_ALERTED; to_notify[n].details.alerted = alerted; }
+      if(n>highest_to_notify) highest_to_notify=n;
       break;
     }
     if(n==MAX_TO_NOTIFY){ log_write("no free notification entries\n"); }
@@ -760,7 +765,7 @@ void run_any_evaluators()
   CRITICAL_REGION_ENTER();
 #endif
   int n=0;
-  for(; n<MAX_TO_NOTIFY; n++){
+  for(; n<=highest_to_notify; n++){
     if(to_notify[n].type==TO_NOTIFY_FREE) continue;
     object* o=onex_get_from_cache(value_string(to_notify[n].uid));
     if(to_notify[n].type==TO_NOTIFY_NONE)    run_evaluators(o, 0, 0);
