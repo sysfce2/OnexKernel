@@ -158,7 +158,7 @@ static void usbd_user_ev_handler(app_usbd_event_type_t event)
 
 static uint8_t buffer_do_write(size_t size)
 {
-  ret_code_t e=app_usbd_cdc_acm_write(&m_app_cdc_acm, buffer_chunk, size);
+  ret_code_t e=app_usbd_cdc_acm_write(&m_app_cdc_acm, (char*)buffer_chunk, size);
 
 #if !defined(LOG_TO_SERIAL)
   if(e==NRF_ERROR_BUSY){
