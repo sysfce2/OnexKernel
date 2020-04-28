@@ -601,16 +601,18 @@ void run_onf_tests(char* dbpath)
   onex_assert_equal_num(evaluate_remote_notify_n1_called, 1, "evaluate_remote_notify_n1 was called");
   onex_assert_equal_num(evaluate_remote_notify_n2_called, 2, "evaluate_remote_notify_n2 was called twice");
   onex_assert_equal_num(evaluate_remote_notify_n4_called, 1, "evaluate_remote_notify_n4 was called");
+  onex_assert_equal_num(evaluate_local_notify_n3_called, 3,  "evaluate_local_notify_n3 was called three times");
 
   onex_show_cache();
 
   test_persistence();
 
   onex_loop();
+  onex_loop();
   onex_assert_equal_num(evaluate_persistence_n1_called, 1,        "evaluate_persistence_n1 was called");
   onex_assert_equal_num(evaluate_persistence_n4_before_called, 1, "evaluate_persistence_n4_before was called");
   onex_assert_equal_num(evaluate_persistence_n4_after_called, 1,  "evaluate_persistence_n4_after was called");
-  onex_assert_equal_num(evaluate_local_notify_n3_called, 5,       "evaluate_local_notify_n3 was called one more time");
+  onex_assert_equal_num(evaluate_local_notify_n3_called, 5,       "evaluate_local_notify_n3 was called five times");
 }
 
 // ---------------------------------------------------------------------------------

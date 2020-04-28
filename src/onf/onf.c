@@ -30,13 +30,13 @@
 #define MAX_LIST_SIZE 16
 #define MAX_TEXT_LEN 1024
 #define MAX_OBJECTS 64
-#define MAX_TO_NOTIFY 16
+#define MAX_TO_NOTIFY 64
 #define MAX_OBJECT_SIZE 16
 #else
 #define MAX_LIST_SIZE 64
 #define MAX_TEXT_LEN 2048
 #define MAX_OBJECTS 4096
-#define MAX_TO_NOTIFY 256
+#define MAX_TO_NOTIFY 1024
 #define MAX_OBJECT_SIZE 32
 #endif
 
@@ -707,14 +707,15 @@ bool object_property_add(object* n, char* path, char* val)
 
 // ------------------------------------------------------
 
-static properties* to_notify=0;
+#define TO_NOTIFY_FREE    0
+#define TO_NOTIFY_NONE    1
+#define TO_NOTIFY_DATA    2
+#define TO_NOTIFY_ALERTED 3
+#define TO_NOTIFY_TIMER   4
 
-#define TO_NOTIFY_NONE 0
-#define TO_NOTIFY_DATA 1
-#define TO_NOTIFY_ALERTED 2
-#define TO_NOTIFY_TIMER 3
 typedef struct notification {
   int type;
+  value* uid;
   union {
     void* data;
     value* alerted;
@@ -722,31 +723,31 @@ typedef struct notification {
   } details;
 } notification;
 
+static volatile notification to_notify[MAX_TO_NOTIFY];
+
 void set_to_notify(value* uid, void* data, value* alerted)
 {
 #if defined(NRF5)
   CRITICAL_REGION_ENTER();
 #endif
-  if(!to_notify) to_notify=properties_new(MAX_TO_NOTIFY);
-  list* ntfq=properties_get(to_notify, value_string(uid));
-  if(!ntfq){
-    ntfq=list_new(7);
-    properties_set(to_notify, value_string(uid), ntfq);
+  int n=0;
+  for(; n<MAX_TO_NOTIFY; n++){
+    if(to_notify[n].type==TO_NOTIFY_FREE) continue;
+    if(!value_equal(to_notify[n].uid, uid)) continue;
+    if(to_notify[n].type==TO_NOTIFY_NONE    && !data && !alerted) break;
+    if(to_notify[n].type==TO_NOTIFY_ALERTED && value_equal(to_notify[n].details.alerted, alerted)) break;
+    if(to_notify[n].type==TO_NOTIFY_DATA    &&             to_notify[n].details.data==data) break;
   }
-  int s=list_size(ntfq);
-  int i=1;
-  for(; i<=s; i++){
-    notification* ntf=list_get_n(ntfq,i);
-    if(ntf->type==TO_NOTIFY_NONE) break;
-    if(ntf->type==TO_NOTIFY_ALERTED && value_equal(ntf->details.alerted, alerted)) break;
-    if(ntf->type==TO_NOTIFY_DATA    &&             ntf->details.data==data) break;
-  }
-  if(i>s){
-    notification* ntf=malloc(sizeof(notification));
-    ntf->type=TO_NOTIFY_NONE;
-    if(data){    ntf->type=TO_NOTIFY_DATA;    ntf->details.data    = data; }
-    if(alerted){ ntf->type=TO_NOTIFY_ALERTED; ntf->details.alerted = alerted; }
-    list_add(ntfq, ntf);
+  if(n==MAX_TO_NOTIFY){
+    for(n=0; n<MAX_TO_NOTIFY; n++){
+      if(to_notify[n].type!=TO_NOTIFY_FREE) continue;
+      ;            to_notify[n].uid=uid;
+      ;            to_notify[n].type=TO_NOTIFY_NONE;    to_notify[n].details.timer=0;
+      if(data){    to_notify[n].type=TO_NOTIFY_DATA;    to_notify[n].details.data    = data; }
+      if(alerted){ to_notify[n].type=TO_NOTIFY_ALERTED; to_notify[n].details.alerted = alerted; }
+      break;
+    }
+    if(n==MAX_TO_NOTIFY){ log_write("no free notification entries\n"); }
   }
 #if defined(NRF5)
   CRITICAL_REGION_EXIT();
@@ -755,33 +756,23 @@ void set_to_notify(value* uid, void* data, value* alerted)
 
 void run_any_evaluators()
 {
-  if(!to_notify || !properties_size(to_notify)) return;
-  char* uid=0;
-  do{
 #if defined(NRF5)
-    CRITICAL_REGION_ENTER();
+  CRITICAL_REGION_ENTER();
 #endif
-    uid=properties_key_n(to_notify, 1);
-    if(uid){
-      list* ntfq=properties_get(to_notify, uid);
-      object* o=onex_get_from_cache(uid);
-      int s=list_size(ntfq);
-      int i=1;
-      for(; i<=s; i++){
-        notification* ntf=list_get_n(ntfq,i);
-        if(ntf->type==TO_NOTIFY_NONE)    run_evaluators(o, 0, 0);
-        else
-        if(ntf->type==TO_NOTIFY_DATA)    run_evaluators(o, ntf->details.data, 0);
-        else
-        if(ntf->type==TO_NOTIFY_ALERTED) run_evaluators(o, 0, ntf->details.alerted);
-        free(ntf);
-      }
-      list_free(properties_delete(to_notify, uid));
-    }
+  int n=0;
+  for(; n<MAX_TO_NOTIFY; n++){
+    if(to_notify[n].type==TO_NOTIFY_FREE) continue;
+    object* o=onex_get_from_cache(value_string(to_notify[n].uid));
+    if(to_notify[n].type==TO_NOTIFY_NONE)    run_evaluators(o, 0, 0);
+    else
+    if(to_notify[n].type==TO_NOTIFY_DATA)    run_evaluators(o, to_notify[n].details.data, 0);
+    else
+    if(to_notify[n].type==TO_NOTIFY_ALERTED) run_evaluators(o, 0, to_notify[n].details.alerted);
+    to_notify[n].type=TO_NOTIFY_FREE;
+  }
 #if defined(NRF5)
-    CRITICAL_REGION_EXIT();
+  CRITICAL_REGION_EXIT();
 #endif
-  } while(uid);
 }
 
 bool add_notify(object* o, value* notify)
