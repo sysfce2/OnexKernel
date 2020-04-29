@@ -771,23 +771,34 @@ void set_to_notify(value* uid, void* data, value* alerted)
 
 void run_any_evaluators()
 {
-#if defined(NRF5)
-  CRITICAL_REGION_ENTER();
-#endif
-  int n=0;
-  for(; n<=highest_to_notify; n++){
+  for(int n=0; n<=highest_to_notify; n++){
+
     if(to_notify[n].type==TO_NOTIFY_FREE) continue;
-    object* o=onex_get_from_cache(value_string(to_notify[n].uid));
-    if(to_notify[n].type==TO_NOTIFY_NONE)    run_evaluators(o, 0, 0);
-    else
-    if(to_notify[n].type==TO_NOTIFY_DATA)    run_evaluators(o, to_notify[n].details.data, 0);
-    else
-    if(to_notify[n].type==TO_NOTIFY_ALERTED) run_evaluators(o, 0, to_notify[n].details.alerted);
-    to_notify[n].type=TO_NOTIFY_FREE;
+
+    value* uid    =to_notify[n].uid;
+    void*  data   =to_notify[n].details.data;
+    value* alerted=to_notify[n].details.alerted;
+
+    object* o=onex_get_from_cache(value_string(uid));
+
+    switch(to_notify[n].type){
+      case(TO_NOTIFY_NONE): {
+        to_notify[n].type=TO_NOTIFY_FREE;
+        run_evaluators(o, 0, 0);
+        return;
+      }
+      case(TO_NOTIFY_DATA): {
+        to_notify[n].type=TO_NOTIFY_FREE;
+        run_evaluators(o, data, 0);
+        return;
+      }
+      case(TO_NOTIFY_ALERTED): {
+        to_notify[n].type=TO_NOTIFY_FREE;
+        run_evaluators(o, 0, alerted);
+        return;
+      }
+    }
   }
-#if defined(NRF5)
-  CRITICAL_REGION_EXIT();
-#endif
 }
 
 bool add_notify(object* o, value* notify)

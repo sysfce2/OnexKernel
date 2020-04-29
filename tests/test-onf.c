@@ -531,7 +531,7 @@ uint8_t evaluate_persistence_n4_after_called=0;
 
 bool evaluate_persistence_n4_after(object* n4, void* d)
 {
-  onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), ":better better\\:", "n4 can look through objects in the cache on notify after perist");
+  onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), ":better better\\:", "n4 can look through objects in the cache on notify after persist");
   evaluate_persistence_n4_after_called++;
   return true;
 }
@@ -551,6 +551,8 @@ void test_persistence()
 
   onex_assert_equal(object_property_values(n4, "n3:n2:n1:state"), "good mostly", "n4 can look through objects in the cache");
   onex_assert(      object_property_set(   n1, "state", "good: good"),           "can change n1 to good: good (awaiting n3/n4 to be notified)");
+  onex_loop();
+  onex_loop();
   onex_loop();
 
   onex_set_evaluators("evaluate_persistence_n4", evaluate_persistence_n4_after, 0);
@@ -587,6 +589,8 @@ void run_onf_tests(char* dbpath)
   test_local_notify();
 
   onex_loop();
+  onex_loop();
+  onex_loop();
   onex_assert_equal_num(pre_evaluate_n2_called, 2,           "pre_evaluate_n2 was called twice");
   onex_assert_equal_num(evaluate_local_notify_n2_called, 2,  "evaluate_local_notify_n2 was called twice");
   onex_assert_equal_num(post_evaluate_n2_called, 2,          "post_evaluate_n2 was called twice");
@@ -598,6 +602,10 @@ void run_onf_tests(char* dbpath)
   test_remote_object();
 
   onex_loop();
+  onex_loop();
+  onex_loop();
+  onex_loop();
+  onex_loop();
   onex_assert_equal_num(evaluate_remote_notify_n1_called, 1, "evaluate_remote_notify_n1 was called");
   onex_assert_equal_num(evaluate_remote_notify_n2_called, 2, "evaluate_remote_notify_n2 was called twice");
   onex_assert_equal_num(evaluate_remote_notify_n4_called, 1, "evaluate_remote_notify_n4 was called");
@@ -607,6 +615,9 @@ void run_onf_tests(char* dbpath)
 
   test_persistence();
 
+  onex_loop();
+  onex_loop();
+  onex_loop();
   onex_loop();
   onex_loop();
   onex_assert_equal_num(evaluate_persistence_n1_called, 1,        "evaluate_persistence_n1 was called");
