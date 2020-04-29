@@ -89,42 +89,19 @@ static time_up_cb up_cb_4=0;
 static time_up_cb up_cb_5=0;
 static time_up_cb up_cb_6=0;
 
-static void time_up_1(void* p)
-{
-  if(up_cb_1) up_cb_1();
-}
+static void time_up_1(void* p) { if(up_cb_1) up_cb_1(); }
+static void time_up_2(void* p) { if(up_cb_2) up_cb_2(); }
+static void time_up_3(void* p) { if(up_cb_3) up_cb_3(); }
+static void time_up_4(void* p) { if(up_cb_4) up_cb_4(); }
+static void time_up_5(void* p) { if(up_cb_5) up_cb_5(); }
+static void time_up_6(void* p) { if(up_cb_6) up_cb_6(); }
 
-static void time_up_2(void* p)
-{
-  if(up_cb_2) up_cb_2();
-}
-
-static void time_up_3(void* p)
-{
-  if(up_cb_3) up_cb_3();
-}
-
-static void time_up_4(void* p)
-{
-  if(up_cb_4) up_cb_4();
-}
-
-static void time_up_5(void* p)
-{
-  if(up_cb_5) up_cb_5();
-}
-
-static void time_up_6(void* p)
-{
-  if(up_cb_6) up_cb_6();
-}
-
-static uint8_t volatile instance=1;
+static uint8_t volatile topid=1;
 
 uint16_t time_ticker(time_up_cb cb, uint32_t every)
 {
   ret_code_t e;
-  switch(instance){
+  switch(topid){
     case 1: {
       up_cb_1=cb;
       e = app_timer_create(&m_timer_1, APP_TIMER_MODE_REPEATED, time_up_1); APP_ERROR_CHECK(e);
@@ -162,53 +139,76 @@ uint16_t time_ticker(time_up_cb cb, uint32_t every)
       break;
     }
   }
-  instance++;
-  return instance;
+  return topid++;
 }
 
-uint16_t time_timeout(time_up_cb cb, uint32_t timeout)
+uint16_t time_timeout(time_up_cb cb)
 {
   ret_code_t e;
-  switch(instance){
+  switch(topid){
     case 1: {
       up_cb_1=cb;
       e = app_timer_create(&m_timer_1, APP_TIMER_MODE_SINGLE_SHOT, time_up_1); APP_ERROR_CHECK(e);
-      e = app_timer_start(m_timer_1, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
     case 2: {
       up_cb_2=cb;
       e = app_timer_create(&m_timer_2, APP_TIMER_MODE_SINGLE_SHOT, time_up_2); APP_ERROR_CHECK(e);
-      e = app_timer_start(m_timer_2, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
     case 3: {
       up_cb_3=cb;
       e = app_timer_create(&m_timer_3, APP_TIMER_MODE_SINGLE_SHOT, time_up_3); APP_ERROR_CHECK(e);
-      e = app_timer_start(m_timer_3, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
     case 4: {
       up_cb_4=cb;
       e = app_timer_create(&m_timer_4, APP_TIMER_MODE_SINGLE_SHOT, time_up_4); APP_ERROR_CHECK(e);
-      e = app_timer_start(m_timer_4, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
     case 5: {
       up_cb_5=cb;
       e = app_timer_create(&m_timer_5, APP_TIMER_MODE_SINGLE_SHOT, time_up_5); APP_ERROR_CHECK(e);
-      e = app_timer_start(m_timer_5, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
     case 6: {
       up_cb_6=cb;
       e = app_timer_create(&m_timer_6, APP_TIMER_MODE_SINGLE_SHOT, time_up_6); APP_ERROR_CHECK(e);
+      break;
+    }
+  }
+  return topid++;
+}
+
+void time_start_timer(uint16_t id, uint32_t timeout)
+{
+  ret_code_t e;
+  switch(id){
+    case 1: {
+      e = app_timer_start(m_timer_1, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 2: {
+      e = app_timer_start(m_timer_2, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 3: {
+      e = app_timer_start(m_timer_3, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 4: {
+      e = app_timer_start(m_timer_4, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 5: {
+      e = app_timer_start(m_timer_5, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 6: {
       e = app_timer_start(m_timer_6, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
   }
-  instance++;
-  return instance;
 }
 
 void time_stop_timer(uint16_t id)
