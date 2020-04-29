@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include <onex-kernel/log.h>
+#include <onex-kernel/time.h>
 #include <assert.h>
 #include <onf.h>
 
@@ -569,6 +570,26 @@ void test_persistence()
   onex_un_cache(0); // flushes
 }
 
+uint8_t evaluate_timer_n4_called=0;
+
+bool evaluate_timer_n4(object* n4, void* d)
+{
+  evaluate_timer_n4_called++;
+  onex_assert_equal(object_property(n4, "Timer"), "0", "Timer is zero on timeout");
+  return true;
+}
+
+void test_timer()
+{
+  onex_set_evaluators("evaluate_timer_n4", evaluate_timer_n4, 0);
+  object* n4=onex_get_from_cache("uid-4");
+  object_set_evaluator(n4, "evaluate_timer_n4");
+
+  object_property_set(n4, "Timer", "100");
+
+  onex_assert_equal(object_property(n4, "Timer"), "100", "Timer is 100");
+}
+
 // ---------------------------------------------------------------------------------
 
 void run_onf_tests(char* dbpath)
@@ -624,6 +645,14 @@ void run_onf_tests(char* dbpath)
   onex_assert_equal_num(evaluate_persistence_n4_before_called, 1, "evaluate_persistence_n4_before was called");
   onex_assert_equal_num(evaluate_persistence_n4_after_called, 1,  "evaluate_persistence_n4_after was called");
   onex_assert_equal_num(evaluate_local_notify_n3_called, 5,       "evaluate_local_notify_n3 was called five times");
+
+  test_timer();
+  onex_loop();
+  onex_assert_equal_num(evaluate_timer_n4_called, 0, "evaluate_timer_n4 was not called immediately");
+  time_delay_ms(80);
+  onex_assert_equal_num(evaluate_timer_n4_called, 0, "evaluate_timer_n4 was not called after 80");
+  time_delay_ms(30);
+  onex_assert_equal_num(evaluate_timer_n4_called, 1, "evaluate_timer_n4 was called after 110");
 }
 
 // ---------------------------------------------------------------------------------

@@ -62,7 +62,9 @@ static object*     new_object(value* uid, char* evaluator, char* is, uint8_t max
 static object*     new_object_from(char* text, uint8_t max_size);
 static object*     new_shell(value* uid, char* notify);
 static bool        is_shell(object* o);
-static void        run_evaluators(object* o, void* data, value* alerted);
+static void        run_evaluators(object* o, void* data, value* alerted, bool timedout);
+static void        run_any_evaluators();
+static void        set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout);
 
 static void        device_init();
 
@@ -72,6 +74,8 @@ static object*     persistence_get(char* uid);
 static void        persistence_put(object* o);
 static void        persistence_flush();
 static void        scan_objects_text_for_keep_active();
+
+static void        timer_init();
 
 // ---------------------------------
 
@@ -83,6 +87,7 @@ typedef struct object {
   value*      notify[OBJECT_MAX_NOTIFIES];
   value*      alerted;
   value*      devices;
+  value*      timer;
   bool        running_evals;
   uint64_t    last_observe;
 } object;
@@ -192,6 +197,8 @@ object* new_object_from(char* text, uint8_t max_size)
     if(!strcmp(key,"Cache")) cache=value_new(val);
     else
     if(!strcmp(key,"Notify")) notify=strdup(val);
+    else
+    if(isupper((unsigned char)(*key)));
     else {
       if(!n){
         n=new_object(uid, 0, 0, max_size);
@@ -297,6 +304,7 @@ static char* object_property_observe(object* n, char* path, bool observe)
 {
   if(!n) return 0;
   if(!strcmp(path, "UID")) return value_string(n->uid);
+  if(!strcmp(path, "Timer")) return value_string(n->timer);
   item* i=property_item(n,path,n,observe);
   if(i && i->type==ITEM_VALUE) return value_string((value*)i);
   return 0;
@@ -347,6 +355,7 @@ char* object_property_values(object* n, char* path)
 item* property_item(object* n, char* path, object* t, bool observe)
 {
   if(!strcmp(path, "UID"))     return (item*)n->uid;
+  if(!strcmp(path, "Timer"))   return (item*)n->timer;
   if(!strcmp(path, ""))        return (item*)n->properties;
   if(!strcmp(path, ":"))       return (item*)n->properties;
   if(!strcmp(path, "Alerted")) return (item*)n->alerted;
@@ -363,7 +372,7 @@ item* nested_property_item(object* n, char* path, object* t, bool observe)
   char p[m]; memcpy(p, path, m);
   char* c=strchr(p, ':');
   *c=0; c++;
-  bool observe2=observe && !(*p>='A' && *p<='Z');
+  bool observe2=observe && !isupper((unsigned char)(*p));
   item* i=property_item(n,p,t,observe2);
   if(!i) return 0;
   if(i->type==ITEM_VALUE){
@@ -518,9 +527,6 @@ char* object_property_val(object* n, char* path, uint16_t index)
 static bool object_property_is_observe(object* n, char* path, char* expected, bool observe)
 {
   if(!n) return false;
-  if(!strcmp(path, "UID")){
-    return expected && value_is(n->uid, expected);
-  }
   item* i=property_item(n,path,n,observe);
   if(!i) return (!expected || !*expected);
   if(i->type==ITEM_VALUE){
@@ -542,9 +548,6 @@ bool object_property_is_peek(object* n, char* path, char* expected)
 static bool object_property_contains_observe(object* n, char* path, char* expected, bool observe)
 {
   if(!n) return false;
-  if(!strcmp(path, "UID")){
-    return expected && value_is(n->uid, expected);
-  }
   item* i=property_item(n,path,n,observe);
   if(!i) return (!expected || !*expected);
   if(i->type==ITEM_VALUE){
@@ -574,6 +577,36 @@ bool object_property_contains_peek(object* n, char* path, char* expected)
 
 // ---------------------------------------------------------------------------------
 
+
+static uint16_t timer_id;
+
+void timer_init()
+{
+  timer_id=time_timeout(run_any_evaluators);
+}
+
+bool set_timer(object* n, char* timer)
+{
+  n->timer=value_new(timer);
+  char* e; uint32_t tm=strtol(timer,&e,10);
+  if(*e) return false;
+  set_to_notify(n->uid, 0, 0, time_ms()+tm);
+  return true;
+}
+
+bool zero_timer(object* n)
+{
+  n->timer=value_new("0");
+  save_and_notify(n);
+  return true;
+}
+
+bool stop_timer(object* n)
+{
+  n->timer=0;
+  return true;
+}
+
 bool object_property_set(object* n, char* path, char* val)
 {
   if(!n->running_evals && has_notifies(n)){
@@ -584,10 +617,17 @@ bool object_property_set(object* n, char* path, char* val)
     log_write("\nSetting property in an object but not running in an evaluator! uid: %s  %s: '%s'\n\n", value_string(n->uid), path, val? val: "");
 #endif
   }
+  bool del=(!val || !*val);
+  if(!strcmp(path, "Timer")){
+    bool zero=val && !strcmp(val, "0");
+    if(zero) return zero_timer(n);
+    if(del) return stop_timer(n);
+    return set_timer(n, val);
+  }
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
   char* c=strrchr(p, ':');
-  if(!val || !*val){
+  if(del){
     if(c) return nested_property_delete(n, path);
     bool ok=!!properties_delete(n->properties, p);
     if(ok) save_and_notify(n);
@@ -721,7 +761,7 @@ bool object_property_add(object* n, char* path, char* val)
 #define TO_NOTIFY_NONE    1
 #define TO_NOTIFY_DATA    2
 #define TO_NOTIFY_ALERTED 3
-#define TO_NOTIFY_TIMER   4
+#define TO_NOTIFY_TIMEOUT 4
 
 typedef struct notification {
   int type;
@@ -729,41 +769,65 @@ typedef struct notification {
   union {
     void* data;
     value* alerted;
-    uint64_t timer;
+    uint64_t timeout;
   } details;
 } notification;
 
 static volatile notification to_notify[MAX_TO_NOTIFY];
 static volatile int highest_to_notify=0;
 
-void set_to_notify(value* uid, void* data, value* alerted)
+void start_timer_for_soonest_timeout()
+{
+  uint64_t soonest=0;
+  for(int n=0; n<MAX_TO_NOTIFY; n++){
+    if(to_notify[n].type!=TO_NOTIFY_TIMEOUT) continue;
+    uint64_t t=to_notify[n].details.timeout;
+    if(!soonest || t<soonest) soonest=t;
+  }
+  if(soonest) time_start_timer(timer_id, soonest-time_ms());
+}
+
+void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
 {
 #if defined(NRF5)
   CRITICAL_REGION_ENTER();
 #endif
   int n=0;
   int h=0;
+  bool new_soonest=true;
   for(; n<MAX_TO_NOTIFY; n++){
     if(to_notify[n].type==TO_NOTIFY_FREE) continue;
     h=n;
+    if(timeout && to_notify[n].type==TO_NOTIFY_TIMEOUT){
+      if(to_notify[n].details.timeout<timeout) new_soonest=false;
+    }
     if(!value_equal(to_notify[n].uid, uid)) continue;
-    if(to_notify[n].type==TO_NOTIFY_NONE    && !data && !alerted) break;
-    if(to_notify[n].type==TO_NOTIFY_ALERTED && value_equal(to_notify[n].details.alerted, alerted)) break;
-    if(to_notify[n].type==TO_NOTIFY_DATA    &&             to_notify[n].details.data==data) break;
+
+    if(!data && !alerted && !timeout && to_notify[n].type==TO_NOTIFY_NONE) break;
+    if( data &&                         to_notify[n].type==TO_NOTIFY_DATA &&                to_notify[n].details.data==data) break;
+    if(          alerted &&             to_notify[n].type==TO_NOTIFY_ALERTED && value_equal(to_notify[n].details.alerted, alerted)) break;
+    if(                      timeout && to_notify[n].type==TO_NOTIFY_TIMEOUT){              to_notify[n].details.timeout=timeout; break; }
   }
   if(n==MAX_TO_NOTIFY){
     highest_to_notify=h;
     for(n=0; n<MAX_TO_NOTIFY; n++){
       if(to_notify[n].type!=TO_NOTIFY_FREE) continue;
       ;            to_notify[n].uid=uid;
-      ;            to_notify[n].type=TO_NOTIFY_NONE;    to_notify[n].details.timer=0;
+      ;            to_notify[n].type=TO_NOTIFY_NONE;    to_notify[n].details.timeout=0;
       if(data){    to_notify[n].type=TO_NOTIFY_DATA;    to_notify[n].details.data    = data; }
       if(alerted){ to_notify[n].type=TO_NOTIFY_ALERTED; to_notify[n].details.alerted = alerted; }
+      if(timeout){ to_notify[n].type=TO_NOTIFY_TIMEOUT; to_notify[n].details.timeout = timeout; }
       if(n>highest_to_notify) highest_to_notify=n;
       break;
     }
     if(n==MAX_TO_NOTIFY){ log_write("no free notification entries\n"); }
+    else
+    if(timeout && new_soonest){
+      time_start_timer(timer_id, timeout-time_ms());
+    }
   }
+  else
+  if(timeout) start_timer_for_soonest_timeout();
 #if defined(NRF5)
   CRITICAL_REGION_EXIT();
 #endif
@@ -771,30 +835,40 @@ void set_to_notify(value* uid, void* data, value* alerted)
 
 void run_any_evaluators()
 {
+  uint64_t curtime=time_ms();
   for(int n=0; n<=highest_to_notify; n++){
 
     if(to_notify[n].type==TO_NOTIFY_FREE) continue;
 
-    value* uid    =to_notify[n].uid;
-    void*  data   =to_notify[n].details.data;
-    value* alerted=to_notify[n].details.alerted;
+    value*   uid    =to_notify[n].uid;
+    void*    data   =to_notify[n].details.data;
+    value*   alerted=to_notify[n].details.alerted;
+    uint64_t timeout=to_notify[n].details.timeout;
+
+    if(to_notify[n].type==TO_NOTIFY_TIMEOUT && timeout>curtime) continue;
 
     object* o=onex_get_from_cache(value_string(uid));
 
     switch(to_notify[n].type){
       case(TO_NOTIFY_NONE): {
         to_notify[n].type=TO_NOTIFY_FREE;
-        run_evaluators(o, 0, 0);
+        run_evaluators(o, 0, 0, false);
         return;
       }
       case(TO_NOTIFY_DATA): {
         to_notify[n].type=TO_NOTIFY_FREE;
-        run_evaluators(o, data, 0);
+        run_evaluators(o, data, 0, false);
         return;
       }
       case(TO_NOTIFY_ALERTED): {
         to_notify[n].type=TO_NOTIFY_FREE;
-        run_evaluators(o, 0, alerted);
+        run_evaluators(o, 0, alerted, false);
+        return;
+      }
+      case(TO_NOTIFY_TIMEOUT): {
+        to_notify[n].type=TO_NOTIFY_FREE;
+        start_timer_for_soonest_timeout();
+        run_evaluators(o, 0, 0, true);
         return;
       }
     }
@@ -839,7 +913,7 @@ void save_and_notify(object* o)
       continue;
     }
     if(!object_is_device(n)){
-      if(!object_is_remote(n)) set_to_notify(n->uid, 0, o->uid);
+      if(!object_is_remote(n)) set_to_notify(n->uid, 0, o->uid, 0);
       else
       if(!object_is_remote(o)) onp_send_object(o, channel_of(notify));
     }
@@ -848,7 +922,7 @@ void save_and_notify(object* o)
     }
   }
   if(object_is_remote_device(o)){
-    set_to_notify(onex_device_object->uid, 0, o->uid);
+    set_to_notify(onex_device_object->uid, 0, o->uid, 0);
   }
   if(o==onex_device_object){
     onp_send_object(onex_device_object, channel_of("")); // all channels
@@ -875,7 +949,7 @@ void show_notifies(object* o)
 
 // ------------------------------------------------------
 
-char* object_to_text(object* n, char* b, uint16_t s, int style)
+char* object_to_text(object* n, char* b, uint16_t s, int target)
 {
   if(!n){ *b = 0; return b; }
 
@@ -884,22 +958,22 @@ char* object_to_text(object* n, char* b, uint16_t s, int style)
   ln+=snprintf(b+ln, s-ln, "UID: %s", value_string(n->uid));
   if(ln>=s){ *b = 0; return b; }
 
-  if(style==OBJECT_TO_TEXT_NETWORK){
+  if(target==OBJECT_TO_TEXT_NETWORK){
     ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(onex_device_object->uid));
     if(ln>=s){ *b = 0; return b; }
   }
 
-  if(n->evaluator && style>=OBJECT_TO_TEXT_PERSIST){
+  if(n->evaluator && target>=OBJECT_TO_TEXT_PERSIST){
     ln+=snprintf(b+ln, s-ln, " Eval: %s", value_string(n->evaluator));
     if(ln>=s){ *b = 0; return b; }
   }
 
-  if(n->devices && style>=OBJECT_TO_TEXT_PERSIST){
+  if(n->devices && target>=OBJECT_TO_TEXT_PERSIST){
     ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(n->devices));
     if(ln>=s){ *b = 0; return b; }
   }
 
-  if(n->cache && style>=OBJECT_TO_TEXT_PERSIST){
+  if(n->cache && target>=OBJECT_TO_TEXT_PERSIST){
     ln+=snprintf(b+ln, s-ln, " Cache: %s", value_string(n->cache));
     if(ln>=s){ *b = 0; return b; }
   }
@@ -916,8 +990,13 @@ char* object_to_text(object* n, char* b, uint16_t s, int style)
     }
   }
 
-  if(n->alerted && style>=OBJECT_TO_TEXT_PERSIST){
+  if(n->alerted && target>=OBJECT_TO_TEXT_PERSIST){
     ln+=snprintf(b+ln, s-ln, " Alerted: %s", value_string(n->alerted));
+    if(ln>=s){ *b = 0; return b; }
+  }
+
+  if(n->timer && target==OBJECT_TO_TEXT_LOG){
+    ln+=snprintf(b+ln, s-ln, " Timer: %s", value_string(n->timer));
     if(ln>=s){ *b = 0; return b; }
   }
 
@@ -945,6 +1024,7 @@ void object_log(object* o)
 
 void onex_init(char* dbpath)
 {
+  timer_init();
   persistence_init(dbpath);
   device_init();
   onp_init();
@@ -1033,10 +1113,10 @@ void onex_set_evaluators(char* name, ...)
 void onex_run_evaluators(char* uid, void* data){
   if(!uid) return;
   object* o=onex_get_from_cache(uid);
-  set_to_notify(o->uid, data, 0);
+  set_to_notify(o->uid, data, 0, 0);
 }
 
-void run_evaluators(object* o, void* data, value* alerted){
+void run_evaluators(object* o, void* data, value* alerted, bool timedout){
   if(!o || !o->evaluator) return;
   if(o->running_evals){
 #if defined(LOG_TO_GFX) || defined(LOG_TO_BLE)
@@ -1049,6 +1129,7 @@ void run_evaluators(object* o, void* data, value* alerted){
   }
   o->running_evals=true;
   o->alerted=alerted? alerted: 0;
+  if(timedout) object_property_set(o, "Timer", "0");
   list* evals = (list*)properties_get(evaluators, value_string(o->evaluator));
   for(int i=1; i<=list_size(evals); i++){
     onex_evaluator eval=(onex_evaluator)list_get_n(evals, i);
@@ -1200,7 +1281,7 @@ void scan_objects_text_for_keep_active()
     if(uid){
       object* o=onex_get_from_cache(uid);
       if(object_is_local_device(o)) onex_device_object = o;
-      set_to_notify(o->uid,0,0);
+      set_to_notify(o->uid, 0, 0, 0);
     }
   }
 }
