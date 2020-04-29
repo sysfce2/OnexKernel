@@ -224,7 +224,7 @@ void time_end()
 
 void time_delay_us(uint32_t us)
 {
-  nrf_delay_us(us*(APP_TIMER_CONFIG_RTC_FREQUENCY+1));
+  nrf_delay_us(us);
 }
 
 void time_delay_ms(uint32_t ms)
