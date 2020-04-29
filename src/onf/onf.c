@@ -776,7 +776,7 @@ typedef struct notification {
 static volatile notification to_notify[MAX_TO_NOTIFY];
 static volatile int highest_to_notify=0;
 
-void start_timer_for_soonest_timeout()
+void start_timer_for_soonest_timeout_if_in_future()
 {
   uint64_t soonest=0;
   for(int n=0; n<MAX_TO_NOTIFY; n++){
@@ -784,7 +784,10 @@ void start_timer_for_soonest_timeout()
     uint64_t t=to_notify[n].details.timeout;
     if(!soonest || t<soonest) soonest=t;
   }
-  if(soonest) time_start_timer(timer_id, soonest-time_ms());
+  if(soonest){
+    int32_t t=soonest-time_ms();
+    if(t>=0) time_start_timer(timer_id, t);
+  }
 }
 
 void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
@@ -823,11 +826,12 @@ void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
     if(n==MAX_TO_NOTIFY){ log_write("no free notification entries\n"); }
     else
     if(timeout && new_soonest){
-      time_start_timer(timer_id, timeout-time_ms());
+      int32_t t=timeout-time_ms();
+      if(t>=0) time_start_timer(timer_id, t);
     }
   }
   else
-  if(timeout) start_timer_for_soonest_timeout();
+  if(timeout) start_timer_for_soonest_timeout_if_in_future();
 #if defined(NRF5)
   CRITICAL_REGION_EXIT();
 #endif
@@ -867,7 +871,7 @@ void run_any_evaluators()
       }
       case(TO_NOTIFY_TIMEOUT): {
         to_notify[n].type=TO_NOTIFY_FREE;
-        start_timer_for_soonest_timeout();
+        start_timer_for_soonest_timeout_if_in_future();
         run_evaluators(o, 0, 0, true);
         return;
       }
