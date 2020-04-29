@@ -153,14 +153,15 @@ void time_start_timer(uint16_t id, uint32_t timeout)
   timerfd_settime(timer->fd, 0, &timerspec, 0);
 }
 
-static void stop_timer(timer_node* timer)
+void time_stop_timer(uint16_t id)
 {
-  if(timer) close(timer->fd);
+  time_start_timer(id, 0);
 }
 
 static void remove_timer(timer_node* timer)
 {
   if(!timer) return;
+  close(timer->fd);
   if(timer == timer_list) {
     timer_list = timer_list->next;
   } else {
@@ -171,14 +172,9 @@ static void remove_timer(timer_node* timer)
   free(timer);
 }
 
-void time_stop_timer(uint16_t id)
-{
-  stop_timer(timer_by_id(id));
-}
-
 void time_end()
 {
-  while(timer_list){ stop_timer(timer_list); remove_timer(timer_list); }
+  while(timer_list){ remove_timer(timer_list); }
   thread_running=false;
   pthread_join(thread_id, 0);
 }
