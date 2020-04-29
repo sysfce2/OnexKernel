@@ -21,6 +21,7 @@ uint64_t get_time_us()
 }
 
 static pthread_t thread_id;
+static volatile bool thread_running=true;
 static void* timer_thread(void* data);
 
 void time_init()
@@ -178,7 +179,7 @@ void time_stop_timer(uint16_t id)
 void time_end()
 {
   while(timer_list){ stop_timer(timer_list); remove_timer(timer_list); }
-  pthread_cancel(thread_id);
+  thread_running=false;
   pthread_join(thread_id, 0);
 }
 
@@ -190,7 +191,7 @@ void* timer_thread(void* data)
   int read_fds=0, i, s;
   uint64_t exp;
 
-  while(1) {
+  while(thread_running) {
 
 #if !defined(__ANDROID__)
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, 0);

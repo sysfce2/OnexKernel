@@ -1,9 +1,9 @@
 
-Make cleanlibs android.tests
+Make cleanlibs && Make android.tests
 # ..or.. if adb over lan
-Make cleanlibs android.tests.lan
+Make cleanlibs && Make android.tests.lan
 
-Make clean linux.tests
+Make clean && Make linux.tests
 
 # tests
 make clean && make -j flash0
