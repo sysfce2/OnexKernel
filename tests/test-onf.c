@@ -575,19 +575,30 @@ uint8_t evaluate_timer_n4_called=0;
 bool evaluate_timer_n4(object* n4, void* d)
 {
   evaluate_timer_n4_called++;
-  onex_assert_equal(object_property(n4, "Timer"), "0", "Timer is zero on timeout");
+  if(evaluate_timer_n4_called==1){
+    onex_assert_equal(object_property(n4, "Alerted"), "uid-2", "uid-4 was alerted by uid-2 first");
+    onex_assert_equal(object_property(n4, "Timer"),   "100",   "Timer is 100 on notification from uid-2");
+  }
+  if(evaluate_timer_n4_called==2){
+    onex_assert_equal(object_property(n4, "Timer"),     "0",   "Timer is zero on timeout");
+  }
   return true;
 }
 
 void test_timer()
 {
-  onex_set_evaluators("evaluate_timer_n4", evaluate_timer_n4, 0);
+  object* n2=onex_get_from_cache("uid-2");
   object* n4=onex_get_from_cache("uid-4");
+
+  onex_set_evaluators("evaluate_timer_n4", evaluate_timer_n4, 0);
   object_set_evaluator(n4, "evaluate_timer_n4");
+
+  object_property_set(n2, "n4", "uid-4");
 
   object_property_set(n4, "Timer", "100");
 
-  onex_assert_equal(object_property(n4, "Timer"), "100", "Timer is 100");
+  onex_assert_equal(object_property(    n4, "Timer"), "100",  "Timer is 100");
+  onex_assert_equal(object_property(    n2, "n4:Timer"), "100", "n4:Timer is 100");
 }
 
 // ---------------------------------------------------------------------------------
@@ -648,11 +659,12 @@ void run_onf_tests(char* dbpath)
 
   test_timer();
   onex_loop();
-  onex_assert_equal_num(evaluate_timer_n4_called, 0, "evaluate_timer_n4 was not called immediately");
+  onex_loop();
+  onex_assert_equal_num(evaluate_timer_n4_called, 1, "evaluate_timer_n4 was not called immediately");
   time_delay_ms(80);
-  onex_assert_equal_num(evaluate_timer_n4_called, 0, "evaluate_timer_n4 was not called after 80");
+  onex_assert_equal_num(evaluate_timer_n4_called, 1, "evaluate_timer_n4 was not called after 80");
   time_delay_ms(30);
-  onex_assert_equal_num(evaluate_timer_n4_called, 1, "evaluate_timer_n4 was called after 110");
+  onex_assert_equal_num(evaluate_timer_n4_called, 2, "evaluate_timer_n4 was called after 110");
 }
 
 // ---------------------------------------------------------------------------------
