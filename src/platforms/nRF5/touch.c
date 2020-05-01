@@ -28,6 +28,8 @@
 
 #define TOUCH_LAST 0x0f
 
+char* touch_gestures[]={ "none", "down", "up", "left", "right", "tap", "", "", "", "", "", "double", "long", };
+
 nrfx_twi_t twi = NRFX_TWI_INSTANCE(1);
 
 static touch_touched_cb touch_cb = 0;

@@ -14,6 +14,8 @@
 #define TOUCH_ACTION_UP      1
 #define TOUCH_ACTION_CONTACT 2
 
+extern char* touch_gestures[];
+
 typedef struct touch_info_t {
   uint16_t x;
   uint16_t y;
