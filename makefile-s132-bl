@@ -108,6 +108,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/mem_manager \
   $(SDK_ROOT)/components/libraries/fstorage \
   $(SDK_ROOT)/components/libraries/util \
+  $(SDK_ROOT)/examples/dfu/secure_bootloader/ \
   $(SDK_ROOT)/modules/nrfx \
   $(SDK_ROOT)/external/nrf_oberon/include \
   $(SDK_ROOT)/components/libraries/crypto/backend/oberon \
