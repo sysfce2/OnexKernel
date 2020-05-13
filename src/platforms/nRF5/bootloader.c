@@ -61,6 +61,9 @@
 #include "nrf_bootloader_info.h"
 #include "nrf_delay.h"
 
+#include <onex-kernel/gpio.h>
+#include <onex-kernel/gfx.h>
+
 static void on_error(void)
 {
     NRF_LOG_FINAL_FLUSH();
@@ -101,23 +104,39 @@ void app_error_handler_bare(uint32_t error_code)
  */
 static void dfu_observer(nrf_dfu_evt_type_t evt_type)
 {
+    gfx_pos(40,80);
+    gfx_text_colour(GFX_BLUE);
+    gfx_rect_fill(40, 80, 160, 20, GFX_BLACK);
+    static bool tick=false;
     switch (evt_type)
     {
-        case NRF_DFU_EVT_DFU_FAILED:
-        case NRF_DFU_EVT_DFU_ABORTED:
         case NRF_DFU_EVT_DFU_INITIALIZED:
-            bsp_board_init(BSP_INIT_LEDS);
-            bsp_board_led_on(BSP_BOARD_LED_0);
-            bsp_board_led_on(BSP_BOARD_LED_1);
-            bsp_board_led_off(BSP_BOARD_LED_2);
+            gfx_text("WAITING...");
             break;
         case NRF_DFU_EVT_TRANSPORT_ACTIVATED:
-            bsp_board_led_off(BSP_BOARD_LED_1);
-            bsp_board_led_on(BSP_BOARD_LED_2);
+            gfx_text("CONNECTED");
             break;
         case NRF_DFU_EVT_DFU_STARTED:
+            gfx_text("DOWNLOADING");
+            break;
+        case NRF_DFU_EVT_OBJECT_RECEIVED:
+            tick=!tick;
+            gfx_text(tick? "RECEIVING \\": "RECEIVING /");
+            break;
+        case NRF_DFU_EVT_DFU_COMPLETED:
+            gfx_text("COMPLETED");
+            break;
+        case NRF_DFU_EVT_TRANSPORT_DEACTIVATED:
+            gfx_text("DISCONNECTED");
+            break;
+        case NRF_DFU_EVT_DFU_FAILED:
+            gfx_text("FAILED");
+            break;
+        case NRF_DFU_EVT_DFU_ABORTED:
+            gfx_text("FAILED");
             break;
         default:
+            gfx_text("XXXXXXXX");
             break;
     }
 }
@@ -141,6 +160,16 @@ int main(void)
     NRF_LOG_DEFAULT_BACKENDS_INIT();
 
     NRF_LOG_INFO("Inside main");
+
+    gfx_init();
+    gfx_screen_colour(GFX_BLACK);
+    gfx_screen_fill();
+    gfx_pos(40,40);
+    gfx_text_colour(GFX_WHITE);
+    gfx_text("OnexOS Update");
+
+    gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
+    gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
 
     ret_val = nrf_bootloader_init(dfu_observer);
     APP_ERROR_CHECK(ret_val);
