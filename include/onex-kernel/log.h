@@ -4,8 +4,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#if defined(NRF5)
 #include <nrf_log.h>
 #include <nrf_log_ctrl.h>
+#endif
 
 #if !defined(__ANDROID__)
 void log_init();
