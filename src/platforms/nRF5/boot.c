@@ -15,6 +15,8 @@ void boot_init()
   nrf_wdt_reload_value_set(5 * 32768); // 5s
   nrf_wdt_reload_request_enable(NRF_WDT_RR0);
   nrf_wdt_task_trigger(NRF_WDT_TASK_START);
+
+  sd_power_mode_set(NRF_POWER_MODE_LOWPWR);
 }
 
 void boot_feed_watchdog()
