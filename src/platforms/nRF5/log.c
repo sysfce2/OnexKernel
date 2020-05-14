@@ -3,8 +3,6 @@
 #include <stdarg.h>
 
 #include "app_error.h"
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
 #if defined(LOG_TO_SERIAL)
