@@ -3,7 +3,9 @@
 #include <stdarg.h>
 
 #include "app_error.h"
+#include "nrf_log.h"
 #include "nrf_log_ctrl.h"
+#include "nrf_log_default_backends.h"
 
 #if defined(LOG_TO_SERIAL)
 #include <onex-kernel/serial.h>
@@ -15,7 +17,18 @@
 
 void log_init()
 {
-  APP_ERROR_CHECK(NRF_LOG_INIT(NULL));
+#if defined(NRF_LOG_ENABLED)
+  NRF_LOG_INIT(NULL);
+  NRF_LOG_DEFAULT_BACKENDS_INIT();
+#endif
+}
+
+void log_loop()
+{
+#if defined(NRF_LOG_ENABLED)
+  // NRF_LOG_FLUSH();
+  NRF_LOG_PROCESS();
+#endif
 }
 
 #if defined(LOG_TO_BLE) || defined(LOG_TO_GFX)

@@ -6,6 +6,7 @@
 
 #if !defined(__ANDROID__)
 void log_init();
+void log_loop();
 int  log_write(const char* fmt, ...);
 #else
 #include <android/log.h>

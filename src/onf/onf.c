@@ -1040,6 +1040,7 @@ void onex_loop()
 #if defined(HAS_SERIAL)
   serial_loop();
 #endif
+  log_loop();
 #endif
   persistence_loop();
   onp_loop();
