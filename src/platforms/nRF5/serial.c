@@ -216,9 +216,9 @@ bool serial_init(serial_recv_cb cb, uint32_t baudrate)
     return true;
 }
 
-void serial_loop()
+bool serial_loop()
 {
-  app_usbd_event_queue_process();
+  return app_usbd_event_queue_process();
 }
 
 void serial_cb(serial_recv_cb cb)

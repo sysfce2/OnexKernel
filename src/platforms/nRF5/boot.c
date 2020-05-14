@@ -29,3 +29,7 @@ void boot_dfu_start()
   nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_DFU);
 }
 
+void boot_sleep()
+{
+  sd_app_evt_wait();
+}

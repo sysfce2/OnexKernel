@@ -4,5 +4,6 @@
 void boot_init();
 void boot_feed_watchdog();
 void boot_dfu_start();
+void boot_sleep();
 
 #endif

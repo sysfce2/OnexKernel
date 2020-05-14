@@ -15,6 +15,6 @@ size_t serial_printf(const char* fmt, ...);
 size_t serial_vprintf(const char* fmt, va_list args);
 void   serial_putchar(unsigned char ch);
 size_t serial_write(unsigned char* b, size_t l);
-void   serial_loop();
+bool   serial_loop();
 
 #endif

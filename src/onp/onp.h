@@ -4,7 +4,7 @@
 #include <onf.h>
 
 void onp_init();
-void onp_loop();
+bool onp_loop();
 void onp_send_observe(char* uid, char* channel);
 void onp_send_object(object* o, char* channel);
 

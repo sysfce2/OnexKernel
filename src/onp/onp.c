@@ -65,13 +65,14 @@ static char*    connect_channel=0;
 static uint32_t connect_time=0;
 #endif
 
-void onp_loop()
+bool onp_loop()
 {
+  bool keep_awake=!!connect_time;
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
   int  size=0;
 #ifdef ONP_CHANNEL_SERIAL
   size = channel_serial_recv(recv_buff, RECV_BUFF_SIZE-1); // spare for term 0
-  if(size){ handle_recv(size,"serial",0); return; }
+  if(size){ handle_recv(size,"serial",0); return true; }
   if(connect_time && time_ms() >= connect_time ){
     connect_time=0;
     do_connect(connect_channel);
@@ -79,9 +80,10 @@ void onp_loop()
 #endif
 #ifdef ONP_CHANNEL_IPV6
   size = channel_ipv6_recv(recv_buff, RECV_BUFF_SIZE-1, single_peer);
-  if(size){ handle_recv(size,0,single_peer); return; }
+  if(size){ handle_recv(size,0,single_peer); return true; }
 #endif
 #endif
+  return keep_awake;
 }
 
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)

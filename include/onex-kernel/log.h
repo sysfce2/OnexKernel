@@ -2,11 +2,12 @@
 #define LOG_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdio.h>
 
 #if !defined(__ANDROID__)
 void log_init();
-void log_loop();
+bool log_loop();
 int  log_write(const char* fmt, ...);
 #else
 #include <android/log.h>

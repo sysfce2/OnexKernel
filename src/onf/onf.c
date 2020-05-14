@@ -63,13 +63,13 @@ static object*     new_object_from(char* text, uint8_t max_size);
 static object*     new_shell(value* uid, char* notify);
 static bool        is_shell(object* o);
 static void        run_evaluators(object* o, void* data, value* alerted, bool timedout);
-static void        run_any_evaluators();
+static bool        run_any_evaluators();
 static void        set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout);
 
 static void        device_init();
 
 static void        persistence_init(char* filename);
-static void        persistence_loop();
+static bool        persistence_loop();
 static object*     persistence_get(char* uid);
 static void        persistence_put(object* o);
 static void        persistence_flush();
@@ -582,7 +582,7 @@ static uint16_t timer_id;
 
 void timer_init()
 {
-  timer_id=time_timeout(run_any_evaluators);
+  timer_id=time_timeout((void (*)())run_any_evaluators);
 }
 
 bool set_timer(object* n, char* timer)
@@ -837,12 +837,15 @@ void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
 #endif
 }
 
-void run_any_evaluators()
+bool run_any_evaluators()
 {
+  bool keep_awake=false;
   uint64_t curtime=time_ms();
   for(int n=0; n<=highest_to_notify; n++){
 
     if(to_notify[n].type==TO_NOTIFY_FREE) continue;
+
+    keep_awake=true;
 
     value*   uid    =to_notify[n].uid;
     void*    data   =to_notify[n].details.data;
@@ -857,26 +860,27 @@ void run_any_evaluators()
       case(TO_NOTIFY_NONE): {
         to_notify[n].type=TO_NOTIFY_FREE;
         run_evaluators(o, 0, 0, false);
-        return;
+        return keep_awake;
       }
       case(TO_NOTIFY_DATA): {
         to_notify[n].type=TO_NOTIFY_FREE;
         run_evaluators(o, data, 0, false);
-        return;
+        return keep_awake;
       }
       case(TO_NOTIFY_ALERTED): {
         to_notify[n].type=TO_NOTIFY_FREE;
         run_evaluators(o, 0, alerted, false);
-        return;
+        return keep_awake;
       }
       case(TO_NOTIFY_TIMEOUT): {
         to_notify[n].type=TO_NOTIFY_FREE;
         start_timer_for_soonest_timeout_if_in_future();
         run_evaluators(o, 0, 0, true);
-        return;
+        return keep_awake;
       }
     }
   }
+  return keep_awake;
 }
 
 bool add_notify(object* o, value* notify)
@@ -1034,17 +1038,19 @@ void onex_init(char* dbpath)
   onp_init();
 }
 
-void onex_loop()
+bool onex_loop()
 {
+  bool keep_awake = false;
 #if defined(NRF5)
 #if defined(HAS_SERIAL)
-  serial_loop();
+  keep_awake = serial_loop() || keep_awake;
 #endif
-  log_loop();
+  keep_awake = log_loop() || keep_awake;
 #endif
-  persistence_loop();
-  onp_loop();
-  run_any_evaluators();
+  keep_awake = persistence_loop() || keep_awake;
+  keep_awake = onp_loop() || keep_awake;
+  keep_awake = run_any_evaluators() || keep_awake;
+  return keep_awake;
 }
 
 static properties* objects_cache=0;
@@ -1222,13 +1228,14 @@ void device_init()
 
 static uint32_t lasttime=0;
 
-void persistence_loop()
+bool persistence_loop()
 {
   uint64_t curtime = time_ms();
   if(curtime > lasttime+100){
     persistence_flush();
     lasttime = curtime;
   }
+  return false;
 }
 
 object* persistence_get(char* uid)

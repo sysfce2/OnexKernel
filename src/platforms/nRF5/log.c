@@ -23,11 +23,13 @@ void log_init()
 #endif
 }
 
-void log_loop()
+bool log_loop()
 {
 #if defined(NRF_LOG_ENABLED)
   // NRF_LOG_FLUSH();
-  NRF_LOG_PROCESS();
+  return NRF_LOG_PROCESS();
+#else
+  return false;
 #endif
 }
 

@@ -120,8 +120,9 @@ void onex_run_evaluators(char* uid, void* data);
 /** set the evaluator mapping from name to evaluator function chain. Must finish list with 0! */
 void onex_set_evaluators(char* name, ... /* onex_evaluator evaluator, ..., 0 */);
 
-/** call this to give CPU to Onex. */
-void onex_loop();
+/** call this to give CPU to Onex.
+    returns true if the main loop cannot sleep yet */
+bool onex_loop();
 
 /** get the given Object from the cache. DEPRECATED. */
 object* onex_get_from_cache(char* uid);
