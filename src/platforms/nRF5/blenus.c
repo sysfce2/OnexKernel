@@ -33,7 +33,6 @@
 
 #define BUFFER_CHUNK_SIZE (BLE_GATT_ATT_MTU_DEFAULT-3)
 static volatile char buffer_chunk[BUFFER_CHUNK_SIZE];
-#define BUFFER_USED_BY_BLENUS
 #define BUFFER_SIZE 2048
 #include "../../lib/buffer.c"
 

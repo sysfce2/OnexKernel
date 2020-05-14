@@ -51,6 +51,7 @@ static void buffer_write_chunk_guard(bool done)
   if(done) buffer_chunk_in_use=false;
   if(buffer_in_use||!buffer_data_available) return;
   uint32_t reqd=false; if(!nrfx_atomic_u32_cmp_exch(&buffer_chunk_in_use, &reqd, true)) return;
+                       if(!nrfx_atomic_u32_cmp_exch(&buffer_in_use,       &reqd, true)) return;
 
   while(buffer_data_available){
     uint16_t da=buffer_data_available;
@@ -76,6 +77,7 @@ static void buffer_write_chunk_guard(bool done)
       break;
     }
   }
+  buffer_in_use=false;
 }
 
 static void buffer_write_chunk()
