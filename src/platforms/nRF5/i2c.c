@@ -2,6 +2,7 @@
 #include <boards.h>
 
 #include <onex-kernel/log.h>
+#include <onex-kernel/time.h>
 #include <onex-kernel/i2c.h>
 
 nrfx_twi_t twi = NRFX_TWI_INSTANCE(1);
@@ -38,19 +39,52 @@ uint8_t i2c_write(void* twip, uint8_t address, uint8_t* buf, uint16_t len)
 uint8_t i2c_read_register(void* twip, uint8_t address, uint8_t reg, uint8_t* buf, uint16_t len)
 {
   ret_code_t e;
+
   e=nrfx_twi_tx((nrfx_twi_t*)twip, address, &reg, 1, true);
+//if(e) NRF_LOG_DEBUG("nrfx_twi_tx addr=%x reg=%x err=%s", address, reg, nrf_strerror_get(e)); log_loop();
   if(e) return 1;
+
+  time_delay_ms(1);
+
   e=nrfx_twi_rx((nrfx_twi_t*)twip, address, buf, len);
-  return e? 1: 0;
+//if(e) NRF_LOG_DEBUG("nrfx_twi_tx addr=%x len=%x err=%s", address, len, nrf_strerror_get(e)); log_loop();
+  if(e) return 1;
+
+  time_delay_ms(1);
+
+  return 0;
 }
 
 uint8_t i2c_write_register(void* twip, uint8_t address, uint8_t reg, uint8_t* buf, uint16_t len)
 {
   ret_code_t e;
+
   e=nrfx_twi_tx((nrfx_twi_t*)twip, address, &reg, 1, true);
   if(e) return 1;
+
+  time_delay_ms(1);
+
   e=nrfx_twi_tx((nrfx_twi_t*)twip, address, buf, len, false);
-  return e? 1: 0;
+  if(e) return 1;
+
+  time_delay_ms(1);
+
+  return 0;
+}
+
+uint8_t i2c_write_register_byte(void* twip, uint8_t address, uint8_t reg, uint8_t val)
+{
+  uint8_t buf[2] = { reg, val };
+
+  ret_code_t e;
+
+  e=nrfx_twi_tx((nrfx_twi_t*)twip, address, buf, 2, false);
+//if(e) NRF_LOG_DEBUG("nrfx_twi_tx addr=%x reg=%x val=%x err=%s", address, reg, val, nrf_strerror_get(e)); log_loop();
+  if(e) return 1;
+
+  time_delay_ms(1);
+
+  return 0;
 }
 
 void i2c_disable(void* twip)
