@@ -44,6 +44,8 @@ static void set_up_gpio(void)
   gpio_mode(BUTTON_ENABLE, OUTPUT);
   gpio_set( BUTTON_ENABLE, 1);
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
+  gpio_mode(VIBRATION, OUTPUT);
+  gpio_set(VIBRATION, 1);
 #define ADC_CHANNEL 0
   gpio_adc_init(BATTERY_V, ADC_CHANNEL);
 #endif
