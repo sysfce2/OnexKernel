@@ -35,6 +35,24 @@ uint8_t i2c_write(void* twip, uint8_t address, uint8_t* buf, uint16_t len)
   return e? 1: 0;
 }
 
+uint8_t i2c_read_register(void* twip, uint8_t address, uint8_t reg, uint8_t* buf, uint16_t len)
+{
+  ret_code_t e;
+  e=nrfx_twi_tx((nrfx_twi_t*)twip, address, &reg, 1, true);
+  if(e) return 1;
+  e=nrfx_twi_rx((nrfx_twi_t*)twip, address, buf, len);
+  return e? 1: 0;
+}
+
+uint8_t i2c_write_register(void* twip, uint8_t address, uint8_t reg, uint8_t* buf, uint16_t len)
+{
+  ret_code_t e;
+  e=nrfx_twi_tx((nrfx_twi_t*)twip, address, &reg, 1, true);
+  if(e) return 1;
+  e=nrfx_twi_tx((nrfx_twi_t*)twip, address, buf, len, false);
+  return e? 1: 0;
+}
+
 void i2c_disable(void* twip)
 {
   nrfx_twi_disable((nrfx_twi_t*)twip);
