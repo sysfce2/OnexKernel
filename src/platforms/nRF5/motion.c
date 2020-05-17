@@ -21,14 +21,14 @@
 #define BMA421_VAL_ACCEL_RANGE_4G        0x01
 
 #define BMA421_VAL_ACCEL_ODR_MSK         0x0F
-#define BMA421_VAL_ACCEL_BW_POS          0x04
-#define BMA421_VAL_ACCEL_PERFMODE_POS    0x07
+#define BMA421_VAL_ACCEL_BW_POS             4
+#define BMA421_VAL_ACCEL_PERFMODE_POS       7
 #define BMA421_VAL_ACCEL_RANGE_MSK       0x03
 
 #define BMA421_REG_POWER_CONTROL         0x7D
 #define BMA421_VAL_ACCEL_ENABLE          0x01
 #define BMA421_VAL_ACCEL_ENABLE_MSK      0x04
-#define BMA421_VAL_ACCEL_ENABLE_POS      0x02
+#define BMA421_VAL_ACCEL_ENABLE_POS         2
 
 #define BMA421_REG_POWER_CONF            0x7C
 
@@ -120,25 +120,25 @@ motion_info_t motion_get_info() {
   uint8_t e;
   motion_info_t info = {0};
 
-  uint8_t data[6] = {0};
-  e=i2c_read_register(twip, MOTION_ADDRESS, BMA421_REG_DATA_8 , data, 6);
+  uint8_t xyz[6] = {0};
+  e=i2c_read_register(twip, MOTION_ADDRESS, BMA421_REG_DATA_8, xyz, 6);
   if(e) { NRF_LOG_DEBUG("read power conf err"); return info; }
 
   uint16_t lsb = 0;
   uint16_t msb = 0;
 
-  msb = data[1];
-  lsb = data[0];
+  msb = xyz[1];
+  lsb = xyz[0];
 
   info.x = (int16_t)((msb << 8) | lsb);
 
-  msb = data[3];
-  lsb = data[2];
+  msb = xyz[3];
+  lsb = xyz[2];
 
   info.y = (int16_t)((msb << 8) | lsb);
 
-  msb = data[5];
-  lsb = data[4];
+  msb = xyz[5];
+  lsb = xyz[4];
 
   info.z = (int16_t)((msb << 8) | lsb);
 
