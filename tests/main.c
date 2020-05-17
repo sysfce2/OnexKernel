@@ -6,6 +6,7 @@
 #if defined(BOARD_PINETIME)
 #include <onex-kernel/gfx.h>
 #include <onex-kernel/touch.h>
+#include <onex-kernel/motion.h>
 #endif
 #include <onex-kernel/gpio.h>
 #if defined(HAS_SERIAL)
@@ -61,6 +62,11 @@ static bool display_state=LEDS_ACTIVE_STATE;
 static void show_touch();
 static bool new_touch_info=false;
 static touch_info_t ti;
+
+static void show_motion();
+static bool new_motion_info=false;
+static motion_info_t mi;
+
 static int irqs=0;
 
 void touched(touch_info_t touchinfo)
@@ -70,12 +76,19 @@ void touched(touch_info_t touchinfo)
   irqs++;
 }
 
+void moved(motion_info_t motioninfo)
+{
+  mi=motioninfo;
+  new_motion_info=true;
+  irqs++;
+}
+
 void show_touch()
 {
   char buf[64];
 
   snprintf(buf, 64, "-%03d-%03d-", ti.x, ti.y);
-  gfx_pos(10, 60);
+  gfx_pos(10, 85);
   gfx_text(buf);
 
   snprintf(buf, 64, "-%02d-%02d-%02d-", ti.action, ti.gesture, irqs);
@@ -87,13 +100,21 @@ void show_touch()
   }
 }
 
+void show_motion()
+{
+  char buf[64];
+  snprintf(buf, 64, "(%05d)(%05d)(%05d)", mi.x, mi.y, mi.z);
+  gfx_pos(10, 60);
+  gfx_text(buf);
+}
+
 void show_battery()
 {
   int16_t bv = gpio_read(ADC_CHANNEL);
   int16_t mv = bv*2000/(1024/(33/10));
   int8_t  pc = ((mv-3520)*100/5200)*10;
   char buf[16]; snprintf(buf, 16, "%d%%(%d)", pc, mv);
-  gfx_pos(10, 60);
+  gfx_pos(10, 35);
   gfx_text(buf);
 }
 #endif
@@ -182,15 +203,27 @@ int main(void)
   gfx_text_colour(GFX_BLUE);
   gfx_text("Onex");
   touch_init(touched);
+  motion_init(moved);
 #endif
   set_up_gpio();
+  int xxx=0;
   while(1){
+    log_loop();
     run_tests_maybe();
 #if defined(BOARD_PINETIME)
     if(new_touch_info){
       new_touch_info=false;
       display_state = LEDS_ACTIVE_STATE;
       show_touch();
+    }
+    if(new_motion_info){
+      new_motion_info=false;
+      display_state = LEDS_ACTIVE_STATE;
+      show_motion();
+    }
+    if(!((xxx++)%100000)){
+      mi=motion_get_info();
+      show_motion();
     }
     if (display_state_prev != display_state){
       display_state_prev = display_state;
