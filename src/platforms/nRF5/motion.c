@@ -29,6 +29,13 @@
 #define BMA421_VAL_ACCEL_PERFMODE_POS       7
 #define BMA421_VAL_ACCEL_RANGE_MSK       0x03
 
+#define BMA421_REG_INT1_IO_CONTROL       0x53
+#define BMA421_VAL_INT_ACTIVE_LOW        0x0D
+
+#define BMA421_REG_INT_MAP_DATA          0x58
+#define BMA421_VAL_INT_MAP_ON            0x01
+#define BMA421_VAL_INT1_DATA_READY_POS      2
+
 #define BMA421_REG_POWER_CONF            0x7C
 #define BMA421_VAL_APS_OFF               0x00
 #define BMA421_VAL_APS_ON                0x01
@@ -46,7 +53,8 @@ static motion_change_cb motion_cb = 0;
 static void* twip;
 
 static void nrfx_gpiote_evt_handler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action) {
-  NRF_LOG_DEBUG("nrfx_gpiote_evt_handler");
+  motion_info_t mi=motion_get_info();
+  if(motion_cb) motion_cb(mi);
 }
 
 static void show_reg(char* name, uint8_t reg)
@@ -101,7 +109,15 @@ int motion_init(motion_change_cb cb)
 
   uint8_t power_conf=BMA421_VAL_APS_ON;
   e=i2c_write_register_byte(twip, MOTION_ADDRESS, BMA421_REG_POWER_CONF, power_conf);
-  if(e) { NRF_LOG_DEBUG("write power conf err"); return 1; }
+  if(e) { NRF_LOG_DEBUG("power conf err"); return 1; }
+
+  uint8_t int_conf=BMA421_VAL_INT_ACTIVE_LOW;
+  e=i2c_write_register_byte(twip, MOTION_ADDRESS, BMA421_REG_INT1_IO_CONTROL, int_conf);
+  if(e) { NRF_LOG_DEBUG("interrupt conf err"); return 1; }
+
+  uint8_t int_map=(BMA421_VAL_INT_MAP_ON<<BMA421_VAL_INT1_DATA_READY_POS);
+  e=i2c_write_register_byte(twip, MOTION_ADDRESS, BMA421_REG_INT_MAP_DATA, int_map);
+  if(e) { NRF_LOG_DEBUG("interrupt map err"); return 1; }
 
   uint8_t power_control;
   e=i2c_read_register(twip, MOTION_ADDRESS, BMA421_REG_POWER_CONTROL, &power_control, 1);
@@ -126,7 +142,7 @@ motion_info_t motion_get_info() {
 
   uint8_t xyz[6] = {0};
   e=i2c_read_register(twip, MOTION_ADDRESS, BMA421_REG_DATA_8, xyz, 6);
-  if(e) { NRF_LOG_DEBUG("read power conf err"); return info; }
+  if(e) { NRF_LOG_DEBUG("read data err"); return info; }
 
   uint16_t lsb = 0;
   uint16_t msb = 0;

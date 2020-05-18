@@ -206,7 +206,6 @@ int main(void)
   motion_init(moved);
 #endif
   set_up_gpio();
-  int xxx=0;
   while(1){
     log_loop();
     run_tests_maybe();
@@ -219,11 +218,9 @@ int main(void)
     if(new_motion_info){
       new_motion_info=false;
       display_state = LEDS_ACTIVE_STATE;
-      show_motion();
-    }
-    if(!((xxx++)%100000)){
-      mi=motion_get_info();
-      show_motion();
+      static int ticks=0; // every 20ms
+      ticks++;
+      if(!(ticks%20)) show_motion();
     }
     if (display_state_prev != display_state){
       display_state_prev = display_state;
