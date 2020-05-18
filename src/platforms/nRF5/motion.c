@@ -9,15 +9,19 @@
 #include <onex-kernel/motion.h>
 
 #define BMA421_REG_CHIP_ID               0x00
-#define BMA421_VAL_CHIP_ID               0x11
+#define BMA421_VAL_CHIP_ID_BMA421        0x11
 
-#define BMA421_REG_COMMAND               0x7E
-#define BMA421_VAL_SOFT_RESET            0xB6
+#define BMA421_REG_DATA_8                0X12
 
-#define BMA421_REG_ACCEL_CONFIG          0X40
-#define BMA421_VAL_OUTPUT_DATA_RATE_50HZ 0x07
-#define BMA421_VAL_ACCEL_NORMAL_AVG4     0x02
-#define BMA421_VAL_CONTINUOUS_MODE       0x01
+#define BMA421_REG_ACCEL_CONFIG          0x40
+#define BMA421_VAL_ODR_50HZ              0x07
+#define BMA421_VAL_BWP_NORM_AVG4         0x02
+#define BMA421_VAL_BWP_CIC_AVG8          0x03
+#define BMA421_VAL_PERF_MODE_CIC_AVG     0x00
+#define BMA421_VAL_PERF_MODE_CONT        0x01
+
+#define BMA421_REG_ACCEL_RANGE           0x41
+#define BMA421_VAL_ACCEL_RANGE_2G        0x00
 #define BMA421_VAL_ACCEL_RANGE_4G        0x01
 
 #define BMA421_VAL_ACCEL_ODR_MSK         0x0F
@@ -25,14 +29,17 @@
 #define BMA421_VAL_ACCEL_PERFMODE_POS       7
 #define BMA421_VAL_ACCEL_RANGE_MSK       0x03
 
+#define BMA421_REG_POWER_CONF            0x7C
+#define BMA421_VAL_APS_OFF               0x00
+#define BMA421_VAL_APS_ON                0x01
+
 #define BMA421_REG_POWER_CONTROL         0x7D
-#define BMA421_VAL_ACCEL_ENABLE          0x01
+#define BMA421_VAL_ACCEL_ON              0x01
 #define BMA421_VAL_ACCEL_ENABLE_MSK      0x04
 #define BMA421_VAL_ACCEL_ENABLE_POS         2
 
-#define BMA421_REG_POWER_CONF            0x7C
-
-#define BMA421_REG_DATA_8                0X12
+#define BMA421_REG_COMMAND               0x7E
+#define BMA421_VAL_SOFT_RESET            0xB6
 
 static motion_change_cb motion_cb = 0;
 
@@ -69,7 +76,7 @@ int motion_init(motion_change_cb cb)
 
   uint8_t chip_id=0;
   e=i2c_read_register(twip, MOTION_ADDRESS, BMA421_REG_CHIP_ID, &chip_id, 1);
-  if(e || chip_id!=BMA421_VAL_CHIP_ID) { NRF_LOG_DEBUG("chip id err"); return 1; }
+  if(e || chip_id!=BMA421_VAL_CHIP_ID_BMA421) { NRF_LOG_DEBUG("chip id err"); return 1; }
 
   uint8_t reset_command=BMA421_VAL_SOFT_RESET;
   e=i2c_write_register_byte(twip, MOTION_ADDRESS, BMA421_REG_COMMAND, reset_command);
@@ -77,38 +84,35 @@ int motion_init(motion_change_cb cb)
 
   time_delay_ms(50);
 
-  uint8_t odr       = BMA421_VAL_OUTPUT_DATA_RATE_50HZ;
-  uint8_t bandwidth = BMA421_VAL_ACCEL_NORMAL_AVG4;
-  uint8_t perf_mode = BMA421_VAL_CONTINUOUS_MODE;
+  uint8_t odr       = BMA421_VAL_ODR_50HZ;
+  uint8_t bandwidth = BMA421_VAL_BWP_CIC_AVG8;
+  uint8_t perf_mode = BMA421_VAL_PERF_MODE_CIC_AVG;
   uint8_t range     = BMA421_VAL_ACCEL_RANGE_4G;
-  uint8_t accel_config1;
-  uint8_t accel_config2;
-  accel_config1  = odr & BMA421_VAL_ACCEL_ODR_MSK;
-  accel_config1 |= (uint8_t)(bandwidth << BMA421_VAL_ACCEL_BW_POS);
-  accel_config1 |= (uint8_t)(perf_mode << BMA421_VAL_ACCEL_PERFMODE_POS);
-  accel_config2  = range & BMA421_VAL_ACCEL_RANGE_MSK;
-  e=i2c_write_register_byte(twip, MOTION_ADDRESS, BMA421_REG_ACCEL_CONFIG,   accel_config1);
-  if(e) { NRF_LOG_DEBUG("accel config 1 err"); return 1; }
-  e=i2c_write_register_byte(twip, MOTION_ADDRESS, BMA421_REG_ACCEL_CONFIG+1, accel_config2);
-  if(e) { NRF_LOG_DEBUG("accel config 2 err"); return 1; }
+  uint8_t accel_config;
+  uint8_t accel_range;
+  accel_config  = odr & BMA421_VAL_ACCEL_ODR_MSK;
+  accel_config |= (uint8_t)(bandwidth << BMA421_VAL_ACCEL_BW_POS);
+  accel_config |= (uint8_t)(perf_mode << BMA421_VAL_ACCEL_PERFMODE_POS);
+  accel_range   = range & BMA421_VAL_ACCEL_RANGE_MSK;
+  e=i2c_write_register_byte(twip, MOTION_ADDRESS, BMA421_REG_ACCEL_CONFIG, accel_config);
+  if(e) { NRF_LOG_DEBUG("accel config err"); return 1; }
+  e=i2c_write_register_byte(twip, MOTION_ADDRESS, BMA421_REG_ACCEL_RANGE, accel_range);
+  if(e) { NRF_LOG_DEBUG("accel range err"); return 1; }
+
+  uint8_t power_conf=BMA421_VAL_APS_ON;
+  e=i2c_write_register_byte(twip, MOTION_ADDRESS, BMA421_REG_POWER_CONF, power_conf);
+  if(e) { NRF_LOG_DEBUG("write power conf err"); return 1; }
 
   uint8_t power_control;
   e=i2c_read_register(twip, MOTION_ADDRESS, BMA421_REG_POWER_CONTROL, &power_control, 1);
   if(e) { NRF_LOG_DEBUG("read power control err"); return 1; }
-  power_control = ((power_control & ~BMA421_VAL_ACCEL_ENABLE_MSK) | ((BMA421_VAL_ACCEL_ENABLE<<BMA421_VAL_ACCEL_ENABLE_POS) & BMA421_VAL_ACCEL_ENABLE_MSK));
+  power_control = ((power_control & ~BMA421_VAL_ACCEL_ENABLE_MSK) | ((BMA421_VAL_ACCEL_ON<<BMA421_VAL_ACCEL_ENABLE_POS) & BMA421_VAL_ACCEL_ENABLE_MSK));
   e=i2c_write_register_byte(twip, MOTION_ADDRESS, BMA421_REG_POWER_CONTROL, power_control);
   if(e) { NRF_LOG_DEBUG("write power control err"); return 1; }
 
-  uint8_t power_conf;
-  e=i2c_read_register(twip, MOTION_ADDRESS, BMA421_REG_POWER_CONF, &power_conf, 1);
-  if(e) { NRF_LOG_DEBUG("read power conf err"); return 1; }
-  power_conf=0; // ..
-  e=i2c_write_register_byte(twip, MOTION_ADDRESS, BMA421_REG_POWER_CONF, power_conf);
-  if(e) { NRF_LOG_DEBUG("write power conf err"); return 1; }
-
   show_reg("chip id",       BMA421_REG_CHIP_ID);
-  show_reg("accel1",        BMA421_REG_ACCEL_CONFIG);
-  show_reg("accel2",        BMA421_REG_ACCEL_CONFIG+1);
+  show_reg("accel conf",    BMA421_REG_ACCEL_CONFIG);
+  show_reg("accel range",   BMA421_REG_ACCEL_RANGE);
   show_reg("power control", BMA421_REG_POWER_CONTROL);
   show_reg("power conf",    BMA421_REG_POWER_CONF);
 
@@ -142,9 +146,10 @@ motion_info_t motion_get_info() {
 
   info.z = (int16_t)((msb << 8) | lsb);
 
-  info.x = info.x / 0x10;
-  info.y = info.y / 0x10;
-  info.z = info.z / 0x10;
+  // 16bit +-32768=+-4g so /8=1024 per g
+  info.x /= 8;
+  info.y /= 8;
+  info.z /= 8;
 
   return info;
 }

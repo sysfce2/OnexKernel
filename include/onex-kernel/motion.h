@@ -5,10 +5,6 @@ typedef struct motion_info_t {
   int16_t x;
   int16_t y;
   int16_t z;
-  int16_t temp;
-  uint32_t steps;
-  uint8_t activity;
-  uint16_t interrupt;
 } motion_info_t;
 
 typedef void (*motion_change_cb)(motion_info_t);
