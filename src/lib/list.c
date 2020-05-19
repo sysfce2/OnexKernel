@@ -116,6 +116,7 @@ void list_free(list* li)
 
 char* list_to_text(list* li, char* b, uint16_t s)
 {
+  if(!li){ *b = 0; return b; }
   *b=0;
   if(!li || !li->size) return b;
   int ln=0;
@@ -130,6 +131,7 @@ char* list_to_text(list* li, char* b, uint16_t s)
 
 void list_log(list* li)
 {
+  if(!li) return;
   char buf[MAX_TEXT_LEN];
   log_write("%s\n", list_to_text(li,buf,MAX_TEXT_LEN));
 }

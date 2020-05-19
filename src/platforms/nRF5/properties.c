@@ -88,6 +88,7 @@ void* properties_delete(properties* op, char* key)
 
 void properties_clear(properties* op, bool free_items)
 {
+  if(!op) return;
   int sz=op->size;
   for(int j=0; j<sz; j++){
     void* v=properties_delete(op, op->keys[0]);
@@ -97,6 +98,7 @@ void properties_clear(properties* op, bool free_items)
 
 void properties_free(properties* op, bool free_items)
 {
+  if(!op) return;
   properties_clear(op, free_items);
   free(op->keys);
   free(op->vals);
@@ -135,6 +137,7 @@ char* properties_to_text(properties* op, char* b, uint16_t s)
 
 void properties_log(properties* op)
 {
+  if(!op) return;
   char buf[256];
   log_write("%s\n", properties_to_text(op,buf,256));
 }
