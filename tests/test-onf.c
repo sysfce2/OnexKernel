@@ -577,7 +577,7 @@ bool evaluate_timer_n4(object* n4, void* d)
   evaluate_timer_n4_called++;
   if(evaluate_timer_n4_called==1){
     onex_assert_equal(object_property(n4, "Alerted"), "uid-2", "uid-4 was alerted by uid-2 first");
-    onex_assert_equal(object_property(n4, "Timer"),   "100",   "Timer is 100 on notification from uid-2");
+    onex_assert_equal(object_property(n4, "Timer"),   "150",   "Timer is 150 on notification from uid-2");
   }
   if(evaluate_timer_n4_called==2){
     onex_assert_equal(object_property(n4, "Timer"),     "0",   "Timer is zero on timeout");
@@ -595,10 +595,10 @@ void test_timer()
 
   object_property_set(n2, "n4", "uid-4");
 
-  object_property_set(n4, "Timer", "100");
+  object_property_set(n4, "Timer", "150");
 
-  onex_assert_equal(object_property(    n4, "Timer"), "100",  "Timer is 100");
-  onex_assert_equal(object_property(    n2, "n4:Timer"), "100", "n4:Timer is 100");
+  onex_assert_equal(object_property(    n4, "Timer"), "150",  "Timer is 150");
+  onex_assert_equal(object_property(    n2, "n4:Timer"), "150", "n4:Timer is 150");
 }
 
 // ---------------------------------------------------------------------------------
@@ -657,14 +657,37 @@ void run_onf_tests(char* dbpath)
   onex_assert_equal_num(evaluate_persistence_n4_after_called, 1,  "evaluate_persistence_n4_after was called");
   onex_assert_equal_num(evaluate_local_notify_n3_called, 5,       "evaluate_local_notify_n3 was called five times");
 
+  uint32_t s=(uint32_t)time_ms();
+  uint32_t e;
+
   test_timer();
+
+  e=(uint32_t)time_ms()-s;
+  log_write(">>>> time passed after test_timer %ld\n", e);
+
   onex_loop();
   onex_loop();
+
   onex_assert_equal_num(evaluate_timer_n4_called, 1, "evaluate_timer_n4 was not called immediately");
-  time_delay_ms(80);
-  onex_assert_equal_num(evaluate_timer_n4_called, 1, "evaluate_timer_n4 was not called after 80");
-  time_delay_ms(30);
-  onex_assert_equal_num(evaluate_timer_n4_called, 2, "evaluate_timer_n4 was called after 110");
+
+  e=(uint32_t)time_ms()-s;
+  log_write(">>>> time passed after evaluators %ld\n", e);
+
+  e=(uint32_t)time_ms()-s;
+  time_delay_ms(100-e);
+
+  e=(uint32_t)time_ms()-s;
+  log_write(">>>> time passed after waiting %ld\n", e);
+
+  onex_assert_equal_num(evaluate_timer_n4_called, 1, "evaluate_timer_n4 was not called after 100");
+
+  e=(uint32_t)time_ms()-s;
+  time_delay_ms(180-e);
+
+  e=(uint32_t)time_ms()-s;
+  log_write(">>>> time passed after waiting %ld\n", e);
+
+  onex_assert_equal_num(evaluate_timer_n4_called, 2, "evaluate_timer_n4 was called after 180");
 }
 
 // ---------------------------------------------------------------------------------
