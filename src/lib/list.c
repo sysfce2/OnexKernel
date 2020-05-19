@@ -85,13 +85,6 @@ void* list_del_n(list* li, uint16_t index)
   return v;
 }
 
-void list_clear(list* li, bool free_items)
-{
-  if(!li || !li->size) return;
-  if(free_items) for(int j=0; j<li->size; j++) item_free((item*)li->vals[j]);
-  li->size=0;
-}
-
 uint16_t list_size(list* li)
 {
   if(!li) return 0;
@@ -107,9 +100,17 @@ uint16_t list_find(list* li, item* it)
   return 0;
 }
 
-void list_free(list* li)
+void list_clear(list* li, bool free_items)
+{
+  if(!li || !li->size) return;
+  if(free_items) for(int j=0; j<li->size; j++) item_free((item*)li->vals[j]);
+  li->size=0;
+}
+
+void list_free(list* li, bool free_items)
 {
   if(!li) return;
+  list_clear(li, free_items);
   free(li->vals);
   free(li);
 }

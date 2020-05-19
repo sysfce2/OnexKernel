@@ -648,7 +648,7 @@ bool set_value_or_list(object* n, char* key, char* val)
   }
   list* l=list_new_from(val, MAX_LIST_SIZE);
   bool ok=properties_set(n->properties, key, l);
-  if(!ok) list_free(l);
+  if(!ok) list_free(l, true);
   return ok;
 }
 
@@ -698,7 +698,7 @@ bool nested_property_delete(object* n, char* path)
       if(!ok) break;
       if(list_size(l)==1){
         properties_set(n->properties, p, list_get_n(l,1));
-        list_free(l);
+        list_free(l, false);
       }
       break;
     }
@@ -904,7 +904,7 @@ void set_notifies(object* o, char* notify)
   int i; for(i=0; i < list_size(li); i++){
     o->notify[i]=(value*)list_get_n(li, i+1);
   }
-  list_free(li);
+  list_free(li, false);
 }
 
 void save_and_notify(object* o)
