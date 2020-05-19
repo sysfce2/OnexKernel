@@ -1,4 +1,6 @@
 
+#include <math.h>
+
 #include <boards.h>
 
 #include <nrfx_gpiote.h>
@@ -14,6 +16,8 @@
 #define BMA421_REG_DATA_8                0X12
 
 #define BMA421_REG_ACCEL_CONFIG          0x40
+#define BMA421_VAL_ODR_12P5HZ            0x05
+#define BMA421_VAL_ODR_25HZ              0x06
 #define BMA421_VAL_ODR_50HZ              0x07
 #define BMA421_VAL_BWP_NORM_AVG4         0x02
 #define BMA421_VAL_BWP_CIC_AVG8          0x03
@@ -92,7 +96,7 @@ int motion_init(motion_change_cb cb)
 
   time_delay_ms(50);
 
-  uint8_t odr       = BMA421_VAL_ODR_50HZ;
+  uint8_t odr       = BMA421_VAL_ODR_12P5HZ;
   uint8_t bandwidth = BMA421_VAL_BWP_CIC_AVG8;
   uint8_t perf_mode = BMA421_VAL_PERF_MODE_CIC_AVG;
   uint8_t range     = BMA421_VAL_ACCEL_RANGE_4G;
@@ -135,8 +139,10 @@ int motion_init(motion_change_cb cb)
   return 0;
 }
 
-motion_info_t motion_get_info() {
+#define ONE_G 1060
 
+motion_info_t motion_get_info()
+{
   uint8_t e;
   motion_info_t info = {0};
 
@@ -162,10 +168,12 @@ motion_info_t motion_get_info() {
 
   info.z = (int16_t)((msb << 8) | lsb);
 
-  // 16bit +-32768=+-4g so /8=1024 per g
+  // 16bit +-32768=+-4g so /8=1024 per g (except 1g=ONE_G..?)
   info.x /= 8;
   info.y /= 8;
   info.z /= 8;
+
+  info.m = ((int16_t)sqrtf(info.x*info.x+info.y*info.y+info.z*info.z))-ONE_G;
 
   return info;
 }
