@@ -67,10 +67,11 @@ static uint32_t connect_time=0;
 
 bool onp_loop()
 {
-  bool keep_awake=!!connect_time;
+  bool keep_awake=false;
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
   int  size=0;
 #ifdef ONP_CHANNEL_SERIAL
+  keep_awake=!!connect_time;
   size = channel_serial_recv(recv_buff, RECV_BUFF_SIZE-1); // spare for term 0
   if(size){ handle_recv(size,"serial",0); return true; }
   if(connect_time && time_ms() >= connect_time ){

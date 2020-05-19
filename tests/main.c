@@ -169,7 +169,7 @@ int main(void)
   serial_init((serial_recv_cb)on_recv,0);
   blenus_init(0);
   set_up_gpio();
-  time_ticker(serial_loop, 1);
+  time_ticker((void (*)())serial_loop, 1);
   while(1) run_tests_maybe();
 #else
   blenus_init((blenus_recv_cb)on_recv);
