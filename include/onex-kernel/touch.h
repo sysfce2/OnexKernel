@@ -10,11 +10,12 @@
 #define TOUCH_GESTURE_TAP_DOUBLE 0x0b
 #define TOUCH_GESTURE_TAP_LONG   0x0c
 
-#define TOUCH_ACTION_DOWN    0
-#define TOUCH_ACTION_UP      1
-#define TOUCH_ACTION_CONTACT 2
+#define TOUCH_ACTION_DOWN    1
+#define TOUCH_ACTION_UP      2
+#define TOUCH_ACTION_CONTACT 3
 
 extern char* touch_gestures[];
+extern char* touch_actions[];
 
 typedef struct touch_info_t {
   uint16_t x;

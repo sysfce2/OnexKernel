@@ -22,6 +22,7 @@
 #define TOUCH_LAST 0x0f
 
 char* touch_gestures[]={ "none", "down", "up", "left", "right", "tap", "", "", "", "", "", "double", "long", };
+char* touch_actions[]={ "none", "up", "up", "down" };
 
 static touch_touched_cb touch_cb = 0;
 
@@ -68,7 +69,7 @@ void every_50ms(void* xx)
   bool p=(ti.action==TOUCH_ACTION_CONTACT);
   if(p!=pressed){
     pressed=p;
-    if(pressed && touch_cb) touch_cb(ti);
+    if(touch_cb) touch_cb(ti);
   }
 }
 
@@ -76,22 +77,22 @@ uint8_t buf[63];
 
 touch_info_t touch_get_info()
 {
-  touch_info_t info;
+  touch_info_t ti={0};
 
   uint8_t r=i2c_read(twip, TOUCH_ADDRESS, buf, 63);
-  if(r) return info;
+  if(r) return ti;
 
   int num_points = buf[TOUCH_NUM] & 0x0f;
   uint8_t point_id = buf[TOUCH_ID] >> 4;
 
-  if(num_points == 0 && point_id == TOUCH_LAST) return info;
+  if(num_points == 0 && point_id == TOUCH_LAST) return ti;
 
-  info.gesture = buf[TOUCH_GESTURE];
-  info.action = buf[TOUCH_ACTION] >> 6;
-  info.x = (buf[TOUCH_X_HIGH] & 0x0f) << 8 | buf[TOUCH_X_LOW];
-  info.y = (buf[TOUCH_Y_HIGH] & 0x0f) << 8 | buf[TOUCH_Y_LOW];
+  ti.gesture = buf[TOUCH_GESTURE];
+  ti.action = (buf[TOUCH_ACTION] >> 6)+1;
+  ti.x = (buf[TOUCH_X_HIGH] & 0x0f) << 8 | buf[TOUCH_X_LOW];
+  ti.y = (buf[TOUCH_Y_HIGH] & 0x0f) << 8 | buf[TOUCH_Y_LOW];
 
-  return info;
+  return ti;
 }
 
 void touch_reset()

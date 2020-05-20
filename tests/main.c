@@ -80,7 +80,6 @@ void moved(motion_info_t motioninfo)
 {
   mi=motioninfo;
   new_motion_info=true;
-  irqs++;
 }
 
 void show_touch()
@@ -91,7 +90,7 @@ void show_touch()
   gfx_pos(10, 85);
   gfx_text(buf);
 
-  snprintf(buf, 64, "-%02d-%02d-%02d-", ti.action, ti.gesture, irqs);
+  snprintf(buf, 64, "-%s-%s-%d-", touch_actions[ti.action], touch_gestures[ti.gesture], irqs);
   gfx_pos(10, 110);
   gfx_text(buf);
 
