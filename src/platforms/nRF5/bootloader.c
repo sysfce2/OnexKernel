@@ -171,6 +171,9 @@ int main(void)
     gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
     gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
 
+    gpio_mode(BUTTON_ENABLE, OUTPUT);
+    gpio_set( BUTTON_ENABLE, 1);
+
     ret_val = nrf_bootloader_init(dfu_observer);
     APP_ERROR_CHECK(ret_val);
 
