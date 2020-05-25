@@ -13,7 +13,7 @@ void gpio_init()
   if(!nrfx_gpiote_is_init()) APP_ERROR_CHECK(nrfx_gpiote_init());
 }
 
-void gpio_mode(uint32_t pin, uint32_t mode)
+void gpio_mode(uint8_t pin, uint8_t mode)
 {
     switch (mode){
     case INPUT:
@@ -55,21 +55,13 @@ void gpio_mode(uint32_t pin, uint32_t mode)
     }
 }
 
-static gpio_pin_cb pin_cb=0;
-
-void in_pin_handler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+void gpio_mode_cb(uint8_t pin, uint8_t mode, uint8_t edge, gpio_pin_cb cb)
 {
-  if(pin_cb) pin_cb(BUTTONS_ACTIVE_STATE==gpio_get(pin));
-}
-
-void gpio_mode_cb(uint32_t pin, uint32_t mode, gpio_pin_cb cb)
-{
-  pin_cb = cb;
   nrfx_gpiote_in_config_t config;
   config.skip_gpio_setup = true;
   config.hi_accuracy = false;
   config.is_watcher = false;
-  config.sense = (nrf_gpiote_polarity_t)NRF_GPIOTE_POLARITY_TOGGLE;
+  config.sense = (nrf_gpiote_polarity_t)edge; // sdk/modules/nrfx/mdk/nrf52_bitfields.h
 
   switch (mode){
     case INPUT:
@@ -77,7 +69,7 @@ void gpio_mode_cb(uint32_t pin, uint32_t mode, gpio_pin_cb cb)
       config.pull = GPIO_PIN_CNF_PULL_Disabled;
       break;
     case INPUT_PULLUP:
-      nrf_gpio_cfg_sense_input(pin, GPIO_PIN_CNF_PULL_Pullup, GPIO_PIN_CNF_SENSE_High);
+      nrf_gpio_cfg_sense_input(pin, GPIO_PIN_CNF_PULL_Pullup, GPIO_PIN_CNF_SENSE_Low);
       config.pull = GPIO_PIN_CNF_PULL_Pullup;
       break;
     case INPUT_PULLDOWN:
@@ -85,29 +77,29 @@ void gpio_mode_cb(uint32_t pin, uint32_t mode, gpio_pin_cb cb)
       config.pull = GPIO_PIN_CNF_PULL_Pulldown;
       break;
   }
-  APP_ERROR_CHECK(nrfx_gpiote_in_init(pin, &config, in_pin_handler));
+  nrfx_gpiote_in_init(pin, &config, (void (*)(nrfx_gpiote_pin_t, nrf_gpiote_polarity_t))cb);
   nrfx_gpiote_in_event_enable(pin, true);
 }
 
-int gpio_get(uint32_t pin)
+uint8_t gpio_get(uint8_t pin)
 {
   return nrf_gpio_pin_read(pin);
 }
 
-void gpio_set(uint32_t pin, uint32_t value)
+void gpio_set(uint8_t pin, uint8_t value)
 {
   if (value) nrf_gpio_pin_set(pin);
   else       nrf_gpio_pin_clear(pin);
 }
 
-void gpio_toggle(uint32_t pin)
+void gpio_toggle(uint8_t pin)
 {
   nrf_gpio_pin_toggle(pin);
 }
 
 void saadc_event(nrfx_saadc_evt_t const * event) { }
 
-void gpio_adc_init(uint32_t pin, uint8_t channel) {
+void gpio_adc_init(uint8_t pin, uint8_t channel) {
 
   nrfx_saadc_config_t adc_config = NRFX_SAADC_DEFAULT_CONFIG;
   nrfx_saadc_init(&adc_config, saadc_event);

@@ -8,6 +8,7 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/i2c.h>
 #include <onex-kernel/time.h>
+#include <onex-kernel/gpio.h>
 #include <onex-kernel/motion.h>
 
 #define BMA421_REG_CHIP_ID               0x00
@@ -56,7 +57,7 @@ static motion_change_cb motion_cb = 0;
 
 static void* twip;
 
-static void nrfx_gpiote_evt_handler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action) {
+static void moved(uint8_t pin, uint8_t type) {
   motion_info_t mi=motion_get_info();
   if(motion_cb) motion_cb(mi);
 }
@@ -71,16 +72,6 @@ static void show_reg(char* name, uint8_t reg)
 int motion_init(motion_change_cb cb)
 {
   motion_cb = cb;
-
-  nrf_gpio_cfg_sense_input(MOTION_IRQ_PIN, (nrf_gpio_pin_pull_t)GPIO_PIN_CNF_PULL_Pullup, (nrf_gpio_pin_sense_t)GPIO_PIN_CNF_SENSE_Low);
-
-  nrfx_gpiote_in_config_t pinConfig;
-  pinConfig.skip_gpio_setup = true;
-  pinConfig.hi_accuracy = false;
-  pinConfig.is_watcher = false;
-  pinConfig.sense = (nrf_gpiote_polarity_t)NRF_GPIOTE_POLARITY_HITOLO;
-  pinConfig.pull = (nrf_gpio_pin_pull_t)GPIO_PIN_CNF_PULL_Pullup;
-  nrfx_gpiote_in_init(MOTION_IRQ_PIN, &pinConfig, nrfx_gpiote_evt_handler);
 
   twip=i2c_init(400);
 
@@ -135,6 +126,8 @@ int motion_init(motion_change_cb cb)
   show_reg("accel range",   BMA421_REG_ACCEL_RANGE);
   show_reg("power control", BMA421_REG_POWER_CONTROL);
   show_reg("power conf",    BMA421_REG_POWER_CONF);
+
+  gpio_mode_cb(MOTION_IRQ_PIN, INPUT_PULLUP, FALLING, moved);
 
   return 0;
 }

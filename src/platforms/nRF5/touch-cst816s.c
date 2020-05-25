@@ -28,7 +28,7 @@ static touch_touched_cb touch_cb = 0;
 
 static void* twip;
 
-static void nrfx_gpiote_evt_handler(nrfx_gpiote_pin_t pin, nrf_gpiote_polarity_t action) {
+static void touched(uint8_t pin, uint8_t type) {
   touch_info_t ti=touch_get_info();
   if(touch_cb) touch_cb(ti);
 }
@@ -43,22 +43,14 @@ void touch_init(touch_touched_cb cb)
   nrf_gpio_cfg_output(TOUCH_RESET_PIN);
   nrf_gpio_pin_set(TOUCH_RESET_PIN);
 
-  nrf_gpio_cfg_sense_input(TOUCH_IRQ_PIN, (nrf_gpio_pin_pull_t)GPIO_PIN_CNF_PULL_Pullup, (nrf_gpio_pin_sense_t)GPIO_PIN_CNF_SENSE_Low);
-
-  nrfx_gpiote_in_config_t pinConfig;
-  pinConfig.skip_gpio_setup = true;
-  pinConfig.hi_accuracy = false;
-  pinConfig.is_watcher = false;
-  pinConfig.sense = (nrf_gpiote_polarity_t)NRF_GPIOTE_POLARITY_HITOLO;
-  pinConfig.pull = (nrf_gpio_pin_pull_t)GPIO_PIN_CNF_PULL_Pullup;
-  nrfx_gpiote_in_init(TOUCH_IRQ_PIN, &pinConfig, nrfx_gpiote_evt_handler);
-
   twip=i2c_init(400);
 
   ret_code_t e;
 
   e=app_timer_create(&touch_timer, APP_TIMER_MODE_REPEATED, every_50ms); APP_ERROR_CHECK(e);
   e=app_timer_start(touch_timer, APP_TIMER_TICKS(50), NULL); APP_ERROR_CHECK(e);
+
+  gpio_mode_cb(TOUCH_IRQ_PIN, INPUT_PULLUP, FALLING, touched);
 }
 
 static bool pressed=false;

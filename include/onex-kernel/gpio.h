@@ -8,20 +8,22 @@
 #define INPUT		0
 #define OUTPUT		1
 #define INPUT_PULLUP	2
-//#define INPUT_PULLDOWN  3
-#define INPUT_PULLDOWN  4
+#define INPUT_PULLDOWN  3
+#define RISING             1
+#define FALLING            2
+#define RISING_AND_FALLING 3
 
-typedef void (*gpio_pin_cb)(int);
+typedef void (*gpio_pin_cb)(uint8_t, uint8_t); // pin, type (RISING, FALLING, RISING_AND_FALLING)
 
 void    gpio_init();
-void    gpio_mode(      uint32_t pin, uint32_t mode);
-void    gpio_mode_cb(   uint32_t pin, uint32_t mode, gpio_pin_cb cb);
-int     gpio_get(       uint32_t pin);
-void    gpio_adc_init(  uint32_t pin, uint8_t channel);
+void    gpio_mode(      uint8_t pin, uint8_t mode);
+void    gpio_mode_cb(   uint8_t pin, uint8_t mode, uint8_t edge, gpio_pin_cb cb);
+uint8_t gpio_get(       uint8_t pin);
+void    gpio_adc_init(  uint8_t pin, uint8_t channel);
 int16_t gpio_read(      uint8_t  channel);
-void    gpio_set(       uint32_t pin, uint32_t value);
-void    gpio_toggle(    uint32_t pin);
-int     gpio_touch_read(uint32_t pin);
+void    gpio_set(       uint8_t pin, uint8_t value);
+void    gpio_toggle(    uint8_t pin);
+int     gpio_touch_read(uint8_t pin);
 
 #endif
 
