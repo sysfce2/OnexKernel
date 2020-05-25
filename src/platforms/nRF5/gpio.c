@@ -59,7 +59,7 @@ void gpio_mode_cb(uint8_t pin, uint8_t mode, uint8_t edge, gpio_pin_cb cb)
 {
   nrfx_gpiote_in_config_t config;
   config.skip_gpio_setup = true;
-  config.hi_accuracy = false;
+  config.hi_accuracy = true; // HIGHER POWER CONSUMPTION! FIXME
   config.is_watcher = false;
   config.sense = (nrf_gpiote_polarity_t)edge; // sdk/modules/nrfx/mdk/nrf52_bitfields.h
 
