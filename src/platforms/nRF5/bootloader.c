@@ -104,9 +104,14 @@ void app_error_handler_bare(uint32_t error_code)
  */
 static void dfu_observer(nrf_dfu_evt_type_t evt_type)
 {
+    gfx_pos(40,40);
+    gfx_text_colour(GFX_WHITE);
+    gfx_text("OnexOS update");
+
+    gfx_rect_fill(40, 80, 160, 20, GFX_BLACK);
     gfx_pos(40,80);
     gfx_text_colour(GFX_BLUE);
-    gfx_rect_fill(40, 80, 160, 20, GFX_BLACK);
+
     static bool tick=false;
     switch (evt_type)
     {
@@ -164,9 +169,10 @@ int main(void)
     gfx_init();
     gfx_screen_colour(GFX_BLACK);
     gfx_screen_fill();
+
     gfx_pos(40,40);
     gfx_text_colour(GFX_WHITE);
-    gfx_text("OnexOS Update");
+    gfx_text("OnexOS");
 
     gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
     gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
