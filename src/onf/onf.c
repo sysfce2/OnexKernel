@@ -796,7 +796,7 @@ void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
   CRITICAL_REGION_ENTER();
 #endif
   int n=0;
-  int h=0;
+  int h= -1;
   bool new_soonest=true;
   for(; n<MAX_TO_NOTIFY; n++){
     if(to_notify[n].type==TO_NOTIFY_FREE) continue;
@@ -839,9 +839,10 @@ void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
 
 bool run_any_evaluators()
 {
+//if(highest_to_notify < 0) return false;
   bool keep_awake=false;
   uint64_t curtime=time_ms();
-  for(int n=0; n<=highest_to_notify; n++){
+  for(int n=0; n< MAX_TO_NOTIFY; n++){
 
     if(to_notify[n].type==TO_NOTIFY_FREE) continue;
 
@@ -860,23 +861,23 @@ bool run_any_evaluators()
       case(TO_NOTIFY_NONE): {
         to_notify[n].type=TO_NOTIFY_FREE;
         run_evaluators(o, 0, 0, false);
-        return keep_awake;
+        break;
       }
       case(TO_NOTIFY_DATA): {
         to_notify[n].type=TO_NOTIFY_FREE;
         run_evaluators(o, data, 0, false);
-        return keep_awake;
+        break;
       }
       case(TO_NOTIFY_ALERTED): {
         to_notify[n].type=TO_NOTIFY_FREE;
         run_evaluators(o, 0, alerted, false);
-        return keep_awake;
+        break;
       }
       case(TO_NOTIFY_TIMEOUT): {
         to_notify[n].type=TO_NOTIFY_FREE;
         start_timer_for_soonest_timeout_if_in_future();
         run_evaluators(o, 0, 0, true);
-        return keep_awake;
+        break;
       }
     }
   }
