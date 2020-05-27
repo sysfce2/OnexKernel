@@ -663,7 +663,7 @@ void run_onf_tests(char* dbpath)
   test_timer();
 
   e=(uint32_t)time_ms()-s;
-  log_write(">>>> time passed after test_timer %ld\n", e);
+  log_write(">>>> time passed after test_timer %ud\n", e);
 
   onex_loop();
   onex_loop();
@@ -671,13 +671,13 @@ void run_onf_tests(char* dbpath)
   onex_assert_equal_num(evaluate_timer_n4_called, 1, "evaluate_timer_n4 was not called immediately");
 
   e=(uint32_t)time_ms()-s;
-  log_write(">>>> time passed after evaluators %ld\n", e);
+  log_write(">>>> time passed after evaluators %ud\n", e);
 
   e=(uint32_t)time_ms()-s;
   time_delay_ms(100-e);
 
   e=(uint32_t)time_ms()-s;
-  log_write(">>>> time passed after waiting %ld\n", e);
+  log_write(">>>> time passed after waiting %ud\n", e);
 
   onex_assert_equal_num(evaluate_timer_n4_called, 1, "evaluate_timer_n4 was not called after 100");
 
@@ -685,7 +685,7 @@ void run_onf_tests(char* dbpath)
   time_delay_ms(180-e);
 
   e=(uint32_t)time_ms()-s;
-  log_write(">>>> time passed after waiting %ld\n", e);
+  log_write(">>>> time passed after waiting %ud\n", e);
 
   onex_assert_equal_num(evaluate_timer_n4_called, 2, "evaluate_timer_n4 was called after 180");
 }
