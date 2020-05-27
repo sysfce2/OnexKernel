@@ -39,6 +39,8 @@ CC_FLAGS = -c -std=gnu99 -Werror -Wall -Wextra -Wno-unused-parameter -fno-common
 .c.o:
 	$(CC) ${COMPILE_LINE} -o $@ -c $<
 
+linux.library: libOnexKernel.a
+
 libOnexKernel.a: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
 libOnexKernel.a: CC=/usr/bin/gcc
 libOnexKernel.a: LD=/usr/bin/gcc
