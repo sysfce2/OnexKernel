@@ -790,10 +790,17 @@ void start_timer_for_soonest_timeout_if_in_future()
   }
 }
 
+#if !defined(NRF5)
+static bool to_notify_in_use=false;
+#endif
+
 void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
 {
 #if defined(NRF5)
   CRITICAL_REGION_ENTER();
+#else
+  if(to_notify_in_use){ log_write("set_to_notify: to_notify in use\n"); /* return; */ }
+  to_notify_in_use=true;
 #endif
   int n=0;
   int h= -1;
@@ -834,12 +841,18 @@ void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
   if(timeout) start_timer_for_soonest_timeout_if_in_future();
 #if defined(NRF5)
   CRITICAL_REGION_EXIT();
+#else
+  to_notify_in_use=false;
 #endif
 }
 
 bool run_any_evaluators()
 {
 //if(highest_to_notify < 0) return false;
+#if !defined(NRF5)
+  if(to_notify_in_use){ log_write("run_any_evaluators: to_notify in use!"); return true; }
+  to_notify_in_use=true;
+#endif
   bool keep_awake=false;
   uint64_t curtime=time_ms();
   for(int n=0; n< MAX_TO_NOTIFY; n++){
@@ -881,6 +894,9 @@ bool run_any_evaluators()
       }
     }
   }
+#if !defined(NRF5)
+  to_notify_in_use=false;
+#endif
   return keep_awake;
 }
 
