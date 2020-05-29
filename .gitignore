@@ -4,7 +4,7 @@ android/doc
 ,*
 sdk
 build/
-ndkBuild/
+.cxx/
 .gradle
 local.properties
 *.o

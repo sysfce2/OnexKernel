@@ -54,7 +54,7 @@ android.library: libOnexAndroidKernel.a
 
 libOnexAndroidKernel.a: android/onexkernel/src/main/jni/OnexApp.cpp
 	(cd android; ./gradlew build)
-	cp android/onexkernel/build/intermediates/ndkBuild/debug/obj/local/armeabi-v7a/libOnexAndroidKernel.a .
+	cp android/onexkernel/build/intermediates/ndkBuild/debug/obj/local/arm64-v8a/libOnexAndroidKernel.a .
 
 tests.linux: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
 tests.linux: CC=/usr/bin/gcc
