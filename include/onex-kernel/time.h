@@ -20,7 +20,7 @@ void     time_start_timer(uint16_t id, uint32_t timeout); // for time_timeout()
 void     time_stop_timer(uint16_t id);
 void     time_end();
 
-#if defined(TARGET_LINUX) || defined(__ANDROID__)
+#if !defined(NRF5)
 
  #include <unistd.h>
  #include <time.h>
