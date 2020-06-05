@@ -44,7 +44,7 @@ void channel_serial_init(channel_serial_connect_cb cb)
 #if defined(HAS_SERIAL) && defined(ONP_OVER_SERIAL)
   initialised=serial_init(channel_serial_on_recv, 9600);
 #else
-  initialised=blenus_init(channel_serial_on_recv);
+  initialised=blenus_init(channel_serial_on_recv, 0);
 #endif
 }
 

@@ -29,9 +29,9 @@ int main()
     time_init();
 #ifdef HAS_SERIAL
     serial_init((serial_recv_cb)blenus_write,0);
-    blenus_init((blenus_recv_cb)serial_write);
+    blenus_init((blenus_recv_cb)serial_write, 0);
 #else
-    blenus_init((blenus_recv_cb)blenus_write);
+    blenus_init((blenus_recv_cb)blenus_write, 0);
 #endif
 
     while (true)

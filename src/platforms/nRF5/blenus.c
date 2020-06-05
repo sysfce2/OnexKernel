@@ -37,7 +37,8 @@ static volatile char buffer_chunk[BUFFER_CHUNK_SIZE];
 #include "../../lib/buffer.c"
 
 static volatile bool initialised=false;
-static volatile blenus_recv_cb recv_cb;
+static volatile blenus_recv_cb   recv_cb;
+static volatile blenus_status_cb status_cb;
 
 #define DEVICE_NAME                     "Onex"    /**< Name of device. Will be included in the advertising data. */
 
@@ -87,12 +88,26 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             APP_ERROR_CHECK(err_code);
             buffer_clear();
             if(recv_cb) recv_cb(0,0);
+            if(status_cb){
+              blenus_info_t bi={
+                .connected=true,
+                .rssi=-55,
+              };
+              status_cb(bi);
+            }
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
             NRF_LOG_INFO("Disconnected");
             m_conn_handle = BLE_CONN_HANDLE_INVALID;
             buffer_clear();
+            if(status_cb){
+              blenus_info_t bi={
+                .connected=false,
+                .rssi=-55,
+              };
+              status_cb(bi);
+            }
             advertising_start();
             break;
 
@@ -337,9 +352,10 @@ static uint8_t buffer_do_write(size_t size)
   return (e==NRF_SUCCESS && j==i)? BUFFER_WRITE_CONTINUE: BUFFER_WRITE_FAILED;
 }
 
-bool blenus_init(blenus_recv_cb cb)
+bool blenus_init(blenus_recv_cb cb, blenus_status_cb scb)
 {
-  recv_cb = cb;
+  if(cb)  recv_cb = cb;
+  if(scb) status_cb = scb;
 
   if(initialised) return true;
   initialised=true;
@@ -364,7 +380,7 @@ size_t blenus_write(unsigned char* buf, size_t size)
 
 size_t blenus_printf(const char* fmt, ...)
 {
-  if(!initialised) blenus_init(0);
+  if(!initialised) blenus_init(0,0);
   va_list args;
   va_start(args, fmt);
   size_t r=blenus_vprintf(fmt,args);

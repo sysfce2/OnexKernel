@@ -6,15 +6,30 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-typedef void (*blenus_recv_cb) (unsigned char*, size_t);
+typedef struct blenus_info_t {
+  bool   connected;
+  int8_t rssi;
+} blenus_info_t;
 
-bool   blenus_init(blenus_recv_cb cb);
-void   blenus_cb(blenus_recv_cb cb);
+typedef void (*blenus_recv_cb)(unsigned char*, size_t);
+typedef void (*blenus_status_cb)(blenus_info_t);
+
+/* Initialise BLENUS if not already done.
+   first callback is data received or (0,0) if connected
+   second callback is connection status
+   Can use to set either callback without unsetting the other. */
+bool   blenus_init(blenus_recv_cb cb, blenus_status_cb scb);
+
 int    blenus_recv(char* b, int l);
+
 size_t blenus_printf(const char* fmt, ...);
+
 size_t blenus_vprintf(const char* fmt, va_list args);
+
 void   blenus_putchar(unsigned char ch);
+
 size_t blenus_write(unsigned char* b, size_t l);
+
 void   blenus_loop();
 
 #endif
