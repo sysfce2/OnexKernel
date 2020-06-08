@@ -39,7 +39,7 @@ value* value_new(char* val)
   value* ours=(value*)properties_get(all_values, val);
   if(ours){
     ours->refs++;
-    if(!ours->refs) log_write("VALS!?\n"); // this is serious
+    if(ours->refs==0) log_write("V!%s\n", ours->val); // 65536 references so more likely not being freed
     return ours;
   }
   ours=(value*)calloc(1,sizeof(value));
