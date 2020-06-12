@@ -55,7 +55,7 @@ static item*       nested_property_item(object* n, char* path, object* t, bool o
 static bool        nested_property_set(object* n, char* path, char* val);
 static bool        nested_property_delete(object* n, char* path);
 static bool        set_value_or_list(object* n, char* key, char* val);
-static bool        add_notify(object* o, value* notify);
+static bool        add_notify(object* o, char* notify);
 static void        set_notifies(object* o, char* notify);
 static void        save_and_notify(object* n);
 static bool        has_notifies(object* o);
@@ -433,7 +433,7 @@ object* find_object(char* uid, object* n, bool observe)
     return 0;
   }
   if(observe){
-    add_notify(o,n->uid);
+    add_notify(o, value_string(n->uid));
     if(object_is_remote(o)){
       ping_object(uid, o, 10000);
     }
@@ -726,7 +726,7 @@ bool object_property_add(object* n, char* path, char* val)
   if(!val || !*val) return 0;
   if(!strcmp(path, "Notifying")){
     if(!is_uid(val)) return false;
-    add_notify(n, value_new(val));
+    add_notify(n, val);
     return true;
   }
   item* i=properties_get(n->properties, path);
@@ -891,16 +891,16 @@ bool run_any_evaluators()
   return keep_awake;
 }
 
-bool add_notify(object* o, value* notify)
+bool add_notify(object* o, char* notify)
 {
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    if(o->notify[i] && value_equal(o->notify[i], notify)) return true;
+    if(o->notify[i] && value_is(o->notify[i], notify)) return true;
   }
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    if(!o->notify[i]){ o->notify[i]=notify; return true; }
+    if(!o->notify[i]){ o->notify[i]=value_new(notify); return true; }
   }
-  log_write("can't add notify %s to %s\n", value_string(notify), value_string(o->uid));
+  log_write("can't add notify %s to %s\n", notify, value_string(o->uid));
   show_notifies(o);
   return false;
 }
@@ -1314,7 +1314,7 @@ void onf_recv_observe(char* text, char* channel)
   char* u=uid; while(*u > ' ') u++; *u=0;
   object* o=onex_get_from_cache(uid);
   if(!o) return;
-  add_notify(o, value_new("uid-of-device"));
+  add_notify(o, "uid-of-device");
   if(!object_is_remote(o)) onp_send_object(o, channel);
 }
 
