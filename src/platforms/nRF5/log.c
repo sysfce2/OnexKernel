@@ -39,6 +39,7 @@ volatile char* event_log_buffer=0;
 #endif
 #endif
 
+#if !defined(LOG_TO_RTT)
 int log_write(const char* fmt, ...)
 {
   va_list args;
@@ -61,5 +62,6 @@ int log_write(const char* fmt, ...)
   va_end(args);
   return r;
 }
+#endif
 
 
