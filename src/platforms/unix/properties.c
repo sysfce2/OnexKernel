@@ -3,6 +3,8 @@
 #include <string.h>
 #include <items.h>
 #include <ctype.h>
+
+#include <onex-kernel/mem.h>
 #include <onex-kernel/log.h>
 
 typedef struct hash_item hash_item;
@@ -39,15 +41,15 @@ unsigned int string_hash(char* p)
 properties* properties_new(uint16_t max_size)
 {
   char* name="";
-  properties* op=(properties*)malloc(sizeof(properties));
+  properties* op=(properties*)mem_alloc(sizeof(properties));
   if(!op) return 0;
   op->type=ITEM_PROPERTIES;
   op->max_size=max_size;
   op->name=name;
   op->buckets=BX;
   op->size=0;
-  op->lists=malloc((op->buckets)*sizeof(hash_item*));
-  op->keys=(char**)calloc(max_size,sizeof(char*));
+  op->lists=mem_alloc((op->buckets)*sizeof(hash_item*));
+  op->keys=(char**)mem_alloc(max_size*sizeof(char*));
   if(!op->lists || !op->keys) return 0;
   op->next=0;
   int i; for(i=0; i< op->buckets; i++) op->lists[i]=0;
@@ -64,9 +66,9 @@ bool properties_set(properties* op, char* key, void* i)
   }
   if(!(*lisp)){
     if(op->size==op->max_size) return false;
-    (*lisp)=malloc(sizeof(hash_item));
+    (*lisp)=mem_alloc(sizeof(hash_item));
     if(!(*lisp)) return false;
-    (*lisp)->key=strdup(key);
+    (*lisp)->key=mem_strdup(key);
     op->keys[op->size]=(*lisp)->key;
     (*lisp)->item=i;
     (*lisp)->next=0;
@@ -116,11 +118,11 @@ void* properties_delete(properties* op, char* key)
   if((*lisp)){
     int j;
     for(j=0; j<op->size; j++) if(!strcmp(op->keys[j], key)) break;
-    free(op->keys[j]);
+    mem_freestr(op->keys[j]);
     for(; j<op->size-1; j++) op->keys[j]=op->keys[j+1];
     hash_item* next=(*lisp)->next;
     v=(*lisp)->item;
-    free((*lisp));
+    mem_free((*lisp));
     (*lisp)=next;
     op->size--;
     return v;
@@ -142,9 +144,9 @@ void properties_free(properties* op, bool free_items)
 {
   if(!op) return;
   properties_clear(op, free_items);
-  free(op->keys);
-  free(op->lists);
-  free(op);
+  mem_free(op->keys);
+  mem_free(op->lists);
+  mem_free(op);
 }
 
 uint16_t properties_size(properties* op)

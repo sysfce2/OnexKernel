@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <items.h>
+
+#include <onex-kernel/mem.h>
 #include <onex-kernel/log.h>
 
 typedef struct properties {
@@ -14,13 +16,13 @@ typedef struct properties {
 
 properties* properties_new(uint16_t max_size)
 {
-  properties* op=(properties*)calloc(1,sizeof(properties));
+  properties* op=(properties*)mem_alloc(sizeof(properties));
   if(!op) return 0;
   op->type=ITEM_PROPERTIES;
   op->max_size=max_size;
-  op->keys=(char**)calloc(max_size,sizeof(char*));
+  op->keys=(char**)mem_alloc(max_size*sizeof(char*));
   if(!op->keys) return 0;
-  op->vals=(void**)calloc(max_size,sizeof(void*));
+  op->vals=(void**)mem_alloc(max_size*sizeof(void*));
   if(!op->vals) return 0;
   op->size=0;
   return op;
@@ -37,7 +39,7 @@ bool properties_set(properties* op, char* key, void* i)
     }
   }
   if(op->size==op->max_size) return false;
-  op->keys[op->size]=strdup(key);
+  op->keys[op->size]=mem_strdup(key);
   op->vals[op->size]=i;
   op->size++;
   return true;
@@ -77,7 +79,7 @@ void* properties_delete(properties* op, char* key)
     }
   }
   if(j==op->size) return 0;
-  free(op->keys[j]);
+  mem_freestr(op->keys[j]);
   for(; j < op->size-1; j++){
     op->keys[j] = op->keys[j+1];
     op->vals[j] = op->vals[j+1];
@@ -100,9 +102,9 @@ void properties_free(properties* op, bool free_items)
 {
   if(!op) return;
   properties_clear(op, free_items);
-  free(op->keys);
-  free(op->vals);
-  free(op);
+  mem_free(op->keys);
+  mem_free(op->vals);
+  mem_free(op);
 }
 
 uint16_t properties_size(properties* op)

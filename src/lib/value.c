@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <items.h>
+
+#include <onex-kernel/mem.h>
 #include <onex-kernel/log.h>
 
 char* unknown_to_text(char* b){ *b='?'; *(b+1)=0; return b; }
@@ -29,27 +31,27 @@ value* value_new(char* val)
   value* ours=(value*)properties_get(all_values, val);
   if(ours){
     ours->refs++;
-    if(ours->refs==0) log_write("V!%s\n", ours->val); // 65536 references so more likely not being freed
+    if(ours->refs==0) log_write("V0%s\n", ours->val); // 65536 references so more likely not being freed
     return ours;
   }
-  ours=(value*)calloc(1,sizeof(value));
+  ours=(value*)mem_alloc(sizeof(value));
   if(!ours){
     log_write("VALS!!\n"); // this is serious
     return 0;
   }
   ours->type=ITEM_VALUE;
-  ours->val=strdup(val);
+  ours->val=mem_strdup(val);
   ours->refs=1; // don't count our own 2 uses in all_values
 
   if(!ours->val){
     log_write("!VALS!\n"); // this is serious
-    free(ours);
+    mem_free(ours);
     return 0;
   }
   if(!properties_set(all_values, ours->val, ours)){
     log_write("!!VALS\n"); // this is serious
-    free(ours->val);
-    free(ours);
+    mem_freestr(ours->val);
+    mem_free(ours);
     return 0;
   }
   return ours;
@@ -77,11 +79,12 @@ bool value_is(value* v, char* s)
 
 void value_free(value* v)
 {
+  if(!v) return;
   v->refs--;
   if(v->refs) return;
   properties_delete(all_values, v->val);
-  free(v->val);
-  free(v);
+  mem_freestr(v->val);
+  mem_free(v);
 }
 
 char* value_to_text(value* v, char* b, uint16_t s)

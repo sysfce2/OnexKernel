@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <items.h>
+
+#include <onex-kernel/mem.h>
 #include <onex-kernel/log.h>
 
 /*
@@ -24,11 +26,11 @@ typedef struct list {
 
 list* list_new(uint16_t max_size)
 {
-  list* li=(list*)calloc(1,sizeof(list));
+  list* li=(list*)mem_alloc(sizeof(list));
   if(!li) return 0;
   li->type=ITEM_LIST;
   li->max_size=max_size;
-  li->vals=(void**)calloc(max_size,sizeof(void*));
+  li->vals=(void**)mem_alloc(max_size*sizeof(void*));
   if(!li->vals) return 0;
   li->size=0;
   return li;
@@ -111,8 +113,8 @@ void list_free(list* li, bool free_items)
 {
   if(!li) return;
   list_clear(li, free_items);
-  free(li->vals);
-  free(li);
+  mem_free(li->vals);
+  mem_free(li);
 }
 
 char* list_to_text(list* li, char* b, uint16_t s)

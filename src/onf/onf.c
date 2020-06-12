@@ -12,6 +12,7 @@
 #include <app_util_platform.h>
 #endif
 
+#include <onex-kernel/mem.h>
 #include <onex-kernel/log.h>
 #include <onex-kernel/random.h>
 #include <onex-kernel/time.h>
@@ -168,7 +169,7 @@ object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size)
 
 object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size)
 {
-  object* n=(object*)calloc(1,sizeof(object));
+  object* n=(object*)mem_alloc(sizeof(object));
   n->uid=uid? uid: generate_uid();
   n->properties=properties_new(max_size);
   if(is) set_value_or_list(n, "is", is);
@@ -188,8 +189,8 @@ object* new_object_from(char* text, uint8_t max_size)
   char* notify=0;
   char* p=t;
   while(true){
-    char* key=get_key(&p); if(!key) break;            if(!*key){ free(key); object_free(n); n=0; break; }
-    char* val=get_val(&p); if(!val || !*val){ free(key); if(val) free(val); object_free(n); n=0; break; }
+    char* key=get_key(&p); if(!key) break;                   if(!*key){ mem_freestr(key); object_free(n); n=0; break; }
+    char* val=get_val(&p); if(!val || !*val){ mem_freestr(key); if(val) mem_freestr(val); object_free(n); n=0; break; }
     if(!strcmp(key,"UID")) uid=value_new(val);
     else
     if(!strcmp(key,"Eval")) evaluator=value_new(val);
@@ -198,7 +199,7 @@ object* new_object_from(char* text, uint8_t max_size)
     else
     if(!strcmp(key,"Cache")) cache=value_new(val);
     else
-    if(!strcmp(key,"Notify")) notify=strdup(val);
+    if(!strcmp(key,"Notify")) notify=mem_strdup(val);
     else
     if(isupper((unsigned char)(*key)));
     else {
@@ -207,18 +208,18 @@ object* new_object_from(char* text, uint8_t max_size)
         if(evaluator) n->evaluator=evaluator;
         if(devices) n->devices=devices;
         if(cache) n->cache=cache;
-        if(notify){ set_notifies(n, notify); free(notify); }
+        if(notify){ set_notifies(n, notify); mem_freestr(notify); }
       }
       if(!set_value_or_list(n, key, val)) break;
     }
-    free(key); free(val);
+    mem_freestr(key); mem_freestr(val);
   }
   return n;
 }
 
 object* new_shell(value* uid, char* notify)
 {
-  object* n=(object*)calloc(1,sizeof(object));
+  object* n=(object*)mem_alloc(sizeof(object));
   n->uid=uid;
   n->properties=properties_new(MAX_OBJECT_SIZE);
   n->devices=value_new("shell");
@@ -230,8 +231,15 @@ object* new_shell(value* uid, char* notify)
 void object_free(object* o)
 {
   if(!o) return;
-  item_free(o->properties);
-  free(o);
+  value_free(o->uid);
+  value_free(o->evaluator);
+  properties_free(o->properties, true);
+  value_free(o->cache);
+  for(int i=0; i< OBJECT_MAX_NOTIFIES; i++) value_free(o->notify[i]);
+  value_free(o->alerted);
+  value_free(o->devices);
+  value_free(o->timer);
+  mem_free(o);
 }
 
 char* get_key(char** p)
@@ -242,7 +250,7 @@ char* get_key(char** p)
   char* c=strstr(*p, ": ");
   if(s<c || !c) return 0;
   (*c)=0;
-  char* r=strdup(*p);
+  char* r=mem_strdup(*p);
   (*c)=':';
   (*p)=c+1;
   return r;
@@ -259,7 +267,7 @@ char* get_val(char** p)
     char* s=strrchr(*p, 0);
     do s--; while(isspace(*s)); s++;
     (*s)=0;
-    r=strdup(*p);
+    r=mem_strdup(*p);
     (*p)+=strlen(*p);
   }
   else{
@@ -269,7 +277,7 @@ char* get_val(char** p)
     do s--; while(isspace(*s)); s++;
     (*c)=':';
     (*s)=0;
-    r=strdup(*p);
+    r=mem_strdup(*p);
     (*s)=' ';
     (*p)=s+1;
   }
@@ -589,6 +597,7 @@ void timer_init()
 
 bool set_timer(object* n, char* timer)
 {
+  value_free(n->timer);
   n->timer=value_new(timer);
   char* e; uint32_t tm=strtol(timer,&e,10);
   if(*e) return false;
@@ -598,6 +607,7 @@ bool set_timer(object* n, char* timer)
 
 bool zero_timer(object* n)
 {
+  value_free(n->timer);
   n->timer=value_new("0");
   save_and_notify(n);
   return true;
@@ -605,6 +615,7 @@ bool zero_timer(object* n)
 
 bool stop_timer(object* n)
 {
+  value_free(n->timer);
   n->timer=0;
   save_and_notify(n);
   return true;
@@ -632,7 +643,9 @@ bool object_property_set(object* n, char* path, char* val)
   char* c=strrchr(p, ':');
   if(del){
     if(c) return nested_property_delete(n, path);
-    bool ok=!!properties_delete(n->properties, p);
+    item* i=properties_delete(n->properties, p);
+    item_free(i);
+    bool ok=!!i;
     if(ok) save_and_notify(n);
     return ok;
   }
@@ -670,7 +683,9 @@ bool nested_property_set(object* n, char* path, char* val)
     }
     case ITEM_LIST: {
       char* e; uint32_t index=strtol(c,&e,10);
-      ok=list_set_n((list*)i, index, value_new(val)); // not single; doesn't free like set_value_or_list
+      list* l=(list*)i;
+      item_free(list_get_n(l, index));
+      ok=list_set_n(l, index, value_new(val)); // not single
       break;
     }
     case ITEM_PROPERTIES: {
@@ -691,13 +706,19 @@ bool nested_property_delete(object* n, char* path)
   bool ok=false;
   if(i) switch(i->type){
     case ITEM_VALUE: {
-      if(!strcmp(c,"1")) ok=!!properties_delete(n->properties, p);
+      if(!strcmp(c,"1")){
+        item* i=properties_delete(n->properties, p);
+        item_free(i);
+        ok=!!i;
+      }
       break;
     }
     case ITEM_LIST: {
       char* e; uint32_t index=strtol(c,&e,10);
       list* l=(list*)i;
-      ok=list_del_n(l, index);
+      item* i=list_del_n(l, index);
+      item_free(i);
+      ok=!!i;
       if(!ok) break;
       if(list_size(l)==1){
         properties_set(n->properties, p, list_get_n(l,1));
@@ -1169,14 +1190,14 @@ static FILE* db=0;
 #if !defined(NRF5)
 bool mkdir_p(char* filename)
 {
-  char* fn=strdup(filename);
+  char* fn=mem_strdup(filename);
   char* s=fn;
   while((s=strchr(s+1, '/'))){
     *s=0;
     if(mkdir(fn, S_IRWXU) && errno != EEXIST) return false;
     *s='/';
   }
-  free(fn);
+  mem_freestr(fn);
   return true;
 }
 #endif
@@ -1198,7 +1219,7 @@ void persistence_init(char* filename)
   fseek(db, 0, SEEK_END);
   long len = ftell(db);
   fseek(db, 0, SEEK_SET);
-  char* alldbtext=malloc(len*sizeof(char)+1);
+  char* alldbtext=mem_alloc(len*sizeof(char)+1);
   if(!alldbtext) {
     fclose(db); db=0;
     log_write("Can't allocate space for DB file %s\n", filename);
@@ -1217,13 +1238,13 @@ void persistence_init(char* filename)
       char uid[MAX_UID_LEN]; size_t m=snprintf(uid, MAX_UID_LEN, "%s", u);
       if(e) *e=' ';
       if(m<MAX_UID_LEN){
-        free(properties_delete(objects_text, uid));
-        properties_set(objects_text, uid, strdup(text));
+        mem_freestr(properties_delete(objects_text, uid));
+        properties_set(objects_text, uid, mem_strdup(text));
       }
     }
     text=strtok(0, "\n");
   }
-  free(alldbtext);
+  mem_free(alldbtext);
   scan_objects_text_for_keep_active();
 }
 
@@ -1276,8 +1297,8 @@ void persistence_flush()
     object* o=onex_get_from_cache(uid);
     char buff[MAX_TEXT_LEN];
     char* text=object_to_text(o,buff,MAX_TEXT_LEN,OBJECT_TO_TEXT_PERSIST);
-    free(properties_delete(objects_text, uid));
-    properties_set(objects_text, uid, strdup(text));
+    mem_freestr(properties_delete(objects_text, uid));
+    properties_set(objects_text, uid, mem_strdup(text));
     fprintf(db, "%s\n", text);
   }
   properties_clear(objects_to_save, false);
@@ -1291,18 +1312,18 @@ void scan_objects_text_for_keep_active()
     char* uid=0;
     char* p=properties_get_n(objects_text, n);
     while(true){
-      char* key=get_key(&p); if(!key) break;            if(!*key){ free(key); break; }
-      char* val=get_val(&p); if(!val || !*val){ free(key); if(val) free(val); break; }
+      char* key=get_key(&p); if(!key) break;                   if(!*key){ mem_freestr(key); break; }
+      char* val=get_val(&p); if(!val || !*val){ mem_freestr(key); if(val) mem_freestr(val); break; }
       if(!isupper((unsigned char)(*key))){
-        free(key); free(val);
+        mem_freestr(key); mem_freestr(val);
         break;
       }
       if(!strcmp(key,"Cache") && !strcmp(val,"keep-active")){
         uid=properties_key_n(objects_text, n);
-        free(key); free(val);
+        mem_freestr(key); mem_freestr(val);
         break;
       }
-      free(key); free(val);
+      mem_freestr(key); mem_freestr(val);
     }
     if(uid){
       object* o=onex_get_from_cache(uid);
@@ -1335,9 +1356,11 @@ void onf_recv_object(char* text, char* channel)
   }
   else{
     item_free(o->properties);
-    o->properties = n->properties;
-    o->devices    = n->devices;
-    free(n);
+    item_free(o->devices);
+    o->properties = n->properties; n->properties=0;
+    o->devices    = n->devices;    n->devices=0;
+    // additional notifies: for(i=0; i< OBJECT_MAX_NOTIFIES; i++) n->notify[i];
+    object_free(n);
   }
   save_and_notify(o);
 }
