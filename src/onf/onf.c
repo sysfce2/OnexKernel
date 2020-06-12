@@ -606,6 +606,7 @@ bool zero_timer(object* n)
 bool stop_timer(object* n)
 {
   n->timer=0;
+  save_and_notify(n);
   return true;
 }
 
