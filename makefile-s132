@@ -46,6 +46,7 @@ NRF5_C_SOURCE_FILES = \
 ./src/platforms/nRF5/motion-bma421.c \
 ./src/platforms/nRF5/blenus.c \
 ./src/platforms/nRF5/log.c \
+./src/platforms/nRF5/mem.c \
 ./src/platforms/nRF5/gfx.c \
 ./src/platforms/nRF5/channel-serial.c \
 
@@ -53,6 +54,7 @@ NRF5_C_SOURCE_FILES = \
 # Source files common to all targets
 SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52.S \
+  $(SDK_ROOT)/components/libraries/mem_manager/mem_manager.c \
   $(SDK_ROOT)/components/drivers_ext/st7789/st7789.c \
   $(SDK_ROOT)/components/drivers_ext/st7789/spi_master_fast.c \
   $(SDK_ROOT)/components/libraries/gfx/nrf_gfx.c \

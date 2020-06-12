@@ -6,16 +6,6 @@
 
 char* unknown_to_text(char* b){ *b='?'; *(b+1)=0; return b; }
 
-#if defined(NRF5)
-char* strdup(const char* s)
-{
-  size_t len=strlen(s)+1;
-  char* r=malloc(len);
-  if(r) memcpy(r,s,len);
-  return r;
-}
-#endif
-
 typedef struct value {
   item_type type;
   char*  val;

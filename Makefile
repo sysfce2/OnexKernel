@@ -20,6 +20,7 @@ UNIX_C_SOURCE_FILES = \
 ./src/platforms/unix/serial.c \
 ./src/platforms/unix/channel-serial.c \
 ./src/platforms/unix/log.c \
+./src/platforms/unix/mem.c \
 ./src/platforms/unix/time.c \
 ./src/platforms/unix/random.c \
 
