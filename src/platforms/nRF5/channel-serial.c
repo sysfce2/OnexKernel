@@ -14,9 +14,9 @@ static volatile bool initialised=false;
 #define SERIAL_BUFFER_SIZE 1024
 
 static volatile char buffer[SERIAL_BUFFER_SIZE];
-static volatile int  current_write=0;
-static volatile int  current_read=0;
-static volatile int  data_available=0;
+static volatile uint16_t  current_write=0;
+static volatile uint16_t  current_read=0;
+static volatile uint16_t  data_available=0;
 
 static channel_serial_connect_cb connect_cb;
 
@@ -26,9 +26,13 @@ void channel_serial_on_recv(unsigned char* ch, size_t len)
     if(connect_cb) connect_cb("serial");
     return;
   }
-  for(int i=0; i<len; i++){
+  uint16_t cw=current_write;
+  uint16_t da=data_available;
+  for(uint16_t i=0; i<len; i++){
     if(data_available==SERIAL_BUFFER_SIZE){
-      log_write("channel serial buffer full!\n");
+      log_write("channel serial recv buffer full!\n");
+      current_write=cw;
+      data_available=da;
       return;
     }
     buffer[current_write++]=ch[i];
@@ -48,13 +52,13 @@ void channel_serial_init(channel_serial_connect_cb cb)
 #endif
 }
 
-int channel_serial_recv(char* b, int l)
+uint16_t channel_serial_recv(char* b, uint16_t l)
 {
   if(!initialised || !data_available) return 0;
 
-  int cr=current_read;
-  int da=data_available;
-  int s=0;
+  uint16_t cr=current_read;
+  uint16_t da=data_available;
+  uint16_t s=0;
   while(da && s<l){
     char d=buffer[cr++]; s++;
     if(cr==SERIAL_BUFFER_SIZE) cr=0;
@@ -67,7 +71,7 @@ int channel_serial_recv(char* b, int l)
     }
   }
 
-  int size=0;
+  uint16_t size=0;
   while(data_available && size<l){
     b[size++]=buffer[current_read++];
     if(current_read==SERIAL_BUFFER_SIZE) current_read=0;
@@ -80,9 +84,9 @@ int channel_serial_recv(char* b, int l)
   return size;
 }
 
-int channel_serial_send(char* b, int n)
+uint16_t channel_serial_send(char* b, uint16_t n)
 {
-  if(!initialised) return -1;
+  if(!initialised) return 0;
 #if defined(HAS_SERIAL) && defined(ONP_OVER_SERIAL)
   return serial_printf("%s\n", b);
 #else

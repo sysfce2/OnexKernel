@@ -22,10 +22,10 @@
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
 static void on_connect(char* channel);
 static void do_connect(char* channel);
-static void handle_recv(int size, char* channel, uint16_t* fromip);
+static void handle_recv(uint16_t size, char* channel, uint16_t* fromip);
 static void send(char* buff, char* to);
-static void log_sent(char* buff, int size, char* to,   uint16_t* toip);
-static void log_recv(char* buff, int size, char* channel);
+static void log_sent(char* buff, uint16_t size, char* to, uint16_t* toip);
+static void log_recv(char* buff, uint16_t size, char* channel);
 #endif
 
 void onf_recv_observe(char* text, char* channel);
@@ -69,7 +69,7 @@ bool onp_loop()
 {
   bool keep_awake=false;
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
-  int  size=0;
+  uint16_t size=0;
 #ifdef ONP_CHANNEL_SERIAL
   keep_awake=!!connect_time;
   size = channel_serial_recv(recv_buff, RECV_BUFF_SIZE-1); // spare for term 0
@@ -101,7 +101,7 @@ void do_connect(char* channel)
   onp_send_object(onex_device_object, channel);
 }
 
-static void handle_recv(int size, char* channel, uint16_t* fromip)
+static void handle_recv(uint16_t size, char* channel, uint16_t* fromip)
 {
   if(size==255) log_write("ONP receive buffer probably over-filled!");
   recv_buff[size]=0;
@@ -132,12 +132,11 @@ void onp_send_object(object* o, char* channel)
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
 void send(char* buff, char* channel)
 {
-  int size=0;
+  uint16_t size=0;
 #ifdef ONP_CHANNEL_SERIAL
   if(!strcmp(channel, "serial")){
     size = channel_serial_send(buff, strlen(buff));
     log_sent(buff,size,"Serial",0);
-    if(size<0) channel_serial_init(on_connect);
   }
 #endif
 #ifdef ONP_CHANNEL_IPV6
@@ -146,7 +145,7 @@ void send(char* buff, char* channel)
 #endif
 }
 
-void log_sent(char* buff, int size, char* to, uint16_t* toip)
+void log_sent(char* buff, uint16_t size, char* to, uint16_t* toip)
 {
 #ifdef ONP_DEBUG
 #if defined(LOG_TO_BLE) || defined(LOG_TO_GFX) || defined(ONP_OVER_SERIAL)
@@ -157,20 +156,19 @@ void log_sent(char* buff, int size, char* to, uint16_t* toip)
 #ifdef ONP_CHANNEL_IPV6
   if(toip){ log_write(" to "); channel_ipv6_show_host_and_port(toip); }
 #endif
-  if(size>=0) log_write(" (%d bytes)\n", size);
-  else        log_write(" (failed to send)\n");
+  log_write(" (%d bytes)\n", size);
 #endif
 #endif
 }
 
-void log_recv(char* buff, int size, char* channel)
+void log_recv(char* buff, uint16_t size, char* channel)
 {
 #ifdef ONP_DEBUG
 #if defined(LOG_TO_BLE) || defined(LOG_TO_GFX) || defined(ONP_OVER_SERIAL)
   log_write("< %d\n", size);
 #else
   log_write("ONP recv '%s'", buff);
-  if(channel)    log_write(" from channel %s ", channel);
+  if(channel) log_write(" from channel %s ", channel);
 #ifdef ONP_CHANNEL_IPV6
   if(fromip){ log_write(" from "); channel_ipv6_show_host_and_port(fromip); }
 #endif

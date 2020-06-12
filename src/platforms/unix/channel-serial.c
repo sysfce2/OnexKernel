@@ -21,15 +21,15 @@ void channel_serial_init(channel_serial_connect_cb cb)
   initialised=true;
 }
 
-int channel_serial_recv(char* b, int l)
+uint16_t channel_serial_recv(char* b, uint16_t l)
 {
   if(!initialised) return 0;
   return serial_recv(b,l);
 }
 
-int channel_serial_send(char* b, int n)
+uint16_t channel_serial_send(char* b, uint16_t n)
 {
-  if(!initialised) return -1;
+  if(!initialised) return 0;
   return serial_printf("%s\n", b);
 }
 
