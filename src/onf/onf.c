@@ -1260,7 +1260,7 @@ static uint32_t lasttime=0;
 
 bool persistence_loop()
 {
-  if(!objects_to_save) return;
+  if(!objects_to_save) return false;
   uint64_t curtime = time_ms();
   if(curtime > lasttime+100){
     persistence_flush();
