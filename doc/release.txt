@@ -1,7 +1,5 @@
 
 Make cleanlibs && Make android.tests
-# ..or.. if adb over lan
-Make cleanlibs && Make android.tests.lan
 
 Make clean && Make linux.tests
 
