@@ -117,6 +117,12 @@ void value_log(value* v)
 
 void value_dump()
 {
-  properties_log(all_values);
+  uint16_t s=properties_size(all_values);
+  for(uint16_t i=1; i<=s; i++){
+    char* key=properties_key_n(all_values, i);
+    value* val=(value*)properties_get_n(all_values, i);
+    log_write("[%d|%s|%d]\n", i, key, val->refs);
+    log_flush();
+  }
 }
 
