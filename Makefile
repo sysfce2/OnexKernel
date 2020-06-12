@@ -71,15 +71,12 @@ linux.valgrind: tests.linux
 	valgrind --leak-check=yes --undef-value-errors=no ./tests.linux
 
 android.tests: android.library
-	adb -d uninstall network.object.onexkernel || echo not found
-	adb -d install android/onexkernel/build/outputs/apk/onexkernel-debug.apk
+	adb shell pm uninstall network.object.onexkernel || echo not found
+	adb install android/onexkernel/build/outputs/apk/debug/onexkernel-debug.apk
+	adb shell pm grant network.object.onexkernel android.permission.READ_EXTERNAL_STORAGE
+	adb shell pm grant network.object.onexkernel android.permission.WRITE_EXTERNAL_STORAGE
+	adb shell rm -f sdcard/Onex/onex.ondb
 	adb logcat OnexApp:D *:S
-
-android.tests.lan: android.library
-	adb uninstall network.object.onexkernel || echo not found
-	adb install android/onexkernel/build/outputs/apk/onexkernel-debug.apk
-	adb logcat OnexApp:D *:S
-
 
 #############################:
 
@@ -91,7 +88,7 @@ clean:
 
 cleanx: clean
 	rm -f *.linux
-	rm -rf android/build android/*/build android/*/.externalNativeBuild/ android/.gradle/*/*
+	rm -rf android/*/build android/*/.cxx/ android/.gradle/*/*
 
 cleanlibs: cleanx
 	rm -f libOnex*.a

@@ -10,6 +10,7 @@ void log_init()
 
 bool log_loop()
 {
+  return false;
 }
 
 int log_write(const char* fmt, ...)

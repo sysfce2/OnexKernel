@@ -28,7 +28,7 @@ void log_flush();
 #include <android/log.h>
 
 #define log_init()
-#define log_loop()
+#define log_loop() true
 #define log_write(...) ((void)__android_log_print(ANDROID_LOG_INFO, "OnexApp", __VA_ARGS__))
 #define log_flush()
 
