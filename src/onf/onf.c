@@ -1182,8 +1182,6 @@ bool mkdir_p(char* filename)
 
 void persistence_init(char* filename)
 {
-  objects_text=properties_new(MAX_OBJECTS);
-  objects_to_save=properties_new(MAX_OBJECTS);
   if(!*filename) return;
 #if !defined(NRF5)
   if(!mkdir_p(filename)){
@@ -1205,6 +1203,8 @@ void persistence_init(char* filename)
     log_write("Can't allocate space for DB file %s\n", filename);
     return;
   }
+  objects_text=properties_new(MAX_OBJECTS);
+  objects_to_save=properties_new(MAX_OBJECTS);
   long n=fread(alldbtext, sizeof(char), len, db);
   alldbtext[n] = '\0';
   char* text=strtok(alldbtext, "\n");
@@ -1238,6 +1238,7 @@ static uint32_t lasttime=0;
 
 bool persistence_loop()
 {
+  if(!objects_to_save) return;
   uint64_t curtime = time_ms();
   if(curtime > lasttime+100){
     persistence_flush();
@@ -1248,6 +1249,7 @@ bool persistence_loop()
 
 object* persistence_get(char* uid)
 {
+  if(!objects_text) return 0;
   char* text=properties_get(objects_text, uid);
   if(!text) return 0;
   object* o=new_object_from(text, MAX_OBJECT_SIZE);
@@ -1258,12 +1260,14 @@ object* persistence_get(char* uid)
 
 void persistence_put(object* o)
 {
+  if(!objects_to_save) return;
   value* uid=o->uid;
   properties_set(objects_to_save, value_string(uid), uid);
 }
 
 void persistence_flush()
 {
+  if(!objects_to_save) return;
   uint16_t sz=properties_size(objects_to_save);
   if(!sz) return;
   for(int j=1; j<=sz; j++){
@@ -1273,14 +1277,15 @@ void persistence_flush()
     char* text=object_to_text(o,buff,MAX_TEXT_LEN,OBJECT_TO_TEXT_PERSIST);
     free(properties_delete(objects_text, uid));
     properties_set(objects_text, uid, strdup(text));
-    if(db) fprintf(db, "%s\n", text);
+    fprintf(db, "%s\n", text);
   }
   properties_clear(objects_to_save, false);
-  if(db) fflush(db);
+  fflush(db);
 }
 
 void scan_objects_text_for_keep_active()
 {
+  if(!objects_text) return;
   for(int n=1; n<=properties_size(objects_text); n++){
     char* uid=0;
     char* p=properties_get_n(objects_text, n);
