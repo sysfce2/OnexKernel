@@ -3,8 +3,6 @@
 
 #include <boards.h>
 
-#include <nrfx_gpiote.h>
-
 #include <onex-kernel/log.h>
 #include <onex-kernel/i2c.h>
 #include <onex-kernel/time.h>
