@@ -8,6 +8,10 @@ void log_init()
 {
 }
 
+bool log_loop()
+{
+}
+
 int log_write(const char* fmt, ...)
 {
   va_list args;
@@ -17,3 +21,6 @@ int log_write(const char* fmt, ...)
   return r;
 }
 
+void log_flush()
+{
+}

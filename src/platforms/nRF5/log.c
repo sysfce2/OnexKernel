@@ -24,7 +24,6 @@ void log_init()
 bool log_loop()
 {
 #if defined(NRF_LOG_ENABLED)
-  // NRF_LOG_FLUSH();
   return NRF_LOG_PROCESS();
 #else
   return false;
@@ -63,5 +62,13 @@ int log_write(const char* fmt, ...)
   return r;
 }
 #endif
+
+void log_flush()
+{
+#if defined(NRF_LOG_ENABLED)
+  NRF_LOG_FLUSH();
+  time_delay_ms(5);
+#endif
+}
 
 
