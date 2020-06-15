@@ -22,13 +22,9 @@ void channel_serial_on_recv(unsigned char* ch, size_t len)
     if(connect_cb) connect_cb("serial");
     return;
   }
-  uint16_t cw=current_write;
-  uint16_t da=data_available;
   for(uint16_t i=0; i<len; i++){
     if(data_available==SERIAL_BUFFER_SIZE){
       log_write("channel serial recv buffer full!\n");
-      current_write=cw;
-      data_available=da;
       return;
     }
     buffer[current_write++]=ch[i];
@@ -51,12 +47,12 @@ uint16_t channel_serial_recv(char* b, uint16_t l)
   uint16_t cr=current_read;
   uint16_t da=data_available;
   uint16_t s=0;
-  while(da && s<l){
-    char d=buffer[cr++]; s++;
-    if(cr==SERIAL_BUFFER_SIZE) cr=0;
-    da--;
+  while(true){
+    char d=buffer[cr];
     if(d=='\r' || d=='\n') break;
-    if(!da) return 0;
+    da--; if(!da) return 0;
+    cr++; if(cr==SERIAL_BUFFER_SIZE) cr=0;
+    s++;
     if(s==l){
       log_write("channel_serial_recv can fill all of the available buffer without hitting EOL!\n");
       return 0;

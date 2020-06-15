@@ -103,7 +103,6 @@ void do_connect(char* channel)
 
 static void handle_recv(uint16_t size, char* channel, uint16_t* fromip)
 {
-  if(size==255) log_write("ONP receive buffer probably over-filled!");
   recv_buff[size]=0;
 
   log_recv(recv_buff, size, channel);

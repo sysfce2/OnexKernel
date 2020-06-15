@@ -214,17 +214,9 @@ static void gatt_init(void)
 static void nus_data_handler(ble_nus_evt_t * p_evt)
 {
     if (p_evt->type == BLE_NUS_EVT_RX_DATA) {
-      uint16_t       length =     (uint16_t)p_evt->params.rx_data.length;
       unsigned char* data = (unsigned char*)p_evt->params.rx_data.p_data;
-      if(length>=64){
-#if !defined(LOG_TO_BLE)
-        log_write("NUS data too long; %d chars\n", length);
-#endif
-        return;
-      }
-      unsigned char b[64];
-      memcpy(b, data, length); b[length]=0;
-      if(recv_cb) recv_cb(b, length);
+      uint16_t       length =     (uint16_t)p_evt->params.rx_data.length;
+      if(recv_cb) recv_cb(data, length);
     }
     else
     if (p_evt->type == BLE_NUS_EVT_TX_RDY) {
