@@ -6971,7 +6971,7 @@
 // <4=> Debug
 
 #ifndef MEM_MANAGER_CONFIG_LOG_LEVEL
-#define MEM_MANAGER_CONFIG_LOG_LEVEL 2
+#define MEM_MANAGER_CONFIG_LOG_LEVEL 3
 #endif
 
 // <o> MEM_MANAGER_CONFIG_INFO_COLOR  - ANSI escape code prefix.
