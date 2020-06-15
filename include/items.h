@@ -45,11 +45,11 @@ char* unknown_to_text(char* b);
 }while(0)
 
 #define item_free(i) do{\
-  if(!i)                              log_write("item_free(null)!\n"); else \
+  if(!i)                              ; else \
   if(item_is_type(i,ITEM_PROPERTIES)) properties_free((properties*)i, true); else \
   if(item_is_type(i,ITEM_LIST))       list_free((list*)i, true); else \
   if(item_is_type(i,ITEM_VALUE))      value_free((value*)i); else \
-                                      log_write("item_free(not an item)!\n"); \
+                                    { log_write("item_free(not an item)! %p\n", i); __builtin_trap(); } \
 }while(0)
 
 
