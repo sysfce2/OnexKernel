@@ -699,6 +699,8 @@ void run_onf_tests(char* dbpath)
   e=(uint32_t)time_ms()-s;
   log_write(">>>> time passed after waiting %ud\n", e);
 
+  onex_loop();
+
   onex_assert_equal_num(evaluate_timer_n4_called, 2, "evaluate_timer_n4 was called after 180");
 }
 
