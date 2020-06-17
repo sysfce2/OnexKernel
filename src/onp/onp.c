@@ -57,8 +57,8 @@ uint16_t single_peer[] = { 0x2002, 0xd417, 0x1f9e, 0x1234, 0x5e51, 0x4fff, 0xfe7
 #define SEND_BUFF_SIZE 4096
 #endif
 
-char recv_buff[RECV_BUFF_SIZE];
-char send_buff[SEND_BUFF_SIZE];
+static char recv_buff[RECV_BUFF_SIZE];
+static char send_buff[SEND_BUFF_SIZE];
 
 #ifdef ONP_CHANNEL_SERIAL
 static char*    connect_channel=0;

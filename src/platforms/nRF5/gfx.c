@@ -87,7 +87,7 @@ void gfx_pop()
   y_pos=y_pos_save_this_is_not_really_a_stack;
 }
 
-uint16_t text_colour;
+static uint16_t text_colour;
 void gfx_text_colour(uint16_t colour)
 {
   text_colour = colour;
