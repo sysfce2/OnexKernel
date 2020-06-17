@@ -1075,12 +1075,12 @@ bool onex_loop()
   bool keep_awake = false;
 #if defined(NRF5)
 #if defined(HAS_SERIAL)
-  keep_awake = serial_loop() || keep_awake;
+  keep_awake = serial_loop()        || keep_awake;
 #endif
-  keep_awake = log_loop() || keep_awake;
+  keep_awake = log_loop()           || keep_awake;
 #endif
-  keep_awake = persistence_loop() || keep_awake;
-  keep_awake = onp_loop() || keep_awake;
+  keep_awake = persistence_loop()   || keep_awake;
+  keep_awake = onp_loop()           || keep_awake;
   keep_awake = run_any_evaluators() || keep_awake;
   return keep_awake;
 }
