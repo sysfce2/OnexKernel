@@ -19,7 +19,7 @@ void* Mem_alloc(char* func, int line, size_t n)
     if(LOG_MEM) log_write("****** mem_alloc using calloc %p", p);
     if((char*)p > top_alloc){
       top_alloc=p;
-      log_write("=============== new calloc top: %p\n", top_alloc);
+      log_write("=============== new calloc top: %p %lu %s:%d\n", p, n, func, line);
     }
   }
   if(LOG_MEM) log_write("mem_alloc   %p %lu %s:%d\n", p, n, func, line);
@@ -46,7 +46,7 @@ char* Mem_strdup(char* func, int line, const char* s)
     if(LOG_MEM) log_write("****** mem_strdup using malloc %p", p);
     if((char*)p > top_alloc){
       top_alloc=p;
-      log_write("=============== new malloc top: %p\n", top_alloc);
+      log_write("=============== new malloc top: %p %lu %s:%d\n", p, n, func, line);
     }
   }
   if(p) memcpy(p,s,n);
