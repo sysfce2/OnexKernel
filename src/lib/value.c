@@ -57,6 +57,13 @@ value* value_new(char* val)
   return ours;
 }
 
+value* value_ref(value* v)
+{
+  if(!v) return 0;
+  v->refs++;
+  return v;
+}
+
 char* value_string(value* v)
 {
   if(!v) return 0;

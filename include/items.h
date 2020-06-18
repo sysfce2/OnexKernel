@@ -91,6 +91,7 @@ void     list_free(list* li, bool free_items);
 /* Value: numbers, words, etc; immutable and interned. */
 
 value* value_new(char*);
+value* value_ref(value* v);
 char*  value_string(value* v);
 bool   value_equal(value* v1, value* v2);
 bool   value_is(value* v, char* s);
