@@ -14,13 +14,7 @@
 
 void log_init();
 bool log_loop();
-
-#if defined(LOG_TO_RTT)
-#define log_write(...) do { NRF_LOG_DEBUG(__VA_ARGS__); time_delay_ms(2); NRF_LOG_FLUSH(); time_delay_ms(2); } while(0)
-#else
 int  log_write(const char* fmt, ...);
-#endif
-
 void log_flush();
 
 #else

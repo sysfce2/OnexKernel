@@ -30,7 +30,7 @@ bool log_loop()
 #endif
 }
 
-#if defined(LOG_TO_BLE) || defined(LOG_TO_GFX)
+#if defined(LOG_TO_BLE) || defined(LOG_TO_GFX) || defined(LOG_TO_RTT)
 #define LOG_BUF_SIZE 1024
 static volatile char log_buffer[LOG_BUF_SIZE];
 #if defined(LOG_TO_GFX)
@@ -38,7 +38,6 @@ volatile char* event_log_buffer=0;
 #endif
 #endif
 
-#if !defined(LOG_TO_RTT)
 int log_write(const char* fmt, ...)
 {
   va_list args;
@@ -57,11 +56,16 @@ int log_write(const char* fmt, ...)
   //if(strlen(log_buffer)>19){ log_buffer[18]='\n'; log_buffer[19]=0; }
   r=blenus_printf((char*)log_buffer);
   time_delay_ms(5);
+#elif defined(LOG_TO_RTT)
+  vsnprintf((char*)log_buffer, LOG_BUF_SIZE, fmt, args);
+  NRF_LOG_DEBUG("%s", (char*)log_buffer);
+  time_delay_ms(2);
+  NRF_LOG_FLUSH();
+  time_delay_ms(2);
 #endif
   va_end(args);
   return r;
 }
-#endif
 
 void log_flush()
 {
