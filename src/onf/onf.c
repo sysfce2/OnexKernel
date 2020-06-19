@@ -603,7 +603,7 @@ bool set_timer(object* n, char* timer)
   n->timer=value_new(timer);
   char* e; uint32_t tm=strtol(timer,&e,10);
   if(*e) return false;
-  set_to_notify(value_ref(n->uid), 0, 0, time_ms()+tm);
+  set_to_notify(n->uid, 0, 0, time_ms()+tm);
   return true;
 }
 
@@ -891,25 +891,21 @@ bool run_any_evaluators()
     switch(to_notify[n].type){
       case(TO_NOTIFY_NONE): {
         to_notify[n].type=TO_NOTIFY_FREE;
-        value_free(uid);
         run_evaluators(o, 0, 0, false);
         break;
       }
       case(TO_NOTIFY_DATA): {
         to_notify[n].type=TO_NOTIFY_FREE;
-        value_free(uid);
         run_evaluators(o, data, 0, false);
         break;
       }
       case(TO_NOTIFY_ALERTED): {
         to_notify[n].type=TO_NOTIFY_FREE;
-        value_free(uid);
         run_evaluators(o, 0, alerted, false);
         break;
       }
       case(TO_NOTIFY_TIMEOUT): {
         to_notify[n].type=TO_NOTIFY_FREE;
-        value_free(uid);
         start_timer_for_soonest_timeout_if_in_future();
         run_evaluators(o, 0, 0, true);
         break;
@@ -957,7 +953,7 @@ void save_and_notify(object* o)
       continue;
     }
     if(!object_is_device(n)){
-      if(!object_is_remote(n)) set_to_notify(value_ref(n->uid), 0, o->uid, 0);
+      if(!object_is_remote(n)) set_to_notify(n->uid, 0, o->uid, 0);
       else
       if(!object_is_remote(o)) onp_send_object(o, channel_of(notify));
     }
@@ -966,7 +962,7 @@ void save_and_notify(object* o)
     }
   }
   if(object_is_remote_device(o)){
-    set_to_notify(value_ref(onex_device_object->uid), 0, o->uid, 0);
+    set_to_notify(onex_device_object->uid, 0, o->uid, 0);
   }
   if(o==onex_device_object){
     onp_send_object(onex_device_object, channel_of("")); // all channels
@@ -1159,7 +1155,8 @@ void onex_set_evaluators(char* name, ...)
 
 void onex_run_evaluators(char* uid, void* data){
   if(!uid) return;
-  set_to_notify(value_new(uid), data, 0, 0);
+  object* o=onex_get_from_cache(uid);
+  set_to_notify(o->uid, data, 0, 0);
 }
 
 void run_evaluators(object* o, void* data, value* alerted, bool timedout){
@@ -1333,7 +1330,7 @@ void scan_objects_text_for_keep_active()
     if(uid){
       object* o=onex_get_from_cache(uid);
       if(object_is_local_device(o)) onex_device_object = o;
-      set_to_notify(value_ref(o->uid), 0, 0, 0);
+      set_to_notify(o->uid, 0, 0, 0);
     }
   }
 }
