@@ -13,6 +13,7 @@
 #include "app_usbd_serial_num.h"
 
 #if !defined(LOG_TO_SERIAL)
+#define BUFFER_LOG_ON
 #include <onex-kernel/log.h>
 #endif
 #include <onex-kernel/serial.h>

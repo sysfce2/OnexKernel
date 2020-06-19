@@ -27,9 +27,9 @@
 #include <onex-kernel/time.h>
 #include <onex-kernel/blenus.h>
 #if !defined(LOG_TO_BLE)
+#define BUFFER_LOG_ON
 #include <onex-kernel/log.h>
 #endif
-#include <assert.h>
 
 #define BUFFER_CHUNK_SIZE (BLE_GATT_ATT_MTU_DEFAULT-3)
 static volatile char buffer_chunk[BUFFER_CHUNK_SIZE];

@@ -4,7 +4,7 @@ Make cleanlibs && Make android.tests
 Make clean && Make linux.tests
 
 # tests
-make clean && make -j flash0
+make clean && make -j flash1
 
 # tests on PineTime
 make -f makefile-s132 clean
