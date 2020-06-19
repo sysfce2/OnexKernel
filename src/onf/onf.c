@@ -838,17 +838,19 @@ void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
     if(!data && !alerted && !timeout && to_notify[n].type==TO_NOTIFY_NONE) break;
     if( data &&                         to_notify[n].type==TO_NOTIFY_DATA &&                to_notify[n].details.data==data) break;
     if(          alerted &&             to_notify[n].type==TO_NOTIFY_ALERTED && value_equal(to_notify[n].details.alerted, alerted)) break;
-    if(                      timeout && to_notify[n].type==TO_NOTIFY_TIMEOUT){              to_notify[n].details.timeout=timeout; break; }
+    if(                      timeout && to_notify[n].type==TO_NOTIFY_TIMEOUT){              to_notify[n].details.timeout = timeout; /* reset timeout! */ break; }
   }
   if(n==MAX_TO_NOTIFY){
     highest_to_notify=h;
     for(n=0; n<MAX_TO_NOTIFY; n++){
       if(to_notify[n].type!=TO_NOTIFY_FREE) continue;
       ;            to_notify[n].uid=uid;
-      ;            to_notify[n].type=TO_NOTIFY_NONE;    to_notify[n].details.timeout=0;
-      if(data){    to_notify[n].type=TO_NOTIFY_DATA;    to_notify[n].details.data    = data; }
+      if(data){    to_notify[n].type=TO_NOTIFY_DATA;    to_notify[n].details.data    = data;    }
+      else
       if(alerted){ to_notify[n].type=TO_NOTIFY_ALERTED; to_notify[n].details.alerted = alerted; }
+      else
       if(timeout){ to_notify[n].type=TO_NOTIFY_TIMEOUT; to_notify[n].details.timeout = timeout; }
+      else       { to_notify[n].type=TO_NOTIFY_NONE;    to_notify[n].details.timeout=0;         }
       if(n>highest_to_notify) highest_to_notify=n;
       break;
     }
@@ -859,8 +861,10 @@ void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
       if(t>=0) time_start_timer(timer_id, t);
     }
   }
-  else
-  if(timeout) start_timer_for_soonest_timeout_if_in_future();
+  else{
+    // found, but may have reset timeout above
+    if(timeout) start_timer_for_soonest_timeout_if_in_future();
+  }
 #if defined(NRF5)
   CRITICAL_REGION_EXIT();
 #else

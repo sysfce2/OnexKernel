@@ -12,6 +12,7 @@ static char* top_alloc=0;
 
 void* Mem_alloc(char* func, int line, size_t n)
 {
+  if(!n) return 0;
   if(!initialized){ initialized=true; nrf_mem_init(); }
   void* p=nrf_calloc(1,n);
   if(!p){
@@ -26,7 +27,7 @@ void* Mem_alloc(char* func, int line, size_t n)
   return p;
 }
 
-void  Mem_free(char* func, int line, void* p)
+void Mem_free(char* func, int line, void* p)
 {
   if(!initialized){ initialized=true; nrf_mem_init(); }
   if(LOG_MEM) log_write("mem_free    %p %lu %s:%d\n", p, (size_t)0, func, line);
@@ -38,6 +39,7 @@ void  Mem_free(char* func, int line, void* p)
 
 char* Mem_strdup(char* func, int line, const char* s)
 {
+  if(!s) return 0;
   if(!initialized){ initialized=true; nrf_mem_init(); }
   size_t n=strlen(s)+1;
   char* p=nrf_malloc(n);
