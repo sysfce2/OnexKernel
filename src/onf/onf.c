@@ -844,13 +844,15 @@ void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
     highest_to_notify=h;
     for(n=0; n<MAX_TO_NOTIFY; n++){
       if(to_notify[n].type!=TO_NOTIFY_FREE) continue;
-      ;            to_notify[n].uid=uid;
-      if(data){    to_notify[n].type=TO_NOTIFY_DATA;    to_notify[n].details.data    = data;    }
+      ;            to_notify[n].uid=uid;     // Must set type last below ↓ to keep thread safety
+      if(data){    to_notify[n].details.data    = data;    to_notify[n].type=TO_NOTIFY_DATA;    }
       else
-      if(alerted){ to_notify[n].type=TO_NOTIFY_ALERTED; to_notify[n].details.alerted = alerted; }
+      if(alerted){ to_notify[n].details.alerted = alerted; to_notify[n].type=TO_NOTIFY_ALERTED; }
       else
-      if(timeout){ to_notify[n].type=TO_NOTIFY_TIMEOUT; to_notify[n].details.timeout = timeout; }
-      else       { to_notify[n].type=TO_NOTIFY_NONE;    to_notify[n].details.timeout=0;         }
+      if(timeout){ to_notify[n].details.timeout = timeout; to_notify[n].type=TO_NOTIFY_TIMEOUT; }
+      else {
+                   to_notify[n].details.timeout=0;         to_notify[n].type=TO_NOTIFY_NONE;
+      }
       if(n>highest_to_notify) highest_to_notify=n;
       break;
     }
