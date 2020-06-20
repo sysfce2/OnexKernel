@@ -6,10 +6,11 @@
 #include <errno.h>
 #include <ctype.h>
 #include <sys/stat.h>
-#include <pthread.h>
 
 #if defined(NRF5)
 #include <app_util_platform.h>
+#else
+#include <pthread.h>
 #endif
 
 #include <onex-kernel/mem.h>

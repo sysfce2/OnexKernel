@@ -1,6 +1,13 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+#if defined(NRF5)
+#include <app_util_platform.h>
+#else
+#include <pthread.h>
+#endif
+
 #include <items.h>
 
 #include <onex-kernel/mem.h>
@@ -24,20 +31,35 @@ static properties* all_values=0;
 #define MAX_TEXT_LEN 4096
 #endif
 
+#if defined(NRF5)
+#define ENTER_LOCKING                                  \
+        uint8_t __CR_NESTED = 0;                       \
+        app_util_critical_region_enter(&__CR_NESTED)
+
+#define RETURN_UNLOCKING(x)                            \
+        app_util_critical_region_exit(__CR_NESTED);    \
+        return x
+#else
+static pthread_mutex_t value_lock;
+#define ENTER_LOCKING       pthread_mutex_lock(&value_lock)
+#define RETURN_UNLOCKING(x) pthread_mutex_unlock(&value_lock); return x
+#endif
+
 value* value_new(char* val)
 {
   if(!val) return 0;
   if(!all_values) all_values=properties_new(MAX_VALUES);
+  ENTER_LOCKING;
   value* ours=(value*)properties_get(all_values, val);
   if(ours){
     ours->refs++;
     if(ours->refs==0) log_write("V0%s\n", ours->val); // 65536 references so more likely not being freed
-    return ours;
+    RETURN_UNLOCKING(ours);
   }
   ours=(value*)mem_alloc(sizeof(value));
   if(!ours){
     log_write("VALS!!\n"); // this is serious
-    return 0;
+    RETURN_UNLOCKING(0);
   }
   ours->type=ITEM_VALUE;
   ours->val=mem_strdup(val);
@@ -46,22 +68,37 @@ value* value_new(char* val)
   if(!ours->val){
     log_write("!VALS!\n"); // this is serious
     mem_free(ours);
-    return 0;
+    RETURN_UNLOCKING(0);
   }
   if(!properties_set(all_values, ours->val, ours)){
     log_write("!!VALS\n"); // this is serious
     mem_freestr(ours->val);
     mem_free(ours);
-    return 0;
+    RETURN_UNLOCKING(0);
   }
-  return ours;
+  RETURN_UNLOCKING(ours);
 }
 
 value* value_ref(value* v)
 {
   if(!v) return 0;
+  ENTER_LOCKING;
   v->refs++;
-  return v;
+  RETURN_UNLOCKING(v);
+}
+
+void value_free(value* v)
+{
+  if(!v) return;
+  ENTER_LOCKING;
+  v->refs--;
+  if(v->refs){
+    RETURN_UNLOCKING();
+  }
+  properties_delete(all_values, v->val);
+  mem_freestr(v->val);
+  mem_free(v);
+  RETURN_UNLOCKING();
 }
 
 char* value_string(value* v)
@@ -82,16 +119,6 @@ bool value_is(value* v, char* s)
 {
   if(!v) return !s;
   return !strcmp(v->val, s);
-}
-
-void value_free(value* v)
-{
-  if(!v) return;
-  v->refs--;
-  if(v->refs) return;
-  properties_delete(all_values, v->val);
-  mem_freestr(v->val);
-  mem_free(v);
 }
 
 char* value_to_text(value* v, char* b, uint16_t s)
