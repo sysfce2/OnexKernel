@@ -1,4 +1,6 @@
 
+git stash #so libraries==code
+
 Make cleanlibs && Make android.tests
 
 Make clean && Make linux.tests
