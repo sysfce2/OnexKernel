@@ -38,11 +38,11 @@ const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 static void set_up_gpio(void)
 {
 #if defined(BOARD_PCA10059)
-  gpio_mode_cb(BUTTON_1, INPUT_PULLUP, FALLING, button_changed);
+  gpio_mode_cb(BUTTON_1, INPUT_PULLUP, RISING_AND_FALLING, button_changed);
   for(uint8_t l=0; l< LEDS_NUMBER; l++){ gpio_mode(leds_list[l], OUTPUT); gpio_set(leds_list[l], 1); }
   gpio_set(leds_list[0], 0);
 #elif defined(BOARD_PINETIME)
-  gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, FALLING, button_changed);
+  gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, RISING_AND_FALLING, button_changed);
   gpio_mode(BUTTON_ENABLE, OUTPUT);
   gpio_set( BUTTON_ENABLE, 1);
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
