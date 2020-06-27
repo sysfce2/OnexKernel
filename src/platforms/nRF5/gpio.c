@@ -3,14 +3,16 @@
 #include <stdint.h>
 #include <nrf.h>
 #include <nrf_gpio.h>
-#include <nrfx_gpiote.h>
 #include <nrfx_saadc.h>
 #include <onex-kernel/log.h>
 #include <onex-kernel/gpio.h>
 
 void gpio_init()
 {
-  if(!nrfx_gpiote_is_init()) APP_ERROR_CHECK(nrfx_gpiote_init());
+  NVIC_SetPriority(GPIOTE_IRQn, APP_IRQ_PRIORITY_HIGH);
+  NVIC_EnableIRQ(GPIOTE_IRQn);
+  NRF_GPIOTE->EVENTS_PORT = 0; volatile uint32_t readit=NRF_GPIOTE->EVENTS_PORT; (void)readit;
+  NRF_GPIOTE->INTENSET = GPIOTE_INTENSET_PORT_Msk;
 }
 
 void gpio_mode(uint8_t pin, uint8_t mode)
@@ -55,30 +57,59 @@ void gpio_mode(uint8_t pin, uint8_t mode)
     }
 }
 
+typedef struct gpio_interrupt {
+  uint8_t     pin;
+  uint8_t     mode;
+  uint8_t     edge;
+  gpio_pin_cb cb;
+  uint8_t     last_state;
+} gpio_interrupt;
+
+#define MAX_GPIO_INTERRUPTS 8
+static uint8_t                 top_gpio_interrupt=0;
+static volatile gpio_interrupt gpio_interrupts[MAX_GPIO_INTERRUPTS];
+
+void set_sense(int pin, int hi_lo_dis)
+{
+  if(pin<32){
+    NRF_P0->PIN_CNF[pin] &= ~GPIO_PIN_CNF_SENSE_Msk;
+    NRF_P0->PIN_CNF[pin] |= (hi_lo_dis << GPIO_PIN_CNF_SENSE_Pos);
+  }else{
+#if (GPIO_COUNT == 2)
+    NRF_P1->PIN_CNF[pin-32] &= ~GPIO_PIN_CNF_SENSE_Msk;
+    NRF_P1->PIN_CNF[pin-32] |= (hi_lo_dis << GPIO_PIN_CNF_SENSE_Pos);
+#endif
+  }
+}
+
+void GPIOTE_IRQHandler()
+{
+  if(NRF_GPIOTE->EVENTS_PORT){
+    NRF_GPIOTE->EVENTS_PORT = 0; volatile uint32_t readit=NRF_GPIOTE->EVENTS_PORT; (void)readit;
+    for(uint8_t i=0; i<top_gpio_interrupt; i++){
+      uint8_t pin       =gpio_interrupts[i].pin;
+      uint8_t last_state=gpio_interrupts[i].last_state;
+      uint8_t state=gpio_get(pin);
+      if(state==last_state) continue;
+      gpio_interrupts[i].last_state=state;
+      set_sense(pin, state? GPIO_PIN_CNF_SENSE_Low: GPIO_PIN_CNF_SENSE_High);
+      gpio_interrupts[i].cb(pin, state? RISING: FALLING);
+    }
+  }
+}
+
 void gpio_mode_cb(uint8_t pin, uint8_t mode, uint8_t edge, gpio_pin_cb cb)
 {
-  nrfx_gpiote_in_config_t config;
-  config.skip_gpio_setup = true;
-  config.hi_accuracy = true; // HIGHER POWER CONSUMPTION! FIXME
-  config.is_watcher = false;
-  config.sense = (nrf_gpiote_polarity_t)edge; // sdk/modules/nrfx/mdk/nrf52_bitfields.h
-
-  switch (mode){
-    case INPUT:
-      nrf_gpio_cfg_sense_input(pin, GPIO_PIN_CNF_PULL_Disabled, GPIO_PIN_CNF_SENSE_High);
-      config.pull = GPIO_PIN_CNF_PULL_Disabled;
-      break;
-    case INPUT_PULLUP:
-      nrf_gpio_cfg_sense_input(pin, GPIO_PIN_CNF_PULL_Pullup, GPIO_PIN_CNF_SENSE_Low);
-      config.pull = GPIO_PIN_CNF_PULL_Pullup;
-      break;
-    case INPUT_PULLDOWN:
-      nrf_gpio_cfg_sense_input(pin, GPIO_PIN_CNF_PULL_Pulldown, GPIO_PIN_CNF_SENSE_High);
-      config.pull = GPIO_PIN_CNF_PULL_Pulldown;
-      break;
-  }
-  nrfx_gpiote_in_init(pin, &config, (void (*)(nrfx_gpiote_pin_t, nrf_gpiote_polarity_t))cb);
-  nrfx_gpiote_in_event_enable(pin, true);
+  if(top_gpio_interrupt==MAX_GPIO_INTERRUPTS) return;
+  gpio_interrupts[top_gpio_interrupt].pin=pin;
+  gpio_interrupts[top_gpio_interrupt].mode=mode;
+  gpio_interrupts[top_gpio_interrupt].edge=edge;
+  gpio_interrupts[top_gpio_interrupt].cb=cb;
+  gpio_mode(pin, mode);
+  uint8_t state=gpio_get(pin);
+  gpio_interrupts[top_gpio_interrupt].last_state=state;
+  set_sense(pin, state? GPIO_PIN_CNF_SENSE_Low: GPIO_PIN_CNF_SENSE_High);
+  top_gpio_interrupt++;
 }
 
 uint8_t gpio_get(uint8_t pin)
