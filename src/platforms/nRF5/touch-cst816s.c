@@ -1,7 +1,6 @@
 
 #include <boards.h>
 
-#include <nrfx_gpiote.h>
 #include <app_timer.h>
 
 #include <onex-kernel/time.h>
