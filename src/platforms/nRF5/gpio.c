@@ -125,12 +125,11 @@ void GPIOTE_IRQHandler()
 
     if(!(changed || latched)) continue;
 
+    gpio_interrupts[i].last_state=state;
+
     bool quick_change=(!changed && latched);
     if(changed && !latched) log_write("pin %d not DETECTed but change read\n", pin);
     if(quick_change)        log_write("pin %d quick change missed but DETECTed by LATCH\n", pin);
-
-    gpio_interrupts[i].last_state=state;
-
 
     switch(gpio_interrupts[i].edge){
       case(RISING):             { if(quick_change ||  state) gpio_interrupts[i].cb(pin, RISING);                 break; }
