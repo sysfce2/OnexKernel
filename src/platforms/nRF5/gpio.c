@@ -83,18 +83,59 @@ void set_sense(int pin, int hi_lo_dis)
 #endif
 }
 
+bool get_latch_and_clear(uint8_t pin)
+{
+  bool r=false;
+  if(pin<32){
+    uint32_t b=1<<pin;
+    r=!!(NRF_P0->LATCH & b);
+    if(r) NRF_P0->LATCH=b;
+  }
+#if (GPIO_COUNT == 2)
+  else{
+    uint32_t b=1<<(pin-32);
+    r=!!(NRF_P1->LATCH & b);
+    if(r) NRF_P0->LATCH=b;
+  }
+#endif
+  return r;
+}
+
 void GPIOTE_IRQHandler()
 {
-  if(NRF_GPIOTE->EVENTS_PORT){
-    NRF_GPIOTE->EVENTS_PORT = 0; volatile uint32_t readit=NRF_GPIOTE->EVENTS_PORT; (void)readit;
-    for(uint8_t i=0; i<top_gpio_interrupt; i++){
-      uint8_t pin       =gpio_interrupts[i].pin;
-      uint8_t last_state=gpio_interrupts[i].last_state;
-      uint8_t state=gpio_get(pin);
-      if(state==last_state) continue;
-      gpio_interrupts[i].last_state=state;
-      set_sense(pin, state? GPIO_PIN_CNF_SENSE_Low: GPIO_PIN_CNF_SENSE_High);
-      gpio_interrupts[i].cb(pin, state? RISING: FALLING);
+  if(!(NRF_GPIOTE->EVENTS_PORT)) return;
+
+  for(uint8_t i=0; i<top_gpio_interrupt; i++){
+    set_sense(gpio_interrupts[i].pin, GPIO_PIN_CNF_SENSE_Disabled);
+  }
+
+  NRF_GPIOTE->EVENTS_PORT = 0; volatile uint32_t readit=NRF_GPIOTE->EVENTS_PORT; (void)readit;
+
+  for(uint8_t i=0; i<top_gpio_interrupt; i++){
+
+    uint8_t pin=gpio_interrupts[i].pin;
+
+    bool latched=get_latch_and_clear(pin);
+
+    uint8_t state=gpio_get(pin);
+
+    set_sense(pin, state? GPIO_PIN_CNF_SENSE_Low: GPIO_PIN_CNF_SENSE_High);
+
+    bool changed=(state!=gpio_interrupts[i].last_state);
+
+    if(!(changed || latched)) continue;
+
+    bool quick_change=(!changed && latched);
+    if(changed && !latched) log_write("pin %d not DETECTed but change read\n", pin);
+    if(quick_change)        log_write("pin %d quick change missed but DETECTed by LATCH\n", pin);
+
+    gpio_interrupts[i].last_state=state;
+
+
+    switch(gpio_interrupts[i].edge){
+      case(RISING):             { if(quick_change ||  state) gpio_interrupts[i].cb(pin, RISING);                 break; }
+      case(FALLING):            { if(quick_change || !state) gpio_interrupts[i].cb(pin, FALLING);                break; }
+      case(RISING_AND_FALLING): {                            gpio_interrupts[i].cb(pin, state? RISING: FALLING); break; }
     }
   }
 }
