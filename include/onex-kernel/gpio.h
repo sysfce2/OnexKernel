@@ -3,15 +3,18 @@
 
 #include <stdint.h>
 
-#define INPUT		0
-#define OUTPUT		1
-#define INPUT_PULLUP	2
-#define INPUT_PULLDOWN  3
+// mode values in gpio_mode/gpio_mode_cb
+#define INPUT		1
+#define OUTPUT		2
+#define INPUT_PULLUP	3
+#define INPUT_PULLDOWN  4
+
+// edge values in gpio_mode_cb
 #define RISING             1
 #define FALLING            2
 #define RISING_AND_FALLING 3
 
-typedef void (*gpio_pin_cb)(uint8_t, uint8_t); // pin, type (RISING, FALLING, RISING_AND_FALLING)
+typedef void (*gpio_pin_cb)(uint8_t, uint8_t); // (pin, edge) (edge: RISING, FALLING)
 
 void    gpio_init();
 void    gpio_mode(      uint8_t pin, uint8_t mode);

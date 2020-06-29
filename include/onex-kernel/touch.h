@@ -10,9 +10,9 @@
 #define TOUCH_GESTURE_TAP_DOUBLE 0x0b
 #define TOUCH_GESTURE_TAP_LONG   0x0c
 
-#define TOUCH_ACTION_DOWN    1
-#define TOUCH_ACTION_UP      2
-#define TOUCH_ACTION_CONTACT 3
+#define TOUCH_ACTION_DOWN    1 // up!
+#define TOUCH_ACTION_UP      2 // up
+#define TOUCH_ACTION_CONTACT 3 // down
 
 extern char* touch_gestures[];
 extern char* touch_actions[];
