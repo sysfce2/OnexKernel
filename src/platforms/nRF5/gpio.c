@@ -105,9 +105,7 @@ void GPIOTE_IRQHandler()
 {
   if(!(NRF_GPIOTE->EVENTS_PORT)) return;
 
-  for(uint8_t i=0; i<top_gpio_interrupt; i++){
-    set_sense(gpio_interrupts[i].pin, GPIO_PIN_CNF_SENSE_Disabled);
-  }
+  gpio_disable_interrupts();
 
   NRF_GPIOTE->EVENTS_PORT = 0; volatile uint32_t readit=NRF_GPIOTE->EVENTS_PORT; (void)readit;
 
@@ -151,6 +149,23 @@ void gpio_mode_cb(uint8_t pin, uint8_t mode, uint8_t edge, gpio_pin_cb cb)
   uint8_t state=gpio_get(pin);
   gpio_interrupts[i].last_state=state;
   set_sense(pin, state? GPIO_PIN_CNF_SENSE_Low: GPIO_PIN_CNF_SENSE_High);
+}
+
+void gpio_enable_interrupts()
+{
+  for(uint8_t i=0; i<top_gpio_interrupt; i++){
+    uint8_t pin=gpio_interrupts[i].pin;
+    uint8_t state=gpio_get(pin);
+    gpio_interrupts[i].last_state=state;
+    set_sense(pin, state? GPIO_PIN_CNF_SENSE_Low: GPIO_PIN_CNF_SENSE_High);
+  }
+}
+
+void gpio_disable_interrupts()
+{
+  for(uint8_t i=0; i<top_gpio_interrupt; i++){
+    set_sense(gpio_interrupts[i].pin, GPIO_PIN_CNF_SENSE_Disabled);
+  }
 }
 
 uint8_t gpio_get(uint8_t pin)

@@ -25,6 +25,8 @@ int16_t gpio_read(      uint8_t  channel);
 void    gpio_set(       uint8_t pin, uint8_t value);
 void    gpio_toggle(    uint8_t pin);
 int     gpio_touch_read(uint8_t pin);
+void    gpio_enable_interrupts();
+void    gpio_disable_interrupts();
 
 #endif
 
