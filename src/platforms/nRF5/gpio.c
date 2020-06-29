@@ -149,8 +149,8 @@ void gpio_mode_cb(uint8_t pin, uint8_t mode, uint8_t edge, gpio_pin_cb cb)
   gpio_interrupts[i].edge=edge;
   gpio_interrupts[i].cb=cb;
   uint8_t state=gpio_get(pin);
-  set_sense(pin, state? GPIO_PIN_CNF_SENSE_Low: GPIO_PIN_CNF_SENSE_High);
   gpio_interrupts[i].last_state=state;
+  set_sense(pin, state? GPIO_PIN_CNF_SENSE_Low: GPIO_PIN_CNF_SENSE_High);
 }
 
 uint8_t gpio_get(uint8_t pin)
