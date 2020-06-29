@@ -74,12 +74,13 @@ void set_sense(int pin, int hi_lo_dis)
   if(pin<32){
     NRF_P0->PIN_CNF[pin] &= ~GPIO_PIN_CNF_SENSE_Msk;
     NRF_P0->PIN_CNF[pin] |= (hi_lo_dis << GPIO_PIN_CNF_SENSE_Pos);
-  }else{
+  }
 #if (GPIO_COUNT == 2)
+  else{
     NRF_P1->PIN_CNF[pin-32] &= ~GPIO_PIN_CNF_SENSE_Msk;
     NRF_P1->PIN_CNF[pin-32] |= (hi_lo_dis << GPIO_PIN_CNF_SENSE_Pos);
-#endif
   }
+#endif
 }
 
 void GPIOTE_IRQHandler()
