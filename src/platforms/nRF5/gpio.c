@@ -102,15 +102,15 @@ void GPIOTE_IRQHandler()
 void gpio_mode_cb(uint8_t pin, uint8_t mode, uint8_t edge, gpio_pin_cb cb)
 {
   if(top_gpio_interrupt==MAX_GPIO_INTERRUPTS) return;
-  gpio_interrupts[top_gpio_interrupt].pin=pin;
-  gpio_interrupts[top_gpio_interrupt].mode=mode;
-  gpio_interrupts[top_gpio_interrupt].edge=edge;
-  gpio_interrupts[top_gpio_interrupt].cb=cb;
+  uint8_t i=top_gpio_interrupt++;
+  gpio_interrupts[i].pin=pin;
+  gpio_interrupts[i].mode=mode;
+  gpio_interrupts[i].edge=edge;
+  gpio_interrupts[i].cb=cb;
   gpio_mode(pin, mode);
   uint8_t state=gpio_get(pin);
-  gpio_interrupts[top_gpio_interrupt].last_state=state;
   set_sense(pin, state? GPIO_PIN_CNF_SENSE_Low: GPIO_PIN_CNF_SENSE_High);
-  top_gpio_interrupt++;
+  gpio_interrupts[i].last_state=state;
 }
 
 uint8_t gpio_get(uint8_t pin)
