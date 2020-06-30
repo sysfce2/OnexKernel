@@ -884,14 +884,14 @@ bool run_any_evaluators()
 
     if(to_notify[n].type==TO_NOTIFY_FREE) continue;
 
-    keep_awake=true;
-
     value*   uid    =to_notify[n].uid;
     void*    data   =to_notify[n].details.data;
     value*   alerted=to_notify[n].details.alerted;
     uint64_t timeout=to_notify[n].details.timeout;
 
     if(to_notify[n].type==TO_NOTIFY_TIMEOUT && timeout>curtime) continue;
+
+    keep_awake=true;
 
     object* o=onex_get_from_cache(value_string(uid));
 
