@@ -236,7 +236,7 @@ void object_free(object* o)
   value_free(o->evaluator);
   properties_free(o->properties, true);
   value_free(o->cache);
-  for(int i=0; i< OBJECT_MAX_NOTIFIES; i++) value_free(o->notify[i]);
+  for(uint8_t i=0; i< OBJECT_MAX_NOTIFIES; i++) value_free(o->notify[i]);
   value_free(o->alerted);
   value_free(o->devices);
   value_free(o->timer);
@@ -282,8 +282,8 @@ char* get_val(char** p)
     (*s)=' ';
     (*p)=s+1;
   }
-  unsigned int y=0;
-  for(unsigned int x=0; x<strlen(r); x++){
+  uint16_t y=0;
+  for(uint16_t x=0; x<strlen(r); x++){
     if(r[x]=='\\') continue;
     if(y!=x) r[y]=r[x];
     y++;
@@ -791,11 +791,11 @@ bool object_property_add(object* n, char* path, char* val)
 #define TO_NOTIFY_TIMEOUT 4
 
 typedef struct notification {
-  int type;
-  value* uid;
+  uint8_t type;
+  value*  uid;
   union {
-    void* data;
-    value* alerted;
+    void*    data;
+    value*   alerted;
     uint64_t timeout;
   } details;
 } notification;
@@ -806,7 +806,7 @@ static volatile int highest_to_notify=0;
 void start_timer_for_soonest_timeout_if_in_future()
 {
   uint64_t soonest=0;
-  for(int n=0; n<MAX_TO_NOTIFY; n++){
+  for(uint16_t n=0; n<MAX_TO_NOTIFY; n++){
     if(to_notify[n].type!=TO_NOTIFY_TIMEOUT) continue;
     uint64_t t=to_notify[n].details.timeout;
     if(!soonest || t<soonest) soonest=t;
@@ -825,8 +825,8 @@ void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
   static pthread_mutex_t to_notify_lock;
   pthread_mutex_lock(&to_notify_lock);
 #endif
-  int n=0;
-  int h= -1;
+  uint16_t n=0;
+  uint16_t h= -1;
   bool new_soonest=true;
   for(; n<MAX_TO_NOTIFY; n++){
     if(to_notify[n].type==TO_NOTIFY_FREE) continue;
@@ -880,7 +880,7 @@ bool run_any_evaluators()
 //if(highest_to_notify < 0) return false;
   bool keep_awake=false;
   uint64_t curtime=time_ms();
-  for(int n=0; n< MAX_TO_NOTIFY; n++){
+  for(uint16_t n=0; n< MAX_TO_NOTIFY; n++){
 
     if(to_notify[n].type==TO_NOTIFY_FREE) continue;
 

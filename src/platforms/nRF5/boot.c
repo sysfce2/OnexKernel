@@ -9,7 +9,7 @@ void boot_init()
 {
   // 0=Pause in SLEEP and HALT
   // 1=Run in SLEEP, Pause in HALT
-  // 8=Pause in SLEEP, Run in HALT
+  // 8=Pause in SLEEP, Run in HALT // see errata [88] WDT: Increased current consumption when configured to pause in System ON idle
   // 9=Run in SLEEP and HALT
   nrf_wdt_behaviour_set(1);
   nrf_wdt_reload_value_set(5 * 32768); // 5s
