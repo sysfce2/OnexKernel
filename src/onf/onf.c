@@ -878,24 +878,23 @@ void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
 bool run_any_evaluators()
 {
 //if(highest_to_notify < 0) return false;
+
   bool keep_awake=false;
+
   uint64_t curtime=time_ms();
+
   for(uint16_t n=0; n< MAX_TO_NOTIFY; n++){
 
-    if(to_notify[n].type==TO_NOTIFY_FREE) continue;
+    uint8_t type=to_notify[n].type;
 
-    value*   uid    =to_notify[n].uid;
-    void*    data   =to_notify[n].details.data;
-    value*   alerted=to_notify[n].details.alerted;
-    uint64_t timeout=to_notify[n].details.timeout;
-
-    if(to_notify[n].type==TO_NOTIFY_TIMEOUT && timeout>curtime) continue;
+    if(type==TO_NOTIFY_FREE) continue;
+    if(type==TO_NOTIFY_TIMEOUT && to_notify[n].details.timeout>curtime) continue;
 
     keep_awake=true;
 
-    object* o=onex_get_from_cache(value_string(uid));
+    object* o=onex_get_from_cache(value_string(to_notify[n].uid));
 
-    switch(to_notify[n].type){
+    switch(type){
       case(TO_NOTIFY_NONE): {
         to_notify[n].type=TO_NOTIFY_FREE;
         run_evaluators(o, 0, 0, false);
@@ -903,12 +902,12 @@ bool run_any_evaluators()
       }
       case(TO_NOTIFY_DATA): {
         to_notify[n].type=TO_NOTIFY_FREE;
-        run_evaluators(o, data, 0, false);
+        run_evaluators(o, to_notify[n].details.data, 0, false);
         break;
       }
       case(TO_NOTIFY_ALERTED): {
         to_notify[n].type=TO_NOTIFY_FREE;
-        run_evaluators(o, 0, alerted, false);
+        run_evaluators(o, 0, to_notify[n].details.alerted, false);
         break;
       }
       case(TO_NOTIFY_TIMEOUT): {
