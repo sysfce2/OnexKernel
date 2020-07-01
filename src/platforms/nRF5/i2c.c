@@ -44,13 +44,13 @@ uint8_t i2c_read_register(void* twip, uint8_t address, uint8_t reg, uint8_t* buf
 //if(e) NRF_LOG_DEBUG("nrfx_twi_tx addr=%x reg=%x err=%s", address, reg, nrf_strerror_get(e)); log_loop();
   if(e) return 1;
 
-  time_delay_ms(1);
+  time_delay_us(800);  // costs cpu and battery .. maybe use a timer?
 
   e=nrfx_twi_rx((nrfx_twi_t*)twip, address, buf, len);
 //if(e) NRF_LOG_DEBUG("nrfx_twi_tx addr=%x len=%x err=%s", address, len, nrf_strerror_get(e)); log_loop();
   if(e) return 1;
 
-  time_delay_ms(1);
+  time_delay_us(300);
 
   return 0;
 }
@@ -62,12 +62,12 @@ uint8_t i2c_write_register(void* twip, uint8_t address, uint8_t reg, uint8_t* bu
   e=nrfx_twi_tx((nrfx_twi_t*)twip, address, &reg, 1, true);
   if(e) return 1;
 
-  time_delay_ms(1);
+  time_delay_us(800);  // costs cpu and battery .. maybe use a timer?
 
   e=nrfx_twi_tx((nrfx_twi_t*)twip, address, buf, len, false);
   if(e) return 1;
 
-  time_delay_ms(1);
+  time_delay_us(300);
 
   return 0;
 }
@@ -82,7 +82,7 @@ uint8_t i2c_write_register_byte(void* twip, uint8_t address, uint8_t reg, uint8_
 //if(e) NRF_LOG_DEBUG("nrfx_twi_tx addr=%x reg=%x val=%x err=%s", address, reg, val, nrf_strerror_get(e)); log_loop();
   if(e) return 1;
 
-  time_delay_ms(1);
+  time_delay_us(300);
 
   return 0;
 }
