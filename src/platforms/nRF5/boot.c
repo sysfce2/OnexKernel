@@ -33,5 +33,5 @@ void boot_dfu_start()
 
 void boot_sleep()
 {
-  sd_app_evt_wait();
+  nrf_pwr_mgmt_run();
 }
