@@ -3,6 +3,7 @@
 #include <nrf_gpio.h>
 #include <nrf_gfx.h>
 #include <nrf_delay.h>
+#include <spi_master_fast.h>
 #include <onex-kernel/gfx.h>
 
 extern const nrf_lcd_t           nrf_lcd_st7789;
@@ -107,4 +108,14 @@ void gfx_sleep()
 void gfx_wake()
 {
   nrf_gfx_on_off(lcd, true);
+}
+
+void gfx_spi_sleep()
+{
+  spi_master_enable(ST7789_SPI_INSTANCE, false);
+}
+
+void gfx_spi_wake()
+{
+  spi_master_enable(ST7789_SPI_INSTANCE, true);
 }

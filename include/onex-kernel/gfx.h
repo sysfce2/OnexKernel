@@ -38,5 +38,8 @@ void gfx_text(char* text);
 void gfx_sleep();
 void gfx_wake();
 
+void gfx_spi_sleep();
+void gfx_spi_wake();
+
 #endif
 
