@@ -56,7 +56,7 @@ SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52.S \
   $(SDK_ROOT)/components/libraries/mem_manager/mem_manager.c \
   $(SDK_ROOT)/components/drivers_ext/st7789/st7789.c \
-  $(SDK_ROOT)/components/drivers_ext/st7789/spi_master_fast.c \
+  $(SDK_ROOT)/components/drivers_nrf/spi_master/spi_master_fast.c \
   $(SDK_ROOT)/components/libraries/gfx/nrf_gfx.c \
   $(SDK_ROOT)/external/thedotfactory_fonts/orkney8pts.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
