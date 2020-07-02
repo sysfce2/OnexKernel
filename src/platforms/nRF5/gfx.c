@@ -99,3 +99,12 @@ void gfx_text(char* text)
   nrf_gfx_print_fast(lcd, &text_start, screen_colour, text_colour, text, font, true);
 }
 
+void gfx_sleep()
+{
+  nrf_gfx_on_off(lcd, false);
+}
+
+void gfx_wake()
+{
+  nrf_gfx_on_off(lcd, true);
+}

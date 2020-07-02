@@ -35,5 +35,8 @@ void gfx_pop();
 
 void gfx_text(char* text);
 
+void gfx_sleep();
+void gfx_wake();
+
 #endif
 
