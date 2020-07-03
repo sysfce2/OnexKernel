@@ -26,12 +26,14 @@ void* i2c_init(int speedk)
 
 uint8_t i2c_read(void* twip, uint8_t address, uint8_t* buf, uint16_t len)
 {
+  i2c_wake();
   ret_code_t e=nrfx_twi_rx((nrfx_twi_t*)twip, address, buf, len);
   return e? 1: 0;
 }
 
 uint8_t i2c_write(void* twip, uint8_t address, uint8_t* buf, uint16_t len)
 {
+  i2c_wake();
   ret_code_t e=nrfx_twi_tx((nrfx_twi_t*)twip, address, buf, len, false);
   return e? 1: 0;
 }
@@ -40,6 +42,7 @@ uint8_t i2c_read_register(void* twip, uint8_t address, uint8_t reg, uint8_t* buf
 {
   ret_code_t e;
 
+  i2c_wake();
   e=nrfx_twi_tx((nrfx_twi_t*)twip, address, &reg, 1, true);
 //if(e) NRF_LOG_DEBUG("nrfx_twi_tx addr=%x reg=%x err=%s", address, reg, nrf_strerror_get(e)); log_loop();
   if(e) return 1;
@@ -59,6 +62,7 @@ uint8_t i2c_write_register(void* twip, uint8_t address, uint8_t reg, uint8_t* bu
 {
   ret_code_t e;
 
+  i2c_wake();
   e=nrfx_twi_tx((nrfx_twi_t*)twip, address, &reg, 1, true);
   if(e) return 1;
 
@@ -78,6 +82,7 @@ uint8_t i2c_write_register_byte(void* twip, uint8_t address, uint8_t reg, uint8_
 
   ret_code_t e;
 
+  i2c_wake();
   e=nrfx_twi_tx((nrfx_twi_t*)twip, address, buf, 2, false);
 //if(e) NRF_LOG_DEBUG("nrfx_twi_tx addr=%x reg=%x val=%x err=%s", address, reg, val, nrf_strerror_get(e)); log_loop();
   if(e) return 1;
@@ -87,12 +92,17 @@ uint8_t i2c_write_register_byte(void* twip, uint8_t address, uint8_t reg, uint8_
   return 0;
 }
 
+static bool sleeping=false;
 void i2c_sleep()
 {
+  if(sleeping) return;
+  sleeping=true;
   NRF_TWI1->ENABLE=(TWI_ENABLE_ENABLE_Disabled << TWI_ENABLE_ENABLE_Pos);
 }
 
 void i2c_wake()
 {
+  if(!sleeping) return;
+  sleeping=false;
   NRF_TWI1->ENABLE=(TWI_ENABLE_ENABLE_Enabled << TWI_ENABLE_ENABLE_Pos);
 }
