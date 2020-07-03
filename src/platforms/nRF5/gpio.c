@@ -211,3 +211,13 @@ int16_t gpio_read(uint8_t channel) {
   return value;
 }
 
+void gpio_sleep()
+{
+  NRF_SAADC->ENABLE = (SAADC_ENABLE_ENABLE_Disabled << SAADC_ENABLE_ENABLE_Pos);
+}
+
+void gpio_wake()
+{
+  NRF_SAADC->ENABLE = (SAADC_ENABLE_ENABLE_Enabled << SAADC_ENABLE_ENABLE_Pos);
+}
+
