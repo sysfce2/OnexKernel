@@ -135,11 +135,11 @@ int motion_init(motion_change_cb cb)
 motion_info_t motion_get_info()
 {
   uint8_t e;
-  motion_info_t info = {0};
+  motion_info_t mi = {0};
 
   uint8_t xyz[6] = {0};
   e=i2c_read_register(twip, MOTION_ADDRESS, BMA421_REG_DATA_8, xyz, 6);
-  if(e) { log_write("read data err"); return info; }
+  if(e) { log_write("motion read err"); return mi; }
 
   uint16_t lsb = 0;
   uint16_t msb = 0;
@@ -147,24 +147,24 @@ motion_info_t motion_get_info()
   msb = xyz[1];
   lsb = xyz[0];
 
-  info.x = (int16_t)((msb << 8) | lsb);
+  mi.x = (int16_t)((msb << 8) | lsb);
 
   msb = xyz[3];
   lsb = xyz[2];
 
-  info.y = (int16_t)((msb << 8) | lsb);
+  mi.y = (int16_t)((msb << 8) | lsb);
 
   msb = xyz[5];
   lsb = xyz[4];
 
-  info.z = (int16_t)((msb << 8) | lsb);
+  mi.z = (int16_t)((msb << 8) | lsb);
 
   // 16bit +-32768=+-4g so /8=1024 per g (except 1g=ONE_G..?)
-  info.x /= 8;
-  info.y /= 8;
-  info.z /= 8;
+  mi.x /= 8;
+  mi.y /= 8;
+  mi.z /= 8;
 
-  info.m = ((int16_t)sqrtf(info.x*info.x+info.y*info.y+info.z*info.z))-ONE_G;
+  mi.m = ((int16_t)sqrtf(mi.x*mi.x+mi.y*mi.y+mi.z*mi.z))-ONE_G;
 
-  return info;
+  return mi;
 }

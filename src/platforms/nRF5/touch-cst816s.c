@@ -74,7 +74,7 @@ touch_info_t touch_get_info()
   touch_info_t ti={0};
 
   uint8_t r=i2c_read(twip, TOUCH_ADDRESS, buf, 63);
-  if(r) return ti;
+  if(r) { /* log_write("touch read err"); */ return ti; }
 
   int num_points = buf[TOUCH_NUM] & 0x0f;
   uint8_t point_id = buf[TOUCH_ID] >> 4;
