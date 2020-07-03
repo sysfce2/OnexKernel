@@ -94,7 +94,6 @@ void touch_reset(uint8_t delay)
   nrf_gpio_pin_clear(TOUCH_RESET_PIN);
   time_delay_ms(delay);
   nrf_gpio_pin_set(TOUCH_RESET_PIN);
-  time_delay_ms(delay*10);
 }
 
 void touch_sleep() {
@@ -103,6 +102,7 @@ void touch_sleep() {
 }
 
 void touch_wake() {
-  touch_reset(10);
+  // touch_reset(10);
+  // ??
 }
 
