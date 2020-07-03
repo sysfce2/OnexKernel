@@ -28,7 +28,7 @@ typedef void (*touch_touched_cb)(touch_info_t);
 
 void         touch_init(touch_touched_cb);
 touch_info_t touch_get_info();
-void         touch_reset();
+void         touch_reset(uint8_t delay);
 void         touch_disable();
 
 #endif

@@ -86,13 +86,12 @@ touch_info_t touch_get_info()
   return ti;
 }
 
-void touch_reset()
+void touch_reset(uint8_t delay)
 {
-  time_delay_ms(20);
   nrf_gpio_pin_clear(TOUCH_RESET_PIN);
-  time_delay_ms(20);
+  time_delay_ms(delay);
   nrf_gpio_pin_set(TOUCH_RESET_PIN);
-  time_delay_ms(200);
+  time_delay_ms(delay*10);
 }
 
 void touch_disable() {
