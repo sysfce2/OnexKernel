@@ -87,9 +87,12 @@ uint8_t i2c_write_register_byte(void* twip, uint8_t address, uint8_t reg, uint8_
   return 0;
 }
 
-void i2c_disable(void* twip)
+void i2c_sleep()
 {
-  nrfx_twi_disable((nrfx_twi_t*)twip);
-  nrf_gpio_cfg_default(SDA_PIN);
-  nrf_gpio_cfg_default(SCL_PIN);
+  NRF_TWI1->ENABLE=(TWI_ENABLE_ENABLE_Disabled << TWI_ENABLE_ENABLE_Pos);
+}
+
+void i2c_wake()
+{
+  NRF_TWI1->ENABLE=(TWI_ENABLE_ENABLE_Enabled << TWI_ENABLE_ENABLE_Pos);
 }

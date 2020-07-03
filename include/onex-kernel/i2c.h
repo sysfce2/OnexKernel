@@ -7,6 +7,7 @@ uint8_t i2c_write(              void* twip, uint8_t address,              uint8_
 uint8_t i2c_read_register(      void* twip, uint8_t address, uint8_t reg, uint8_t* buf, uint16_t len);
 uint8_t i2c_write_register(     void* twip, uint8_t address, uint8_t reg, uint8_t* buf, uint16_t len);
 uint8_t i2c_write_register_byte(void* twip, uint8_t address, uint8_t reg, uint8_t val);
-void    i2c_disable(void* twi);
+void    i2c_sleep();
+void    i2c_wake();
 
 #endif
