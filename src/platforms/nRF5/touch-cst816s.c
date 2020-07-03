@@ -9,6 +9,9 @@
 #include <onex-kernel/i2c.h>
 #include <onex-kernel/touch.h>
 
+#define HYN_REG_POWER_MODE       0xA5
+#define HYN_REG_POWER_MODE_SLEEP 0x03
+
 #define TOUCH_GESTURE 1
 #define TOUCH_NUM 2
 #define TOUCH_ACTION 3
@@ -94,8 +97,12 @@ void touch_reset(uint8_t delay)
   time_delay_ms(delay*10);
 }
 
-void touch_disable() {
-  i2c_disable(twip);
-  nrf_gpio_cfg_default(TOUCH_RESET_PIN);
+void touch_sleep() {
+  touch_reset(5);
+  i2c_write_register_byte(twip, TOUCH_ADDRESS, HYN_REG_POWER_MODE, HYN_REG_POWER_MODE_SLEEP);
+}
+
+void touch_wake() {
+  touch_reset(10);
 }
 
