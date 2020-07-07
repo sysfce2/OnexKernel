@@ -116,29 +116,29 @@ static void dfu_observer(nrf_dfu_evt_type_t evt_type)
     switch (evt_type)
     {
         case NRF_DFU_EVT_DFU_INITIALIZED:
-            gfx_text("WAITING...");
+            gfx_text("Waiting...");
             break;
         case NRF_DFU_EVT_TRANSPORT_ACTIVATED:
-            gfx_text("CONNECTED");
+            gfx_text("Connected");
             break;
         case NRF_DFU_EVT_DFU_STARTED:
-            gfx_text("DOWNLOADING");
+            gfx_text("Downloading");
             break;
         case NRF_DFU_EVT_OBJECT_RECEIVED:
             tick=!tick;
-            gfx_text(tick? "RECEIVING \\": "RECEIVING /");
+            gfx_text(tick? "Receiving \\": "Receiving /");
             break;
         case NRF_DFU_EVT_DFU_COMPLETED:
-            gfx_text("COMPLETED");
+            gfx_text("Completed");
             break;
         case NRF_DFU_EVT_TRANSPORT_DEACTIVATED:
-            gfx_text("DISCONNECTED");
+            gfx_text("Disconnected");
             break;
         case NRF_DFU_EVT_DFU_FAILED:
-            gfx_text("FAILED");
+            gfx_text("Failed");
             break;
         case NRF_DFU_EVT_DFU_ABORTED:
-            gfx_text("FAILED");
+            gfx_text("Failed");
             break;
         default:
             gfx_text("XXXXXXXX");

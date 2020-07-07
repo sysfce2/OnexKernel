@@ -19,6 +19,8 @@ NRF5_INCLUDES = \
 
 BOOTLOADER_OBJECTS = \
 ./src/platforms/nRF5/gpio.c \
+./src/platforms/nRF5/spi.c \
+./src/platforms/nRF5/display-st7789.c \
 ./src/platforms/nRF5/gfx.c \
 ./src/platforms/nRF5/dfu_public_key.c \
 ./src/platforms/nRF5/bootloader.c \
@@ -30,9 +32,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/gfx/nrf_gfx.c \
   $(SDK_ROOT)/external/thedotfactory_fonts/orkney8pts.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_spim.c \
-  $(SDK_ROOT)/components/drivers_nrf/spi_master/spi_master_fast.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
-  $(SDK_ROOT)/components/drivers_ext/st7789/st7789.c \
   $(SDK_ROOT)/modules/nrfx/mdk/system_nrf52.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_str_formatter.c \
@@ -169,7 +169,7 @@ LIB_FILES += \
   $(SDK_ROOT)/external/micro-ecc/nrf52hf_armgcc/armgcc/micro_ecc_lib_nrf52.a \
 
 # Optimization flags
-OPT = -Os -g3
+OPT = -O2 -ggdb
 # Uncomment the line below to enable link time optimization
 #OPT += -flto
 
