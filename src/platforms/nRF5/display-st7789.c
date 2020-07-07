@@ -197,11 +197,8 @@ static ret_code_t st7789_init(void)
     return err_code;
 }
 
-static const nrf_drv_spi_t spi = NRFX_SPI_INSTANCE(ST7789_SPI_INSTANCE);
-
 static void st7789_uninit(void)
 {
-    nrf_drv_spi_uninit(&spi);
 }
 
 static void st7789_pixel_draw(uint16_t x, uint16_t y, uint32_t color)
