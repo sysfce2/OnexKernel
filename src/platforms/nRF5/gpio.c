@@ -208,18 +208,24 @@ void gpio_adc_init(uint8_t pin, uint8_t channel) {
 }
 
 int16_t gpio_read(uint8_t channel) {
+  gpio_wake();
   nrf_saadc_value_t value = 0;
   nrfx_saadc_sample_convert(channel, &value);
   return value;
 }
 
+static bool sleeping=false;
 void gpio_sleep()
 {
+  if(sleeping) return;
+  sleeping=true;
   NRF_SAADC->ENABLE=(SAADC_ENABLE_ENABLE_Disabled << SAADC_ENABLE_ENABLE_Pos);
 }
 
 void gpio_wake()
 {
+  if(!sleeping) return;
+  sleeping=false;
   NRF_SAADC->ENABLE=(SAADC_ENABLE_ENABLE_Enabled << SAADC_ENABLE_ENABLE_Pos);
 }
 
