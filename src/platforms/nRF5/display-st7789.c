@@ -2,7 +2,6 @@
 #include "sdk_common.h"
 
 #include "nrf_lcd.h"
-#include "nrf_drv_spi.h"
 #include "nrf_delay.h"
 #include "nrf_gpio.h"
 #include "boards.h"
