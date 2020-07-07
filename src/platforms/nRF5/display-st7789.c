@@ -354,15 +354,16 @@ void display_draw_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint1
   st7789_dummy_display_cb((uint8_t*)colours, n, 0,0,0,0, cb);
 }
 
-void display_on_off(bool on)
+void display_sleep()
 {
-    if(on){
-      write_command(ST7789_SLPOUT);
-      write_command(ST7789_DISPON);
-    } else {
   write_command(ST7789_DISPOFF);
   write_command(ST7789_SLPIN);
 }
+
+void display_wake()
+{
+  write_command(ST7789_SLPOUT);
+  write_command(ST7789_DISPON);
 }
 
 #endif // NRF_MODULE_ENABLED(ST7789)
