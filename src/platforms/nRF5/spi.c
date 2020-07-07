@@ -76,13 +76,13 @@ void spi_sleep()
 {
   if(sleeping || sending) return;
   sleeping=true;
-  NRF_SPIM0->ENABLE=(SPI_ENABLE_ENABLE_Disabled << SPI_ENABLE_ENABLE_Pos);
+  // NRF_SPIM0->ENABLE=(SPI_ENABLE_ENABLE_Disabled << SPI_ENABLE_ENABLE_Pos);
 }
 
 void spi_wake()
 {
   if(!sleeping) return;
   sleeping=false;
-  NRF_SPIM0->ENABLE=(SPI_ENABLE_ENABLE_Enabled  << SPI_ENABLE_ENABLE_Pos);
+  //NRF_SPIM0->ENABLE=(SPI_ENABLE_ENABLE_Enabled  << SPI_ENABLE_ENABLE_Pos);
 }
 
