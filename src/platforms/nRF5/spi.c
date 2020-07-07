@@ -63,7 +63,7 @@ void spi_wake()
 {
 }
 
-void spi_tx(uint16_t transfer_size, uint8_t *tx_data, void (*cb)())
+void spi_tx(uint8_t *tx_data, uint16_t transfer_size, void (*cb)())
 {
     if(sending) return;
     sending=true;

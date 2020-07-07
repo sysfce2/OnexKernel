@@ -104,49 +104,34 @@ uint16_t y_offset = 0;
 
 static const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(ST7789_SPI_INSTANCE);
 
-static inline void spi_write(void * data, size_t size)
-{
-    spi_tx(size, data, 0);
-}
-
-static inline void spi_write_cb(void * data, size_t size, void (*cb)())
-{
-    spi_tx(size, data, cb);
-}
-
 static inline void write_command(uint8_t c)
 {
     nrf_gpio_pin_clear(ST7789_DC_PIN);
-
-    spi_write(&c, sizeof(c));
+    spi_tx(&c, sizeof(c), 0);
 }
 
 static inline void write_data(uint8_t c)
 {
     nrf_gpio_pin_set(ST7789_DC_PIN);
-
-    spi_write(&c, sizeof(c));
+    spi_tx(&c, sizeof(c), 0);
 }
 
 static inline void write_command_buffered(uint8_t * c, uint16_t len)
 {
     nrf_gpio_pin_clear(ST7789_DC_PIN);
-
-    spi_write(c, len);
+    spi_tx(c, len, 0);
 }
 
 static inline void write_data_buffered(uint8_t * c, uint16_t len)
 {
     nrf_gpio_pin_set(ST7789_DC_PIN);
-
-    spi_write(c, len);
+    spi_tx(c, len, 0);
 }
 
 static inline void write_data_buffered_cb(uint8_t * c, uint16_t len, void (*cb)())
 {
     nrf_gpio_pin_set(ST7789_DC_PIN);
-
-    spi_write_cb(c, len, cb);
+    spi_tx(c, len, cb);
 }
 
 static void set_addr_window(uint16_t x_0, uint16_t y_0, uint16_t x_1, uint16_t y_1)
@@ -209,7 +194,8 @@ static ret_code_t st7789_init(void)
     ret_code_t err_code;
 
     err_code = init_spi();
-    if (err_code != NRF_SUCCESS) return err_code;
+
+    if(err_code != NRF_SUCCESS) return err_code;
 
     init_command_list();
 
@@ -244,21 +230,21 @@ static void st7789_rect_draw(uint16_t x, uint16_t y, uint16_t width, uint16_t he
     switch ((height * width) % 8) {
         case 0:
             do {
-                spi_write(data, sizeof(data));
+                spi_tx(data, sizeof(data), 0);
         case 7:
-                spi_write(data, sizeof(data));
+                spi_tx(data, sizeof(data), 0);
         case 6:
-                spi_write(data, sizeof(data));
+                spi_tx(data, sizeof(data), 0);
         case 5:
-                spi_write(data, sizeof(data));
+                spi_tx(data, sizeof(data), 0);
         case 4:
-                spi_write(data, sizeof(data));
+                spi_tx(data, sizeof(data), 0);
         case 3:
-                spi_write(data, sizeof(data));
+                spi_tx(data, sizeof(data), 0);
         case 2:
-                spi_write(data, sizeof(data));
+                spi_tx(data, sizeof(data), 0);
         case 1:
-                spi_write(data, sizeof(data));
+                spi_tx(data, sizeof(data), 0);
             } while (--i > 0);
         default:
             break;
@@ -374,9 +360,9 @@ void display_on_off(bool on)
       write_command(ST7789_SLPOUT);
       write_command(ST7789_DISPON);
     } else {
-      write_command(ST7789_DISPOFF);
-      write_command(ST7789_SLPIN);
-    }
+  write_command(ST7789_DISPOFF);
+  write_command(ST7789_SLPIN);
+}
 }
 
 #endif // NRF_MODULE_ENABLED(ST7789)
