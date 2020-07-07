@@ -55,12 +55,12 @@ nrfx_err_t spi_init()
     return 0;
 }
 
-void spi_tx(uint8_t *tx_data, uint16_t transfer_size, void (*cb)())
+void spi_tx(uint8_t* data, uint16_t len, void (*cb)())
 {
     if(sending) return;
     sending=true;
-    curr_data=tx_data;
-    curr_len =transfer_size;
+    curr_data=data;
+    curr_len =len;
     spi_done_cb=cb;
 
     nrf_gpio_pin_clear(SPIM0_SS_PIN);
