@@ -1,8 +1,6 @@
 
 #include "sdk_common.h"
 
-#if NRF_MODULE_ENABLED(ST7789)
-
 #include "nrf_lcd.h"
 #include "nrf_drv_spi.h"
 #include "nrf_delay.h"
@@ -11,7 +9,8 @@
 
 #include "onex-kernel/spi.h"
 
-// Set of commands described in ST7789 datasheet.
+// Datasheet: https://www.numworks.com/shared/binary/datasheets/st7789v-lcd-controller-73f8bc3e.pdf
+
 #define ST7789_NOP         0x00
 #define ST7789_SWRESET     0x01
 #define ST7789_RDDID       0x04
@@ -99,10 +98,6 @@
 
 uint16_t x_offset = 0;
 uint16_t y_offset = 0;
-
-// Datasheet: https://www.numworks.com/shared/binary/datasheets/st7789v-lcd-controller-73f8bc3e.pdf
-
-static const nrf_drv_spi_t spi = NRF_DRV_SPI_INSTANCE(ST7789_SPI_INSTANCE);
 
 static inline void write_command(uint8_t c)
 {
@@ -201,6 +196,8 @@ static ret_code_t st7789_init(void)
 
     return err_code;
 }
+
+static const nrf_drv_spi_t spi = NRFX_SPI_INSTANCE(ST7789_SPI_INSTANCE);
 
 static void st7789_uninit(void)
 {
@@ -330,6 +327,8 @@ const nrf_lcd_t nrf_lcd_st7789 = {
     .p_lcd_cb = &st7789_cb
 };
 
+// ------------------------------------------
+
 void display_init()
 {
   nrf_gpio_cfg_output(ST7789_RST_PIN);
@@ -358,4 +357,4 @@ void display_wake()
   write_command(ST7789_DISPON);
 }
 
-#endif // NRF_MODULE_ENABLED(ST7789)
+// ------------------------------------------
