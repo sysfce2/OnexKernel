@@ -253,23 +253,13 @@ static void st7789_rect_draw(uint16_t x, uint16_t y, uint16_t width, uint16_t he
     nrf_gpio_pin_clear(ST7789_DC_PIN);
 }
 
-static void st7789_dummy_display(uint8_t * data, uint16_t len, uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1)
+static void st7789_display(uint8_t * data, uint16_t len, uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1)
 {
     if(len == 0xFFFF){
         set_addr_window(x0, y0, x1, y1);
     }
     else{
         write_data_buffered(data, len);
-    }
-}
-
-static void st7789_dummy_display_cb(uint8_t * data, uint16_t len, uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, void (*cb)())
-{
-    if(len == 0xFFFF){
-        set_addr_window(x0, y0, x1, y1);
-    }
-    else{
-        write_data_buffered_cb(data, len, cb);
     }
 }
 
@@ -334,7 +324,7 @@ const nrf_lcd_t nrf_lcd_st7789 = {
     .lcd_uninit = st7789_uninit,
     .lcd_pixel_draw = st7789_pixel_draw,
     .lcd_rect_draw = st7789_rect_draw,
-    .lcd_display = st7789_dummy_display,
+    .lcd_display = st7789_display,
     .lcd_rotation_set = st7789_rotation_set,
     .lcd_display_invert = st7789_display_invert,
     .p_lcd_cb = &st7789_cb
@@ -343,15 +333,17 @@ const nrf_lcd_t nrf_lcd_st7789 = {
 void display_init()
 {
   nrf_gpio_cfg_output(ST7789_RST_PIN);
+  nrf_gpio_cfg_output(ST7789_DC_PIN);
   nrf_gpio_pin_set(ST7789_RST_PIN);
-  st7789_init();
+  spi_init();
+  init_command_list();
 }
 
 void display_draw_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint16_t* colours, void (*cb)())
 {
   int n=(x2-x1+1)*(y2-y1+1)*2;
-  st7789_dummy_display(0, 0xFFFF, x1, y1, x2, y2);
-  st7789_dummy_display_cb((uint8_t*)colours, n, 0,0,0,0, cb);
+  set_addr_window(x1, y1, x2, y2);
+  write_data_buffered_cb((uint8_t*)colours, n, cb);
 }
 
 void display_sleep()
