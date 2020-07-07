@@ -5,17 +5,17 @@
 
 static nrfx_spim_t spim_inst0 = NRFX_SPIM_INSTANCE(0);
 
+static volatile bool     sending=false;
 static volatile uint8_t* curr_data;
 static volatile uint16_t curr_len;
-static volatile bool     sending=false;
-static void (*spi_done_cb)();
+static          void     (*spi_done_cb)();
 
 void next_block_of_255()
 {
     if(!curr_len){
       if(spi_done_cb) spi_done_cb();
-      nrf_gpio_pin_set(SPIM0_SS_PIN);
       spi_done_cb=0;
+      nrf_gpio_pin_set(SPIM0_SS_PIN);
       sending=false;
       return;
     }
@@ -55,27 +55,34 @@ nrfx_err_t spi_init()
     return 0;
 }
 
-void spi_sleep()
-{
-}
-
-void spi_wake()
-{
-}
-
 void spi_tx(uint8_t *tx_data, uint16_t transfer_size, void (*cb)())
 {
     if(sending) return;
     sending=true;
+    curr_data=tx_data;
+    curr_len =transfer_size;
     spi_done_cb=cb;
 
     nrf_gpio_pin_clear(SPIM0_SS_PIN);
-
-    curr_data=tx_data;
-    curr_len =transfer_size;
+    spi_wake();
 
     next_block_of_255();
 
     if(!cb) while(sending);
+}
+
+static bool sleeping=false;
+void spi_sleep()
+{
+  if(sleeping || sending) return;
+  sleeping=true;
+  NRF_SPIM0->ENABLE=(SPI_ENABLE_ENABLE_Disabled << SPI_ENABLE_ENABLE_Pos);
+}
+
+void spi_wake()
+{
+  if(!sleeping) return;
+  sleeping=false;
+  NRF_SPIM0->ENABLE=(SPI_ENABLE_ENABLE_Enabled  << SPI_ENABLE_ENABLE_Pos);
 }
 
