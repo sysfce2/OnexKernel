@@ -42,11 +42,13 @@ NRF5_C_SOURCE_FILES = \
 ./src/platforms/nRF5/random.c \
 ./src/platforms/nRF5/gpio.c \
 ./src/platforms/nRF5/i2c.c \
+./src/platforms/nRF5/spi.c \
 ./src/platforms/nRF5/touch-cst816s.c \
 ./src/platforms/nRF5/motion-bma421.c \
 ./src/platforms/nRF5/blenus.c \
 ./src/platforms/nRF5/log.c \
 ./src/platforms/nRF5/mem.c \
+./src/platforms/nRF5/display-st7789.c \
 ./src/platforms/nRF5/gfx.c \
 ./src/platforms/nRF5/channel-serial.c \
 
@@ -55,15 +57,12 @@ NRF5_C_SOURCE_FILES = \
 SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/mdk/gcc_startup_nrf52.S \
   $(SDK_ROOT)/components/libraries/mem_manager/mem_manager.c \
-  $(SDK_ROOT)/components/drivers_ext/st7789/st7789.c \
-  $(SDK_ROOT)/components/drivers_nrf/spi_master/spi_master_fast.c \
   $(SDK_ROOT)/components/libraries/gfx/nrf_gfx.c \
   $(SDK_ROOT)/external/thedotfactory_fonts/orkney8pts.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_twi.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_spim.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
-  $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_uart.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_default_backends.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_frontend.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_str_formatter.c \
@@ -93,12 +92,9 @@ SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_saadc.c \
   $(SDK_ROOT)/components/boards/boards.c \
   $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_clock.c \
-  $(SDK_ROOT)/integration/nrfx/legacy/nrf_drv_uart.c \
   $(SDK_ROOT)/modules/nrfx/soc/nrfx_atomic.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_clock.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/prs/nrfx_prs.c \
-  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uart.c \
-  $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_uarte.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
@@ -120,7 +116,6 @@ SRC_FILES += \
 # Include folders common to all targets
 INC_FOLDERS += \
   $(SDK_ROOT)/modules/nrfx/soc \
-  $(SDK_ROOT)/components/drivers_ext/st7789 \
   $(SDK_ROOT)/external/thedotfactory_fonts \
   $(SDK_ROOT)/components/nfc/ndef/generic/message \
   $(SDK_ROOT)/components/nfc/t2t_lib \
@@ -258,7 +253,7 @@ INC_FOLDERS += \
 LIB_FILES += \
 
 # Optimization flags
-OPT = -O3 -g3
+OPT = -O2 -ggdb
 # Uncomment the line below to enable link time optimization
 #OPT += -flto
 
@@ -277,7 +272,7 @@ CFLAGS += -DNRF_SD_BLE_API_VERSION=7
 CFLAGS += -DS132
 CFLAGS += -DSOFTDEVICE_PRESENT
 CFLAGS += -DONP_CHANNEL_SERIAL
-CFLAGS += -DLOG_TO_BLE
+CFLAGS += -DLOG_TO_RTT
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mthumb -mabi=aapcs
 CFLAGS += -Wall -Werror -Wno-unused-but-set-variable
