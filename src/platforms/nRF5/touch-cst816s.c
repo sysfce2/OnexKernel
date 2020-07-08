@@ -13,15 +13,11 @@
 #define HYN_REG_POWER_MODE_SLEEP 0x03
 
 #define TOUCH_GESTURE 1
-#define TOUCH_NUM 2
 #define TOUCH_ACTION 3
 #define TOUCH_X_HIGH 3
 #define TOUCH_X_LOW 4
 #define TOUCH_Y_HIGH 5
 #define TOUCH_Y_LOW 6
-#define TOUCH_ID 5
-
-#define TOUCH_LAST 0x0f
 
 char* touch_gestures[]={ "none", "down", "up", "left", "right", "tap", "", "", "", "", "", "double", "long", };
 char* touch_actions[]={ "none", "up", "up", "down" };
@@ -72,25 +68,17 @@ void every_50ms(void* xx)
   }
 }
 
-static uint8_t buf[63];
 
 touch_info_t touch_get_info()
 {
+  uint8_t buf[9];
+  uint8_t r=i2c_read(twip, TOUCH_ADDRESS, buf, sizeof(buf));
+  if(r) return ti;
   touch_info_t ti={0};
-
-  uint8_t r=i2c_read(twip, TOUCH_ADDRESS, buf, 63);
-  if(r) { /* log_write("touch read err"); */ return ti; }
-
-  int num_points = buf[TOUCH_NUM] & 0x0f;
-  uint8_t point_id = buf[TOUCH_ID] >> 4;
-
-  if(num_points == 0 && point_id == TOUCH_LAST) return ti;
-
   ti.gesture = buf[TOUCH_GESTURE];
   ti.action = (buf[TOUCH_ACTION] >> 6)+1;
   ti.x = (buf[TOUCH_X_HIGH] & 0x0f) << 8 | buf[TOUCH_X_LOW];
   ti.y = (buf[TOUCH_Y_HIGH] & 0x0f) << 8 | buf[TOUCH_Y_LOW];
-
   return ti;
 }
 
