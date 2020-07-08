@@ -319,8 +319,15 @@ void display_init()
   init_command_list();
 }
 
+static bool sleeping=false;
+
 void display_draw_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint16_t* pixels, void (*cb)())
 {
+  if(sleeping){
+    if(cb) cb();
+    return;
+  }
+
   set_addr_window(x1, y1, x2, y2);
 
   int n=(x2-x1+1)*(y2-y1+1)*2;
@@ -329,14 +336,18 @@ void display_draw_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint1
 
 void display_sleep()
 {
-  write_command(ST7789_DISPOFF);
+  if(sleeping) return;
+  sleeping=true;
+
   write_command(ST7789_SLPIN);
 }
 
 void display_wake()
 {
+  if(!sleeping) return;
+  sleeping=false;
+
   write_command(ST7789_SLPOUT);
-  write_command(ST7789_DISPON);
 }
 
 // ------------------------------------------
