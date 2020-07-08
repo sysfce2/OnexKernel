@@ -208,23 +208,17 @@ static void init_command_list(void)
     write_command(ST7789_DISPON);
 }
 
-static ret_code_t init_spi(void)
-{
-    nrf_gpio_cfg_output(ST7789_DC_PIN);
-    return spi_init();
-}
-
 static ret_code_t st7789_init(void)
 {
-    ret_code_t err_code;
+  nrf_gpio_cfg_output(ST7789_DC_PIN);
 
-    err_code = init_spi();
+  ret_code_t e;
+  e=spi_init();
+  if(e!=NRF_SUCCESS) return e;
 
-    if(err_code != NRF_SUCCESS) return err_code;
+  init_command_list();
 
-    init_command_list();
-
-    return err_code;
+  return e;
 }
 
 static void st7789_uninit(void)
@@ -316,7 +310,9 @@ void display_init()
   nrf_gpio_cfg_output(ST7789_RST_PIN);
   nrf_gpio_cfg_output(ST7789_DC_PIN);
   nrf_gpio_pin_set(ST7789_RST_PIN);
+
   spi_init();
+
   init_command_list();
 }
 
