@@ -8,7 +8,10 @@
 #include "nrf_gpio.h"
 #include "boards.h"
 
+#include "onex-kernel/time.h"
+#include "onex-kernel/log.h"
 #include "onex-kernel/spi.h"
+#include "onex-kernel/display.h"
 
 #define ST7789_NOP         0x00
 #define ST7789_SWRESET     0x01
@@ -319,6 +322,8 @@ void display_init()
   init_command_list();
 }
 
+uint64_t time_ready_after_wake_command=0;
+
 static bool sleeping=false;
 
 void display_draw_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint16_t* pixels, void (*cb)())
@@ -328,11 +333,20 @@ void display_draw_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint1
     return;
   }
 
+  if(time_ready_after_wake_command){
+    int32_t time_till_ready=time_ready_after_wake_command-time_ms();
+    if(time_till_ready>0) time_delay_ms(time_till_ready);
+    time_ready_after_wake_command=0;
+  }
+
   set_addr_window(x1, y1, x2, y2);
 
   int n=(x2-x1+1)*(y2-y1+1)*2;
   write_data_buffered_cb((uint8_t*)pixels, n, cb);
 }
+
+#define SPI_FLUSH_TIME          2
+#define ST7789_WAKE_SETTLE_TIME 5
 
 void display_sleep()
 {
@@ -348,6 +362,8 @@ void display_wake()
   sleeping=false;
 
   write_command(ST7789_SLPOUT);
+
+  time_ready_after_wake_command=time_ms()+SPI_FLUSH_TIME+ST7789_WAKE_SETTLE_TIME;
 }
 
 // ------------------------------------------
