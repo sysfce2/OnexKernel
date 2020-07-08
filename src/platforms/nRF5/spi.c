@@ -1,6 +1,7 @@
 
 #include <boards.h>
 #include <nrfx_spim.h>
+#include "onex-kernel/log.h"
 #include <onex-kernel/spi.h>
 
 static nrfx_spim_t spim_inst0 = NRFX_SPIM_INSTANCE(0);
@@ -57,7 +58,11 @@ nrfx_err_t spi_init()
 
 void spi_tx(uint8_t* data, uint16_t len, void (*cb)())
 {
-    if(sending) return;
+    if(sending){
+      log_write("spi_tx already sending");
+      while(sending);
+      log_write("spi_tx ready");
+    }
     sending=true;
     curr_data=data;
     curr_len =len;
