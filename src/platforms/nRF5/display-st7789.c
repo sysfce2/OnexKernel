@@ -334,11 +334,12 @@ void display_init()
   init_command_list();
 }
 
-void display_draw_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint16_t* colours, void (*cb)())
+void display_draw_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint16_t* pixels, void (*cb)())
 {
-  int n=(x2-x1+1)*(y2-y1+1)*2;
   set_addr_window(x1, y1, x2, y2);
-  write_data_buffered_cb((uint8_t*)colours, n, cb);
+
+  int n=(x2-x1+1)*(y2-y1+1)*2;
+  write_data_buffered_cb((uint8_t*)pixels, n, cb);
 }
 
 void display_sleep()
