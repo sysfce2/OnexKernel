@@ -30,6 +30,11 @@ static touch_touched_cb touch_cb = 0;
 
 static void* twip;
 
+void touch_dump(touch_info_t ti)
+{
+  log_write("touch %d %d %s %s\n", ti.x, ti.y, touch_actions[ti.action], touch_gestures[ti.gesture]);
+}
+
 static void touched(uint8_t pin, uint8_t type) {
   touch_info_t ti=touch_get_info();
   if(touch_cb) touch_cb(ti);

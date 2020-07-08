@@ -10,9 +10,10 @@
 #define TOUCH_GESTURE_TAP_DOUBLE 0x0b
 #define TOUCH_GESTURE_TAP_LONG   0x0c
 
-#define TOUCH_ACTION_DOWN    1 // up!
-#define TOUCH_ACTION_UP      2 // up
-#define TOUCH_ACTION_CONTACT 3 // down
+#define TOUCH_ACTION_NONE    0x00 // none
+#define TOUCH_ACTION_DOWN    0x01 // up!
+#define TOUCH_ACTION_UP      0x02 // up
+#define TOUCH_ACTION_CONTACT 0x03 // down
 
 extern char* touch_gestures[];
 extern char* touch_actions[];
@@ -31,6 +32,7 @@ touch_info_t touch_get_info();
 void         touch_reset(uint8_t delay);
 void         touch_sleep();
 void         touch_wake();
+void         touch_dump();
 
 #endif
 
