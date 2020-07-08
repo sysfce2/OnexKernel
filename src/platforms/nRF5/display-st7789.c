@@ -146,6 +146,8 @@ static void set_addr_window(uint16_t x_0, uint16_t y_0, uint16_t x_1, uint16_t y
     write_command(ST7789_RAMWR);
 }
 
+static void st7789_rotation_set(nrf_lcd_rotation_t rotation);
+
 static void init_command_list(void)
 {
     write_command(ST7789_SWRESET);
@@ -157,8 +159,7 @@ static void init_command_list(void)
     write_command(ST7789_COLMOD);
     write_data(0x55); //16-bit, 565 RGB
 
-    write_command(ST7789_MADCTL);
-    write_data(0x00); //Bottom to top page address order
+    st7789_rotation_set(NRF_LCD_ROTATE_180);
 
     write_command(ST7789_INVON);
     nrf_delay_ms(10);
