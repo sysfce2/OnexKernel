@@ -366,4 +366,12 @@ void display_wake()
   time_ready_after_wake_command=time_ms()+SPI_FLUSH_TIME+ST7789_WAKE_SETTLE_TIME;
 }
 
+void display_reset()
+{
+  nrf_delay_ms(10);
+  nrf_gpio_pin_clear(ST7789_RST_PIN);
+  nrf_delay_ms(10);
+  nrf_gpio_pin_set(ST7789_RST_PIN);
+}
+
 // ------------------------------------------
