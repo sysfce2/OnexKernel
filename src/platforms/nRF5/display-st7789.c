@@ -95,9 +95,6 @@
 #define ST7789_MADCTL_BGR 0x08 //used by default
 #define ST7789_MADCTL_MH  0x04
 
-uint16_t x_offset = 0;
-uint16_t y_offset = 0;
-
 static inline void write_command(uint8_t c)
 {
     nrf_gpio_pin_clear(ST7789_DC_PIN);
@@ -132,11 +129,6 @@ static void set_addr_window(uint16_t x_0, uint16_t y_0, uint16_t x_1, uint16_t y
 {
     ASSERT(x_0 <= x_1);
     ASSERT(y_0 <= y_1);
-
-    y_0 += y_offset;
-    y_1 += y_offset;
-    x_0 += x_offset;
-    x_1 += x_offset;
 
     uint8_t data[4];
     write_command(ST7789_CASET);
@@ -262,8 +254,6 @@ static void st7789_rotation_set(nrf_lcd_rotation_t rotation)
     switch (rotation % 4) {
         case NRF_LCD_ROTATE_0:
             write_data(ST7789_MADCTL_MX | ST7789_MADCTL_MY | ST7789_MADCTL_RGB);  //Not working correctly
-            x_offset = 0;
-            y_offset = 0;
             //Column address (MX): Right to left
             //Page address (MY): Bottom to top
             //Page/ Column order (MV): normal
@@ -271,8 +261,6 @@ static void st7789_rotation_set(nrf_lcd_rotation_t rotation)
             break;
         case NRF_LCD_ROTATE_90:
             write_data(ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
-            x_offset = 0;
-            y_offset = 0;
             //Column address (MX): Left to right
             //Page address (MY): Top to bottom
             //Page/ Column order (MV): reverse
@@ -280,8 +268,6 @@ static void st7789_rotation_set(nrf_lcd_rotation_t rotation)
             break;
         case NRF_LCD_ROTATE_180:
             write_data(ST7789_MADCTL_RGB);
-            x_offset = 0;
-            y_offset = 0;
             //Column address (MX): Left to right
             //Page address (MY): Top to bottom
             //Page/ Column order (MV): normal
@@ -289,8 +275,6 @@ static void st7789_rotation_set(nrf_lcd_rotation_t rotation)
             break;
         case NRF_LCD_ROTATE_270:
             write_data(ST7789_MADCTL_MX | ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
-            x_offset = 0;
-            y_offset = 0;
             //Column address (MX): Right to left
             //Page address (MY): Top to bottom
             //Page/ Column order (MV): reverse
