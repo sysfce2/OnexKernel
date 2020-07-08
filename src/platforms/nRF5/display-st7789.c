@@ -149,7 +149,42 @@ static void set_addr_window(uint16_t x_0, uint16_t y_0, uint16_t x_1, uint16_t y
     write_command(ST7789_RAMWR);
 }
 
-static void st7789_rotation_set(nrf_lcd_rotation_t rotation);
+static void st7789_rotation_set(nrf_lcd_rotation_t rotation)
+{
+    write_command(ST7789_MADCTL);
+    switch (rotation % 4) {
+        case NRF_LCD_ROTATE_0:
+            write_data(ST7789_MADCTL_MX | ST7789_MADCTL_MY | ST7789_MADCTL_RGB);  //Not working correctly
+            //Column address (MX): Right to left
+            //Page address (MY): Bottom to top
+            //Page/ Column order (MV): normal
+            //RGB/BGR order: RGB
+            break;
+        case NRF_LCD_ROTATE_90:
+            write_data(ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
+            //Column address (MX): Left to right
+            //Page address (MY): Top to bottom
+            //Page/ Column order (MV): reverse
+            //RGB/BGR order: RGB
+            break;
+        case NRF_LCD_ROTATE_180:
+            write_data(ST7789_MADCTL_RGB);
+            //Column address (MX): Left to right
+            //Page address (MY): Top to bottom
+            //Page/ Column order (MV): normal
+            //RGB/BGR order: RGB
+            break;
+        case NRF_LCD_ROTATE_270:
+            write_data(ST7789_MADCTL_MX | ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
+            //Column address (MX): Right to left
+            //Page address (MY): Top to bottom
+            //Page/ Column order (MV): reverse
+            //RGB/BGR order: RGB
+            break;
+        default:
+            break;
+    }
+}
 
 static void init_command_list(void)
 {
@@ -249,43 +284,6 @@ static void st7789_display(uint8_t * data, uint16_t len, uint8_t x0, uint8_t y0,
     }
     else{
         write_data_buffered(data, len);
-    }
-}
-
-static void st7789_rotation_set(nrf_lcd_rotation_t rotation)
-{
-    write_command(ST7789_MADCTL);
-    switch (rotation % 4) {
-        case NRF_LCD_ROTATE_0:
-            write_data(ST7789_MADCTL_MX | ST7789_MADCTL_MY | ST7789_MADCTL_RGB);  //Not working correctly
-            //Column address (MX): Right to left
-            //Page address (MY): Bottom to top
-            //Page/ Column order (MV): normal
-            //RGB/BGR order: RGB
-            break;
-        case NRF_LCD_ROTATE_90:
-            write_data(ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
-            //Column address (MX): Left to right
-            //Page address (MY): Top to bottom
-            //Page/ Column order (MV): reverse
-            //RGB/BGR order: RGB
-            break;
-        case NRF_LCD_ROTATE_180:
-            write_data(ST7789_MADCTL_RGB);
-            //Column address (MX): Left to right
-            //Page address (MY): Top to bottom
-            //Page/ Column order (MV): normal
-            //RGB/BGR order: RGB
-            break;
-        case NRF_LCD_ROTATE_270:
-            write_data(ST7789_MADCTL_MX | ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
-            //Column address (MX): Right to left
-            //Page address (MY): Top to bottom
-            //Page/ Column order (MV): reverse
-            //RGB/BGR order: RGB
-            break;
-        default:
-            break;
     }
 }
 
