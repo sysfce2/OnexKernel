@@ -59,9 +59,10 @@ nrfx_err_t spi_init()
 void spi_tx(uint8_t* data, uint16_t len, void (*cb)())
 {
     if(sending){
+#if !defined(NRF_DFU_SETTINGS_VERSION)
       log_write("spi_tx already sending");
+#endif
       while(sending);
-      log_write("spi_tx ready");
     }
     sending=true;
     curr_data=data;
