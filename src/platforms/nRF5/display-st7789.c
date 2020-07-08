@@ -1,4 +1,6 @@
 
+// https://www.newhavendisplay.com/appnotes/datasheets/LCDs/ST7789V.pdf
+
 #include "sdk_common.h"
 
 #include "nrf_lcd.h"
@@ -7,8 +9,6 @@
 #include "boards.h"
 
 #include "onex-kernel/spi.h"
-
-// Datasheet: https://www.numworks.com/shared/binary/datasheets/st7789v-lcd-controller-73f8bc3e.pdf
 
 #define ST7789_NOP         0x00
 #define ST7789_SWRESET     0x01
