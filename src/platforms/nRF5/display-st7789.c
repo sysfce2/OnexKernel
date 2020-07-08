@@ -98,47 +98,37 @@
 #define ST7789_MADCTL_BGR 0x08 //used by default
 #define ST7789_MADCTL_MH  0x04
 
-static void wait_for_spi()
-{
-    if(spi_sending()){
-#if !defined(NRF_DFU_SETTINGS_VERSION)
-      log_write("*** spi_tx already sending");
-#endif
-      while(spi_sending());
-    }
-}
-
 static inline void write_command(uint8_t c)
 {
-    wait_for_spi();
+    while(spi_sending());
     nrf_gpio_pin_clear(ST7789_DC_PIN);
     spi_tx(&c, sizeof(c), 0);
 }
 
 static inline void write_data(uint8_t c)
 {
-    wait_for_spi();
+    while(spi_sending());
     nrf_gpio_pin_set(ST7789_DC_PIN);
     spi_tx(&c, sizeof(c), 0);
 }
 
 static inline void write_command_buffered(uint8_t * c, uint16_t len)
 {
-    wait_for_spi();
+    while(spi_sending());
     nrf_gpio_pin_clear(ST7789_DC_PIN);
     spi_tx(c, len, 0);
 }
 
 static inline void write_data_buffered(uint8_t * c, uint16_t len)
 {
-    wait_for_spi();
+    while(spi_sending());
     nrf_gpio_pin_set(ST7789_DC_PIN);
     spi_tx(c, len, 0);
 }
 
 static inline void write_data_buffered_cb(uint8_t * c, uint16_t len, void (*cb)())
 {
-    wait_for_spi();
+    while(spi_sending());
     nrf_gpio_pin_set(ST7789_DC_PIN);
     spi_tx(c, len, cb);
 }
@@ -255,7 +245,7 @@ static void st7789_rect_draw(uint16_t x, uint16_t y, uint16_t width, uint16_t he
 
     uint8_t data[2] = {color >> 8, color};
 
-    wait_for_spi();
+    while(spi_sending());
     nrf_gpio_pin_set(ST7789_DC_PIN);
 
     // Duff's device algorithm for optimizing loop.
