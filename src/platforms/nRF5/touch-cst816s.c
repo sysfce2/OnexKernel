@@ -26,11 +26,6 @@ static touch_touched_cb touch_cb = 0;
 
 static void* twip;
 
-void touch_dump(touch_info_t ti)
-{
-  log_write("touch %d %d %s %s\n", ti.x, ti.y, touch_actions[ti.action], touch_gestures[ti.gesture]);
-}
-
 static touch_info_t ti={0};
 
 static void touched(uint8_t pin, uint8_t type) {
@@ -73,13 +68,17 @@ void every_50ms(void* xx)
 
 touch_info_t touch_get_info()
 {
-  uint8_t buf[9];
-  uint8_t r=i2c_read(twip, TOUCH_ADDRESS, buf, sizeof(buf));
-  if(r) return ti;
-  ti.gesture = buf[TOUCH_GESTURE];
-  ti.action = (buf[TOUCH_ACTION] >> 6)+1;
-  ti.x = (buf[TOUCH_X_HIGH] & 0x0f) << 8 | buf[TOUCH_X_LOW];
-  ti.y = (buf[TOUCH_Y_HIGH] & 0x0f) << 8 | buf[TOUCH_Y_LOW];
+  uint8_t e;
+  uint8_t xyga[9]={0};
+  e=i2c_read(twip, TOUCH_ADDRESS, xyga, sizeof(xyga));
+  if(e) return ti;
+
+  ti.x = (xyga[TOUCH_X_HIGH] & 0x0f) << 8 | xyga[TOUCH_X_LOW];
+  ti.y = (xyga[TOUCH_Y_HIGH] & 0x0f) << 8 | xyga[TOUCH_Y_LOW];
+
+  ti.gesture = xyga[TOUCH_GESTURE];
+  ti.action = (xyga[TOUCH_ACTION] >> 6)+1;
+
   return ti;
 }
 
@@ -98,5 +97,10 @@ void touch_sleep() {
 void touch_wake() {
   // touch_reset(10);
   // ??
+}
+
+void touch_dump(touch_info_t ti)
+{
+  log_write("touch %d %d %s %s\n", ti.x, ti.y, touch_actions[ti.action], touch_gestures[ti.gesture]);
 }
 

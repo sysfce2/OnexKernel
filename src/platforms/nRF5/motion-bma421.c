@@ -55,8 +55,10 @@ static motion_change_cb motion_cb = 0;
 
 static void* twip;
 
+static motion_info_t mi={0};
+
 static void moved(uint8_t pin, uint8_t type) {
-  motion_info_t mi=motion_get_info();
+  motion_get_info();
   if(motion_cb) motion_cb(mi);
 }
 
@@ -135,11 +137,9 @@ int motion_init(motion_change_cb cb)
 motion_info_t motion_get_info()
 {
   uint8_t e;
-  motion_info_t mi = {0};
-
-  uint8_t xyz[6] = {0};
-  e=i2c_read_register(twip, MOTION_ADDRESS, BMA421_REG_DATA_8, xyz, 6);
-  if(e) { log_write("motion read err"); return mi; }
+  uint8_t xyz[6]={0};
+  e=i2c_read_register(twip, MOTION_ADDRESS, BMA421_REG_DATA_8, xyz, sizeof(xyz));
+  if(e) return mi;
 
   uint16_t lsb = 0;
   uint16_t msb = 0;
