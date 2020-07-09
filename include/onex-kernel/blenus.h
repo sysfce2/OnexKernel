@@ -30,6 +30,4 @@ void   blenus_putchar(unsigned char ch);
 
 size_t blenus_write(unsigned char* b, size_t l);
 
-void   blenus_loop();
-
 #endif
