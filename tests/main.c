@@ -83,10 +83,10 @@ void moved(motion_info_t motioninfo)
   new_motion_info=true;
 }
 
+char buf[64];
+
 void show_touch()
 {
-  char buf[64];
-
   snprintf(buf, 64, "-%03d-%03d-", ti.x, ti.y);
   gfx_pos(10, 85);
   gfx_text(buf);
@@ -102,7 +102,6 @@ void show_touch()
 
 void show_motion()
 {
-  char buf[64];
   snprintf(buf, 64, "(%05d)(%05d)(%05d)", mi.x, mi.y, mi.z);
   gfx_pos(10, 60);
   gfx_text(buf);
@@ -113,25 +112,19 @@ void show_battery()
   int16_t bv = gpio_read(ADC_CHANNEL);
   int16_t mv = bv*2000/(1024/(33/10));
   int8_t  pc = ((mv-3520)*100/5200)*10;
-  char buf[16]; snprintf(buf, 16, "%d%%(%d)", pc, mv);
-  gfx_pos(10, 35);
+  snprintf(buf, 64, "%d%%(%d)", pc, mv);
+  gfx_pos(10, 160);
   gfx_text(buf);
 }
 #endif
 
 static volatile bool run_tests=false;
 
-void on_recv(unsigned char* buf, size_t size)
+void on_recv(unsigned char* chars, size_t size)
 {
   if(!size) return;
-
-#if defined(BOARD_PINETIME)
-  if(buf[0]=='b'){ show_battery(); return; }
-#endif
-
-  log_write(">%c\n", buf[0]);
-
-  if(buf[0]=='t') run_tests=true;
+  log_write(">%c<----------\n", chars[0]);
+  if(chars[0]=='t') run_tests=true;
 }
 
 void run_tests_maybe()
@@ -158,6 +151,10 @@ void run_tests_maybe()
   onex_assert_summary();
 #endif
 }
+
+#if defined(LOG_TO_GFX)
+extern volatile char* event_log_buffer;
+#endif
 
 int main(void)
 {
@@ -214,6 +211,7 @@ int main(void)
       new_touch_info=false;
       display_state = LEDS_ACTIVE_STATE;
       show_touch();
+      show_battery();
     }
     if(new_motion_info){
       new_motion_info=false;
@@ -226,6 +224,14 @@ int main(void)
       display_state_prev = display_state;
       gpio_set(LCD_BACKLIGHT_HIGH, display_state);
     }
+#if defined(LOG_TO_GFX)
+    if(event_log_buffer){
+      gfx_pos(10, 10);
+      gfx_text_colour(GFX_WHITE);
+      gfx_text((char*)event_log_buffer);
+      event_log_buffer=0;
+    }
+#endif
 #endif
   }
 #endif
