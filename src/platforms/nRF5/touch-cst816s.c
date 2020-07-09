@@ -65,7 +65,6 @@ void every_50ms(void* xx)
   }
 }
 
-
 touch_info_t touch_get_info()
 {
   uint8_t e;

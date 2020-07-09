@@ -5468,7 +5468,7 @@
 
 
 #ifndef SPI1_USE_EASY_DMA
-#define SPI1_USE_EASY_DMA 1
+#define SPI1_USE_EASY_DMA 0
 #endif
 
 // </e>
@@ -6051,16 +6051,6 @@
 
 // </h>
 //==========================================================
-
-// <o> ST7789_SPI_INSTANCE
-
-// <0=> 0
-// <1=> 1
-// <2=> 2
-
-#ifndef ST7789_SPI_INSTANCE
-#define ST7789_SPI_INSTANCE 0
-#endif
 
 // <o> ST7789_HEIGHT - ST7789 height  <0-162>
 
