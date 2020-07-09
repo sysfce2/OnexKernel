@@ -17,7 +17,6 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/random.h>
 #include <onex-kernel/time.h>
-#include <onex-kernel/gpio.h>
 #if defined(HAS_SERIAL)
 #include <onex-kernel/serial.h>
 #endif
