@@ -60,7 +60,10 @@ void boot_sleep()
     last_sleeping_time=sleeping_time;
 
     cpu_percent=(uint8_t)(100*running_time_diff/(running_time_diff+sleeping_time_diff));
-
-    log_write("%lu%%", cpu_percent);
   }
+}
+
+uint8_t boot_cpu()
+{
+  return cpu_percent;
 }
