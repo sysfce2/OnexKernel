@@ -1078,17 +1078,24 @@ void onex_init(char* dbpath)
 
 bool onex_loop()
 {
-  bool keep_awake = false;
+  bool ska=false, lka=false, pka=false, oka=false, eka=false;
 #if defined(NRF5)
 #if defined(HAS_SERIAL)
-  keep_awake = serial_loop()        || keep_awake;
+  ska = serial_loop();
 #endif
-  keep_awake = log_loop()           || keep_awake;
+  lka = log_loop();
 #endif
-  keep_awake = persistence_loop()   || keep_awake;
-  keep_awake = onp_loop()           || keep_awake;
-  keep_awake = run_any_evaluators() || keep_awake;
-  return keep_awake;
+  pka = persistence_loop();
+  oka = onp_loop();
+  eka = run_any_evaluators();
+#if defined(LOG_KEEP_AWAKE)
+  if(ska) log_write("keep awake by serial_loop");
+  if(lka) log_write("keep awake by log_loop");
+  if(pka) log_write("keep awake by persistence_loop");
+  if(oka) log_write("keep awake by onp_loop");
+  if(eka) log_write("keep awake by run_any_evaluators");
+#endif
+  return ska||lka||pka||oka||eka;
 }
 
 static properties* objects_cache=0;
