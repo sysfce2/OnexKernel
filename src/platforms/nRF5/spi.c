@@ -29,6 +29,10 @@ void next_block_of_255()
     curr_len-=m;
 
     nrfx_spim_xfer(&spim_inst0, &xfer_desc, 0);
+#if defined(SPI_BLOCKING)
+    nrf_gpio_pin_set(SPIM0_SS_PIN);
+    sending=false;
+#endif
 }
 
 void spim_event_handler(nrfx_spim_evt_t const* p_event, void* p_context)
@@ -51,7 +55,11 @@ nrfx_err_t spi_init()
     config.mosi_pin  = SPIM0_MOSI_PIN;
     config.sck_pin   = SPIM0_SCK_PIN;
 
+#if defined(SPI_BLOCKING)
+    nrfx_spim_init(&spim_inst0, &config, 0, 0);
+#else
     nrfx_spim_init(&spim_inst0, &config, spim_event_handler, 0);
+#endif
 
     return 0;
 }
