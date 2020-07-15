@@ -29,6 +29,7 @@ void next_block_of_255()
     curr_len-=m;
 
     nrfx_spim_xfer(&spim_inst0, &xfer_desc, 0);
+
 #if defined(SPI_BLOCKING)
     nrf_gpio_pin_set(SPIM0_SS_PIN);
     sending=false;
