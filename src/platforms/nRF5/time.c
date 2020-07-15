@@ -50,7 +50,8 @@ void time_init()
   initialised=true;
 }
 
-uint32_t time_s(){
+uint32_t time_s()
+{
   if(!initialised) return 0;
   return seconds;
 }

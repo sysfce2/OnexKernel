@@ -6,6 +6,7 @@
 
 void     time_init();
 
+uint32_t time_s();  // seconds since startup
 uint64_t time_es(); // Unix epoch seconds
 uint64_t time_ms(); // ms since startup
 uint64_t time_us(); // us since startup
