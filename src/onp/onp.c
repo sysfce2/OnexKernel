@@ -17,8 +17,6 @@
 #include <channel-ipv6.h>
 #endif
 
-#define xONP_DEBUG
-
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
 static void on_connect(char* channel);
 static void do_connect(char* channel);
@@ -149,7 +147,7 @@ void send(char* buff, char* channel)
 void log_sent(char* buff, uint16_t size, char* to, uint16_t* toip)
 {
 #ifdef ONP_DEBUG
-#if defined(LOG_TO_BLE) || defined(LOG_TO_GFX) || defined(ONP_OVER_SERIAL)
+#if defined(LOG_TO_GFX) || (defined(LOG_TO_SERIAL) && defined(ONP_OVER_SERIAL))
   log_write("> %d\n", size);
 #else
   log_write("ONP sent '%s'", buff);
@@ -165,7 +163,7 @@ void log_sent(char* buff, uint16_t size, char* to, uint16_t* toip)
 void log_recv(char* buff, uint16_t size, char* channel)
 {
 #ifdef ONP_DEBUG
-#if defined(LOG_TO_BLE) || defined(LOG_TO_GFX) || defined(ONP_OVER_SERIAL)
+#if defined(LOG_TO_GFX) || (defined(LOG_TO_SERIAL) && defined(ONP_OVER_SERIAL))
   log_write("< %d\n", size);
 #else
   log_write("ONP recv '%s'", buff);
