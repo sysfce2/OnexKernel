@@ -15,7 +15,7 @@ static uint16_t failure=0;
 #if defined(__ANDROID__) || defined(BOARD_PCA10059)
 bool exit_on_fail=false;
 #else
-bool exit_on_fail=true;
+bool exit_on_fail=false;
 #endif
 
 bool onex_assert_i(bool condition, const char* fail_message, char* actual, char* expected)

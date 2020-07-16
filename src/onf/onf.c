@@ -63,7 +63,7 @@ static bool        has_notifies(object* o);
 static void        show_notifies(object* o);
 static object*     new_object(value* uid, char* evaluator, char* is, uint8_t max_size);
 static object*     new_object_from(char* text, uint8_t max_size);
-static object*     new_shell(value* uid, char* notify);
+static object*     new_shell(value* uid);
 static bool        is_shell(object* o);
 static void        run_evaluators(object* o, void* data, value* alerted, bool timedout);
 static bool        run_any_evaluators();
@@ -217,14 +217,13 @@ object* new_object_from(char* text, uint8_t max_size)
   return n;
 }
 
-object* new_shell(value* uid, char* notify)
+object* new_shell(value* uid)
 {
   object* n=(object*)mem_alloc(sizeof(object));
   n->uid=uid;
   n->properties=properties_new(MAX_OBJECT_SIZE);
   n->devices=value_new("shell");
   n->last_observe = 0;
-  set_notifies(n, notify);
   return n;
 }
 
@@ -427,24 +426,23 @@ void ping_object(char* uid, object* o, uint32_t timeout)
 
 object* find_object(char* uid, object* n, bool observe)
 {
-  if(!is_uid(uid) || !n){
-    return 0;
-  }
+  if(!is_uid(uid) || !n) return 0;
+
   object* o=onex_get_from_cache(uid);
+
   if(!o){
-    o=new_shell(value_new(uid), value_string(n->uid));
-    if(add_to_cache_and_persist(o)) ping_object(uid, o, 0);
-    return 0;
-  }
-  if(is_shell(o)){
-    ping_object(uid, o, 1000);
-    return 0;
+    o=new_shell(value_new(uid));
+    add_to_cache_and_persist(o);
   }
   if(observe){
     add_notify(o, value_string(n->uid));
-    if(object_is_remote(o)){
-      ping_object(uid, o, 10000);
-    }
+  }
+  if(is_shell(o)){
+    ping_object(uid, o, 1000);
+  }
+  else
+  if(object_is_remote(o)){
+    ping_object(uid, o, 10000);
   }
   return o;
 }
