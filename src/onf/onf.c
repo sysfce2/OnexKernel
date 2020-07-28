@@ -414,7 +414,7 @@ char* channel_of(value* device_uid)
   return "serial";
 }
 
-void ping_object(char* uid, object* o, uint32_t timeout)
+void obs_or_refresh(char* uid, object* o, uint32_t timeout)
 {
   uint64_t curtime = time_ms();
   if(!o->last_observe || curtime > o->last_observe + timeout){
@@ -435,13 +435,13 @@ object* find_object(char* uid, object* n, bool observe)
   }
   if(observe){
     add_notify(o, value_string(n->uid));
-  }
-  if(is_shell(o)){
-    ping_object(uid, o, 1000);
-  }
-  else
-  if(object_is_remote(o)){
-    ping_object(uid, o, 10000);
+    if(is_shell(o)){
+      obs_or_refresh(uid, o, 1000);
+    }
+    else
+    if(object_is_remote(o)){
+      obs_or_refresh(uid, o, 10000);
+    }
   }
   return o;
 }
