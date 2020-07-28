@@ -409,7 +409,7 @@ item* nested_property_item(object* n, char* path, object* t, bool observe)
   return 0;
 }
 
-char* channel_of(char* device_uid)
+char* channel_of(value* device_uid)
 {
   return "serial";
 }
@@ -419,8 +419,7 @@ void ping_object(char* uid, object* o, uint32_t timeout)
   uint64_t curtime = time_ms();
   if(!o->last_observe || curtime > o->last_observe + timeout){
     o->last_observe = curtime + 1;
-    char* device_uid = value_string(o->devices);
-    onp_send_observe(uid, channel_of(device_uid));
+    onp_send_observe(uid, channel_of(o->devices));
   }
 }
 
@@ -889,7 +888,8 @@ bool run_any_evaluators()
 
     keep_awake=true;
 
-    object* o=onex_get_from_cache(value_string(to_notify[n].uid));
+    char* uid_or_channel=value_string(to_notify[n].uid);
+    object* o=onex_get_from_cache(uid_or_channel);
 
     switch(type){
       case(TO_NOTIFY_NONE): {
@@ -904,7 +904,11 @@ bool run_any_evaluators()
       }
       case(TO_NOTIFY_ALERTED): {
         to_notify[n].type=TO_NOTIFY_FREE;
-        run_evaluators(o, 0, to_notify[n].details.alerted, false);
+        if(o) run_evaluators(o, 0, to_notify[n].details.alerted, false);
+        else{
+          object* a=onex_get_from_cache(value_string(to_notify[n].details.alerted));
+          onp_send_object(a, uid_or_channel);
+        }
         break;
       }
       case(TO_NOTIFY_TIMEOUT): {
@@ -945,30 +949,19 @@ void set_notifies(object* o, char* notify)
 void save_and_notify(object* o)
 {
   persistence_put(o);
-  int i;
-  for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    if(!o->notify[i]) continue;
-    char* notify = value_string(o->notify[i]);
-    object* n=onex_get_from_cache(notify);
-    if(!n){
-      // TODO !!
-      if(!object_is_remote(o)) onp_send_object(o, channel_of(notify));
-      continue;
-    }
-    if(!object_is_device(n)){
-      if(!object_is_remote(n)) set_to_notify(n->uid, 0, o->uid, 0);
-      else
-      if(!object_is_remote(o)) onp_send_object(o, channel_of(notify));
-    }
-    else{
-      if(!object_is_remote(o)) onp_send_object(o, channel_of(notify));
-    }
+
+  for(int i=0; i< OBJECT_MAX_NOTIFIES; i++){
+    value* notifyuid=o->notify[i];
+    if(!notifyuid) continue;
+    object* n=onex_get_from_cache(value_string(notifyuid));
+    value* uid_or_channel=(n && !object_is_remote(n))? notifyuid: value_new(channel_of(notifyuid));
+    set_to_notify(uid_or_channel, 0, o->uid, 0);
   }
   if(object_is_remote_device(o)){
     set_to_notify(onex_device_object->uid, 0, o->uid, 0);
   }
   if(o==onex_device_object){
-    onp_send_object(onex_device_object, channel_of("")); // all channels
+    set_to_notify(value_new("all channels"), 0, o->uid, 0);
   }
 }
 
@@ -1354,7 +1347,7 @@ void onf_recv_observe(char* text, char* channel)
   object* o=onex_get_from_cache(uid);
   if(!o) return;
   add_notify(o, "uid-of-device");
-  if(!object_is_remote(o)) onp_send_object(o, channel);
+  onp_send_object(o, channel);
 }
 
 void onf_recv_object(char* text, char* channel)

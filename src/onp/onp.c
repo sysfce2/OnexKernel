@@ -122,6 +122,7 @@ void onp_send_observe(char* uid, char* channel)
 
 void onp_send_object(object* o, char* channel)
 {
+  if(object_is_remote(o)) return;
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
   object_to_text(o,send_buff,SEND_BUFF_SIZE,OBJECT_TO_TEXT_NETWORK);
   send(send_buff, channel);
@@ -133,9 +134,9 @@ void send(char* buff, char* channel)
 {
   uint16_t size=0;
 #ifdef ONP_CHANNEL_SERIAL
-  if(!strcmp(channel, "serial")){
+  if(!strcmp(channel, "serial") || !strcmp(channel, "all channels")){
     size = channel_serial_send(buff, strlen(buff));
-    log_sent(buff,size,"Serial",0);
+    log_sent(buff,size,channel,0);
   }
 #endif
 #ifdef ONP_CHANNEL_IPV6
