@@ -443,7 +443,7 @@ object* find_object(char* uid, object* n, bool observe)
       obs_or_refresh(uid, o, 10000);
     }
   }
-  return o;
+  return is_shell(o)? 0: o;
 }
 
 uint16_t object_property_length(object* n, char* path)
