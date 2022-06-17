@@ -6,7 +6,7 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
 #include <assert.h>
-#include <onf.h>
+#include <onn.h>
 
 // ---------------------------------------------------------------------------------
 
@@ -630,7 +630,7 @@ void test_timer()
 
 void run_onf_tests(char* dbpath)
 {
-  log_write("------ONF tests-----------\n");
+  log_write("------ONN tests-----------\n");
 
   onex_init(dbpath);
 

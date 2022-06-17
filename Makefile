@@ -13,7 +13,7 @@ LIB_OBJECTS = \
 ./src/lib/list.c \
 ./src/lib/value.c \
 ./src/onp/onp.c \
-./src/onf/onf.c \
+./src/onn/onn.c \
 
 UNIX_C_SOURCE_FILES = \
 ./src/platforms/unix/properties.c \
@@ -29,7 +29,7 @@ TESTS_OBJECTS = \
 ./tests/test-properties.c \
 ./tests/test-list.c \
 ./tests/test-value.c \
-./tests/test-onf.c \
+./tests/test-onn.c \
 ./tests/main.c \
 
 

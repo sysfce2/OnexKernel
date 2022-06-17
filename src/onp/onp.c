@@ -6,7 +6,7 @@
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 
-#include "onf.h"
+#include "onn.h"
 #include "onp.h"
 
 #ifdef ONP_CHANNEL_SERIAL
