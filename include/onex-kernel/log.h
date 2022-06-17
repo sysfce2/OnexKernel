@@ -21,22 +21,9 @@
   (x & 0x00000080? '1': '0'), (x & 0x00000040? '1': '0'), (x & 0x00000020? '1': '0'), (x & 0x00000010? '1': '0'), \
   (x & 0x00000008? '1': '0'), (x & 0x00000004? '1': '0'), (x & 0x00000002? '1': '0'), (x & 0x00000001? '1': '0')
 
-#if !defined(__ANDROID__)
-
 void log_init();
 bool log_loop();
 int  log_write(const char* fmt, ...);
 void log_flush();
-
-#else
-
-#include <android/log.h>
-
-#define log_init()
-#define log_loop() true
-#define log_write(...) ((void)__android_log_print(ANDROID_LOG_INFO, "OnexApp", __VA_ARGS__))
-#define log_flush()
-
-#endif
 
 #endif

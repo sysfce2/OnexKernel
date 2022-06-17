@@ -1,15 +1,14 @@
 
-git stash #so libraries==code
+git stash
 
-Make cleanlibs && Make android.tests
+Make cleanlibs
+Make clean
 
-Make clean && Make linux.tests
+Make linux.tests
 
-# tests
 make clean && make -j flash1
 
-# tests on PineTime
-make -f makefile-s132 clean
-make -j -f makefile-s132
-make -f makefile-s132 flash
+make     -f makefile-s132 clean
+make -j6 -f makefile-s132
+make     -f makefile-s132 flash
 

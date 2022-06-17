@@ -51,12 +51,6 @@ libOnexKernel.a: CHANNELS=-DONP_CHANNEL_SERIAL
 libOnexKernel.a: $(UNIX_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o}
 	$(AR) rcs $@ $^
 
-android.library: libOnexAndroidKernel.a
-
-libOnexAndroidKernel.a: android/onexkernel/src/main/jni/OnexApp.cpp
-	(cd android; ./gradlew build)
-	cp android/onexkernel/build/intermediates/ndkBuild/debug/obj/local/arm64-v8a/libOnexAndroidKernel.a .
-
 tests.linux: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
 tests.linux: CC=/usr/bin/gcc
 tests.linux: LD=/usr/bin/gcc
@@ -71,14 +65,6 @@ linux.tests: tests.linux
 linux.valgrind: tests.linux
 	valgrind --leak-check=yes --undef-value-errors=no ./tests.linux
 
-android.tests: android.library
-	adb shell pm uninstall network.object.onexkernel || echo not found
-	adb install android/onexkernel/build/outputs/apk/debug/onexkernel-debug.apk
-	adb shell pm grant network.object.onexkernel android.permission.READ_EXTERNAL_STORAGE
-	adb shell pm grant network.object.onexkernel android.permission.WRITE_EXTERNAL_STORAGE
-	adb shell rm -f sdcard/Onex/onex.ondb
-	adb logcat OnexApp:D *:S
-
 #############################:
 
 clean:
@@ -89,7 +75,6 @@ clean:
 
 cleanx: clean
 	rm -f *.linux
-	rm -rf android/*/build android/*/.cxx/ android/.gradle/*/*
 
 cleanlibs: cleanx
 	rm -f libOnex*.a

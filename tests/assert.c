@@ -12,7 +12,7 @@
 static uint16_t success=0;
 static uint16_t failure=0;
 
-#if defined(__ANDROID__) || defined(BOARD_PCA10059)
+#if defined(BOARD_PCA10059)
 bool exit_on_fail=false;
 #else
 bool exit_on_fail=false;
@@ -20,9 +20,6 @@ bool exit_on_fail=false;
 
 bool onex_assert_i(bool condition, const char* fail_message, char* actual, char* expected)
 {
-#ifdef __ANDROID__
-  time_delay_ms(10);
-#endif
   if(condition){
     success++;
     log_write("%d (%s)\n",  success+failure, fail_message);
