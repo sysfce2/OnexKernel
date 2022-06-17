@@ -1,5 +1,5 @@
-#ifndef ONF_H
-#define ONF_H
+#ifndef ONN_H
+#define ONN_H
 
 #include <stdbool.h>
 #include <stdint.h>

@@ -22,7 +22,7 @@
 extern void run_properties_tests();
 extern void run_list_tests();
 extern void run_value_tests();
-extern void run_onf_tests(char* dbpath);
+extern void run_onn_tests(char* dbpath);
 
 #if defined(NRF5)
 void button_changed(uint8_t pin, uint8_t type)
@@ -136,7 +136,7 @@ void run_tests_maybe()
   run_value_tests();
   run_list_tests();
   run_properties_tests();
-  run_onf_tests("Onex/onex.ondb");
+  run_onn_tests("Onex/onex.ondb");
 
 #if defined(NRF5)
   int failures=onex_assert_summary();

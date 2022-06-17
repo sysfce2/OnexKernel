@@ -1340,7 +1340,7 @@ void scan_objects_text_for_keep_active()
 
 // -----------------------------------------------------------------------
 
-void onf_recv_observe(char* text, char* channel)
+void onn_recv_observe(char* text, char* channel)
 {
   char* uid=strchr(text,':')+2;
   char* u=uid; while(*u > ' ') u++; *u=0;
@@ -1350,7 +1350,7 @@ void onf_recv_observe(char* text, char* channel)
   onp_send_object(o, channel);
 }
 
-void onf_recv_object(char* text, char* channel)
+void onn_recv_object(char* text, char* channel)
 {
   object* n=new_object_from(text, MAX_OBJECT_SIZE);
   if(!n) return;

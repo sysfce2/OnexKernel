@@ -628,7 +628,7 @@ void test_timer()
 
 // ---------------------------------------------------------------------------------
 
-void run_onf_tests(char* dbpath)
+void run_onn_tests(char* dbpath)
 {
   log_write("------ONN tests-----------\n");
 

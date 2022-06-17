@@ -26,8 +26,8 @@ static void log_sent(char* buff, uint16_t size, char* to, uint16_t* toip);
 static void log_recv(char* buff, uint16_t size, char* channel);
 #endif
 
-void onf_recv_observe(char* text, char* channel);
-void onf_recv_object(char* text, char* channel);
+void onn_recv_observe(char* text, char* channel);
+void onn_recv_object(char* text, char* channel);
 
 void onp_init()
 {
@@ -107,8 +107,8 @@ static void handle_recv(uint16_t size, char* channel, uint16_t* fromip)
 
   log_recv(recv_buff, size, channel);
 
-  if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) onf_recv_observe(recv_buff, channel);
-  if(size>=5 && !strncmp(recv_buff,"UID: ",5)) onf_recv_object(recv_buff, channel);
+  if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) onn_recv_observe(recv_buff, channel);
+  if(size>=5 && !strncmp(recv_buff,"UID: ",5)) onn_recv_object(recv_buff, channel);
 }
 #endif
 
