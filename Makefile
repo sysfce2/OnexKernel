@@ -33,37 +33,42 @@ TESTS_OBJECTS = \
 ./tests/main.c \
 
 
-LINUX_FLAGS=-g3 -ggdb
-LINUX_CC_SYMBOLS = -D${TARGET} ${CHANNELS}
+X86_FLAGS=-g3 -ggdb
+X86_CC_SYMBOLS = -D${TARGET} ${CHANNELS}
+
 CC_FLAGS = -c -std=gnu99 -Werror -Wall -Wextra -Wno-unused-parameter -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer
 
 .c.o:
 	$(CC) ${COMPILE_LINE} -o $@ -c $<
 
-linux.library: libOnexKernel.a
+x86.library: libonex-kernel-x86.a
 
-libOnexKernel.a: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
-libOnexKernel.a: CC=/usr/bin/gcc
-libOnexKernel.a: LD=/usr/bin/gcc
-libOnexKernel.a: AR=/usr/bin/ar
-libOnexKernel.a: TARGET=TARGET_LINUX
-libOnexKernel.a: CHANNELS=-DONP_CHANNEL_SERIAL
-libOnexKernel.a: $(UNIX_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o}
 	$(AR) rcs $@ $^
 
-tests.linux: COMPILE_LINE=${LINUX_FLAGS} ${CC_FLAGS} $(LINUX_CC_SYMBOLS) ${INCLUDES}
-tests.linux: CC=/usr/bin/gcc
-tests.linux: LD=/usr/bin/gcc
-tests.linux: TARGET=TARGET_LINUX
-tests.linux: CHANNELS=-DONP_CHANNEL_SERIAL
-tests.linux: libOnexKernel.a ${TESTS_OBJECTS:.c=.o}
-	$(LD) ${TESTS_OBJECTS:.c=.o} -pthread -L. -lOnexKernel -o $@
+libonex-kernel-x86.a: COMPILE_LINE=${X86_FLAGS} ${CC_FLAGS} $(X86_CC_SYMBOLS) ${INCLUDES}
+libonex-kernel-x86.a: CC=/usr/bin/gcc
+libonex-kernel-x86.a: LD=/usr/bin/gcc
+libonex-kernel-x86.a: AR=/usr/bin/ar
+libonex-kernel-x86.a: TARGET=TARGET_X86
+libonex-kernel-x86.a: CHANNELS=-DONP_CHANNEL_SERIAL
+libonex-kernel-x86.a: $(UNIX_C_SOURCE_FILES:.c=.o) ${LIB_OBJECTS:.c=.o}
+	$(AR) rcs $@ $^
 
-linux.tests: tests.linux
-	./tests.linux
 
-linux.valgrind: tests.linux
-	valgrind --leak-check=yes --undef-value-errors=no ./tests.linux
+tests.x86: COMPILE_LINE=${X86_FLAGS} ${CC_FLAGS} $(X86_CC_SYMBOLS) ${INCLUDES}
+tests.x86: CC=/usr/bin/gcc
+tests.x86: LD=/usr/bin/gcc
+tests.x86: TARGET=TARGET_X86
+tests.x86: CHANNELS=-DONP_CHANNEL_SERIAL
+tests.x86: libonex-kernel-x86.a ${TESTS_OBJECTS:.c=.o}
+	$(LD) ${TESTS_OBJECTS:.c=.o} -pthread -L. -lonex-kernel-x86 -o $@
+
+x86.tests: tests.x86
+	./tests.x86
+
+x86.valgrind: tests.x86
+	valgrind --leak-check=yes --undef-value-errors=no ./tests.x86
+
 
 #############################:
 
@@ -74,7 +79,7 @@ clean:
 	@echo "------------------------------"
 
 cleanx: clean
-	rm -f *.linux
+	rm -f *.x86
 
 cleanlibs: cleanx
 	rm -f libOnex*.a

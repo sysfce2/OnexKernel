@@ -11,7 +11,7 @@ local.properties
 *.hex
 *.elf
 *.zip
-*.linux
+*.x86
 *.bin
 *.map
 *.in
