@@ -105,10 +105,10 @@ clean:
 	@echo "------------------------------"
 
 cleanx: clean
-	rm -f *.x86 *.arm
+	rm -rf *.x86 *.arm ok
 
 cleanlibs: cleanx
-	rm -f libOnex*.a
+	rm -f libonex*.a
 
 ############################################################################################
 
