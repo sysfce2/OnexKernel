@@ -1,13 +1,13 @@
 
-PROJECT_NAME     := onex
-TARGETS          := onex
+PROJECT_NAME     := onex-kernel
+TARGETS          := onex-kernel
 OUTPUT_DIRECTORY := _build
 VERBOSE = 1
 PRETTY  = 1
 
 SDK_ROOT := ./sdk
 
-$(OUTPUT_DIRECTORY)/onex.out: \
+$(OUTPUT_DIRECTORY)/onex-kernel.out: \
   LINKER_SCRIPT  := src/platforms/nRF5/onex.ld
 
 
@@ -313,10 +313,10 @@ LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs
 
-onex: CFLAGS += -D__HEAP_SIZE=8192
-onex: CFLAGS += -D__STACK_SIZE=8192
-onex: ASMFLAGS += -D__HEAP_SIZE=8192
-onex: ASMFLAGS += -D__STACK_SIZE=8192
+onex-kernel: CFLAGS += -D__HEAP_SIZE=8192
+onex-kernel: CFLAGS += -D__STACK_SIZE=8192
+onex-kernel: ASMFLAGS += -D__HEAP_SIZE=8192
+onex-kernel: ASMFLAGS += -D__STACK_SIZE=8192
 
 # Add standard libraries at the very end of the linker input, after all objects
 # that may need symbols provided by these libraries.
@@ -326,13 +326,13 @@ LIB_FILES += -lc -lnosys -lm
 .PHONY: default help
 
 # Default target - first one defined
-default: onex
+default: onex-kernel
 
-$(OUTPUT_DIRECTORY)/onex/*.o: default
+$(OUTPUT_DIRECTORY)/onex-kernel/*.o: onex-kernel
 
-libonex-kernel-nrf.a: $(OUTPUT_DIRECTORY)/onex/*.o
-	rm $(OUTPUT_DIRECTORY)/onex/main.c.o
-	rm $(OUTPUT_DIRECTORY)/onex/test-*.c.o
+libonex-kernel-nrf.a: $(OUTPUT_DIRECTORY)/onex-kernel/*.o
+	rm $(OUTPUT_DIRECTORY)/onex-kernel/main.c.o
+	rm $(OUTPUT_DIRECTORY)/onex-kernel/test-*.c.o
 	$(AR) rcs $@ $^
 
 nrf.lib: libonex-kernel-nrf.a
@@ -341,7 +341,7 @@ nrf.lib: libonex-kernel-nrf.a
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo		onex
+	@echo		onex-kernel
 	@echo		flash_softdevice
 	@echo		sdk_config - starting external tool for editing sdk_config.h
 	@echo		flash      - flashing binary
@@ -361,13 +361,13 @@ PRIVATE_PEM = ~/the-u-web/OnexKernel/doc/local/private.pem
 
 # Flash the program
 flash0: default
-	@echo Flashing: $(OUTPUT_DIRECTORY)/onex.hex
-	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application _build/onex.hex --key-file $(PRIVATE_PEM) dfu.zip
+	@echo Flashing: $(OUTPUT_DIRECTORY)/onex-kernel.hex
+	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application _build/onex-kernel.hex --key-file $(PRIVATE_PEM) dfu.zip
 	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM0 -b 115200
 
 flash1: default
-	@echo Flashing: $(OUTPUT_DIRECTORY)/onex.hex
-	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application _build/onex.hex --key-file $(PRIVATE_PEM) dfu.zip
+	@echo Flashing: $(OUTPUT_DIRECTORY)/onex-kernel.hex
+	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application _build/onex-kernel.hex --key-file $(PRIVATE_PEM) dfu.zip
 	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM1 -b 115200
 
 # Flash softdevice
