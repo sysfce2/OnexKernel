@@ -328,6 +328,16 @@ LIB_FILES += -lc -lnosys -lm
 # Default target - first one defined
 default: onex
 
+$(OUTPUT_DIRECTORY)/onex/*.o: default
+
+libonex-kernel-nrf.a: $(OUTPUT_DIRECTORY)/onex/*.o
+	rm $(OUTPUT_DIRECTORY)/onex/main.c.o
+	rm $(OUTPUT_DIRECTORY)/onex/test-*.c.o
+	$(AR) rcs $@ $^
+
+nrf.lib: libonex-kernel-nrf.a
+
+
 # Print all targets that can be built
 help:
 	@echo following targets are available:
@@ -373,4 +383,8 @@ SDK_CONFIG_FILE := ./src/platforms/nRF5/sdk_config.h
 CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar
 sdk_config:
 	java -jar $(CMSIS_CONFIG_TOOL) $(SDK_CONFIG_FILE)
+
+cleanx:
+	rm -rf _build dfu.zip
+
 
