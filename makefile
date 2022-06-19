@@ -333,8 +333,8 @@ $(OUTPUT_DIRECTORY)/onex-kernel/*.o: onex-kernel
 libonex-kernel-nrf.a: $(OUTPUT_DIRECTORY)/onex-kernel/*.o
 	rm $(OUTPUT_DIRECTORY)/onex-kernel/main.c.o
 	rm $(OUTPUT_DIRECTORY)/onex-kernel/test-*.c.o
-	/home/duncan/gcc-arm/bin/arm-none-eabi-strip _build/onex-kernel/*.o
 	$(AR) rcs $@ $^
+	/home/duncan/gcc-arm/bin/arm-none-eabi-strip -g $@
 
 nrf.lib: libonex-kernel-nrf.a
 
