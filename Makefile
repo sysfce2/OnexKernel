@@ -45,9 +45,9 @@ CC_FLAGS = -c -std=gnu99 -Werror -Wall -Wextra -Wno-unused-parameter -fno-common
 .c.o:
 	$(CC) ${COMPILE_LINE} -o $@ -c $<
 
-arm.library: libonex-kernel-arm.a
+arm.lib: libonex-kernel-arm.a
 
-x86.library: libonex-kernel-x86.a
+x86.lib: libonex-kernel-x86.a
 
 libonex-kernel-arm.a: COMPILE_LINE=${ARM_FLAGS} ${CC_FLAGS} $(ARM_CC_SYMBOLS) ${INCLUDES}
 libonex-kernel-arm.a: CC=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-gcc
