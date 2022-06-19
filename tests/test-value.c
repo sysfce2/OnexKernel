@@ -1,5 +1,5 @@
 
-#include <assert.h>
+#include <tests.h>
 #include <onex-kernel/log.h>
 #include <items.h>
 

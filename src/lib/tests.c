@@ -5,7 +5,7 @@
 
 #include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
-#include <assert.h>
+#include <tests.h>
 
 // -----------------------------------------------------------------------
 

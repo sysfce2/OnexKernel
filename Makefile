@@ -13,6 +13,7 @@ INCLUDES = \
 LIB_OBJECTS = \
 ./src/lib/list.c \
 ./src/lib/value.c \
+./src/lib/tests.c \
 ./src/onp/onp.c \
 ./src/onn/onn.c \
 
@@ -26,7 +27,6 @@ UNIX_C_SOURCE_FILES = \
 ./src/platforms/unix/random.c \
 
 TESTS_OBJECTS = \
-./tests/assert.c \
 ./tests/test-properties.c \
 ./tests/test-list.c \
 ./tests/test-value.c \
@@ -105,7 +105,7 @@ clean:
 	@echo "------------------------------"
 
 cleanx: clean
-	rm -rf *.x86 *.arm ok
+	rm -rf *.arm *.x86 ok
 
 cleanlibs: cleanx
 	rm -f libonex*.a

@@ -17,7 +17,7 @@
 
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
-#include <assert.h>
+#include <tests.h>
 
 extern void run_properties_tests();
 extern void run_list_tests();
