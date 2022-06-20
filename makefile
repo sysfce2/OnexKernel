@@ -20,7 +20,6 @@ NRF5_INCLUDES = \
 
 
 TESTS_OBJECTS = \
-./tests/assert.c \
 ./tests/test-properties.c \
 ./tests/test-list.c \
 ./tests/test-value.c \
@@ -33,6 +32,7 @@ TESTS_OBJECTS = \
 LIB_OBJECTS = \
 ./src/lib/list.c \
 ./src/lib/value.c \
+./src/lib/tests.c \
 ./src/onp/onp.c \
 ./src/onn/onn.c \
 
