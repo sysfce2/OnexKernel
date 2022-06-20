@@ -1,4 +1,10 @@
 ##########################################################################
+# nRF5 Makefile
+
+targets:
+	@grep '^[a-zA-Z0-9\.#-]\+:' makefile | grep -v '^\.' | grep -v targets | sed 's/:.*//' | uniq | sed 's/\.elf/.hex/' | sed 's/^/make clean \&\& make /'
+
+##########################################################################
 # set a link to the nordic SDK, something like:
 # ./sdk -> /home/<username>/nordic-platform/nRF5_SDK_16.0.0_98a08e2/
 
@@ -210,78 +216,78 @@ SDK_INCLUDES = \
 
 
 SDK_ASSEMBLER_SOURCES = \
-  ./sdk/modules/nrfx/mdk/gcc_startup_nrf52840.S \
+./sdk/modules/nrfx/mdk/gcc_startup_nrf52840.S \
 
 
 SDK_C_SOURCES = \
-  ./sdk/components/libraries/mem_manager/mem_manager.c \
-  ./sdk/components/libraries/log/src/nrf_log_backend_rtt.c \
-  ./sdk/components/libraries/log/src/nrf_log_backend_serial.c \
-  ./sdk/components/libraries/log/src/nrf_log_backend_uart.c \
-  ./sdk/components/libraries/log/src/nrf_log_default_backends.c \
-  ./sdk/components/libraries/log/src/nrf_log_frontend.c \
-  ./sdk/components/libraries/log/src/nrf_log_str_formatter.c \
-  ./sdk/components/libraries/button/app_button.c \
-  ./sdk/components/libraries/util/app_error.c \
-  ./sdk/components/libraries/util/app_error_handler_gcc.c \
-  ./sdk/components/libraries/util/app_error_weak.c \
-  ./sdk/components/libraries/scheduler/app_scheduler.c \
-  ./sdk/components/libraries/timer/app_timer2.c \
-  ./sdk/components/libraries/util/app_util_platform.c \
-  ./sdk/components/libraries/timer/drv_rtc.c \
-  ./sdk/components/libraries/hardfault/hardfault_implementation.c \
-  ./sdk/components/libraries/util/nrf_assert.c \
-  ./sdk/components/libraries/atomic_fifo/nrf_atfifo.c \
-  ./sdk/components/libraries/atomic_flags/nrf_atflags.c \
-  ./sdk/components/libraries/atomic/nrf_atomic.c \
-  ./sdk/components/libraries/balloc/nrf_balloc.c \
-  ./sdk/components/libraries/cli/nrf_cli.c \
-  ./sdk/components/libraries/cli/uart/nrf_cli_uart.c \
-  ./sdk/external/fprintf/nrf_fprintf.c \
-  ./sdk/external/fprintf/nrf_fprintf_format.c \
-  ./sdk/components/libraries/memobj/nrf_memobj.c \
-  ./sdk/components/libraries/pwr_mgmt/nrf_pwr_mgmt.c \
-  ./sdk/components/libraries/queue/nrf_queue.c \
-  ./sdk/components/libraries/ringbuf/nrf_ringbuf.c \
-  ./sdk/components/libraries/experimental_section_vars/nrf_section_iter.c \
-  ./sdk/components/libraries/sortlist/nrf_sortlist.c \
-  ./sdk/components/libraries/strerror/nrf_strerror.c \
-  ./sdk/components/libraries/usbd/app_usbd.c \
-  ./sdk/components/libraries/usbd/class/cdc/acm/app_usbd_cdc_acm.c \
-  ./sdk/components/libraries/usbd/app_usbd_core.c \
-  ./sdk/components/libraries/usbd/app_usbd_serial_num.c \
-  ./sdk/components/libraries/usbd/app_usbd_string_desc.c \
-  ./sdk/modules/nrfx/mdk/system_nrf52840.c \
-  ./sdk/components/boards/boards.c \
-  ./sdk/integration/nrfx/legacy/nrf_drv_clock.c \
-  ./sdk/integration/nrfx/legacy/nrf_drv_power.c \
-  ./sdk/integration/nrfx/legacy/nrf_drv_uart.c \
-  ./sdk/modules/nrfx/soc/nrfx_atomic.c \
-  ./sdk/modules/nrfx/drivers/src/nrfx_clock.c \
-  ./sdk/modules/nrfx/drivers/src/prs/nrfx_prs.c \
-  ./sdk/modules/nrfx/drivers/src/nrfx_systick.c \
-  ./sdk/modules/nrfx/drivers/src/nrfx_power.c \
-  ./sdk/modules/nrfx/drivers/src/nrfx_uart.c \
-  ./sdk/modules/nrfx/drivers/src/nrfx_uarte.c \
-  ./sdk/components/libraries/bsp/bsp.c \
-  ./sdk/components/libraries/bsp/bsp_cli.c \
-  ./sdk/external/segger_rtt/SEGGER_RTT.c \
-  ./sdk/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
-  ./sdk/external/segger_rtt/SEGGER_RTT_printf.c \
-  ./sdk/components/ble/common/ble_advdata.c \
-  ./sdk/components/ble/common/ble_conn_params.c \
-  ./sdk/modules/nrfx/drivers/src/nrfx_usbd.c \
-  ./sdk/components/ble/common/ble_conn_state.c \
-  ./sdk/components/ble/common/ble_srv_common.c \
-  ./sdk/components/ble/nrf_ble_gatt/nrf_ble_gatt.c \
-  ./sdk/components/ble/nrf_ble_qwr/nrf_ble_qwr.c \
-  ./sdk/external/utf_converter/utf.c \
-  ./sdk/components/ble/ble_services/ble_nus/ble_nus.c \
-  ./sdk/components/ble/ble_services/ble_lbs/ble_lbs.c \
-  ./sdk/components/ble/ble_link_ctx_manager/ble_link_ctx_manager.c \
-  ./sdk/components/softdevice/common/nrf_sdh.c \
-  ./sdk/components/softdevice/common/nrf_sdh_ble.c \
-  ./sdk/components/softdevice/common/nrf_sdh_soc.c \
+./sdk/components/libraries/mem_manager/mem_manager.c \
+./sdk/components/libraries/log/src/nrf_log_backend_rtt.c \
+./sdk/components/libraries/log/src/nrf_log_backend_serial.c \
+./sdk/components/libraries/log/src/nrf_log_backend_uart.c \
+./sdk/components/libraries/log/src/nrf_log_default_backends.c \
+./sdk/components/libraries/log/src/nrf_log_frontend.c \
+./sdk/components/libraries/log/src/nrf_log_str_formatter.c \
+./sdk/components/libraries/button/app_button.c \
+./sdk/components/libraries/util/app_error.c \
+./sdk/components/libraries/util/app_error_handler_gcc.c \
+./sdk/components/libraries/util/app_error_weak.c \
+./sdk/components/libraries/scheduler/app_scheduler.c \
+./sdk/components/libraries/timer/app_timer2.c \
+./sdk/components/libraries/util/app_util_platform.c \
+./sdk/components/libraries/timer/drv_rtc.c \
+./sdk/components/libraries/hardfault/hardfault_implementation.c \
+./sdk/components/libraries/util/nrf_assert.c \
+./sdk/components/libraries/atomic_fifo/nrf_atfifo.c \
+./sdk/components/libraries/atomic_flags/nrf_atflags.c \
+./sdk/components/libraries/atomic/nrf_atomic.c \
+./sdk/components/libraries/balloc/nrf_balloc.c \
+./sdk/components/libraries/cli/nrf_cli.c \
+./sdk/components/libraries/cli/uart/nrf_cli_uart.c \
+./sdk/external/fprintf/nrf_fprintf.c \
+./sdk/external/fprintf/nrf_fprintf_format.c \
+./sdk/components/libraries/memobj/nrf_memobj.c \
+./sdk/components/libraries/pwr_mgmt/nrf_pwr_mgmt.c \
+./sdk/components/libraries/queue/nrf_queue.c \
+./sdk/components/libraries/ringbuf/nrf_ringbuf.c \
+./sdk/components/libraries/experimental_section_vars/nrf_section_iter.c \
+./sdk/components/libraries/sortlist/nrf_sortlist.c \
+./sdk/components/libraries/strerror/nrf_strerror.c \
+./sdk/components/libraries/usbd/app_usbd.c \
+./sdk/components/libraries/usbd/class/cdc/acm/app_usbd_cdc_acm.c \
+./sdk/components/libraries/usbd/app_usbd_core.c \
+./sdk/components/libraries/usbd/app_usbd_serial_num.c \
+./sdk/components/libraries/usbd/app_usbd_string_desc.c \
+./sdk/modules/nrfx/mdk/system_nrf52840.c \
+./sdk/components/boards/boards.c \
+./sdk/integration/nrfx/legacy/nrf_drv_clock.c \
+./sdk/integration/nrfx/legacy/nrf_drv_power.c \
+./sdk/integration/nrfx/legacy/nrf_drv_uart.c \
+./sdk/modules/nrfx/soc/nrfx_atomic.c \
+./sdk/modules/nrfx/drivers/src/nrfx_clock.c \
+./sdk/modules/nrfx/drivers/src/prs/nrfx_prs.c \
+./sdk/modules/nrfx/drivers/src/nrfx_systick.c \
+./sdk/modules/nrfx/drivers/src/nrfx_power.c \
+./sdk/modules/nrfx/drivers/src/nrfx_uart.c \
+./sdk/modules/nrfx/drivers/src/nrfx_uarte.c \
+./sdk/components/libraries/bsp/bsp.c \
+./sdk/components/libraries/bsp/bsp_cli.c \
+./sdk/external/segger_rtt/SEGGER_RTT.c \
+./sdk/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
+./sdk/external/segger_rtt/SEGGER_RTT_printf.c \
+./sdk/components/ble/common/ble_advdata.c \
+./sdk/components/ble/common/ble_conn_params.c \
+./sdk/modules/nrfx/drivers/src/nrfx_usbd.c \
+./sdk/components/ble/common/ble_conn_state.c \
+./sdk/components/ble/common/ble_srv_common.c \
+./sdk/components/ble/nrf_ble_gatt/nrf_ble_gatt.c \
+./sdk/components/ble/nrf_ble_qwr/nrf_ble_qwr.c \
+./sdk/external/utf_converter/utf.c \
+./sdk/components/ble/ble_services/ble_nus/ble_nus.c \
+./sdk/components/ble/ble_services/ble_lbs/ble_lbs.c \
+./sdk/components/ble/ble_link_ctx_manager/ble_link_ctx_manager.c \
+./sdk/components/softdevice/common/nrf_sdh.c \
+./sdk/components/softdevice/common/nrf_sdh_ble.c \
+./sdk/components/softdevice/common/nrf_sdh_soc.c \
 
 
 ##########################################################################

@@ -1,8 +1,10 @@
-
-# ------------- Ubuntu + Ubuntu Touch
+##########################################################################
+# Ubuntu + Ubuntu Touch Makefile
 
 targets:
 	@grep '^[a-zA-Z0-9\.#-]\+:' Makefile | grep -v '^\.' | grep -v targets | sed 's/:.*//' | uniq | sed 's/\.elf/.hex/' | sed 's/^/Make clean \&\& Make /'
+
+############################################################################################
 
 INCLUDES = \
 -I./include \
@@ -10,14 +12,25 @@ INCLUDES = \
 -I./src/onp/ \
 -I./tests \
 
-LIB_OBJECTS = \
+#######################
+
+TESTS_SOURCES = \
+./tests/test-properties.c \
+./tests/test-list.c \
+./tests/test-value.c \
+./tests/test-onn.c \
+./tests/main.c \
+
+
+LIB_SOURCES = \
 ./src/lib/list.c \
 ./src/lib/value.c \
 ./src/lib/tests.c \
 ./src/onp/onp.c \
 ./src/onn/onn.c \
 
-UNIX_C_SOURCE_FILES = \
+
+UNIX_SOURCES = \
 ./src/platforms/unix/properties.c \
 ./src/platforms/unix/serial.c \
 ./src/platforms/unix/channel-serial.c \
@@ -26,13 +39,57 @@ UNIX_C_SOURCE_FILES = \
 ./src/platforms/unix/time.c \
 ./src/platforms/unix/random.c \
 
-TESTS_OBJECTS = \
-./tests/test-properties.c \
-./tests/test-list.c \
-./tests/test-value.c \
-./tests/test-onn.c \
-./tests/main.c \
+############################################
 
+arm.lib: libonex-kernel-arm.a
+
+x86.lib: libonex-kernel-x86.a
+
+libonex-kernel-arm.a: COMPILE_LINE=$(ARM_FLAGS) $(CC_FLAGS) $(ARM_CC_SYMBOLS) $(INCLUDES)
+libonex-kernel-arm.a: CC=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-gcc
+libonex-kernel-arm.a: LD=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-gcc
+libonex-kernel-arm.a: AR=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-ar
+libonex-kernel-arm.a: TARGET=TARGET_ARM
+libonex-kernel-arm.a: CHANNELS=-DONP_CHANNEL_SERIAL
+libonex-kernel-arm.a: $(UNIX_SOURCES:.c=.o) $(LIB_SOURCES:.c=.o)
+	$(AR) rcs $@ $^
+
+libonex-kernel-x86.a: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
+libonex-kernel-x86.a: CC=/usr/bin/gcc
+libonex-kernel-x86.a: LD=/usr/bin/gcc
+libonex-kernel-x86.a: AR=/usr/bin/ar
+libonex-kernel-x86.a: TARGET=TARGET_X86
+libonex-kernel-x86.a: CHANNELS=-DONP_CHANNEL_SERIAL
+libonex-kernel-x86.a: $(UNIX_SOURCES:.c=.o) $(LIB_SOURCES:.c=.o)
+	$(AR) rcs $@ $^
+
+tests.arm: COMPILE_LINE=$(ARM_FLAGS) $(CC_FLAGS) $(ARM_CC_SYMBOLS) $(INCLUDES)
+tests.arm: CC=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-gcc
+tests.arm: LD=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-gcc
+tests.arm: TARGET=TARGET_ARM
+tests.arm: CHANNELS=-DONP_CHANNEL_SERIAL
+tests.arm: libonex-kernel-arm.a $(TESTS_SOURCES:.c=.o)
+	$(LD) $(TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-arm -o $@
+
+tests.x86: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
+tests.x86: CC=/usr/bin/gcc
+tests.x86: LD=/usr/bin/gcc
+tests.x86: TARGET=TARGET_X86
+tests.x86: CHANNELS=-DONP_CHANNEL_SERIAL
+tests.x86: libonex-kernel-x86.a $(TESTS_SOURCES:.c=.o)
+	$(LD) $(TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-x86 -o $@
+
+arm.tests: tests.arm
+	mkdir -p ok
+	cp -a ./tests.arm ok
+
+x86.tests: tests.x86
+	./tests.x86
+
+x86.valgrind: tests.x86
+	valgrind --leak-check=yes --undef-value-errors=no ./tests.x86
+
+############################################################################################
 
 ARM_FLAGS=-g3 -ggdb
 ARM_CC_SYMBOLS = -D$(TARGET) $(CHANNELS)
@@ -45,70 +102,17 @@ CC_FLAGS = -c -std=gnu99 -Werror -Wall -Wextra -Wno-unused-parameter -fno-common
 .c.o:
 	$(CC) $(COMPILE_LINE) -o $@ -c $<
 
-arm.lib: libonex-kernel-arm.a
-
-x86.lib: libonex-kernel-x86.a
-
-libonex-kernel-arm.a: COMPILE_LINE=$(ARM_FLAGS) $(CC_FLAGS) $(ARM_CC_SYMBOLS) $(INCLUDES)
-libonex-kernel-arm.a: CC=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-gcc
-libonex-kernel-arm.a: LD=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-gcc
-libonex-kernel-arm.a: AR=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-ar
-libonex-kernel-arm.a: TARGET=TARGET_ARM
-libonex-kernel-arm.a: CHANNELS=-DONP_CHANNEL_SERIAL
-libonex-kernel-arm.a: $(UNIX_C_SOURCE_FILES:.c=.o) $(LIB_OBJECTS:.c=.o)
-	$(AR) rcs $@ $^
-
-libonex-kernel-x86.a: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
-libonex-kernel-x86.a: CC=/usr/bin/gcc
-libonex-kernel-x86.a: LD=/usr/bin/gcc
-libonex-kernel-x86.a: AR=/usr/bin/ar
-libonex-kernel-x86.a: TARGET=TARGET_X86
-libonex-kernel-x86.a: CHANNELS=-DONP_CHANNEL_SERIAL
-libonex-kernel-x86.a: $(UNIX_C_SOURCE_FILES:.c=.o) $(LIB_OBJECTS:.c=.o)
-	$(AR) rcs $@ $^
-
-tests.arm: COMPILE_LINE=$(ARM_FLAGS) $(CC_FLAGS) $(ARM_CC_SYMBOLS) $(INCLUDES)
-tests.arm: CC=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-gcc
-tests.arm: LD=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-gcc
-tests.arm: TARGET=TARGET_ARM
-tests.arm: CHANNELS=-DONP_CHANNEL_SERIAL
-tests.arm: libonex-kernel-arm.a $(TESTS_OBJECTS:.c=.o)
-	$(LD) $(TESTS_OBJECTS:.c=.o) -pthread -L. -lonex-kernel-arm -o $@
-
-tests.x86: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
-tests.x86: CC=/usr/bin/gcc
-tests.x86: LD=/usr/bin/gcc
-tests.x86: TARGET=TARGET_X86
-tests.x86: CHANNELS=-DONP_CHANNEL_SERIAL
-tests.x86: libonex-kernel-x86.a $(TESTS_OBJECTS:.c=.o)
-	$(LD) $(TESTS_OBJECTS:.c=.o) -pthread -L. -lonex-kernel-x86 -o $@
-
-arm.tests: tests.arm
-	mkdir -p ok
-	cp -a ./tests.arm ok
-
-x86.tests: tests.x86
-	./tests.x86
-
-x86.valgrind: tests.x86
-	valgrind --leak-check=yes --undef-value-errors=no ./tests.x86
-
 copy:
 	rsync -ruav --stats --progress --delete ok/ phablet@dorold:ok
 
-#############################:
-
 clean:
-	-find src tests -name '*.o' -o -name '*.d' | xargs rm -f
+	find src tests -name '*.o' -o -name '*.d' | xargs rm -f
 	rm -f ,* core
+	rm -rf *.arm *.x86 ok
 	find . -name onex.ondb | xargs rm -f
 	@echo "------------------------------"
-
-cleanx: clean
-	rm -rf *.arm *.x86 ok
-
-cleanlibs: cleanx
-	rm -f libonex*.a
+	@echo "files not cleaned:"
+	@git ls-files --others --exclude-from=.git/info/exclude | xargs -r ls -Fla
 
 ############################################################################################
 
