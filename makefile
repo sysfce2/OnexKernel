@@ -32,8 +32,9 @@ COMPILER_DEFINES = \
 $(COMMON_DEFINES) \
 -DLOG_TO_SERIAL \
 -DHAS_SERIAL \
+-DONP_CHANNEL_SERIAL \
+-DONP_OVER_SERIAL \
 
-#######################
 
 INCLUDES = \
 -I./include \
