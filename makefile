@@ -1,10 +1,10 @@
-##########################################################################
+#-------------------------------------------------------------------------------
 # nRF5 Makefile
 
 targets:
 	@grep '^[a-zA-Z0-9\.#-]\+:' makefile | grep -v '^\.' | grep -v targets | sed 's/:.*//' | uniq | sed 's/\.elf/.hex/' | sed 's/^/make clean \&\& make /'
 
-##########################################################################
+#-------------------------------------------------------------------------------
 # set a link to the nordic SDK, something like:
 # ./sdk -> /home/<username>/nordic-platform/nRF5_SDK_16.0.0_98a08e2/
 
@@ -13,7 +13,7 @@ GCC_ARM_PREFIX = arm-none-eabi
 
 PRIVATE_PEM = ./doc/local/private.pem
 
-#######################
+#-------------------------------------------------------------------------------
 
 COMMON_DEFINES = \
 -DAPP_TIMER_V2 \
@@ -50,7 +50,7 @@ INCLUDES = \
 -I./tests \
 $(SDK_INCLUDES) \
 
-#######################
+#-------------------------------------------------------------------------------
 
 TESTS_SOURCES = \
 ./tests/test-properties.c \
@@ -79,7 +79,7 @@ NRF5_SOURCES = \
 ./src/platforms/nRF5/mem.c \
 ./src/platforms/nRF5/channel-serial.c \
 
-############################################
+#-------------------------------------------------------------------------------
 
 SDK_INCLUDES = \
 -I./sdk/modules/nrfx/soc \
@@ -290,7 +290,7 @@ SDK_C_SOURCES = \
 ./sdk/components/softdevice/common/nrf_sdh_soc.c \
 
 
-##########################################################################
+#-------------------------------------------------------------------------------
 # Targets
 
 nrf.lib: libonex-kernel-nrf.a
@@ -310,7 +310,7 @@ flash0: nrf.tests
 	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application ./onex-kernel.hex --key-file $(PRIVATE_PEM) dfu.zip
 	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM0 -b 115200
 
-############################################
+#-------------------------------------------------------------------------------
 
 ASSEMBLER_FLAGS = -x assembler-with-cpp -MP -MD -c -g3 -mcpu=cortex-m4 -mthumb -mabi=aapcs -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
@@ -334,4 +334,4 @@ clean:
 	@echo "files not cleaned:"
 	@git ls-files --others --exclude-from=.git/info/exclude | xargs -r ls -Fla
 
-############################################
+#-------------------------------------------------------------------------------
