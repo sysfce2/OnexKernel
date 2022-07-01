@@ -18,37 +18,71 @@ PRIVATE_PEM = ./doc/local/private.pem
 COMMON_DEFINES = \
 -DAPP_TIMER_V2 \
 -DAPP_TIMER_V2_RTC1_ENABLED \
--DBOARD_PCA10059 \
 -DCONFIG_GPIO_AS_PINRESET \
 -DFLOAT_ABI_HARD \
--DNRF52840_XXAA \
 -DNRF5 \
 -DNRF_SD_BLE_API_VERSION=7 \
--DS140 \
 -DSOFTDEVICE_PRESENT \
 -D__HEAP_SIZE=8192 \
 -D__STACK_SIZE=8192 \
 
 
-ASSEMBLER_DEFINES = \
+COMMON_DEFINES_S132 = \
 $(COMMON_DEFINES) \
+-DBOARD_PINETIME \
+-DNRF52832_XXAA \
+-DS132 \
+-DNRF52 \
+-DNRF52_PAN_74 \
+-DSPI_BLOCKING \
+#-DLOG_TO_GFX \
 
 
-COMPILER_DEFINES = \
+
+COMMON_DEFINES_S140 = \
 $(COMMON_DEFINES) \
+-DBOARD_PCA10059 \
+-DNRF52840_XXAA \
+-DS140 \
+
+
+
+ASSEMBLER_DEFINES_S132 = \
+$(COMMON_DEFINES_S132) \
+
+
+ASSEMBLER_DEFINES_S140 = \
+$(COMMON_DEFINES_S140) \
+
+
+COMPILER_DEFINES_S132 = \
+$(COMMON_DEFINES_S132) \
+
+
+COMPILER_DEFINES_S140 = \
+$(COMMON_DEFINES_S140) \
 -DLOG_TO_SERIAL \
 -DHAS_SERIAL \
 -DONP_CHANNEL_SERIAL \
 -DONP_OVER_SERIAL \
 
 
-INCLUDES = \
+INCLUDES_S132 = \
+-I./include \
+-I./src/platforms/nRF5/s132 \
+-I./src/ \
+-I./src/onp/ \
+-I./tests \
+$(SDK_INCLUDES_S132) \
+
+
+INCLUDES_S140 = \
 -I./include \
 -I./src/platforms/nRF5/ \
 -I./src/ \
 -I./src/onp/ \
 -I./tests \
-$(SDK_INCLUDES) \
+$(SDK_INCLUDES_S140) \
 
 #-------------------------------------------------------------------------------
 
@@ -73,13 +107,43 @@ NRF5_SOURCES = \
 ./src/platforms/nRF5/time.c \
 ./src/platforms/nRF5/random.c \
 ./src/platforms/nRF5/gpio.c \
-./src/platforms/nRF5/serial.c \
 ./src/platforms/nRF5/blenus.c \
 ./src/platforms/nRF5/log.c \
 ./src/platforms/nRF5/mem.c \
 ./src/platforms/nRF5/channel-serial.c \
 
+
+S132_SOURCES = \
+./src/platforms/nRF5/i2c.c \
+./src/platforms/nRF5/spi.c \
+./src/platforms/nRF5/touch-cst816s.c \
+./src/platforms/nRF5/motion-bma421.c \
+./src/platforms/nRF5/display-st7789.c \
+./src/platforms/nRF5/gfx.c \
+$(NRF5_SOURCES) \
+
+
+S140_SOURCES = \
+./src/platforms/nRF5/serial.c \
+$(NRF5_SOURCES) \
+
 #-------------------------------------------------------------------------------
+
+SDK_INCLUDES_S132 = \
+-I./sdk/components/softdevice/s132/headers \
+-I./sdk/components/softdevice/s132/headers/nrf52 \
+-I./sdk/external/thedotfactory_fonts \
+-I./sdk/components/libraries/gfx \
+$(SDK_INCLUDES) \
+
+
+SDK_INCLUDES_S140 = \
+-I./sdk/components/libraries/bsp \
+-I./sdk/components/libraries/cli/uart \
+-I./sdk/components/softdevice/s140/headers \
+-I./sdk/components/softdevice/s140/headers/nrf52 \
+$(SDK_INCLUDES) \
+
 
 SDK_INCLUDES = \
 -I./sdk/modules/nrfx/soc \
@@ -113,7 +177,6 @@ SDK_INCLUDES = \
 -I./sdk/modules/nrfx/drivers/include \
 -I./sdk/components/libraries/experimental_task_manager \
 -I./sdk/components/ble/ble_services/ble_hrs_c \
--I./sdk/components/softdevice/s140/headers/nrf52 \
 -I./sdk/components/nfc/ndef/connection_handover/le_oob_rec \
 -I./sdk/components/libraries/queue \
 -I./sdk/components/libraries/pwr_mgmt \
@@ -160,7 +223,6 @@ SDK_INCLUDES = \
 -I./sdk/components/ble/ble_services/ble_cscs \
 -I./sdk/components/libraries/hci \
 -I./sdk/components/libraries/timer \
--I./sdk/components/softdevice/s140/headers \
 -I./sdk/integration/nrfx \
 -I./sdk/components/nfc/t4t_parser/tlv \
 -I./sdk/components/libraries/sortlist \
@@ -190,7 +252,6 @@ SDK_INCLUDES = \
 -I./sdk/components/nfc/ndef/uri \
 -I./sdk/components/ble/nrf_ble_gatt \
 -I./sdk/components/ble/nrf_ble_qwr \
--I./sdk/components/libraries/gfx \
 -I./sdk/components/libraries/button \
 -I./sdk/modules/nrfx \
 -I./sdk/components/libraries/twi_sensor \
@@ -215,110 +276,166 @@ SDK_INCLUDES = \
 -I./sdk/components/libraries/log/src \
 
 
-SDK_ASSEMBLER_SOURCES = \
+SDK_ASSEMBLER_SOURCES_S132 = \
+./sdk/modules/nrfx/mdk/gcc_startup_nrf52.S \
+
+
+SDK_ASSEMBLER_SOURCES_S140 = \
 ./sdk/modules/nrfx/mdk/gcc_startup_nrf52840.S \
 
 
-SDK_C_SOURCES = \
-./sdk/components/libraries/mem_manager/mem_manager.c \
-./sdk/components/libraries/log/src/nrf_log_backend_rtt.c \
-./sdk/components/libraries/log/src/nrf_log_backend_serial.c \
-./sdk/components/libraries/log/src/nrf_log_backend_uart.c \
-./sdk/components/libraries/log/src/nrf_log_default_backends.c \
-./sdk/components/libraries/log/src/nrf_log_frontend.c \
-./sdk/components/libraries/log/src/nrf_log_str_formatter.c \
-./sdk/components/libraries/button/app_button.c \
-./sdk/components/libraries/util/app_error.c \
-./sdk/components/libraries/util/app_error_handler_gcc.c \
-./sdk/components/libraries/util/app_error_weak.c \
-./sdk/components/libraries/scheduler/app_scheduler.c \
-./sdk/components/libraries/timer/app_timer2.c \
-./sdk/components/libraries/util/app_util_platform.c \
-./sdk/components/libraries/timer/drv_rtc.c \
-./sdk/components/libraries/hardfault/hardfault_implementation.c \
-./sdk/components/libraries/util/nrf_assert.c \
-./sdk/components/libraries/atomic_fifo/nrf_atfifo.c \
-./sdk/components/libraries/atomic_flags/nrf_atflags.c \
-./sdk/components/libraries/atomic/nrf_atomic.c \
-./sdk/components/libraries/balloc/nrf_balloc.c \
+SDK_C_SOURCES_S140 = \
+$(SDK_C_SOURCES) \
+./sdk/components/libraries/bsp/bsp.c \
+./sdk/components/libraries/bsp/bsp_cli.c \
 ./sdk/components/libraries/cli/nrf_cli.c \
 ./sdk/components/libraries/cli/uart/nrf_cli_uart.c \
-./sdk/external/fprintf/nrf_fprintf.c \
-./sdk/external/fprintf/nrf_fprintf_format.c \
-./sdk/components/libraries/memobj/nrf_memobj.c \
-./sdk/components/libraries/pwr_mgmt/nrf_pwr_mgmt.c \
+./sdk/components/libraries/log/src/nrf_log_backend_uart.c \
 ./sdk/components/libraries/queue/nrf_queue.c \
-./sdk/components/libraries/ringbuf/nrf_ringbuf.c \
-./sdk/components/libraries/experimental_section_vars/nrf_section_iter.c \
-./sdk/components/libraries/sortlist/nrf_sortlist.c \
-./sdk/components/libraries/strerror/nrf_strerror.c \
 ./sdk/components/libraries/usbd/app_usbd.c \
-./sdk/components/libraries/usbd/class/cdc/acm/app_usbd_cdc_acm.c \
 ./sdk/components/libraries/usbd/app_usbd_core.c \
 ./sdk/components/libraries/usbd/app_usbd_serial_num.c \
 ./sdk/components/libraries/usbd/app_usbd_string_desc.c \
-./sdk/modules/nrfx/mdk/system_nrf52840.c \
-./sdk/components/boards/boards.c \
-./sdk/integration/nrfx/legacy/nrf_drv_clock.c \
+./sdk/components/libraries/usbd/class/cdc/acm/app_usbd_cdc_acm.c \
 ./sdk/integration/nrfx/legacy/nrf_drv_power.c \
 ./sdk/integration/nrfx/legacy/nrf_drv_uart.c \
-./sdk/modules/nrfx/soc/nrfx_atomic.c \
-./sdk/modules/nrfx/drivers/src/nrfx_clock.c \
-./sdk/modules/nrfx/drivers/src/prs/nrfx_prs.c \
-./sdk/modules/nrfx/drivers/src/nrfx_systick.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_power.c \
+./sdk/modules/nrfx/drivers/src/nrfx_systick.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_uart.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_uarte.c \
-./sdk/components/libraries/bsp/bsp.c \
-./sdk/components/libraries/bsp/bsp_cli.c \
-./sdk/external/segger_rtt/SEGGER_RTT.c \
-./sdk/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
-./sdk/external/segger_rtt/SEGGER_RTT_printf.c \
+./sdk/modules/nrfx/drivers/src/nrfx_usbd.c \
+./sdk/modules/nrfx/mdk/system_nrf52840.c \
+
+
+SDK_C_SOURCES_S132 = \
+$(SDK_C_SOURCES) \
+./sdk/components/libraries/gfx/nrf_gfx.c \
+./sdk/external/thedotfactory_fonts/orkney8pts.c \
+./sdk/modules/nrfx/drivers/src/nrfx_saadc.c \
+./sdk/modules/nrfx/drivers/src/nrfx_spim.c \
+./sdk/modules/nrfx/drivers/src/nrfx_twi.c \
+./sdk/modules/nrfx/mdk/system_nrf52.c \
+
+
+SDK_C_SOURCES = \
+./sdk/components/ble/ble_link_ctx_manager/ble_link_ctx_manager.c \
+./sdk/components/ble/ble_services/ble_lbs/ble_lbs.c \
+./sdk/components/ble/ble_services/ble_nus/ble_nus.c \
 ./sdk/components/ble/common/ble_advdata.c \
 ./sdk/components/ble/common/ble_conn_params.c \
-./sdk/modules/nrfx/drivers/src/nrfx_usbd.c \
 ./sdk/components/ble/common/ble_conn_state.c \
 ./sdk/components/ble/common/ble_srv_common.c \
 ./sdk/components/ble/nrf_ble_gatt/nrf_ble_gatt.c \
 ./sdk/components/ble/nrf_ble_qwr/nrf_ble_qwr.c \
-./sdk/external/utf_converter/utf.c \
-./sdk/components/ble/ble_services/ble_nus/ble_nus.c \
-./sdk/components/ble/ble_services/ble_lbs/ble_lbs.c \
-./sdk/components/ble/ble_link_ctx_manager/ble_link_ctx_manager.c \
+./sdk/components/boards/boards.c \
+./sdk/components/libraries/atomic/nrf_atomic.c \
+./sdk/components/libraries/atomic_fifo/nrf_atfifo.c \
+./sdk/components/libraries/atomic_flags/nrf_atflags.c \
+./sdk/components/libraries/balloc/nrf_balloc.c \
+./sdk/components/libraries/button/app_button.c \
+./sdk/components/libraries/experimental_section_vars/nrf_section_iter.c \
+./sdk/components/libraries/hardfault/hardfault_implementation.c \
+./sdk/components/libraries/log/src/nrf_log_backend_rtt.c \
+./sdk/components/libraries/log/src/nrf_log_backend_serial.c \
+./sdk/components/libraries/log/src/nrf_log_default_backends.c \
+./sdk/components/libraries/log/src/nrf_log_frontend.c \
+./sdk/components/libraries/log/src/nrf_log_str_formatter.c \
+./sdk/components/libraries/mem_manager/mem_manager.c \
+./sdk/components/libraries/memobj/nrf_memobj.c \
+./sdk/components/libraries/pwr_mgmt/nrf_pwr_mgmt.c \
+./sdk/components/libraries/ringbuf/nrf_ringbuf.c \
+./sdk/components/libraries/scheduler/app_scheduler.c \
+./sdk/components/libraries/sortlist/nrf_sortlist.c \
+./sdk/components/libraries/strerror/nrf_strerror.c \
+./sdk/components/libraries/timer/app_timer2.c \
+./sdk/components/libraries/timer/drv_rtc.c \
+./sdk/components/libraries/util/app_error.c \
+./sdk/components/libraries/util/app_error_handler_gcc.c \
+./sdk/components/libraries/util/app_error_weak.c \
+./sdk/components/libraries/util/app_util_platform.c \
+./sdk/components/libraries/util/nrf_assert.c \
 ./sdk/components/softdevice/common/nrf_sdh.c \
 ./sdk/components/softdevice/common/nrf_sdh_ble.c \
 ./sdk/components/softdevice/common/nrf_sdh_soc.c \
+./sdk/external/fprintf/nrf_fprintf.c \
+./sdk/external/fprintf/nrf_fprintf_format.c \
+./sdk/external/segger_rtt/SEGGER_RTT.c \
+./sdk/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
+./sdk/external/segger_rtt/SEGGER_RTT_printf.c \
+./sdk/external/utf_converter/utf.c \
+./sdk/integration/nrfx/legacy/nrf_drv_clock.c \
+./sdk/modules/nrfx/drivers/src/nrfx_clock.c \
+./sdk/modules/nrfx/drivers/src/prs/nrfx_prs.c \
+./sdk/modules/nrfx/soc/nrfx_atomic.c \
 
 
 #-------------------------------------------------------------------------------
 # Targets
 
-nrf.lib: libonex-kernel-nrf.a
+nrf.lib.132: libonex-kernel-132.a
 
-libonex-kernel-nrf.a: $(LIB_SOURCES:.c=.o) $(NRF5_SOURCES:.c=.o) $(SDK_C_SOURCES:.c=.o) $(SDK_ASSEMBLER_SOURCES:.S=.o)
+nrf.lib.140: libonex-kernel-140.a
+
+libonex-kernel-132.a: INCLUDES=$(INCLUDES_S132)
+libonex-kernel-132.a: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_S132)
+libonex-kernel-132.a: COMPILER_DEFINES=$(COMPILER_DEFINES_S132)
+libonex-kernel-132.a: $(LIB_SOURCES:.c=.o) $(S132_SOURCES:.c=.o) $(SDK_C_SOURCES_S132:.c=.o) $(SDK_ASSEMBLER_SOURCES_S132:.S=.o)
 	rm -f $@
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
 
-nrf.tests: $(TESTS_SOURCES:.c=.o) $(LIB_SOURCES:.c=.o) $(NRF5_SOURCES:.c=.o) $(SDK_C_SOURCES:.c=.o) $(SDK_ASSEMBLER_SOURCES:.S=.o)
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $^
+libonex-kernel-140.a: INCLUDES=$(INCLUDES_S140)
+libonex-kernel-140.a: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_S140)
+libonex-kernel-140.a: COMPILER_DEFINES=$(COMPILER_DEFINES_S140)
+libonex-kernel-140.a: $(LIB_SOURCES:.c=.o) $(S140_SOURCES:.c=.o) $(SDK_C_SOURCES_S140:.c=.o) $(SDK_ASSEMBLER_SOURCES_S140:.S=.o)
+	rm -f $@
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
+
+nrf.tests.s132: INCLUDES=$(INCLUDES_S132)
+nrf.tests.s132: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_S132)
+nrf.tests.s132: COMPILER_DEFINES=$(COMPILER_DEFINES_S132)
+nrf.tests.s132: $(TESTS_SOURCES:.c=.o) $(LIB_SOURCES:.c=.o) $(S132_SOURCES:.c=.o) $(SDK_C_SOURCES_S132:.c=.o) $(SDK_ASSEMBLER_SOURCES_S132:.S=.o)
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_S132) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $^ -lm
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
-flash0: nrf.tests
+nrf.tests.s140: INCLUDES=$(INCLUDES_S140)
+nrf.tests.s140: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_S140)
+nrf.tests.s140: COMPILER_DEFINES=$(COMPILER_DEFINES_S140)
+nrf.tests.s140: $(TESTS_SOURCES:.c=.o) $(LIB_SOURCES:.c=.o) $(S140_SOURCES:.c=.o) $(SDK_C_SOURCES_S140:.c=.o) $(SDK_ASSEMBLER_SOURCES_S140:.S=.o)
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_S140) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $^ -lm
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
+
+pinetime-erase:
+	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "nrf5 mass_erase" -c "reset run" -c exit
+
+pinetime-flash-sd:
+	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./sdk/components/softdevice/s132/hex/s132_nrf52_7.0.1_softdevice.hex" -c "reset run" -c exit
+
+pinetime-flash: nrf.tests.s132
+	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel.hex" -c "reset run" -c exit
+
+pinetime-reset:
+	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "reset run" -c exit
+
+dongle-flash: nrf.tests.s140
 	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application ./onex-kernel.hex --key-file $(PRIVATE_PEM) dfu.zip
 	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM0 -b 115200
 
 #-------------------------------------------------------------------------------
 
-ASSEMBLER_FLAGS = -x assembler-with-cpp -MP -MD -c -g3 -mcpu=cortex-m4 -mthumb -mabi=aapcs -mfloat-abi=hard -mfpu=fpv4-sp-d16
-
-COMPILER_FLAGS = -std=c99 -MP -MD -O3 -g3 -mcpu=cortex-m4 -mthumb -mabi=aapcs -Wall -Werror -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin -fshort-enums
-
 LINKER_FLAGS = -O3 -g3 -mthumb -mabi=aapcs -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Wl,--gc-sections --specs=nano.specs
 
-LD_FILES = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/onex.ld
+LD_FILES_S132 = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/s132/onex.ld
+LD_FILES_S140 = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/onex.ld
+
+ASSEMBLER_FLAGS = -c -g3 -mcpu=cortex-m4 -mthumb -mabi=aapcs -mfloat-abi=hard -mfpu=fpv4-sp-d16
+
+COMPILER_FLAGS = -std=c99 -O3 -g3 -mcpu=cortex-m4 -mthumb -mabi=aapcs -Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin -fshort-enums
 
 .S.o:
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(ASSEMBLER_FLAGS) $(ASSEMBLER_DEFINES) $(INCLUDES) -o $@ -c $<
@@ -329,7 +446,9 @@ LD_FILES = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/onex.ld
 clean:
 	find src tests -name '*.o' -o -name '*.d' | xargs rm -f
 	find . -name onex.ondb | xargs rm -f
+	touch ./sdk/banana-mango.o; find ./sdk/ -name '*.o' | xargs rm
 	rm -f onex-kernel.??? dfu.zip core
+	rm -f ,*
 	@echo "------------------------------"
 	@echo "files not cleaned:"
 	@git ls-files --others --exclude-from=.git/info/exclude | xargs -r ls -Fla
