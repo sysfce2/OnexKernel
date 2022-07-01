@@ -34,7 +34,7 @@ $(COMMON_DEFINES) \
 -DS132 \
 -DNRF52 \
 -DNRF52_PAN_74 \
--DSPI_BLOCKING \
+#-DSPI_BLOCKING \
 #-DLOG_TO_GFX \
 
 
@@ -114,6 +114,7 @@ NRF5_SOURCES = \
 
 
 S132_SOURCES = \
+./src/platforms/nRF5/boot.c \
 ./src/platforms/nRF5/i2c.c \
 ./src/platforms/nRF5/spi.c \
 ./src/platforms/nRF5/touch-cst816s.c \
@@ -134,6 +135,7 @@ SDK_INCLUDES_S132 = \
 -I./sdk/components/softdevice/s132/headers/nrf52 \
 -I./sdk/external/thedotfactory_fonts \
 -I./sdk/components/libraries/gfx \
+-I./sdk/components/libraries/bootloader/ \
 $(SDK_INCLUDES) \
 
 
