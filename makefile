@@ -2,7 +2,7 @@
 # nRF5 Makefile
 
 targets:
-	@grep '^[a-zA-Z0-9\.#-]\+:' makefile | grep -v '^\.' | grep -v targets | sed 's/:.*//' | uniq | sed 's/\.elf/.hex/' | sed 's/^/make clean \&\& make /'
+	@grep '^[a-zA-Z0-9\.#-]\+:' makefile | grep -v '^\.' | grep -v targets | sed 's/:.*//' | uniq | sed 's/\.elf/.hex/' | sed 's/^/make clean \&\& make -j /'
 
 #-------------------------------------------------------------------------------
 # set a link to the nordic SDK, something like:
@@ -395,8 +395,11 @@ libonex-kernel-140.a: $(LIB_SOURCES:.c=.o) $(S140_SOURCES:.c=.o) $(SDK_C_SOURCES
 nrf.tests.s132: INCLUDES=$(INCLUDES_S132)
 nrf.tests.s132: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_S132)
 nrf.tests.s132: COMPILER_DEFINES=$(COMPILER_DEFINES_S132)
-nrf.tests.s132: $(TESTS_SOURCES:.c=.o) $(LIB_SOURCES:.c=.o) $(S132_SOURCES:.c=.o) $(SDK_C_SOURCES_S132:.c=.o) $(SDK_ASSEMBLER_SOURCES_S132:.S=.o)
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_S132) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $^ -lm
+nrf.tests.s132: nrf.lib.132 $(TESTS_SOURCES:.c=.o)
+	rm -rf oko
+	mkdir oko
+	ar x ./libonex-kernel-132.a --output oko
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_S132) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
@@ -404,8 +407,11 @@ nrf.tests.s132: $(TESTS_SOURCES:.c=.o) $(LIB_SOURCES:.c=.o) $(S132_SOURCES:.c=.o
 nrf.tests.s140: INCLUDES=$(INCLUDES_S140)
 nrf.tests.s140: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_S140)
 nrf.tests.s140: COMPILER_DEFINES=$(COMPILER_DEFINES_S140)
-nrf.tests.s140: $(TESTS_SOURCES:.c=.o) $(LIB_SOURCES:.c=.o) $(S140_SOURCES:.c=.o) $(SDK_C_SOURCES_S140:.c=.o) $(SDK_ASSEMBLER_SOURCES_S140:.S=.o)
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_S140) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $^ -lm
+nrf.tests.s140: nrf.lib.140 $(TESTS_SOURCES:.c=.o)
+	rm -rf oko
+	mkdir oko
+	ar x ./libonex-kernel-140.a --output oko
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_S140) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
@@ -447,7 +453,7 @@ clean:
 	find src tests -name '*.o' -o -name '*.d' | xargs rm -f
 	find . -name onex.ondb | xargs rm -f
 	touch ./sdk/banana-mango.o; find ./sdk/ -name '*.o' | xargs rm
-	rm -f onex-kernel.??? dfu.zip core
+	rm -rf onex-kernel.??? dfu.zip core oko
 	rm -f ,*
 	@echo "------------------------------"
 	@echo "files not cleaned:"
