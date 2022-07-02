@@ -287,6 +287,16 @@ SDK_ASSEMBLER_SOURCES_S140 = \
 ./sdk/modules/nrfx/mdk/gcc_startup_nrf52840.S \
 
 
+SDK_C_SOURCES_S132 = \
+$(SDK_C_SOURCES) \
+./sdk/components/libraries/gfx/nrf_gfx.c \
+./sdk/external/thedotfactory_fonts/orkney8pts.c \
+./sdk/modules/nrfx/drivers/src/nrfx_saadc.c \
+./sdk/modules/nrfx/drivers/src/nrfx_spim.c \
+./sdk/modules/nrfx/drivers/src/nrfx_twi.c \
+./sdk/modules/nrfx/mdk/system_nrf52.c \
+
+
 SDK_C_SOURCES_S140 = \
 $(SDK_C_SOURCES) \
 ./sdk/components/libraries/bsp/bsp.c \
@@ -308,16 +318,6 @@ $(SDK_C_SOURCES) \
 ./sdk/modules/nrfx/drivers/src/nrfx_uarte.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_usbd.c \
 ./sdk/modules/nrfx/mdk/system_nrf52840.c \
-
-
-SDK_C_SOURCES_S132 = \
-$(SDK_C_SOURCES) \
-./sdk/components/libraries/gfx/nrf_gfx.c \
-./sdk/external/thedotfactory_fonts/orkney8pts.c \
-./sdk/modules/nrfx/drivers/src/nrfx_saadc.c \
-./sdk/modules/nrfx/drivers/src/nrfx_spim.c \
-./sdk/modules/nrfx/drivers/src/nrfx_twi.c \
-./sdk/modules/nrfx/mdk/system_nrf52.c \
 
 
 SDK_C_SOURCES = \
