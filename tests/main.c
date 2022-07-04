@@ -24,11 +24,19 @@ extern void run_list_tests();
 extern void run_value_tests();
 extern void run_onn_tests(char* dbpath);
 
+#if defined(BOARD_PINETIME)
+static bool display_state_prev=!LEDS_ACTIVE_STATE;
+static bool display_state=LEDS_ACTIVE_STATE;
+#endif
+
 #if defined(NRF5)
 void button_changed(uint8_t pin, uint8_t type)
 {
   bool pressed=(gpio_get(pin)==BUTTONS_ACTIVE_STATE);
   log_write("#%d\n", pressed);
+#if defined(BOARD_PINETIME)
+  if(pressed) display_state = !display_state;
+#endif
 }
 
 #if defined(BOARD_PCA10059)
@@ -52,11 +60,6 @@ static void set_up_gpio(void)
   gpio_adc_init(BATTERY_V, ADC_CHANNEL);
 #endif
 }
-#endif
-
-#if defined(BOARD_PINETIME)
-static bool display_state_prev=!LEDS_ACTIVE_STATE;
-static bool display_state=LEDS_ACTIVE_STATE;
 #endif
 
 #if defined(BOARD_PINETIME)
@@ -94,10 +97,6 @@ void show_touch()
   snprintf(buf, 64, "-%s-%s-%d-", touch_actions[ti.action], touch_gestures[ti.gesture], irqs);
   gfx_pos(10, 110);
   gfx_text(buf);
-
-  if(ti.gesture==TOUCH_GESTURE_TAP_LONG){
-    display_state = !LEDS_ACTIVE_STATE;
-  }
 }
 
 void show_motion()
@@ -209,13 +208,11 @@ int main(void)
 #if defined(BOARD_PINETIME)
     if(new_touch_info){
       new_touch_info=false;
-      display_state = LEDS_ACTIVE_STATE;
       show_touch();
       show_battery();
     }
     if(new_motion_info){
       new_motion_info=false;
-      display_state = LEDS_ACTIVE_STATE;
       static int ticks=0; // every 20ms
       ticks++;
       if(!(ticks%20)) show_motion();
