@@ -374,7 +374,6 @@ SDK_C_SOURCES = \
 ./sdk/modules/nrfx/drivers/src/prs/nrfx_prs.c \
 ./sdk/modules/nrfx/soc/nrfx_atomic.c \
 
-
 #-------------------------------------------------------------------------------
 # Targets
 
@@ -442,8 +441,8 @@ dongle-flash: nrf.tests.s140
 
 LINKER_FLAGS = -O3 -g3 -mthumb -mabi=aapcs -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Wl,--gc-sections --specs=nano.specs
 
-LD_FILES_S132 = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/s132/onex.ld
-LD_FILES_S140 = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/onex.ld
+LD_FILES_S132    = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/s132/onex.ld
+LD_FILES_S140    = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/onex.ld
 
 ASSEMBLER_FLAGS = -c -g3 -mcpu=cortex-m4 -mthumb -mabi=aapcs -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
