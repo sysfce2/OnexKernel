@@ -25,6 +25,25 @@ COMMON_DEFINES = \
 -DSOFTDEVICE_PRESENT \
 
 
+COMMON_DEFINES_S132_BL = \
+$(COMMON_DEFINES) \
+-DBOARD_PINETIME \
+-DNRF52832_XXAA \
+-DS132 \
+-DNRF52 \
+-DNRF52_PAN_74 \
+-DBLE_STACK_SUPPORT_REQD \
+-DNRF_DFU_SETTINGS_VERSION=2 \
+-DNRF_DFU_SVCI_ENABLED \
+-DSVC_INTERFACE_CALL_AS_NORMAL_FUNCTION \
+-DuECC_ENABLE_VLI_API=0 \
+-DuECC_OPTIMIZATION_LEVEL=3 \
+-DuECC_SQUARE_FUNC=0 \
+-DuECC_SUPPORT_COMPRESSED_POINT=0 \
+-DuECC_VLI_NATIVE_LITTLE_ENDIAN=1 \
+-D__HEAP_SIZE=0 \
+
+
 COMMON_DEFINES_S132 = \
 $(COMMON_DEFINES) \
 -DBOARD_PINETIME \
@@ -49,6 +68,9 @@ $(COMMON_DEFINES) \
 
 
 
+ASSEMBLER_DEFINES_S132_BL = \
+$(COMMON_DEFINES_S132_BL) \
+
 
 ASSEMBLER_DEFINES_S132 = \
 $(COMMON_DEFINES_S132) \
@@ -56,6 +78,10 @@ $(COMMON_DEFINES_S132) \
 
 ASSEMBLER_DEFINES_S140 = \
 $(COMMON_DEFINES_S140) \
+
+
+COMPILER_DEFINES_S132_BL = \
+$(COMMON_DEFINES_S132_BL) \
 
 
 COMPILER_DEFINES_S132 = \
@@ -69,6 +95,14 @@ $(COMMON_DEFINES_S140) \
 -DHAS_SERIAL \
 -DONP_CHANNEL_SERIAL \
 -DONP_OVER_SERIAL \
+
+
+INCLUDES_S132_BL = \
+-I./include \
+-I./src/platforms/nRF5/s132-bl \
+-I./src/platforms/nRF5/ \
+-I./src/ \
+$(SDK_INCLUDES_S132_BL) \
 
 
 INCLUDES_S132 = \
@@ -89,6 +123,15 @@ INCLUDES_S140 = \
 $(SDK_INCLUDES_S140) \
 
 #-------------------------------------------------------------------------------
+
+BOOTLOADER_SOURCES = \
+./src/platforms/nRF5/gpio.c \
+./src/platforms/nRF5/spi.c \
+./src/platforms/nRF5/display-st7789.c \
+./src/platforms/nRF5/gfx.c \
+./src/platforms/nRF5/dfu_public_key.c \
+./src/platforms/nRF5/bootloader.c \
+
 
 TESTS_SOURCES = \
 ./tests/test-properties.c \
@@ -133,6 +176,60 @@ S140_SOURCES = \
 $(NRF5_SOURCES) \
 
 #-------------------------------------------------------------------------------
+
+SDK_INCLUDES_S132_BL = \
+-I./sdk/external/thedotfactory_fonts \
+-I./sdk/modules/nrfx/drivers/include \
+-I./sdk/components/libraries/gfx \
+-I./sdk/examples/dfu/secure_bootloader \
+-I./sdk/components/libraries/crypto/backend/micro_ecc \
+-I./sdk/components/softdevice/s132/headers \
+-I./sdk/components/libraries/memobj \
+-I./sdk/components/libraries/sha256 \
+-I./sdk/components/libraries/crc32 \
+-I./sdk/components/libraries/experimental_section_vars \
+-I./sdk/components/libraries/mem_manager \
+-I./sdk/components/libraries/fstorage \
+-I./sdk/components/libraries/util \
+-I./sdk/modules/nrfx \
+-I./sdk/external/nrf_oberon/include \
+-I./sdk/components/libraries/crypto/backend/oberon \
+-I./sdk/components/libraries/crypto/backend/cifra \
+-I./sdk/components/libraries/atomic \
+-I./sdk/integration/nrfx \
+-I./sdk/components/libraries/crypto/backend/cc310_bl \
+-I./sdk/components/softdevice/s132/headers/nrf52 \
+-I./sdk/components/libraries/log/src \
+-I./sdk/components/libraries/bootloader/dfu \
+-I./sdk/components/ble/common \
+-I./sdk/components/libraries/delay \
+-I./sdk/components/libraries/svc \
+-I./sdk/components/libraries/stack_info \
+-I./sdk/components/libraries/crypto/backend/nrf_hw \
+-I./sdk/components/libraries/log \
+-I./sdk/external/nrf_oberon \
+-I./sdk/components/libraries/strerror \
+-I./sdk/components/libraries/crypto/backend/mbedtls \
+-I./sdk/components/boards \
+-I./sdk/components/libraries/crypto/backend/cc310 \
+-I./sdk/components/libraries/bootloader \
+-I./sdk/external/fprintf \
+-I./sdk/components/libraries/crypto \
+-I./sdk/components/libraries/crypto/backend/optiga \
+-I./sdk/components/libraries/scheduler \
+-I./sdk/modules/nrfx/hal \
+-I./sdk/components/toolchain/cmsis/include \
+-I./sdk/components/libraries/balloc \
+-I./sdk/components/libraries/atomic_fifo \
+-I./sdk/external/micro-ecc/micro-ecc \
+-I./sdk/components/libraries/crypto/backend/nrf_sw \
+-I./sdk/modules/nrfx/mdk \
+-I./sdk/components/libraries/bootloader/ble_dfu \
+-I./sdk/components/softdevice/common \
+-I./sdk/external/nano-pb \
+-I./sdk/components/libraries/queue \
+-I./sdk/components/libraries/ringbuf \
+
 
 SDK_INCLUDES_S132 = \
 -I./sdk/components/softdevice/s132/headers \
@@ -282,12 +379,76 @@ SDK_INCLUDES = \
 -I./sdk/modules/nrfx/soc \
 
 
+SDK_ASSEMBLER_SOURCES_S132_BL = \
+./sdk/modules/nrfx/mdk/gcc_startup_nrf52.S \
+
+
 SDK_ASSEMBLER_SOURCES_S132 = \
 ./sdk/modules/nrfx/mdk/gcc_startup_nrf52.S \
 
 
 SDK_ASSEMBLER_SOURCES_S140 = \
 ./sdk/modules/nrfx/mdk/gcc_startup_nrf52840.S \
+
+
+SDK_C_SOURCES_S132_BL = \
+./sdk/components/ble/common/ble_srv_common.c \
+./sdk/components/libraries/atomic/nrf_atomic.c \
+./sdk/components/libraries/atomic_fifo/nrf_atfifo.c \
+./sdk/components/libraries/balloc/nrf_balloc.c \
+./sdk/components/libraries/experimental_section_vars/nrf_section_iter.c \
+./sdk/components/libraries/scheduler/app_scheduler.c \
+./sdk/components/libraries/util/app_util_platform.c \
+./sdk/components/softdevice/common/nrf_sdh.c \
+./sdk/components/softdevice/common/nrf_sdh_ble.c \
+./sdk/modules/nrfx/drivers/src/prs/nrfx_prs.c \
+./sdk/components/libraries/bootloader/ble_dfu/nrf_dfu_ble.c \
+./sdk/components/libraries/bootloader/dfu/dfu-cc.pb.c \
+./sdk/components/libraries/bootloader/dfu/nrf_dfu.c \
+./sdk/components/libraries/bootloader/dfu/nrf_dfu_flash.c \
+./sdk/components/libraries/bootloader/dfu/nrf_dfu_handling_error.c \
+./sdk/components/libraries/bootloader/dfu/nrf_dfu_mbr.c \
+./sdk/components/libraries/bootloader/dfu/nrf_dfu_req_handler.c \
+./sdk/components/libraries/bootloader/dfu/nrf_dfu_settings.c \
+./sdk/components/libraries/bootloader/dfu/nrf_dfu_settings_svci.c \
+./sdk/components/libraries/bootloader/dfu/nrf_dfu_svci.c \
+./sdk/components/libraries/bootloader/dfu/nrf_dfu_svci_handler.c \
+./sdk/components/libraries/bootloader/dfu/nrf_dfu_transport.c \
+./sdk/components/libraries/bootloader/dfu/nrf_dfu_utils.c \
+./sdk/components/libraries/bootloader/dfu/nrf_dfu_validation.c \
+./sdk/components/libraries/bootloader/dfu/nrf_dfu_ver_validation.c \
+./sdk/components/libraries/bootloader/nrf_bootloader.c \
+./sdk/components/libraries/bootloader/nrf_bootloader_app_start.c \
+./sdk/components/libraries/bootloader/nrf_bootloader_app_start_final.c \
+./sdk/components/libraries/bootloader/nrf_bootloader_dfu_timers.c \
+./sdk/components/libraries/bootloader/nrf_bootloader_fw_activation.c \
+./sdk/components/libraries/bootloader/nrf_bootloader_info.c \
+./sdk/components/libraries/bootloader/nrf_bootloader_wdt.c \
+./sdk/components/libraries/crc32/crc32.c \
+./sdk/components/libraries/crypto/backend/micro_ecc/micro_ecc_backend_ecc.c \
+./sdk/components/libraries/crypto/backend/micro_ecc/micro_ecc_backend_ecdsa.c \
+./sdk/components/libraries/crypto/backend/nrf_sw/nrf_sw_backend_hash.c \
+./sdk/components/libraries/crypto/backend/oberon/oberon_backend_ecc.c \
+./sdk/components/libraries/crypto/backend/oberon/oberon_backend_ecdsa.c \
+./sdk/components/libraries/crypto/nrf_crypto_ecc.c \
+./sdk/components/libraries/crypto/nrf_crypto_ecdsa.c \
+./sdk/components/libraries/crypto/nrf_crypto_hash.c \
+./sdk/components/libraries/crypto/nrf_crypto_init.c \
+./sdk/components/libraries/crypto/nrf_crypto_shared.c \
+./sdk/components/libraries/fstorage/nrf_fstorage.c \
+./sdk/components/libraries/fstorage/nrf_fstorage_nvmc.c \
+./sdk/components/libraries/fstorage/nrf_fstorage_sd.c \
+./sdk/components/libraries/sha256/sha256.c \
+./sdk/components/libraries/gfx/nrf_gfx.c \
+./sdk/components/libraries/svc/nrf_svc_handler.c \
+./sdk/components/softdevice/common/nrf_sdh_soc.c \
+./sdk/external/micro-ecc/micro-ecc/uECC.c \
+./sdk/external/nano-pb/pb_common.c \
+./sdk/external/nano-pb/pb_decode.c \
+./sdk/modules/nrfx/drivers/src/nrfx_spim.c \
+./sdk/modules/nrfx/hal/nrf_nvmc.c \
+./sdk/modules/nrfx/mdk/system_nrf52.c \
+
 
 
 SDK_C_SOURCES_S132 = \
@@ -397,6 +558,17 @@ libonex-kernel-140.a: $(LIB_SOURCES:.c=.o) $(S140_SOURCES:.c=.o) $(SDK_C_SOURCES
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
 
+
+nrf.bootloader.s132: INCLUDES=$(INCLUDES_S132_BL)
+nrf.bootloader.s132: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_S132_BL)
+nrf.bootloader.s132: COMPILER_DEFINES=$(COMPILER_DEFINES_S132_BL)
+nrf.bootloader.s132: $(BOOTLOADER_SOURCES:.c=.o) $(SDK_C_SOURCES_S132_BL:.c=.o) $(SDK_ASSEMBLER_SOURCES_S132_BL:.S=.o)
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_S132_BL) -Wl,-Map=./onex-kernel-bootloader.map -o ./onex-kernel-bootloader.out $^
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel-bootloader.out
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel-bootloader.out ./onex-kernel-bootloader.bin
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel-bootloader.out ./onex-kernel-bootloader.hex
+
+
 nrf.tests.s132: INCLUDES=$(INCLUDES_S132)
 nrf.tests.s132: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_S132)
 nrf.tests.s132: COMPILER_DEFINES=$(COMPILER_DEFINES_S132)
@@ -421,11 +593,22 @@ nrf.tests.s140: nrf.lib.140 $(TESTS_SOURCES:.c=.o)
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
+bootloader: nrf.bootloader.s132
+	echo $$(($$(cat bootloader-number.txt) + 1)) > bootloader-number.txt
+
+pinetime-erase-flash-sd-and-bl: bootloader
+	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "nrf5 mass_erase" -c "reset run" -c exit
+	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./sdk/components/softdevice/s132/hex/s132_nrf52_7.0.1_softdevice.hex" -c "reset run" -c exit
+	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel-bootloader.hex" -c "reset run" -c exit
+
 pinetime-erase:
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "nrf5 mass_erase" -c "reset run" -c exit
 
 pinetime-flash-sd:
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./sdk/components/softdevice/s132/hex/s132_nrf52_7.0.1_softdevice.hex" -c "reset run" -c exit
+
+pinetime-flash-bl: nrf.bootloader.s132
+	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel-bootloader.hex" -c "reset run" -c exit
 
 pinetime-flash: nrf.tests.s132
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel.hex" -c "reset run" -c exit
@@ -441,6 +624,7 @@ dongle-flash: nrf.tests.s140
 
 LINKER_FLAGS = -O3 -g3 -mthumb -mabi=aapcs -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Wl,--gc-sections --specs=nano.specs
 
+LD_FILES_S132_BL = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/s132-bl/onex-bl.ld
 LD_FILES_S132    = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/s132/onex.ld
 LD_FILES_S140    = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/onex.ld
 
@@ -458,7 +642,7 @@ clean:
 	find src tests -name '*.o' -o -name '*.d' | xargs rm -f
 	find . -name onex.ondb | xargs rm -f
 	touch ./sdk/banana-mango.o; find ./sdk/ -name '*.o' | xargs rm
-	rm -rf onex-kernel.??? dfu.zip core oko
+	rm -rf onex-kernel*.??? dfu.zip core oko
 	rm -f ,*
 	@echo "------------------------------"
 	@echo "files not cleaned:"

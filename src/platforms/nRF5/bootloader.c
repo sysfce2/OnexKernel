@@ -104,44 +104,25 @@ void app_error_handler_bare(uint32_t error_code)
  */
 static void dfu_observer(nrf_dfu_evt_type_t evt_type)
 {
-    gfx_pos(40,40);
-    gfx_text_colour(GFX_WHITE);
-    gfx_text("OnexOS update");
-
-    gfx_rect_fill(40, 80, 160, 20, GFX_BLACK);
-    gfx_pos(40,80);
-    gfx_text_colour(GFX_BLUE);
-
     static bool tick=false;
     switch (evt_type)
     {
         case NRF_DFU_EVT_DFU_INITIALIZED:
-            gfx_text("Waiting...");
             break;
         case NRF_DFU_EVT_TRANSPORT_ACTIVATED:
-            gfx_text("Connected");
             break;
         case NRF_DFU_EVT_DFU_STARTED:
-            gfx_text("Downloading");
             break;
         case NRF_DFU_EVT_OBJECT_RECEIVED:
             tick=!tick;
-            gfx_text(tick? "Receiving \\": "Receiving /");
+            gfx_rect_fill(40, 40, 20, 20, tick? GFX_GREEN: GFX_YELLOW);
             break;
         case NRF_DFU_EVT_DFU_COMPLETED:
-            gfx_text("Completed");
             break;
         case NRF_DFU_EVT_TRANSPORT_DEACTIVATED:
-            gfx_text("Disconnected");
-            break;
         case NRF_DFU_EVT_DFU_FAILED:
-            gfx_text("Failed");
-            break;
         case NRF_DFU_EVT_DFU_ABORTED:
-            gfx_text("Failed");
-            break;
         default:
-            gfx_text("XXXXXXXX");
             break;
     }
 }
@@ -167,12 +148,9 @@ int main(void)
     NRF_LOG_INFO("Inside main");
 
     gfx_init();
-    gfx_screen_colour(GFX_BLACK);
-    gfx_screen_fill();
 
-    gfx_pos(40,40);
-    gfx_text_colour(GFX_WHITE);
-    gfx_text("OnexOS");
+    gfx_screen_colour(GFX_BLUE);
+    gfx_screen_fill();
 
     gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
     gpio_set(LCD_BACKLIGHT_HIGH, LEDS_ACTIVE_STATE);
