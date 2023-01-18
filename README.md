@@ -9,5 +9,5 @@ Type 'make' for a list of build targets.
 
 See include/onn.h for the ONN API.
 
-All very alpha/WIP; used by http://github.com/DuncanCragg/OnexApp - also very alpha/WIP.
+All very alpha/WIP; used by http://github.com/DuncanCragg/OnexOS - also very alpha/WIP.
 
