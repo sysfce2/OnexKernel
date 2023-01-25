@@ -17,10 +17,9 @@ typedef void (*blenus_status_cb)(blenus_info_t);
 /* Initialise BLENUS if not already done.
    first callback is data received or (0,0) if connected
    second callback is connection status
-   Can use to set either callback without unsetting the other. */
+   Can use to set either callback without unsetting the other
+   and without re-initialising. */
 bool   blenus_init(blenus_recv_cb cb, blenus_status_cb scb);
-
-int    blenus_recv(char* b, int l);
 
 size_t blenus_printf(const char* fmt, ...);
 

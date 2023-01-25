@@ -94,7 +94,9 @@ $(COMMON_DEFINES_S140) \
 -DLOG_TO_SERIAL \
 -DHAS_SERIAL \
 -DONP_CHANNEL_SERIAL \
+-DONP_DEBUG \
 -DONP_OVER_SERIAL \
+# above are baked in but need to be runtime options!
 
 
 INCLUDES_S132_BL = \
@@ -622,6 +624,8 @@ dongle-flash: nrf.tests.s140
 
 #-------------------------------------------------------------------------------
 
+# for bootloader: -O2 -ggdb
+# for bootloader: -Os -g3
 LINKER_FLAGS = -O3 -g3 -mthumb -mabi=aapcs -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Wl,--gc-sections --specs=nano.specs
 
 LD_FILES_S132_BL = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/s132-bl/onex-bl.ld

@@ -1,6 +1,4 @@
 
-#include <string.h>
-
 #if defined(HAS_SERIAL) && defined(ONP_OVER_SERIAL)
 #include <onex-kernel/serial.h>
 #else
@@ -11,13 +9,13 @@
 
 static volatile bool initialised=false;
 
+static channel_serial_connect_cb connect_cb;
+
 #define SERIAL_BUFFER_SIZE 2048
 
 static volatile char     buffer[SERIAL_BUFFER_SIZE];
 static volatile uint16_t current_write=0;
 static volatile uint16_t current_read=0;
-
-static channel_serial_connect_cb connect_cb;
 
 static uint16_t data_available()
 {

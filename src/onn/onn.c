@@ -1100,7 +1100,7 @@ bool add_to_cache(object* n)
   return true;
 }
 
-object* onex_get_from_cache(char* uid)
+object* onex_get_from_cache(char* uid) // or persistence! and hide this
 {
   if(!uid || !(*uid)) return 0;
   object* o=properties_get(objects_cache, uid);
