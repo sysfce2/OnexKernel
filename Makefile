@@ -59,7 +59,7 @@ libonex-kernel-x86.a: CC=/usr/bin/gcc
 libonex-kernel-x86.a: LD=/usr/bin/gcc
 libonex-kernel-x86.a: AR=/usr/bin/ar
 libonex-kernel-x86.a: TARGET=TARGET_X86
-libonex-kernel-x86.a: CHANNELS=-DONP_CHANNEL_SERIAL
+libonex-kernel-x86.a: CHANNELS=-DONP_CHANNEL_SERIAL -DONP_DEBUG -DONP_OVER_SERIAL
 libonex-kernel-x86.a: $(UNIX_SOURCES:.c=.o) $(LIB_SOURCES:.c=.o)
 	$(AR) rcs $@ $^
 
@@ -97,7 +97,7 @@ ARM_CC_SYMBOLS = -D$(TARGET) $(CHANNELS)
 X86_FLAGS=-g3 -ggdb
 X86_CC_SYMBOLS = -D$(TARGET) $(CHANNELS)
 
-CC_FLAGS = -c -std=gnu99 -Werror -Wall -Wextra -Wno-unused-parameter -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer
+CC_FLAGS = -c -std=gnu99 -Werror -Wall -Wextra -Wno-misleading-indentation -Wno-unused-function  -Wno-unused-parameter -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer
 
 .c.o:
 	$(CC) $(COMPILE_LINE) -o $@ -c $<
