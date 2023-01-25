@@ -1,0 +1,43 @@
+
+Unlocking (and wiping) commercial device
+----------------------------------------
+
+Need to unlock the chip:
+
+Plug in CMSIS-DAP board, connect orange=IO, green=CLK, black=GND
+
+in another terminal:
+
+openocd -f ./doc/openocd-cmsis-dap.cfg
+
+telnet localhost 4444 (or nc localhost 4444)
+
+check value is 0:
+
+> nrf52.dap apreg 1 0x0c
+
+set to one:
+
+> nrf52.dap apreg 1 0x04 0x01
+
+check it's 1:
+
+> nrf52.dap apreg 1 0x0c
+
+> halt
+> reset
+:
+etc
+
+------
+
+Need latest openocd, built with cmsis-dap (and stlink of course)
+
+./configure --enable-stlink --enable-cmsis-dap
+
+Need cmsis-dap flasher board, and the firmware for that:
+
+dd if=lpc11u35_swdap_lpc1768_if_crc.bin of=/media/duncan/CRP\ DISABLD/firmware.bin conv=notrunc
+
+
+
