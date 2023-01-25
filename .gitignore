@@ -9,7 +9,7 @@
 *.out
 *.x86
 ,*
-.*.sw?
+.*.sw*
 Onex/
 dfu.zip
 doc/local

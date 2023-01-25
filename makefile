@@ -25,7 +25,7 @@ COMMON_DEFINES = \
 -DSOFTDEVICE_PRESENT \
 
 
-COMMON_DEFINES_S132_BL = \
+COMMON_DEFINES_PINETIME_BL = \
 $(COMMON_DEFINES) \
 -DBOARD_PINETIME \
 -DNRF52832_XXAA \
@@ -44,12 +44,11 @@ $(COMMON_DEFINES) \
 -D__HEAP_SIZE=0 \
 
 
-COMMON_DEFINES_S132 = \
+COMMON_DEFINES_PINETIME = \
 $(COMMON_DEFINES) \
 -DBOARD_PINETIME \
 -DNRF52832_XXAA \
 -DS132 \
--DNRF52 \
 -DNRF52_PAN_74 \
 -D__HEAP_SIZE=8192 \
 -D__STACK_SIZE=8192 \
@@ -58,7 +57,7 @@ $(COMMON_DEFINES) \
 
 
 
-COMMON_DEFINES_S140 = \
+COMMON_DEFINES_DONGLE = \
 $(COMMON_DEFINES) \
 -DBOARD_PCA10059 \
 -DNRF52840_XXAA \
@@ -68,29 +67,29 @@ $(COMMON_DEFINES) \
 
 
 
-ASSEMBLER_DEFINES_S132_BL = \
-$(COMMON_DEFINES_S132_BL) \
+ASSEMBLER_DEFINES_PINETIME_BL = \
+$(COMMON_DEFINES_PINETIME_BL) \
 
 
-ASSEMBLER_DEFINES_S132 = \
-$(COMMON_DEFINES_S132) \
+ASSEMBLER_DEFINES_PINETIME = \
+$(COMMON_DEFINES_PINETIME) \
 
 
-ASSEMBLER_DEFINES_S140 = \
-$(COMMON_DEFINES_S140) \
+ASSEMBLER_DEFINES_DONGLE = \
+$(COMMON_DEFINES_DONGLE) \
 
 
-COMPILER_DEFINES_S132_BL = \
-$(COMMON_DEFINES_S132_BL) \
+COMPILER_DEFINES_PINETIME_BL = \
+$(COMMON_DEFINES_PINETIME_BL) \
 
 
-COMPILER_DEFINES_S132 = \
-$(COMMON_DEFINES_S132) \
+COMPILER_DEFINES_PINETIME = \
+$(COMMON_DEFINES_PINETIME) \
 -DONP_CHANNEL_SERIAL \
 
 
-COMPILER_DEFINES_S140 = \
-$(COMMON_DEFINES_S140) \
+COMPILER_DEFINES_DONGLE = \
+$(COMMON_DEFINES_DONGLE) \
 -DLOG_TO_SERIAL \
 -DHAS_SERIAL \
 -DONP_CHANNEL_SERIAL \
@@ -99,7 +98,7 @@ $(COMMON_DEFINES_S140) \
 # above are baked in but need to be runtime options!
 
 
-INCLUDES_S132_BL = \
+INCLUDES_PINETIME_BL = \
 -I./include \
 -I./src/platforms/nRF5/s132-bl \
 -I./src/platforms/nRF5/ \
@@ -107,7 +106,7 @@ INCLUDES_S132_BL = \
 $(SDK_INCLUDES_S132_BL) \
 
 
-INCLUDES_S132 = \
+INCLUDES_PINETIME = \
 -I./include \
 -I./src/platforms/nRF5/s132 \
 -I./src/ \
@@ -116,7 +115,7 @@ INCLUDES_S132 = \
 $(SDK_INCLUDES_S132) \
 
 
-INCLUDES_S140 = \
+INCLUDES_DONGLE = \
 -I./include \
 -I./src/platforms/nRF5/ \
 -I./src/ \
@@ -156,13 +155,12 @@ NRF5_SOURCES = \
 ./src/platforms/nRF5/time.c \
 ./src/platforms/nRF5/random.c \
 ./src/platforms/nRF5/gpio.c \
-./src/platforms/nRF5/blenus.c \
 ./src/platforms/nRF5/log.c \
 ./src/platforms/nRF5/mem.c \
 ./src/platforms/nRF5/channel-serial.c \
 
 
-S132_SOURCES = \
+PINETIME_SOURCES = \
 ./src/platforms/nRF5/boot.c \
 ./src/platforms/nRF5/i2c.c \
 ./src/platforms/nRF5/spi.c \
@@ -170,11 +168,13 @@ S132_SOURCES = \
 ./src/platforms/nRF5/motion-bma421.c \
 ./src/platforms/nRF5/display-st7789.c \
 ./src/platforms/nRF5/gfx.c \
+./src/platforms/nRF5/blenus.c \
 $(NRF5_SOURCES) \
 
 
-S140_SOURCES = \
+DONGLE_SOURCES = \
 ./src/platforms/nRF5/serial.c \
+./src/platforms/nRF5/blenus.c \
 $(NRF5_SOURCES) \
 
 #-------------------------------------------------------------------------------
@@ -381,19 +381,15 @@ SDK_INCLUDES = \
 -I./sdk/modules/nrfx/soc \
 
 
-SDK_ASSEMBLER_SOURCES_S132_BL = \
+SDK_ASSEMBLER_SOURCES_52832 = \
 ./sdk/modules/nrfx/mdk/gcc_startup_nrf52.S \
 
 
-SDK_ASSEMBLER_SOURCES_S132 = \
-./sdk/modules/nrfx/mdk/gcc_startup_nrf52.S \
-
-
-SDK_ASSEMBLER_SOURCES_S140 = \
+SDK_ASSEMBLER_SOURCES_52840 = \
 ./sdk/modules/nrfx/mdk/gcc_startup_nrf52840.S \
 
 
-SDK_C_SOURCES_S132_BL = \
+SDK_C_SOURCES_PINETIME_BL = \
 ./sdk/components/ble/common/ble_srv_common.c \
 ./sdk/components/libraries/atomic/nrf_atomic.c \
 ./sdk/components/libraries/atomic_fifo/nrf_atfifo.c \
@@ -453,7 +449,7 @@ SDK_C_SOURCES_S132_BL = \
 
 
 
-SDK_C_SOURCES_S132 = \
+SDK_C_SOURCES_PINETIME = \
 $(SDK_C_SOURCES) \
 ./sdk/components/libraries/gfx/nrf_gfx.c \
 ./sdk/external/thedotfactory_fonts/orkney8pts.c \
@@ -463,7 +459,7 @@ $(SDK_C_SOURCES) \
 ./sdk/modules/nrfx/mdk/system_nrf52.c \
 
 
-SDK_C_SOURCES_S140 = \
+SDK_C_SOURCES_DONGLE = \
 $(SDK_C_SOURCES) \
 ./sdk/components/libraries/bsp/bsp.c \
 ./sdk/components/libraries/bsp/bsp_cli.c \
@@ -496,6 +492,13 @@ SDK_C_SOURCES = \
 ./sdk/components/ble/common/ble_srv_common.c \
 ./sdk/components/ble/nrf_ble_gatt/nrf_ble_gatt.c \
 ./sdk/components/ble/nrf_ble_qwr/nrf_ble_qwr.c \
+./sdk/components/softdevice/common/nrf_sdh.c \
+./sdk/components/softdevice/common/nrf_sdh_ble.c \
+./sdk/components/softdevice/common/nrf_sdh_soc.c \
+$(SDK_C_SOURCES_NO_SD) \
+
+
+SDK_C_SOURCES_NO_SD = \
 ./sdk/components/boards/boards.c \
 ./sdk/components/libraries/atomic/nrf_atomic.c \
 ./sdk/components/libraries/atomic_fifo/nrf_atfifo.c \
@@ -523,9 +526,6 @@ SDK_C_SOURCES = \
 ./sdk/components/libraries/util/app_error_weak.c \
 ./sdk/components/libraries/util/app_util_platform.c \
 ./sdk/components/libraries/util/nrf_assert.c \
-./sdk/components/softdevice/common/nrf_sdh.c \
-./sdk/components/softdevice/common/nrf_sdh_ble.c \
-./sdk/components/softdevice/common/nrf_sdh_soc.c \
 ./sdk/external/fprintf/nrf_fprintf.c \
 ./sdk/external/fprintf/nrf_fprintf_format.c \
 ./sdk/external/segger_rtt/SEGGER_RTT.c \
@@ -540,62 +540,58 @@ SDK_C_SOURCES = \
 #-------------------------------------------------------------------------------
 # Targets
 
-nrf.lib.132: libonex-kernel-132.a
-
-nrf.lib.140: libonex-kernel-140.a
-
-libonex-kernel-132.a: INCLUDES=$(INCLUDES_S132)
-libonex-kernel-132.a: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_S132)
-libonex-kernel-132.a: COMPILER_DEFINES=$(COMPILER_DEFINES_S132)
-libonex-kernel-132.a: $(LIB_SOURCES:.c=.o) $(S132_SOURCES:.c=.o) $(SDK_C_SOURCES_S132:.c=.o) $(SDK_ASSEMBLER_SOURCES_S132:.S=.o)
+libonex-kernel-pinetime.a: INCLUDES=$(INCLUDES_PINETIME)
+libonex-kernel-pinetime.a: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_PINETIME)
+libonex-kernel-pinetime.a: COMPILER_DEFINES=$(COMPILER_DEFINES_PINETIME)
+libonex-kernel-pinetime.a: $(LIB_SOURCES:.c=.o) $(PINETIME_SOURCES:.c=.o) $(SDK_C_SOURCES_PINETIME:.c=.o) $(SDK_ASSEMBLER_SOURCES_52832:.S=.o)
 	rm -f $@
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
 
-libonex-kernel-140.a: INCLUDES=$(INCLUDES_S140)
-libonex-kernel-140.a: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_S140)
-libonex-kernel-140.a: COMPILER_DEFINES=$(COMPILER_DEFINES_S140)
-libonex-kernel-140.a: $(LIB_SOURCES:.c=.o) $(S140_SOURCES:.c=.o) $(SDK_C_SOURCES_S140:.c=.o) $(SDK_ASSEMBLER_SOURCES_S140:.S=.o)
+libonex-kernel-dongle.a: INCLUDES=$(INCLUDES_DONGLE)
+libonex-kernel-dongle.a: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_DONGLE)
+libonex-kernel-dongle.a: COMPILER_DEFINES=$(COMPILER_DEFINES_DONGLE)
+libonex-kernel-dongle.a: $(LIB_SOURCES:.c=.o) $(DONGLE_SOURCES:.c=.o) $(SDK_C_SOURCES_DONGLE:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
 	rm -f $@
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
 
 
-nrf.bootloader.s132: INCLUDES=$(INCLUDES_S132_BL)
-nrf.bootloader.s132: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_S132_BL)
-nrf.bootloader.s132: COMPILER_DEFINES=$(COMPILER_DEFINES_S132_BL)
-nrf.bootloader.s132: $(BOOTLOADER_SOURCES:.c=.o) $(SDK_C_SOURCES_S132_BL:.c=.o) $(SDK_ASSEMBLER_SOURCES_S132_BL:.S=.o)
+nrf.bootloader.pinetime: INCLUDES=$(INCLUDES_PINETIME_BL)
+nrf.bootloader.pinetime: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_PINETIME_BL)
+nrf.bootloader.pinetime: COMPILER_DEFINES=$(COMPILER_DEFINES_PINETIME_BL)
+nrf.bootloader.pinetime: $(BOOTLOADER_SOURCES:.c=.o) $(SDK_C_SOURCES_PINETIME_BL:.c=.o) $(SDK_ASSEMBLER_SOURCES_52832:.S=.o)
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_S132_BL) -Wl,-Map=./onex-kernel-bootloader.map -o ./onex-kernel-bootloader.out $^
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel-bootloader.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel-bootloader.out ./onex-kernel-bootloader.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel-bootloader.out ./onex-kernel-bootloader.hex
 
 
-nrf.tests.s132: INCLUDES=$(INCLUDES_S132)
-nrf.tests.s132: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_S132)
-nrf.tests.s132: COMPILER_DEFINES=$(COMPILER_DEFINES_S132)
-nrf.tests.s132: nrf.lib.132 $(TESTS_SOURCES:.c=.o)
+nrf.tests.pinetime: INCLUDES=$(INCLUDES_PINETIME)
+nrf.tests.pinetime: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_PINETIME)
+nrf.tests.pinetime: COMPILER_DEFINES=$(COMPILER_DEFINES_PINETIME)
+nrf.tests.pinetime: libonex-kernel-pinetime.a $(TESTS_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
-	ar x ./libonex-kernel-132.a --output oko
+	ar x ./libonex-kernel-pinetime.a --output oko
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_S132) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
-nrf.tests.s140: INCLUDES=$(INCLUDES_S140)
-nrf.tests.s140: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_S140)
-nrf.tests.s140: COMPILER_DEFINES=$(COMPILER_DEFINES_S140)
-nrf.tests.s140: nrf.lib.140 $(TESTS_SOURCES:.c=.o)
+nrf.tests.dongle: INCLUDES=$(INCLUDES_DONGLE)
+nrf.tests.dongle: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_DONGLE)
+nrf.tests.dongle: COMPILER_DEFINES=$(COMPILER_DEFINES_DONGLE)
+nrf.tests.dongle: libonex-kernel-dongle.a $(TESTS_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
-	ar x ./libonex-kernel-140.a --output oko
+	ar x ./libonex-kernel-dongle.a --output oko
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_S140) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
-bootloader: nrf.bootloader.s132
+bootloader: nrf.bootloader.pinetime
 	echo $$(($$(cat bootloader-number.txt) + 1)) > bootloader-number.txt
 
 pinetime-erase-flash-sd-and-bl: bootloader
@@ -603,24 +599,31 @@ pinetime-erase-flash-sd-and-bl: bootloader
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./sdk/components/softdevice/s132/hex/s132_nrf52_7.0.1_softdevice.hex" -c "reset run" -c exit
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel-bootloader.hex" -c "reset run" -c exit
 
-pinetime-erase:
-	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "nrf5 mass_erase" -c "reset run" -c exit
-
-pinetime-flash-sd:
-	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./sdk/components/softdevice/s132/hex/s132_nrf52_7.0.1_softdevice.hex" -c "reset run" -c exit
-
-pinetime-flash-bl: nrf.bootloader.s132
+pinetime-flash-bl: nrf.bootloader.pinetime
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel-bootloader.hex" -c "reset run" -c exit
 
-pinetime-flash: nrf.tests.s132
+#-------------------------------------------------------------------------------
+
+pinetime-flash: nrf.tests.pinetime
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel.hex" -c "reset run" -c exit
 
-pinetime-reset:
-	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "reset run" -c exit
-
-dongle-flash: nrf.tests.s140
+dongle-flash: nrf.tests.dongle
 	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application ./onex-kernel.hex --key-file $(PRIVATE_PEM) dfu.zip
 	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM0 -b 115200
+
+#-------------------------------------------------------------------------------
+
+device-halt:
+	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c exit
+
+device-reset:
+	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "reset run" -c exit
+
+device-erase:
+	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "nrf5 mass_erase" -c "reset run" -c exit
+
+flash-sd132:
+	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./sdk/components/softdevice/s132/hex/s132_nrf52_7.0.1_softdevice.hex" -c "reset run" -c exit
 
 #-------------------------------------------------------------------------------
 
