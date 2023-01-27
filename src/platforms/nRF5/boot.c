@@ -14,7 +14,9 @@ void boot_init()
   NRF_WDT->RREN |= WDT_RREN_RR0_Msk;
   NRF_WDT->TASKS_START = 1;
 
+#if defined(SOFTDEVICE_PRESENT)
   sd_power_mode_set(NRF_POWER_MODE_LOWPWR);
+#endif
 }
 
 void boot_feed_watchdog()
@@ -24,9 +26,11 @@ void boot_feed_watchdog()
 
 void boot_dfu_start()
 {
+#if defined(SOFTDEVICE_PRESENT)
   sd_power_gpregret_clr(0, 0xffffffff);
   sd_power_gpregret_set(0, BOOTLOADER_DFU_START);
   nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_DFU);
+#endif
 }
 
 static uint64_t running_time=0;

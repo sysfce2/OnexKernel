@@ -15,6 +15,14 @@ PRIVATE_PEM = ./doc/local/private.pem
 
 #-------------------------------------------------------------------------------
 
+COMMON_DEFINES_NO_SD = \
+-DAPP_TIMER_V2 \
+-DAPP_TIMER_V2_RTC1_ENABLED \
+-DCONFIG_GPIO_AS_PINRESET \
+-DFLOAT_ABI_HARD \
+-DNRF5 \
+
+
 COMMON_DEFINES = \
 -DAPP_TIMER_V2 \
 -DAPP_TIMER_V2_RTC1_ENABLED \
@@ -57,6 +65,17 @@ $(COMMON_DEFINES) \
 
 
 
+COMMON_DEFINES_MAGIC3 = \
+$(COMMON_DEFINES_NO_SD) \
+-DBOARD_MAGIC3 \
+-DNRF52840_XXAA \
+-D__HEAP_SIZE=8192 \
+-D__STACK_SIZE=8192 \
+#-DSPI_BLOCKING \
+#-DLOG_TO_GFX \
+
+
+
 COMMON_DEFINES_DONGLE = \
 $(COMMON_DEFINES) \
 -DBOARD_PCA10059 \
@@ -75,6 +94,10 @@ ASSEMBLER_DEFINES_PINETIME = \
 $(COMMON_DEFINES_PINETIME) \
 
 
+ASSEMBLER_DEFINES_MAGIC3 = \
+$(COMMON_DEFINES_MAGIC3) \
+
+
 ASSEMBLER_DEFINES_DONGLE = \
 $(COMMON_DEFINES_DONGLE) \
 
@@ -86,6 +109,10 @@ $(COMMON_DEFINES_PINETIME_BL) \
 COMPILER_DEFINES_PINETIME = \
 $(COMMON_DEFINES_PINETIME) \
 -DONP_CHANNEL_SERIAL \
+
+
+COMPILER_DEFINES_MAGIC3 = \
+$(COMMON_DEFINES_MAGIC3) \
 
 
 COMPILER_DEFINES_DONGLE = \
@@ -113,6 +140,15 @@ INCLUDES_PINETIME = \
 -I./src/onp/ \
 -I./tests \
 $(SDK_INCLUDES_S132) \
+
+
+INCLUDES_MAGIC3 = \
+-I./include \
+-I./src/platforms/nRF5/magic3 \
+-I./src/ \
+-I./src/onp/ \
+-I./tests \
+$(SDK_INCLUDES_NO_SD) \
 
 
 INCLUDES_DONGLE = \
@@ -169,6 +205,16 @@ PINETIME_SOURCES = \
 ./src/platforms/nRF5/display-st7789.c \
 ./src/platforms/nRF5/gfx.c \
 ./src/platforms/nRF5/blenus.c \
+$(NRF5_SOURCES) \
+
+
+MAGIC3_SOURCES = \
+./src/platforms/nRF5/boot.c \
+./src/platforms/nRF5/i2c.c \
+./src/platforms/nRF5/spi.c \
+./src/platforms/nRF5/touch-cst816s.c \
+./src/platforms/nRF5/display-st7789.c \
+./src/platforms/nRF5/gfx.c \
 $(NRF5_SOURCES) \
 
 
@@ -231,6 +277,15 @@ SDK_INCLUDES_S132_BL = \
 -I./sdk/external/nano-pb \
 -I./sdk/components/libraries/queue \
 -I./sdk/components/libraries/ringbuf \
+
+
+SDK_INCLUDES_NO_SD = \
+-I./sdk/components/drivers_nrf/nrf_soc_nosd/ \
+-I./sdk/components/softdevice/mbr/headers/ \
+-I./sdk/external/thedotfactory_fonts \
+-I./sdk/components/libraries/gfx \
+-I./sdk/components/libraries/bootloader/ \
+$(SDK_INCLUDES) \
 
 
 SDK_INCLUDES_S132 = \
@@ -469,6 +524,15 @@ $(SDK_C_SOURCES) \
 ./sdk/modules/nrfx/mdk/system_nrf52.c \
 
 
+SDK_C_SOURCES_MAGIC3 = \
+$(SDK_C_SOURCES_NO_SD) \
+./sdk/components/libraries/gfx/nrf_gfx.c \
+./sdk/external/thedotfactory_fonts/orkney8pts.c \
+./sdk/modules/nrfx/drivers/src/nrfx_spim.c \
+./sdk/modules/nrfx/drivers/src/nrfx_twi.c \
+./sdk/modules/nrfx/mdk/system_nrf52840.c \
+
+
 SDK_C_SOURCES_DONGLE = \
 $(SDK_C_SOURCES) \
 ./sdk/components/libraries/bsp/bsp.c \
@@ -565,6 +629,16 @@ libonex-kernel-pinetime.a: $(LIB_SOURCES:.c=.o) $(PINETIME_SOURCES:.c=.o) $(SDK_
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
 
+
+libonex-kernel-magic3.a: INCLUDES=$(INCLUDES_MAGIC3)
+libonex-kernel-magic3.a: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_MAGIC3)
+libonex-kernel-magic3.a: COMPILER_DEFINES=$(COMPILER_DEFINES_MAGIC3)
+libonex-kernel-magic3.a: $(LIB_SOURCES:.c=.o) $(MAGIC3_SOURCES:.c=.o) $(SDK_C_SOURCES_MAGIC3:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
+	rm -f $@
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
+
+
 libonex-kernel-dongle.a: INCLUDES=$(INCLUDES_DONGLE)
 libonex-kernel-dongle.a: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_DONGLE)
 libonex-kernel-dongle.a: COMPILER_DEFINES=$(COMPILER_DEFINES_DONGLE)
@@ -596,6 +670,20 @@ nrf.tests.pinetime: libonex-kernel-pinetime.a $(TESTS_SOURCES:.c=.o)
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
+
+nrf.tests.magic3: INCLUDES=$(INCLUDES_MAGIC3)
+nrf.tests.magic3: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_MAGIC3)
+nrf.tests.magic3: COMPILER_DEFINES=$(COMPILER_DEFINES_MAGIC3)
+nrf.tests.magic3: libonex-kernel-magic3.a $(TESTS_SOURCES:.c=.o)
+	rm -rf oko
+	mkdir oko
+	ar x ./libonex-kernel-magic3.a --output oko
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_NO_SD) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
+
+
 nrf.tests.dongle: INCLUDES=$(INCLUDES_DONGLE)
 nrf.tests.dongle: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_DONGLE)
 nrf.tests.dongle: COMPILER_DEFINES=$(COMPILER_DEFINES_DONGLE)
@@ -622,6 +710,9 @@ pinetime-flash-bl: nrf.bootloader.pinetime
 #-------------------------------------------------------------------------------
 
 pinetime-flash: nrf.tests.pinetime
+	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel.hex" -c "reset run" -c exit
+
+magic3-flash: nrf.tests.magic3
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel.hex" -c "reset run" -c exit
 
 dongle-flash: nrf.tests.dongle
@@ -651,6 +742,7 @@ LINKER_FLAGS = -O3 -g3 -mthumb -mabi=aapcs -mcpu=cortex-m4 -mfloat-abi=hard -mfp
 LD_FILES_S132_BL = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/s132-bl/onex-bl.ld
 LD_FILES_S132    = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/s132/onex.ld
 LD_FILES_S140    = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/onex.ld
+LD_FILES_NO_SD   = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/magic3/onex.ld
 
 ASSEMBLER_FLAGS = -c -g3 -mcpu=cortex-m4 -mthumb -mabi=aapcs -mfloat-abi=hard -mfpu=fpv4-sp-d16
 

@@ -11,6 +11,11 @@
 #include <onex-kernel/touch.h>
 #include <onex-kernel/motion.h>
 
+#elif defined(BOARD_MAGIC3)
+
+#include <onex-kernel/gfx.h>
+#include <onex-kernel/touch.h>
+
 #endif
 
 #include <onex-kernel/gpio.h>
@@ -19,13 +24,19 @@
 #include <onex-kernel/serial.h>
 #endif
 
+#if defined(BOARD_PCA10059) || defined(BOARD_PINETIME)
 #include <onex-kernel/blenus.h>
+#endif
 
 #endif // NRF5
 
 #include <onex-kernel/random.h>
 #include <onex-kernel/time.h>
+
+#if !defined(BOARD_MAGIC3)
 #include <onex-kernel/log.h>
+#endif
+
 #include <tests.h>
 
 static volatile int16_t run_tests= -1;
@@ -64,18 +75,26 @@ static void set_up_gpio(void)
   gpio_set(VIBRATION, 1);
 #define ADC_CHANNEL 0
   gpio_adc_init(BATTERY_V, ADC_CHANNEL);
+#elif defined(BOARD_MAGIC3)
+  gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, RISING_AND_FALLING, button_changed);
+  gpio_mode(I2C_ENABLE, OUTPUT);
+  gpio_set( I2C_ENABLE, 1);
+  gpio_mode(LCD_BACKLIGHT, OUTPUT);
+  gpio_set(LCD_BACKLIGHT, LEDS_ACTIVE_STATE);
 #endif
 }
 #endif
 
-#if defined(BOARD_PINETIME)
+#if defined(BOARD_PINETIME) || defined(BOARD_MAGIC3)
 static void show_touch();
 static bool new_touch_info=false;
 static touch_info_t ti;
 
+#if defined(BOARD_PINETIME)
 static void show_motion();
 static bool new_motion_info=false;
 static motion_info_t mi;
+#endif
 
 static int irqs=0;
 
@@ -86,11 +105,13 @@ void touched(touch_info_t touchinfo)
   irqs++;
 }
 
+#if defined(BOARD_PINETIME)
 void moved(motion_info_t motioninfo)
 {
   mi=motioninfo;
   new_motion_info=true;
 }
+#endif
 
 char buf[64];
 
@@ -116,6 +137,7 @@ void show_touch()
   run_tests++;
 }
 
+#if defined(BOARD_PINETIME)
 void show_motion()
 {
   snprintf(buf, 64, "(%05d)(%05d)(%05d)", mi.x, mi.y, mi.z);
@@ -132,22 +154,27 @@ void show_battery()
   gfx_pos(10, 160);
   gfx_text(buf);
 }
+#endif
 
 #endif // watches
 
+#if !defined(BOARD_MAGIC3)
 void on_recv(unsigned char* chars, size_t size)
 {
   if(!size) return;
   log_write(">%c<----------\n", chars[0]);
   if(chars[0]=='t') run_tests++;
 }
+#endif
 
 void run_tests_maybe()
 {
   if(run_tests) return;
   run_tests++;
 
+#if !defined(BOARD_MAGIC3)
   log_write("-----------------OnexKernel tests------------------------\n");
+#endif
   run_value_tests();
   run_list_tests();
   run_properties_tests();
@@ -173,7 +200,9 @@ extern volatile char* event_log_buffer;
 
 int main(void)
 {
+#if !defined(BOARD_MAGIC3)
   log_init();
+#endif
   time_init();
   random_init();
 #if defined(NRF5)
@@ -192,9 +221,10 @@ int main(void)
     }
   }
 #else
-  blenus_init((blenus_recv_cb)on_recv, 0);
-  set_up_gpio();
 #if defined(BOARD_PINETIME)
+  blenus_init((blenus_recv_cb)on_recv, 0);
+#endif
+  set_up_gpio();
   gfx_init();
   gfx_screen_colour(GFX_YELLOW);
   gfx_screen_fill();
@@ -223,18 +253,23 @@ int main(void)
   gfx_text_colour(GFX_BLUE);
   gfx_text("Onex");
   touch_init(touched);
+#if defined(BOARD_PINETIME)
   motion_init(moved);
 #endif
   while(1){
+#if !defined(BOARD_MAGIC3)
     log_loop();
+#endif
     run_tests_maybe();
-#if defined(BOARD_PINETIME)
     if(new_touch_info){
       new_touch_info=false;
       show_touch();
       show_random();
+#if defined(BOARD_PINETIME)
       show_battery();
+#endif
     }
+#if defined(BOARD_PINETIME)
     if(new_motion_info){
       new_motion_info=false;
       static int ticks=0; // every 20ms
@@ -253,6 +288,11 @@ int main(void)
       event_log_buffer=0;
     }
 #endif
+#elif defined(BOARD_MAGIC3)
+    if (display_state_prev != display_state){
+      display_state_prev = display_state;
+      gpio_set(LCD_BACKLIGHT, display_state);
+    }
 #endif
   }
 #endif // HAS_SERIAL
