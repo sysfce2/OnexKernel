@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+void    random_init();
 uint8_t random_byte();
 uint8_t random_ish_byte();
 

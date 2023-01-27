@@ -21,30 +21,28 @@
 
 #include <onex-kernel/blenus.h>
 
-#endif
+#endif // NRF5
 
+#include <onex-kernel/random.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 #include <tests.h>
+
+static volatile int16_t run_tests= -1;
 
 extern void run_properties_tests();
 extern void run_list_tests();
 extern void run_value_tests();
 extern void run_onn_tests(char* dbpath);
 
-#if defined(BOARD_PINETIME)
+#if defined(NRF5)
 static volatile bool display_state_prev=!LEDS_ACTIVE_STATE;
 static volatile bool display_state=LEDS_ACTIVE_STATE;
-#endif
 
-#if defined(NRF5)
 void button_changed(uint8_t pin, uint8_t type)
 {
   bool pressed=(gpio_get(pin)==BUTTONS_ACTIVE_STATE);
-  log_write("#%d\n", pressed);
-#if defined(BOARD_PINETIME)
   if(pressed) display_state = !display_state;
-#endif
 }
 
 #if defined(BOARD_PCA10059)
@@ -96,6 +94,15 @@ void moved(motion_info_t motioninfo)
 
 char buf[64];
 
+void show_random()
+{
+  uint8_t r1=random_ish_byte();
+  uint8_t r2=random_byte();
+  snprintf(buf, 64, "#%02x#%02x#", r1, r2);
+  gfx_pos(10, 135);
+  gfx_text(buf);
+}
+
 void show_touch()
 {
   snprintf(buf, 64, "-%03d-%03d-", ti.x, ti.y);
@@ -105,6 +112,8 @@ void show_touch()
   snprintf(buf, 64, "-%s-%s-%d-", touch_actions[ti.action], touch_gestures[ti.gesture], irqs);
   gfx_pos(10, 110);
   gfx_text(buf);
+
+  run_tests++;
 }
 
 void show_motion()
@@ -123,21 +132,20 @@ void show_battery()
   gfx_pos(10, 160);
   gfx_text(buf);
 }
-#endif
 
-static volatile bool run_tests=false;
+#endif // watches
 
 void on_recv(unsigned char* chars, size_t size)
 {
   if(!size) return;
   log_write(">%c<----------\n", chars[0]);
-  if(chars[0]=='t') run_tests=true;
+  if(chars[0]=='t') run_tests++;
 }
 
 void run_tests_maybe()
 {
-  if(!run_tests) return;
-  run_tests=false;
+  if(run_tests) return;
+  run_tests++;
 
   log_write("-----------------OnexKernel tests------------------------\n");
   run_value_tests();
@@ -150,8 +158,8 @@ void run_tests_maybe()
 #if defined(BOARD_PCA10059)
   if(failures) gpio_set(leds_list[1], 0);
   else         gpio_set(leds_list[2], 0);
-#elif defined(BOARD_PINETIME)
-  gfx_pos(10, 10);
+#else
+  gfx_pos(10, 40);
   gfx_text(failures? "FAIL": "SUCCESS");
 #endif
 #else
@@ -167,6 +175,7 @@ int main(void)
 {
   log_init();
   time_init();
+  random_init();
 #if defined(NRF5)
   gpio_init();
 #if defined(HAS_SERIAL)
@@ -174,7 +183,14 @@ int main(void)
   blenus_init(0,0);
   set_up_gpio();
   time_ticker((void (*)())serial_loop, 1);
-  while(1) run_tests_maybe();
+  while(1){
+    run_tests_maybe();
+    if (display_state_prev != display_state){
+      display_state_prev = display_state;
+      gpio_set(leds_list[3], display_state);
+      log_write("#%d %d %d\n", display_state, random_ish_byte(), random_byte());
+    }
+  }
 #else
   blenus_init((blenus_recv_cb)on_recv, 0);
   set_up_gpio();
@@ -216,6 +232,7 @@ int main(void)
     if(new_touch_info){
       new_touch_info=false;
       show_touch();
+      show_random();
       show_battery();
     }
     if(new_motion_info){
@@ -238,8 +255,8 @@ int main(void)
 #endif
 #endif
   }
-#endif
-#else
+#endif // HAS_SERIAL
+#else // NRF5
   on_recv((unsigned char*)"t", 1);
   run_tests_maybe();
   time_end();

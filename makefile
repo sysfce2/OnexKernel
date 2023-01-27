@@ -296,6 +296,15 @@ SDK_INCLUDES = \
 -I./sdk/components/libraries/crc16 \
 -I./sdk/components/libraries/crc32 \
 -I./sdk/components/libraries/crypto \
+-I./sdk/components/libraries/crypto/backend/cc310 \
+-I./sdk/components/libraries/crypto/backend/cc310_bl \
+-I./sdk/components/libraries/crypto/backend/mbedtls \
+-I./sdk/components/libraries/crypto/backend/oberon \
+-I./sdk/components/libraries/crypto/backend/micro_ecc \
+-I./sdk/components/libraries/crypto/backend/optiga \
+-I./sdk/components/libraries/crypto/backend/cifra \
+-I./sdk/components/libraries/crypto/backend/nrf_sw \
+-I./sdk/components/libraries/crypto/backend/nrf_hw \
 -I./sdk/components/libraries/csense \
 -I./sdk/components/libraries/csense_drv \
 -I./sdk/components/libraries/delay \
@@ -325,6 +334,7 @@ SDK_INCLUDES = \
 -I./sdk/components/libraries/sortlist \
 -I./sdk/components/libraries/spi_mngr \
 -I./sdk/components/libraries/stack_guard \
+-I./sdk/components/libraries/stack_info \
 -I./sdk/components/libraries/strerror \
 -I./sdk/components/libraries/svc \
 -I./sdk/components/libraries/timer \
@@ -500,6 +510,10 @@ $(SDK_C_SOURCES_NO_SD) \
 
 SDK_C_SOURCES_NO_SD = \
 ./sdk/components/boards/boards.c \
+./sdk/components/libraries/crypto/backend/nrf_hw/nrf_hw_backend_rng.c \
+./sdk/components/libraries/crypto/backend/nrf_hw/nrf_hw_backend_init.c \
+./sdk/components/libraries/crypto/nrf_crypto_init.c \
+./sdk/components/libraries/crypto/nrf_crypto_rng.c \
 ./sdk/components/libraries/atomic/nrf_atomic.c \
 ./sdk/components/libraries/atomic_fifo/nrf_atfifo.c \
 ./sdk/components/libraries/atomic_flags/nrf_atflags.c \
@@ -526,6 +540,7 @@ SDK_C_SOURCES_NO_SD = \
 ./sdk/components/libraries/util/app_error_weak.c \
 ./sdk/components/libraries/util/app_util_platform.c \
 ./sdk/components/libraries/util/nrf_assert.c \
+./sdk/components/libraries/queue/nrf_queue.c \
 ./sdk/external/fprintf/nrf_fprintf.c \
 ./sdk/external/fprintf/nrf_fprintf_format.c \
 ./sdk/external/segger_rtt/SEGGER_RTT.c \
@@ -533,6 +548,8 @@ SDK_C_SOURCES_NO_SD = \
 ./sdk/external/segger_rtt/SEGGER_RTT_printf.c \
 ./sdk/external/utf_converter/utf.c \
 ./sdk/integration/nrfx/legacy/nrf_drv_clock.c \
+./sdk/integration/nrfx/legacy/nrf_drv_rng.c \
+./sdk/modules/nrfx/drivers/src/nrfx_rng.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_clock.c \
 ./sdk/modules/nrfx/drivers/src/prs/nrfx_prs.c \
 ./sdk/modules/nrfx/soc/nrfx_atomic.c \

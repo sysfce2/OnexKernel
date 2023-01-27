@@ -1061,6 +1061,7 @@ void object_log(object* o)
 void onex_init(char* dbpath)
 {
   timer_init();
+  random_init();
   persistence_init(dbpath);
   device_init();
   onp_init();

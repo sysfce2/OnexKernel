@@ -24,6 +24,7 @@ int main()
   for(uint8_t l=0; l< LEDS_NUMBER; l++) gpio_mode(leds_list[l], OUTPUT);
   serial_init(serial_received, 9600);
   time_init();
+  random_init();
 
   serial_printf("Type 'o' or 'i'\n");
   for(;;){

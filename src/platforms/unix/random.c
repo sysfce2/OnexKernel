@@ -6,9 +6,15 @@
 
 static bool initialised=false;
 
+void random_init()
+{
+  if(initialised) return;
+  srand(time(0));
+  initialised=true;
+}
+
 uint8_t random_ish_byte()
 {
-  if(!initialised){ srand(time(0)); initialised=true; }
   int r = rand();
   return *((uint8_t*)&r);
 }
