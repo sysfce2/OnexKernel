@@ -127,15 +127,14 @@ $(COMMON_DEFINES_DONGLE) \
 
 INCLUDES_PINETIME_BL = \
 -I./include \
--I./src/platforms/nRF5/s132-bl \
--I./src/platforms/nRF5/ \
+-I./src/platforms/nRF5/pinetime-bl \
 -I./src/ \
 $(SDK_INCLUDES_S132_BL) \
 
 
 INCLUDES_PINETIME = \
 -I./include \
--I./src/platforms/nRF5/s132 \
+-I./src/platforms/nRF5/pinetime \
 -I./src/ \
 -I./src/onp/ \
 -I./tests \
@@ -153,7 +152,7 @@ $(SDK_INCLUDES_NO_SD) \
 
 INCLUDES_DONGLE = \
 -I./include \
--I./src/platforms/nRF5/ \
+-I./src/platforms/nRF5/dongle \
 -I./src/ \
 -I./src/onp/ \
 -I./tests \
@@ -652,7 +651,7 @@ nrf.bootloader.pinetime: INCLUDES=$(INCLUDES_PINETIME_BL)
 nrf.bootloader.pinetime: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_PINETIME_BL)
 nrf.bootloader.pinetime: COMPILER_DEFINES=$(COMPILER_DEFINES_PINETIME_BL)
 nrf.bootloader.pinetime: $(BOOTLOADER_SOURCES:.c=.o) $(SDK_C_SOURCES_PINETIME_BL:.c=.o) $(SDK_ASSEMBLER_SOURCES_52832:.S=.o)
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_S132_BL) -Wl,-Map=./onex-kernel-bootloader.map -o ./onex-kernel-bootloader.out $^
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_PINETIME_BL) -Wl,-Map=./onex-kernel-bootloader.map -o ./onex-kernel-bootloader.out $^
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel-bootloader.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel-bootloader.out ./onex-kernel-bootloader.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel-bootloader.out ./onex-kernel-bootloader.hex
@@ -665,7 +664,7 @@ nrf.tests.pinetime: libonex-kernel-pinetime.a $(TESTS_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
 	ar x ./libonex-kernel-pinetime.a --output oko
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_S132) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_PINETIME) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
@@ -678,7 +677,7 @@ nrf.tests.magic3: libonex-kernel-magic3.a $(TESTS_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
 	ar x ./libonex-kernel-magic3.a --output oko
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_NO_SD) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_MAGIC3) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
@@ -691,7 +690,7 @@ nrf.tests.dongle: libonex-kernel-dongle.a $(TESTS_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
 	ar x ./libonex-kernel-dongle.a --output oko
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_S140) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_DONGLE) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
@@ -739,10 +738,10 @@ flash-sd132:
 # for bootloader: -Os -g3
 LINKER_FLAGS = -O3 -g3 -mthumb -mabi=aapcs -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Wl,--gc-sections --specs=nano.specs
 
-LD_FILES_S132_BL = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/s132-bl/onex-bl.ld
-LD_FILES_S132    = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/s132/onex.ld
-LD_FILES_S140    = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/onex.ld
-LD_FILES_NO_SD   = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/magic3/onex.ld
+LD_FILES_PINETIME_BL = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/pinetime-bl/onex.ld
+LD_FILES_PINETIME    = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/pinetime/onex.ld
+LD_FILES_DONGLE      = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/dongle/onex.ld
+LD_FILES_MAGIC3      = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/magic3/onex.ld
 
 ASSEMBLER_FLAGS = -c -g3 -mcpu=cortex-m4 -mthumb -mabi=aapcs -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
