@@ -48,8 +48,8 @@ nrfx_err_t spi_init()
 
     nrfx_spim_config_t config = NRFX_SPIM_DEFAULT_CONFIG;
 
-    config.frequency = NRF_SPIM_FREQ_8M;
-    config.mode      = NRF_SPIM_MODE_3;
+    config.frequency = SPIM_FREQ;
+    config.mode      = SPIM_MODE;
     config.bit_order = NRF_SPIM_BIT_ORDER_MSB_FIRST;
 
     config.miso_pin  = SPIM0_MISO_PIN;

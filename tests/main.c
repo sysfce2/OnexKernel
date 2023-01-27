@@ -2,17 +2,25 @@
 // --------------------------------------------------------------------
 
 #if defined(NRF5)
+
 #include <boards.h>
+
 #if defined(BOARD_PINETIME)
+
 #include <onex-kernel/gfx.h>
 #include <onex-kernel/touch.h>
 #include <onex-kernel/motion.h>
+
 #endif
+
 #include <onex-kernel/gpio.h>
+
 #if defined(HAS_SERIAL)
 #include <onex-kernel/serial.h>
 #endif
+
 #include <onex-kernel/blenus.h>
+
 #endif
 
 #include <onex-kernel/time.h>
@@ -25,8 +33,8 @@ extern void run_value_tests();
 extern void run_onn_tests(char* dbpath);
 
 #if defined(BOARD_PINETIME)
-static bool display_state_prev=!LEDS_ACTIVE_STATE;
-static bool display_state=LEDS_ACTIVE_STATE;
+static volatile bool display_state_prev=!LEDS_ACTIVE_STATE;
+static volatile bool display_state=LEDS_ACTIVE_STATE;
 #endif
 
 #if defined(NRF5)
@@ -169,12 +177,12 @@ int main(void)
   while(1) run_tests_maybe();
 #else
   blenus_init((blenus_recv_cb)on_recv, 0);
+  set_up_gpio();
 #if defined(BOARD_PINETIME)
-  gfx_reset();
   gfx_init();
-  gfx_screen_colour(0x0);
+  gfx_screen_colour(GFX_YELLOW);
   gfx_screen_fill();
-  gfx_rect_line(  0,  0, 240,240, GFX_GREY_F, 3);
+  gfx_rect_line(  0,  0, ST7789_WIDTH, ST7789_HEIGHT, GFX_RED, 3);
   gfx_rect_fill( 15,180,  20, 20, GFX_RGB256(255,255,255));
   gfx_rect_fill( 15,210,  20, 20, GFX_WHITE);
   gfx_rect_fill( 35,180,  20, 20, GFX_RGB256(63,63,63));
@@ -195,13 +203,12 @@ int main(void)
   gfx_rect_fill(175,210,  20, 20, GFX_MAGENTA);
   gfx_rect_fill(195,180,  20, 20, GFX_RGB256(0,255,255));
   gfx_rect_fill(195,210,  20, 20, GFX_CYAN);
-  gfx_pos(10, 10);
+  gfx_pos(10, 40);
   gfx_text_colour(GFX_BLUE);
   gfx_text("Onex");
   touch_init(touched);
   motion_init(moved);
 #endif
-  set_up_gpio();
   while(1){
     log_loop();
     run_tests_maybe();
