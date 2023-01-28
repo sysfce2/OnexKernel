@@ -4,7 +4,11 @@
 #include "onex-kernel/log.h"
 #include <onex-kernel/spi.h>
 
-static nrfx_spim_t spim_inst0 = NRFX_SPIM_INSTANCE(0);
+#if defined(NRF52840_XXAA)
+static nrfx_spim_t spim_inst = NRFX_SPIM_INSTANCE(3);
+#else
+static nrfx_spim_t spim_inst = NRFX_SPIM_INSTANCE(0);
+#endif
 
 static volatile bool     sending=false;
 static volatile uint8_t* curr_data;
@@ -16,7 +20,7 @@ void next_block_of_255()
     if(!curr_len){
       if(spi_done_cb) spi_done_cb();
       spi_done_cb=0;
-      nrf_gpio_pin_set(SPIM0_SS_PIN);
+      nrf_gpio_pin_set(SPIM_SS_PIN);
       sending=false;
       return;
     }
@@ -28,10 +32,10 @@ void next_block_of_255()
     curr_data+=m;
     curr_len-=m;
 
-    nrfx_spim_xfer(&spim_inst0, &xfer_desc, 0);
+    nrfx_spim_xfer(&spim_inst, &xfer_desc, 0);
 
 #if defined(SPI_BLOCKING)
-    nrf_gpio_pin_set(SPIM0_SS_PIN);
+    nrf_gpio_pin_set(SPIM_SS_PIN);
     sending=false;
 #endif
 }
@@ -43,8 +47,8 @@ void spim_event_handler(nrfx_spim_evt_t const* p_event, void* p_context)
 
 nrfx_err_t spi_init()
 {
-    nrf_gpio_cfg_output(SPIM0_SS_PIN);
-    nrf_gpio_pin_set(SPIM0_SS_PIN);
+    nrf_gpio_cfg_output(SPIM_SS_PIN);
+    nrf_gpio_pin_set(SPIM_SS_PIN);
 
     nrfx_spim_config_t config = NRFX_SPIM_DEFAULT_CONFIG;
 
@@ -52,14 +56,14 @@ nrfx_err_t spi_init()
     config.mode      = SPIM_MODE;
     config.bit_order = NRF_SPIM_BIT_ORDER_MSB_FIRST;
 
-    config.miso_pin  = SPIM0_MISO_PIN;
-    config.mosi_pin  = SPIM0_MOSI_PIN;
-    config.sck_pin   = SPIM0_SCK_PIN;
+    config.miso_pin  = SPIM_MISO_PIN;
+    config.mosi_pin  = SPIM_MOSI_PIN;
+    config.sck_pin   = SPIM_SCK_PIN;
 
 #if defined(SPI_BLOCKING)
-    nrfx_spim_init(&spim_inst0, &config, 0, 0);
+    nrfx_spim_init(&spim_inst, &config, 0, 0);
 #else
-    nrfx_spim_init(&spim_inst0, &config, spim_event_handler, 0);
+    nrfx_spim_init(&spim_inst, &config, spim_event_handler, 0);
 #endif
 
     return 0;
@@ -77,7 +81,7 @@ void spi_tx(uint8_t* data, uint16_t len, void (*cb)())
     curr_len =len;
     spi_done_cb=cb;
 
-    nrf_gpio_pin_clear(SPIM0_SS_PIN);
+    nrf_gpio_pin_clear(SPIM_SS_PIN);
     spi_wake();
 
     next_block_of_255();
@@ -90,13 +94,21 @@ void spi_sleep()
 {
   if(sleeping || sending) return;
   sleeping=true;
+#if defined(NRF52840_XXAA)
+  NRF_SPIM3->ENABLE=(SPIM_ENABLE_ENABLE_Disabled << SPIM_ENABLE_ENABLE_Pos);
+#else
   NRF_SPIM0->ENABLE=(SPIM_ENABLE_ENABLE_Disabled << SPIM_ENABLE_ENABLE_Pos);
+#endif
 }
 
 void spi_wake()
 {
   if(!sleeping) return;
   sleeping=false;
+#if defined(NRF52840_XXAA)
+  NRF_SPIM3->ENABLE=(SPIM_ENABLE_ENABLE_Enabled  << SPIM_ENABLE_ENABLE_Pos);
+#else
   NRF_SPIM0->ENABLE=(SPIM_ENABLE_ENABLE_Enabled  << SPIM_ENABLE_ENABLE_Pos);
+#endif
 }
 
