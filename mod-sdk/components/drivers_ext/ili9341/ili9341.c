@@ -350,7 +350,7 @@ static void ili9341_rect_draw(uint16_t x, uint16_t y, uint16_t width, uint16_t h
     nrf_gpio_pin_clear(ILI9341_DC_PIN);
 }
 
-static void ili9341_dummy_display(void)
+static void ili9341_dummy_display(uint8_t * data, uint16_t len, uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1)
 {
     /* No implementation needed. */
 }

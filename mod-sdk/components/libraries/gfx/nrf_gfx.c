@@ -498,11 +498,11 @@ void nrf_gfx_background_set(nrf_lcd_t const * p_instance, uint16_t const * img_b
     (void)nrf_gfx_bmp565_draw(p_instance, &rectangle, img_buf);
 }
 
-void nrf_gfx_display(nrf_lcd_t const * p_instance)
+void nrf_gfx_display(nrf_lcd_t const * p_instance, uint8_t * dat, uint16_t len, uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1)
 {
     ASSERT(p_instance != NULL);
 
-    p_instance->lcd_display();
+    p_instance->lcd_display(dat, len, x0, y0, x1, y1);
 }
 
 void nrf_gfx_rotation_set(nrf_lcd_t const * p_instance, nrf_lcd_rotation_t rotation)
@@ -623,6 +623,298 @@ uint16_t nrf_gfx_width_get(nrf_lcd_t const * p_instance)
 
     return p_instance->p_lcd_cb->width;
 }
+
+
+//added in
+
+//#define enable_prints
+
+static void write_character_fast(nrf_lcd_t const * p_instance,  //nrf_lcd_st7789
+                            nrf_gfx_font_desc_t const * p_font, //arial_72ptFontInfo
+                            uint8_t character,                  //character
+                            uint16_t * p_x,                     //x starting point
+                            uint16_t y,                         //y starting point
+                            uint16_t background_color,          //16-bit color
+                            uint16_t font_color)                //16-bit color
+{
+    uint8_t char_idx = character - p_font->startChar; //character - 33 ("!" ASCII)
+    uint16_t bytes_in_line = CEIL_DIV(p_font->charInfo[char_idx].widthBits, 8); //# bytes per line
+
+    if (character == ' ')           //in case of a space
+    {
+        *p_x += p_font->height / 2; //increase x position by half font's height
+        return;
+    }
+
+    uint8_t font_col[2] = {font_color >> 8, font_color};
+    uint8_t background_col[2] = {background_color >> 8, background_color};
+
+    //p_instance->lcd_pixel_draw(*p_x, y, background_color);
+    nrf_gfx_display(p_instance, 0, 0xFFFF, *p_x, y, *p_x + bytes_in_line * 8 - 1, y + p_font->height);
+
+    for (uint16_t i = 0; i < p_font->height; i++) //Increment through the rows
+    {
+        for (uint16_t j = 0; j < bytes_in_line; j++)  //Increment through the columns
+        {
+            for (uint8_t k = 0; k < 8; k++) //Check 0 to 7 per Byte
+            {
+                if ((1 << (7 - k)) & p_font->data[p_font->charInfo[char_idx].offset + i * bytes_in_line + j])
+                {
+                    //pixel_draw(p_instance, *p_x + j * 8 + k, y + i, font_color);
+                    //p_instance = nrf_lcd_st7789
+                    //p_x = X starting position   -> X starting position + Column * 8 + Bit #
+                    //y = y starting position     -> Y starting position + Row
+                    //font_color = 16-bit color
+
+                    nrf_gfx_display(p_instance, font_col, sizeof(font_col),0,0,0,0);
+                    #ifdef enable_prints
+                    printf("1");
+                    #endif
+                }
+                else{
+
+                    nrf_gfx_display(p_instance, background_col, sizeof(background_col),0,0,0,0);
+                    #ifdef enable_prints
+                    printf("0");
+                    #endif
+                }
+            }
+        }
+        #ifdef enable_prints
+        printf("\n");
+        #endif
+    }
+    //After through entire character incremented through
+
+    *p_x += p_font->charInfo[char_idx].widthBits + p_font->spacePixels;
+    //X starting position + character's width in bits + size of space in pixels
+}
+
+ret_code_t nrf_gfx_print_fast(nrf_lcd_t const * p_instance,
+                         nrf_gfx_point_t const * p_point,
+                         uint16_t background_color,
+                         uint16_t font_color,
+                         const char * string,
+                         const nrf_gfx_font_desc_t * p_font,
+                         bool wrap)
+{
+    ASSERT(p_instance != NULL);
+    ASSERT(p_instance->p_lcd_cb->state != NRFX_DRV_STATE_UNINITIALIZED);
+    ASSERT(p_point != NULL);
+    ASSERT(string != NULL);
+    ASSERT(p_font != NULL);
+
+    uint16_t x = p_point->x;
+    uint16_t y = p_point->y;
+
+    if (y > (nrf_gfx_height_get(p_instance) - p_font->height))
+    {
+        // Not enough space to write even single char.
+        return NRF_ERROR_INVALID_PARAM;
+    }
+
+    for (size_t i = 0; string[i] != '\0' ; i++)
+    {
+        if (string[i] == '\n')
+        {
+            x = p_point->x;
+            y += p_font->height + p_font->height / 10;
+        }
+        else
+        {
+            write_character_fast(p_instance, p_font, (uint8_t)string[i], &x, y, background_color, font_color);
+        }
+
+        uint8_t char_idx = string[i] - p_font->startChar;
+        uint16_t char_width = string[i] == ' ' ? (p_font->height / 2) :
+                                                p_font->charInfo[char_idx].widthBits;
+
+        if (x > (nrf_gfx_width_get(p_instance) - char_width))
+        {
+            if (wrap)
+            {
+                x = p_point->x;
+                y += p_font->height + p_font->height / 10;
+            }
+            else
+            {
+                break;
+            }
+
+            if (y > (nrf_gfx_height_get(p_instance) - p_font->height))
+            {
+                break;
+            }
+        }
+    }
+
+    return NRF_SUCCESS;
+}
+
+static void write_character_fast2(nrf_lcd_t const * p_instance,  //nrf_lcd_st7789
+                            nrf_gfx_font_desc_t const * p_font, //arial_72ptFontInfo
+                            uint8_t character,                  //character
+                            uint16_t * p_x,                     //x starting point
+                            uint16_t y,                         //y starting point
+                            uint16_t font_color)                //16-bit color
+{
+    uint8_t char_idx = character - p_font->startChar; //character - 33 ("!" ASCII)
+    uint16_t bytes_in_line = CEIL_DIV(p_font->charInfo[char_idx].widthBits, 8); //# bytes per line
+
+    if (character == ' ')           //in case of a space
+    {
+        *p_x += p_font->height / 2; //increase x position by half font's height
+        return;
+    }
+
+    uint8_t font_col[2] = {font_color >> 8, font_color};
+
+    //p_instance->lcd_pixel_draw(*p_x, y, background_color);
+    nrf_gfx_display(p_instance, 0, 0xFFFF, *p_x, y, *p_x + bytes_in_line * 8 - 1, y + p_font->height);
+    bool not_skipping = true;
+
+    for (uint16_t i = 0; i < p_font->height; i++) //Increment through the rows
+    {
+        for (uint16_t j = 0; j < bytes_in_line; j++)  //Increment through the columns
+        {
+            for (uint8_t k = 0; k < 8; k++) //Check 0 to 7 per Byte
+            {
+                if ((1 << (7 - k)) & p_font->data[p_font->charInfo[char_idx].offset + i * bytes_in_line + j]) //if a bit should be written to
+                {
+                    //pixel_draw(p_instance, *p_x + j * 8 + k, y + i, font_color);
+                    //p_instance = nrf_lcd_st7789
+                    //p_x = X starting position   -> X starting position + Column * 8 + Bit #
+                    //y = y starting position     -> Y starting position + Row
+                    //font_color = 16-bit color
+                    if(not_skipping == false){
+                        nrf_gfx_display(p_instance, 0, 0xFFFF, *p_x + (j * 8) + k, y + i, *p_x + bytes_in_line * 8 - 1, y + p_font->height);
+                        not_skipping = true;
+                    }
+                    nrf_gfx_display(p_instance, font_col, sizeof(font_col),0,0,0,0);
+                    #ifdef enable_prints
+                    printf("1");
+                    #endif
+                }
+                else{ //if a bit should be skipped
+                    not_skipping = false;
+                    #ifdef enable_prints
+                    printf("0");
+                    #endif
+                }
+            }
+        }
+        #ifdef enable_prints
+        printf("\n");
+        #endif
+    }
+    //After through entire character incremented through
+
+    *p_x += p_font->charInfo[char_idx].widthBits + p_font->spacePixels;
+    //X starting position + character's width in bits + size of space in pixels
+}
+
+ret_code_t nrf_gfx_print_fast2(nrf_lcd_t const * p_instance,
+                         nrf_gfx_point_t const * p_point,
+                         uint16_t font_color,
+                         const char * string,
+                         const nrf_gfx_font_desc_t * p_font,
+                         bool wrap)
+{
+    ASSERT(p_instance != NULL);
+    ASSERT(p_instance->p_lcd_cb->state != NRFX_DRV_STATE_UNINITIALIZED);
+    ASSERT(p_point != NULL);
+    ASSERT(string != NULL);
+    ASSERT(p_font != NULL);
+
+    uint16_t x = p_point->x;
+    uint16_t y = p_point->y;
+
+    if (y > (nrf_gfx_height_get(p_instance) - p_font->height))
+    {
+        // Not enough space to write even single char.
+        return NRF_ERROR_INVALID_PARAM;
+    }
+
+    for (size_t i = 0; string[i] != '\0' ; i++)
+    {
+        if (string[i] == '\n')
+        {
+            x = p_point->x;
+            y += p_font->height + p_font->height / 10;
+        }
+        else
+        {
+            write_character_fast2(p_instance, p_font, (uint8_t)string[i], &x, y, font_color);
+        }
+
+        uint8_t char_idx = string[i] - p_font->startChar;
+        uint16_t char_width = string[i] == ' ' ? (p_font->height / 2) :
+                                                p_font->charInfo[char_idx].widthBits;
+
+        if (x > (nrf_gfx_width_get(p_instance) - char_width))
+        {
+            if (wrap)
+            {
+                x = p_point->x;
+                y += p_font->height + p_font->height / 10;
+            }
+            else
+            {
+                break;
+            }
+
+            if (y > (nrf_gfx_height_get(p_instance) - p_font->height))
+            {
+                break;
+            }
+        }
+    }
+
+    return NRF_SUCCESS;
+}
+
+ret_code_t nrf_gfx_bmp565_draw_big_endian(nrf_lcd_t const * p_instance,   //LCD screen type instance
+                                          nrf_gfx_rect_t const * p_rect,  //Rectangle object
+                                          uint16_t const * img_buf)       //Array of color data
+{
+    ASSERT(p_instance != NULL);
+    ASSERT(p_instance->p_lcd_cb->state != NRFX_DRV_STATE_UNINITIALIZED);
+    ASSERT(p_rect != NULL);
+    ASSERT(img_buf != NULL);
+
+    if ((p_rect->x > nrf_gfx_width_get(p_instance)) || (p_rect->y > nrf_gfx_height_get(p_instance)))
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+
+    //size_t idx;                           //
+    uint16_t idx = 0;                        //Offset into data array
+    uint8_t font_col[2];                         //Color to write to pixel
+    //uint8_t padding = p_rect->width % 2;  //No padding
+
+    nrf_gfx_display(p_instance, 0, 0xFFFF, p_rect->x, p_rect->y, p_rect->x + p_rect->width -1, p_rect->y + p_rect->height);
+
+    for (int32_t i = 0; i < p_rect->height; i++)
+    {
+        for (uint32_t j = 0; j < p_rect->width; j++)
+        {
+            //idx = (uint32_t)((p_rect->height - i - 1) * (p_rect->width + padding) + j);
+
+            //pixel = img_buf[idx]; //Color stored in Big Endian
+
+            //pixel_draw(p_instance, p_rect->x + j, p_rect->y + i, img_buf[idx]);
+            font_col[0] = img_buf[idx] >> 8;
+            font_col[1] = img_buf[idx];
+            nrf_gfx_display(p_instance, font_col, sizeof(font_col),0,0,0,0);
+
+            idx++;
+        }
+    }
+
+    return NRF_SUCCESS;
+}
+
+//end of added in
 
 #endif //NRF_MODULE_ENABLED(NRF_GFX)
 

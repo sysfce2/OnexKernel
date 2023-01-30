@@ -135,8 +135,10 @@ void * nrf_calloc(uint32_t nmemb, uint32_t size);
  * @details API to resubmit memory allocated, same in functionality nrf_free.
  *
  * @param[out] p_buffer   Pointer to the memory block that is being freed.
+ *
+ * @retval     NRF_SUCCESS             If memory was successfully freed.
  */
-void nrf_free(void * p_buffer);
+uint32_t nrf_free(void * p_buffer);
 
 
 /**@brief Memory reallocation (trim) function.

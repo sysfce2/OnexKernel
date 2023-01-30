@@ -117,7 +117,7 @@ typedef struct
      * LCD but to an internal frame buffer. It could be implemented to write data from this
      * buffer to LCD.
     */
-    void (* lcd_display)(void);
+    void (* lcd_display)(uint8_t * data, uint16_t len, uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
 
     /**
      * @brief Function for rotating the screen.

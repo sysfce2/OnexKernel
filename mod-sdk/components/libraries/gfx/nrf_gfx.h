@@ -260,10 +260,14 @@ void nrf_gfx_background_set(nrf_lcd_t const * p_instance, uint16_t const * img_b
 
 /**
  * @brief Function for displaying data from an internal frame buffer.
+ *  modified to write data directly to frame buffer over SPI
  *
  * @param[in] p_instance            Pointer to the LCD instance.
+ * @param[in] * dat                 Pointer to data array
+ * @param[in] len                   Length of data in array
+ * @param[in] x0,y0,x1,y1           Coordinates for setting window address if selected
  */
-void nrf_gfx_display(nrf_lcd_t const * p_instance);
+void nrf_gfx_display(nrf_lcd_t const * p_instance, uint8_t * dat, uint16_t len, uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1);
 
 /**
  * @brief Function for setting screen rotation.
@@ -298,6 +302,20 @@ ret_code_t nrf_gfx_print(nrf_lcd_t const * p_instance,
                          const nrf_gfx_font_desc_t * p_font,
                          bool wrap);
 
+ret_code_t nrf_gfx_print_fast(nrf_lcd_t const * p_instance,
+                         nrf_gfx_point_t const * p_point,
+                         uint16_t background_color,
+                         uint16_t font_color,
+                         const char * string,
+                         const nrf_gfx_font_desc_t * p_font,
+                         bool wrap);
+
+ret_code_t nrf_gfx_print_fast2(nrf_lcd_t const * p_instance,
+                         nrf_gfx_point_t const * p_point,
+                         uint16_t font_color,
+                         const char * string,
+                         const nrf_gfx_font_desc_t * p_font,
+                         bool wrap);
 /**
  * @brief Function for getting the height of the screen.
  *

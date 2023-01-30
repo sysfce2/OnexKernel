@@ -138,7 +138,7 @@ INCLUDES_PINETIME = \
 -I./src/ \
 -I./src/onp/ \
 -I./tests \
-$(SDK_INCLUDES_S132) \
+$(SDK_INCLUDES_PINETIME) \
 
 
 INCLUDES_MAGIC3 = \
@@ -147,7 +147,7 @@ INCLUDES_MAGIC3 = \
 -I./src/ \
 -I./src/onp/ \
 -I./tests \
-$(SDK_INCLUDES_NO_SD) \
+$(SDK_INCLUDES_MAGIC3) \
 
 
 INCLUDES_DONGLE = \
@@ -156,7 +156,7 @@ INCLUDES_DONGLE = \
 -I./src/ \
 -I./src/onp/ \
 -I./tests \
-$(SDK_INCLUDES_S140) \
+$(SDK_INCLUDES_DONGLE) \
 
 #-------------------------------------------------------------------------------
 
@@ -225,6 +225,9 @@ $(NRF5_SOURCES) \
 #-------------------------------------------------------------------------------
 
 SDK_INCLUDES_S132_BL = \
+-I./mod-sdk/components/libraries/gfx \
+-I./mod-sdk/components/boards \
+-I./mod-sdk/components/libraries/mem_manager \
 -I./sdk/external/thedotfactory_fonts \
 -I./sdk/modules/nrfx/drivers/include \
 -I./sdk/components/libraries/gfx \
@@ -268,7 +271,7 @@ SDK_INCLUDES_S132_BL = \
 -I./sdk/components/toolchain/cmsis/include \
 -I./sdk/components/libraries/balloc \
 -I./sdk/components/libraries/atomic_fifo \
--I./sdk/external/micro-ecc/micro-ecc \
+-I/home/duncan/nordic/micro-ecc \
 -I./sdk/components/libraries/crypto/backend/nrf_sw \
 -I./sdk/modules/nrfx/mdk \
 -I./sdk/components/libraries/bootloader/ble_dfu \
@@ -278,25 +281,23 @@ SDK_INCLUDES_S132_BL = \
 -I./sdk/components/libraries/ringbuf \
 
 
-SDK_INCLUDES_NO_SD = \
+SDK_INCLUDES_MAGIC3 = \
+-I./mod-sdk/components/libraries/gfx \
+-I./sdk/external/thedotfactory_fonts \
 -I./sdk/components/drivers_nrf/nrf_soc_nosd/ \
 -I./sdk/components/softdevice/mbr/headers/ \
--I./sdk/external/thedotfactory_fonts \
--I./sdk/components/libraries/gfx \
--I./sdk/components/libraries/bootloader/ \
 $(SDK_INCLUDES) \
 
 
-SDK_INCLUDES_S132 = \
+SDK_INCLUDES_PINETIME = \
+-I./mod-sdk/components/libraries/gfx \
+-I./sdk/external/thedotfactory_fonts \
 -I./sdk/components/softdevice/s132/headers \
 -I./sdk/components/softdevice/s132/headers/nrf52 \
--I./sdk/external/thedotfactory_fonts \
--I./sdk/components/libraries/gfx \
--I./sdk/components/libraries/bootloader/ \
 $(SDK_INCLUDES) \
 
 
-SDK_INCLUDES_S140 = \
+SDK_INCLUDES_DONGLE = \
 -I./sdk/components/libraries/bsp \
 -I./sdk/components/libraries/cli/uart \
 -I./sdk/components/softdevice/s140/headers \
@@ -305,6 +306,8 @@ $(SDK_INCLUDES) \
 
 
 SDK_INCLUDES = \
+-I./mod-sdk/components/boards \
+-I./mod-sdk/components/libraries/mem_manager \
 -I./sdk/components \
 -I./sdk/components/ble/ble_advertising \
 -I./sdk/components/ble/ble_dtm \
@@ -342,6 +345,7 @@ SDK_INCLUDES = \
 -I./sdk/components/libraries/atomic_fifo \
 -I./sdk/components/libraries/atomic_flags \
 -I./sdk/components/libraries/balloc \
+-I./sdk/components/libraries/bootloader/ \
 -I./sdk/components/libraries/bootloader/ble_dfu \
 -I./sdk/components/libraries/bsp \
 -I./sdk/components/libraries/button \
@@ -454,6 +458,8 @@ SDK_ASSEMBLER_SOURCES_52840 = \
 
 
 SDK_C_SOURCES_PINETIME_BL = \
+./mod-sdk/components/libraries/bootloader/nrf_bootloader.c \
+./mod-sdk/components/libraries/gfx/nrf_gfx.c \
 ./sdk/components/ble/common/ble_srv_common.c \
 ./sdk/components/libraries/atomic/nrf_atomic.c \
 ./sdk/components/libraries/atomic_fifo/nrf_atfifo.c \
@@ -479,7 +485,6 @@ SDK_C_SOURCES_PINETIME_BL = \
 ./sdk/components/libraries/bootloader/dfu/nrf_dfu_utils.c \
 ./sdk/components/libraries/bootloader/dfu/nrf_dfu_validation.c \
 ./sdk/components/libraries/bootloader/dfu/nrf_dfu_ver_validation.c \
-./sdk/components/libraries/bootloader/nrf_bootloader.c \
 ./sdk/components/libraries/bootloader/nrf_bootloader_app_start.c \
 ./sdk/components/libraries/bootloader/nrf_bootloader_app_start_final.c \
 ./sdk/components/libraries/bootloader/nrf_bootloader_dfu_timers.c \
@@ -501,10 +506,9 @@ SDK_C_SOURCES_PINETIME_BL = \
 ./sdk/components/libraries/fstorage/nrf_fstorage_nvmc.c \
 ./sdk/components/libraries/fstorage/nrf_fstorage_sd.c \
 ./sdk/components/libraries/sha256/sha256.c \
-./sdk/components/libraries/gfx/nrf_gfx.c \
 ./sdk/components/libraries/svc/nrf_svc_handler.c \
 ./sdk/components/softdevice/common/nrf_sdh_soc.c \
-./sdk/external/micro-ecc/micro-ecc/uECC.c \
+/home/duncan/nordic/micro-ecc/uECC.c \
 ./sdk/external/nano-pb/pb_common.c \
 ./sdk/external/nano-pb/pb_decode.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_spim.c \
@@ -515,7 +519,7 @@ SDK_C_SOURCES_PINETIME_BL = \
 
 SDK_C_SOURCES_PINETIME = \
 $(SDK_C_SOURCES) \
-./sdk/components/libraries/gfx/nrf_gfx.c \
+./mod-sdk/components/libraries/gfx/nrf_gfx.c \
 ./sdk/external/thedotfactory_fonts/orkney8pts.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_saadc.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_spim.c \
@@ -525,7 +529,7 @@ $(SDK_C_SOURCES) \
 
 SDK_C_SOURCES_MAGIC3 = \
 $(SDK_C_SOURCES_NO_SD) \
-./sdk/components/libraries/gfx/nrf_gfx.c \
+./mod-sdk/components/libraries/gfx/nrf_gfx.c \
 ./sdk/external/thedotfactory_fonts/orkney8pts.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_spim.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_twi.c \
@@ -572,7 +576,8 @@ $(SDK_C_SOURCES_NO_SD) \
 
 
 SDK_C_SOURCES_NO_SD = \
-./sdk/components/boards/boards.c \
+./mod-sdk/components/libraries/mem_manager/mem_manager.c \
+./mod-sdk/components/boards/boards.c \
 ./sdk/components/libraries/crypto/backend/nrf_hw/nrf_hw_backend_rng.c \
 ./sdk/components/libraries/crypto/backend/nrf_hw/nrf_hw_backend_init.c \
 ./sdk/components/libraries/crypto/nrf_crypto_init.c \
@@ -589,7 +594,6 @@ SDK_C_SOURCES_NO_SD = \
 ./sdk/components/libraries/log/src/nrf_log_default_backends.c \
 ./sdk/components/libraries/log/src/nrf_log_frontend.c \
 ./sdk/components/libraries/log/src/nrf_log_str_formatter.c \
-./sdk/components/libraries/mem_manager/mem_manager.c \
 ./sdk/components/libraries/memobj/nrf_memobj.c \
 ./sdk/components/libraries/pwr_mgmt/nrf_pwr_mgmt.c \
 ./sdk/components/libraries/ringbuf/nrf_ringbuf.c \

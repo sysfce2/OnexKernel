@@ -37,12 +37,15 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
+#include <stdio.h>
+
 #include "sdk_common.h"
 #if NRF_MODULE_ENABLED(MEM_MANAGER)
 #include "mem_manager.h"
 #include "nrf_assert.h"
 
 #define NRF_LOG_MODULE_NAME mem_mngr
+#define MEM_MANAGER_ENABLE_DIAGNOSTICSx
 
 #if MEM_MANAGER_CONFIG_LOG_ENABLED
 #define NRF_LOG_LEVEL       MEM_MANAGER_CONFIG_LOG_LEVEL
@@ -52,6 +55,7 @@
 #define NRF_LOG_LEVEL       0
 #endif //MEM_MANAGER_CONFIG_LOG_ENABLED
 #include "nrf_log.h"
+#include "nrf_log_ctrl.h"
 NRF_LOG_MODULE_REGISTER();
 
 /**
@@ -497,6 +501,9 @@ static const char * m_block_desc_str[BLOCK_CAT_COUNT] =
     "XXLarge"
 };
 
+void nrf_mem_diagnose(void);
+void nrf_mem_diagnose_short(void);
+
 /**@brief Table for book keeping smallest size allocated in each block range. */
 static uint32_t m_min_size[BLOCK_CAT_COUNT]  =
 {
@@ -730,6 +737,10 @@ uint32_t nrf_mem_reserve(uint8_t ** pp_buffer, uint32_t * p_size)
     NRF_LOG_DEBUG("<< %s %p, result 0x%08lX.", (uint32_t)__func__,
                  (uint32_t)(*pp_buffer), err_code);
 
+    #ifdef MEM_MANAGER_ENABLE_DIAGNOSTICS
+    nrf_mem_diagnose_short();
+    #endif
+
     return err_code;
 }
 
@@ -738,6 +749,8 @@ void * nrf_malloc(uint32_t size)
 {
     uint8_t * buffer = NULL;
     uint32_t allocated_size = size;
+
+    NRF_LOG_DEBUG("[%s]: Requested size %d", (uint32_t)__func__, allocated_size);
 
     uint32_t retval = nrf_mem_reserve(&buffer, &allocated_size);
 
@@ -773,10 +786,10 @@ void * nrf_calloc(uint32_t count, uint32_t size)
 }
 
 
-void nrf_free(void * p_mem)
+uint32_t nrf_free(void * p_mem)
 {
-    VERIFY_MODULE_INITIALIZED_VOID();
-    NULL_PARAM_CHECK_VOID(p_mem);
+    VERIFY_MODULE_INITIALIZED();
+    NULL_PARAM_CHECK(p_mem);
 
     NRF_LOG_DEBUG(">> %s %p.", (uint32_t)__func__, (uint32_t)p_mem);
 
@@ -800,7 +813,7 @@ void nrf_free(void * p_mem)
     MM_MUTEX_UNLOCK();
 
     NRF_LOG_DEBUG("<< %s.", (uint32_t)__func__);
-    return;
+    return index < TOTAL_BLOCK_COUNT ? NRF_SUCCESS : NRF_ERROR_INVALID_PARAM;
 }
 
 
@@ -857,31 +870,31 @@ void print_block_info(uint32_t block_cat, uint32_t * p_mem_in_use)
         column_number++;
         snprintf(&print_buffer[column_number * PRINT_COLUMN_WIDTH],
                  PRINT_COLUMN_WIDTH,
-                 "| %d",
+                 "| %ld",
                  m_block_size[block_cat]);
 
         column_number++;
         snprintf(&print_buffer[column_number * PRINT_COLUMN_WIDTH],
                  PRINT_COLUMN_WIDTH,
-                 "| %d",
+                 "| %ld",
                  m_block_count[block_cat]);
 
         column_number++;
         snprintf(&print_buffer[column_number * PRINT_COLUMN_WIDTH],
                  PRINT_COLUMN_WIDTH,
-                 "| %d",
+                 "| %ld",
                  num_of_blocks);
 
         column_number++;
         snprintf(&print_buffer[column_number * PRINT_COLUMN_WIDTH],
                  PRINT_COLUMN_WIDTH,
-                 "| %d",
+                 "| %ld",
                  m_min_size[block_cat]);
 
         column_number++;
         snprintf(&print_buffer[column_number * PRINT_COLUMN_WIDTH],
                  PRINT_COLUMN_WIDTH,
-                 "| %d",
+                 "| %ld",
                  m_max_size[block_cat]);
 
         column_number++;
@@ -896,10 +909,20 @@ void print_block_info(uint32_t block_cat, uint32_t * p_mem_in_use)
         }
         snprintf(&print_buffer[column_end], 2, "|");
 
-        NRF_LOG_BYTES_DEBUG(print_buffer, strlen(print_buffer));
+        // NRF_LOG_BYTES_DEBUG(print_buffer, strlen(print_buffer));
 
         (*p_mem_in_use) += in_use;
     }
+}
+
+void print_block_info_short(uint32_t block_cat)
+{
+    uint32_t used = 0;
+    for(uint32_t i = m_block_start[block_cat]; i < (m_block_start[block_cat] + m_block_count[block_cat]); i++) {
+        if(!is_block_free(i)) used++;
+    }
+    NRF_LOG_INFO("%ld/%ld/%ld", m_block_count[block_cat], m_block_size[block_cat], used/*, m_min_size[block_cat], m_max_size[block_cat]*/);
+    NRF_LOG_FLUSH();
 }
 
 
@@ -924,6 +947,17 @@ void nrf_mem_diagnose(void)
     NRF_LOG_DEBUG("| Total      | %d      | %d        | %d",
             TOTAL_MEMORY_SIZE, TOTAL_BLOCK_COUNT,in_use);
     NRF_LOG_DEBUG("+------------+------------+------------+------------+------------+------------+");
+}
+
+void nrf_mem_diagnose_short(void)
+{
+    print_block_info_short(BLOCK_CAT_XXS);
+    print_block_info_short(BLOCK_CAT_XS);
+    print_block_info_short(BLOCK_CAT_SMALL);
+    print_block_info_short(BLOCK_CAT_MEDIUM);
+    print_block_info_short(BLOCK_CAT_LARGE);
+    print_block_info_short(BLOCK_CAT_XL);
+    print_block_info_short(BLOCK_CAT_XXL);
 }
 
 #endif // MEM_MANAGER_ENABLE_DIAGNOSTICS
