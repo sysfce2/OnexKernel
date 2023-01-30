@@ -3,6 +3,7 @@
 #include <nrfx_spim.h>
 #include "onex-kernel/log.h"
 #include <onex-kernel/spi.h>
+#include <onex-kernel/gpio.h>
 
 #if defined(NRF52840_XXAA)
 static nrfx_spim_t spim_inst = NRFX_SPIM_INSTANCE(3);
@@ -111,4 +112,113 @@ void spi_wake()
   NRF_SPIM0->ENABLE=(SPIM_ENABLE_ENABLE_Enabled  << SPIM_ENABLE_ENABLE_Pos);
 #endif
 }
+
+#if defined(NRF52840_XXAA)
+
+void spi_fast_init() {
+
+  gpio_mode(SPIM_SCK_PIN, OUTPUT);
+  gpio_mode(SPIM_MOSI_PIN, OUTPUT);
+  gpio_mode(SPIM_SS_PIN, OUTPUT);
+
+  gpio_set(SPIM_SCK_PIN, 1);
+  gpio_set(SPIM_MOSI_PIN, 1);
+  gpio_set(SPIM_SS_PIN, 1);
+
+  NRF_SPIM3->PSELSCK  = SPIM_SCK_PIN;
+  NRF_SPIM3->PSELMOSI = SPIM_MOSI_PIN;
+  NRF_SPIM3->PSELMISO = SPIM_MISO_PIN;
+  NRF_SPIM3->FREQUENCY = SPIM_FREQUENCY_FREQUENCY_M32; // nRF52840 only then
+  NRF_SPIM3->INTENSET = 0;
+  NRF_SPIM3->ORC = 255;
+  NRF_SPIM3->CONFIG = 0;  // MSB first; Mode 0 - see sdk/modules/nrfx/hal/nrf_spim.h
+}
+
+void spi_fast_enable(bool state) {
+  if (state) NRF_SPIM3->ENABLE = 7;
+  else       NRF_SPIM3->ENABLE = 0;
+}
+
+static void enable_workaround(NRF_SPIM_Type * spim, uint32_t ppi_channel, uint32_t gpiote_channel)
+{
+  NRF_GPIOTE->CONFIG[gpiote_channel] = (GPIOTE_CONFIG_MODE_Event << GPIOTE_CONFIG_MODE_Pos) |
+                                       (spim->PSEL.SCK << GPIOTE_CONFIG_PSEL_Pos) |
+                                       (GPIOTE_CONFIG_POLARITY_Toggle << GPIOTE_CONFIG_POLARITY_Pos);
+
+  NRF_PPI->CH[ppi_channel].EEP = (uint32_t) &NRF_GPIOTE->EVENTS_IN[gpiote_channel];
+  NRF_PPI->CH[ppi_channel].TEP = (uint32_t) &spim->TASKS_STOP;
+  NRF_PPI->CHENSET = 1U << ppi_channel;
+}
+
+static void disable_workaround(NRF_SPIM_Type * spim, uint32_t ppi_channel, uint32_t gpiote_channel)
+{
+  NRF_GPIOTE->CONFIG[gpiote_channel] = 0;
+  NRF_PPI->CH[ppi_channel].EEP = 0;
+  NRF_PPI->CH[ppi_channel].TEP = 0;
+  NRF_PPI->CHENSET = ppi_channel;
+}
+
+void spi_fast_write(const uint8_t *ptr, uint32_t len)
+{
+  if(len == 1) enable_workaround(NRF_SPIM3, 8, 8);
+  else         disable_workaround(NRF_SPIM3, 8, 8);
+
+  uint32_t offset = 0;
+  do {
+    NRF_SPIM3->EVENTS_END = 0;
+    NRF_SPIM3->EVENTS_ENDRX = 0;
+    NRF_SPIM3->EVENTS_ENDTX = 0;
+
+    NRF_SPIM3->TXD.PTR = (uint32_t)ptr + offset;
+    if(len <= 0xFF){
+      NRF_SPIM3->TXD.MAXCNT = len;
+      offset += len;
+      len = 0;
+    } else {
+      NRF_SPIM3->TXD.MAXCNT = 255;
+      offset += 255;
+      len -= 255;
+    }
+    NRF_SPIM3->RXD.PTR = 0;
+    NRF_SPIM3->RXD.MAXCNT = 0;
+
+    NRF_SPIM3->TASKS_START = 1;
+    while (NRF_SPIM3->EVENTS_END == 0);
+    NRF_SPIM3->EVENTS_END = 0;
+
+  } while(len);
+}
+
+void spi_fast_read(uint8_t *ptr, uint32_t len)
+{
+  if(len == 1) enable_workaround(NRF_SPIM3, 8, 8);
+  else         disable_workaround(NRF_SPIM3, 8, 8);
+
+  uint32_t offset = 0;
+  do {
+    NRF_SPIM3->EVENTS_END = 0;
+    NRF_SPIM3->EVENTS_ENDRX = 0;
+    NRF_SPIM3->EVENTS_ENDTX = 0;
+
+    NRF_SPIM3->TXD.PTR = 0;
+    NRF_SPIM3->TXD.MAXCNT = 0;
+
+    NRF_SPIM3->RXD.PTR = (uint32_t)ptr + offset;
+    if(len <= 0xFF){
+      NRF_SPIM3->RXD.MAXCNT = len;
+      offset += len;
+      len = 0;
+    } else {
+      NRF_SPIM3->RXD.MAXCNT = 255;
+      offset += 255;
+      len -= 255;
+    }
+    NRF_SPIM3->TASKS_START = 1;
+    while (NRF_SPIM3->EVENTS_END == 0);
+    NRF_SPIM3->EVENTS_END = 0;
+
+  } while(len);
+}
+
+#endif // NRF52840_XXAA
 
