@@ -8,7 +8,8 @@
 #include "nrf_gpio.h"
 #include "boards.h"
 
-#include "onex-kernel/time.h"
+#include <onex-kernel/gpio.h>
+#include <onex-kernel/time.h>
 #include "onex-kernel/log.h"
 #include "onex-kernel/spi.h"
 #include "onex-kernel/display.h"
@@ -22,6 +23,8 @@
 #define ST7789_SLPOUT      0x11
 #define ST7789_PTLON       0x12
 #define ST7789_NORON       0x13
+#define ST7789_TEON        0x35
+#define ST7789_TESCAN      0x44
 
 #define ST7789_RDMODE      0x0A
 #define ST7789_RDMADCTL    0x0B
@@ -373,3 +376,192 @@ void display_reset()
 }
 
 // ------------------------------------------
+
+void start_write_fast(void)
+{
+  spi_fast_enable(true);
+  gpio_set(SPIM_SS_PIN , 0);
+}
+
+void end_write_fast(void)
+{
+  gpio_set(SPIM_SS_PIN , 1);
+  spi_fast_enable(false);
+}
+
+void write_command_fast(uint8_t d)
+{
+  gpio_set(ST7789_DC_PIN , 0);
+  spi_fast_write(&d, 1);
+  gpio_set(ST7789_DC_PIN , 1);
+}
+
+void write_char_fast(uint8_t d)
+{
+  spi_fast_write(&d, 1);
+}
+
+static void set_addr_window_fast(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
+{
+  write_command_fast(ST7789_CASET);
+  write_char_fast((x) >> 8);
+  write_char_fast(x);
+  write_char_fast((x + w - 1) >> 8);
+  write_char_fast(x + w - 1);
+  write_command_fast(ST7789_RASET);
+  write_char_fast((y) >> 8);
+  write_char_fast(y);
+  write_char_fast(((y + h - 1) ) >> 8);
+  write_char_fast((y + h - 1) );
+  write_command_fast(ST7789_RAMWR);
+}
+
+void display_reset_kinda_slow()
+{
+  gpio_set(ST7789_RST_PIN, 1);
+  time_delay_ms(20);
+  gpio_set(ST7789_RST_PIN, 0);
+  time_delay_ms(100);
+  gpio_set(ST7789_RST_PIN, 1);
+  time_delay_ms(100);
+}
+
+static void st7789_rotation_set_fast(nrf_lcd_rotation_t rotation)
+{
+    write_command_fast(ST7789_MADCTL);
+
+    switch (rotation % 4) {
+        case NRF_LCD_ROTATE_0:
+            write_char_fast(ST7789_MADCTL_MX | ST7789_MADCTL_MY | ST7789_MADCTL_RGB);
+            break;
+        case NRF_LCD_ROTATE_90:
+            write_char_fast(ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
+            break;
+        case NRF_LCD_ROTATE_180:
+            write_char_fast(ST7789_MADCTL_RGB);
+            break;
+        case NRF_LCD_ROTATE_270:
+            write_char_fast(ST7789_MADCTL_MX | ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
+            break;
+        default:
+            break;
+    }
+}
+
+void init_command_list_fast()
+{
+  start_write_fast();
+
+  write_command_fast(ST7789_SLPOUT);
+  time_delay_ms(120);
+
+  st7789_rotation_set_fast(NRF_LCD_ROTATE_180);
+
+  write_command_fast(ST7789_COLMOD);
+  write_char_fast(0x55); //16-bit, 565 RGB ATC had 5?
+/*
+  write_command_fast(ST7789_PORCTR);
+  write_char_fast(0xB);
+  write_char_fast(0xB);
+  write_char_fast(0x33);
+  write_char_fast(0x0);
+  write_char_fast(0x33);
+
+  write_command_fast(ST7789_GCTRL);
+  write_char_fast(0x11);
+
+  write_command_fast(ST7789_VCOM);
+  write_char_fast(0x35);
+
+  write_command_fast(ST7789_LCMCTR);
+  write_char_fast(0x2c);
+
+  write_command_fast(ST7789_VDVVRHEN);
+  write_char_fast(1);
+  write_command_fast(ST7789_VRHS);
+  write_char_fast(8);
+  write_command_fast(ST7789_VDVS);
+  write_char_fast(0x20);
+  write_command_fast(ST7789_FRMCTR2);
+  write_char_fast(0x1f);
+
+  write_command_fast(ST7789_PWCTRL1);
+  write_char_fast(0xa4);
+  write_char_fast(0xa1);
+
+  write_command_fast(ST7789_PVGAMCTRL);
+  write_char_fast(0xF0);
+  write_char_fast(0x04);
+  write_char_fast(0x0A);
+  write_char_fast(0x0A);
+  write_char_fast(0x08);
+  write_char_fast(0x25);
+  write_char_fast(0x33);
+  write_char_fast(0x27);
+  write_char_fast(0x3D);
+  write_char_fast(0x38);
+  write_char_fast(0x14);
+  write_char_fast(0x14);
+  write_char_fast(0x25);
+  write_char_fast(0x2A);
+
+  write_command_fast(ST7789_NVGAMCTRL);
+  write_char_fast(0xF0);
+  write_char_fast(0x05);
+  write_char_fast(0x08);
+  write_char_fast(0x07);
+  write_char_fast(0x06);
+  write_char_fast(0x02);
+  write_char_fast(0x26);
+  write_char_fast(0x32);
+  write_char_fast(0x3D);
+  write_char_fast(0x3A);
+  write_char_fast(0x16);
+  write_char_fast(0x16);
+  write_char_fast(0x26);
+  write_char_fast(0x2C);
+*/
+  write_command_fast(ST7789_INVON);
+
+  write_command_fast(ST7789_TEON);
+  write_char_fast(0x0);
+
+  write_command_fast(ST7789_TESCAN);
+  write_char_fast(0x25);
+  write_char_fast(0x0);
+  time_delay_ms(120);
+
+  write_command_fast(ST7789_DISPON);
+
+  set_addr_window_fast(0, 20, ST7789_WIDTH, ST7789_HEIGHT);
+
+  end_write_fast();
+}
+
+void display_fast_init()
+{
+  spi_fast_init();
+
+  gpio_mode(SPIM_SS_PIN, OUTPUT);
+  gpio_mode(ST7789_DC_PIN, OUTPUT);
+  gpio_mode(ST7789_RST_PIN, OUTPUT);
+
+  gpio_set(SPIM_SS_PIN , 1);
+  gpio_set(ST7789_DC_PIN , 1);
+
+  display_reset_kinda_slow();
+
+  init_command_list_fast();
+}
+
+void display_fast_write_out_buffer(uint8_t* buf, uint32_t size)
+{
+  start_write_fast();
+  spi_fast_write(buf, size);
+  end_write_fast();
+}
+
+
+
+
+
