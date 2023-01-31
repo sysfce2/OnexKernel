@@ -377,6 +377,8 @@ void display_reset()
 
 // ------------------------------------------
 
+#if defined(NRF52840_XXAA)
+
 void start_write_fast(void)
 {
   spi_fast_enable(true);
@@ -561,7 +563,7 @@ void display_fast_write_out_buffer(uint8_t* buf, uint32_t size)
   end_write_fast();
 }
 
-
+#endif // NRF52840_XXAA-only
 
 
 

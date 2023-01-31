@@ -88,7 +88,7 @@ static void set_up_gpio(void)
 #if defined(BOARD_PINETIME) || defined(BOARD_MAGIC3)
 static void show_touch();
 static bool new_touch_info=false;
-static touch_info_t ti;
+static touch_info_t ti={ 120, 140 };
 
 #if defined(BOARD_PINETIME)
 static void show_motion();
@@ -225,6 +225,9 @@ int main(void)
   blenus_init((blenus_recv_cb)on_recv, 0);
 #endif
   set_up_gpio();
+#if defined(BOARD_MAGIC3) && defined(FAST)
+  gfx_fast_init();
+#else
   gfx_init();
   gfx_screen_colour(GFX_YELLOW);
   gfx_screen_fill();
@@ -252,6 +255,7 @@ int main(void)
   gfx_pos(10, 40);
   gfx_text_colour(GFX_BLUE);
   gfx_text("Onex");
+#endif
   touch_init(touched);
 #if defined(BOARD_PINETIME)
   motion_init(moved);
@@ -260,6 +264,7 @@ int main(void)
 #if !defined(BOARD_MAGIC3)
     log_loop();
 #endif
+#if !defined(FAST)
     run_tests_maybe();
     if(new_touch_info){
       new_touch_info=false;
@@ -269,6 +274,7 @@ int main(void)
       show_battery();
 #endif
     }
+#endif
 #if defined(BOARD_PINETIME)
     if(new_motion_info){
       new_motion_info=false;
@@ -293,6 +299,35 @@ int main(void)
       display_state_prev = display_state;
       gpio_set(LCD_BACKLIGHT, display_state);
     }
+#endif
+
+    static uint8_t  frame_count = 0;
+    static uint64_t tm_last = 0;
+    static uint8_t  fps = 111;
+
+    frame_count++;
+    uint64_t tm=time_ms();
+    if(tm > tm_last + 1000) {
+      tm_last = tm;
+      fps = frame_count;
+      frame_count = 0;
+    }
+
+#if defined(BOARD_MAGIC3) && defined(FAST)
+    gfx_fast_clear_screen(0xff);
+
+    static char buf[64];
+    snprintf(buf, 64, "%d", fps);
+    gfx_fast_text(ti.x,    ti.y,    "*", 0xf800, 0xffff, 6);
+    gfx_fast_text(ti.x-90, ti.y-60, buf, 0x001a, 0xffff, 6);
+    gfx_fast_text(ti.x-90, ti.y,    buf, 0x001a, 0xffff, 6);
+    gfx_fast_text(ti.x-90, ti.y+60, buf, 0x001a, 0xffff, 6);
+
+    gfx_fast_write_out_buffer();
+#else
+    snprintf(buf, 64, "fps: ===%02d===", fps);
+    gfx_pos(10, 65);
+    gfx_text(buf);
 #endif
   }
 #endif // HAS_SERIAL
