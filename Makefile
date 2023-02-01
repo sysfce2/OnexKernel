@@ -31,13 +31,13 @@ LIB_SOURCES = \
 
 
 UNIX_SOURCES = \
-./src/platforms/unix/properties.c \
-./src/platforms/unix/serial.c \
-./src/platforms/unix/channel-serial.c \
-./src/platforms/unix/log.c \
-./src/platforms/unix/mem.c \
-./src/platforms/unix/time.c \
-./src/platforms/unix/random.c \
+./src/onl/unix/properties.c \
+./src/onl/unix/serial.c \
+./src/onl/unix/channel-serial.c \
+./src/onl/unix/log.c \
+./src/onl/unix/mem.c \
+./src/onl/unix/time.c \
+./src/onl/unix/random.c \
 
 #-------------------------------------------------------------------------------
 

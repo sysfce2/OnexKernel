@@ -92,6 +92,8 @@ uint16_t channel_serial_send(char* b, uint16_t n)
   if(!initialised) return 0;
 #if defined(HAS_SERIAL) && defined(ONP_OVER_SERIAL)
   return serial_printf("%s\n", b);
+#else
+  return 0;
 #endif
 }
 

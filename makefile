@@ -127,14 +127,14 @@ $(COMMON_DEFINES_DONGLE) \
 
 INCLUDES_PINETIME_BL = \
 -I./include \
--I./src/platforms/nRF5/pinetime-bl \
+-I./src/onl/nRF5/pinetime-bl \
 -I./src/ \
 $(SDK_INCLUDES_S132_BL) \
 
 
 INCLUDES_PINETIME = \
 -I./include \
--I./src/platforms/nRF5/pinetime \
+-I./src/onl/nRF5/pinetime \
 -I./src/ \
 -I./src/onp/ \
 -I./tests \
@@ -143,7 +143,7 @@ $(SDK_INCLUDES_PINETIME) \
 
 INCLUDES_MAGIC3 = \
 -I./include \
--I./src/platforms/nRF5/magic3 \
+-I./src/onl/nRF5/magic3 \
 -I./src/ \
 -I./src/onp/ \
 -I./tests \
@@ -152,7 +152,7 @@ $(SDK_INCLUDES_MAGIC3) \
 
 INCLUDES_DONGLE = \
 -I./include \
--I./src/platforms/nRF5/dongle \
+-I./src/onl/nRF5/dongle \
 -I./src/ \
 -I./src/onp/ \
 -I./tests \
@@ -161,12 +161,12 @@ $(SDK_INCLUDES_DONGLE) \
 #-------------------------------------------------------------------------------
 
 BOOTLOADER_SOURCES = \
-./src/platforms/nRF5/gpio.c \
-./src/platforms/nRF5/spi.c \
-./src/platforms/nRF5/display-st7789.c \
-./src/platforms/nRF5/gfx.c \
-./src/platforms/nRF5/dfu_public_key.c \
-./src/platforms/nRF5/bootloader.c \
+./src/onl/nRF5/gpio.c \
+./src/onl/nRF5/spi.c \
+./src/onl/nRF5/display-st7789.c \
+./src/onl/nRF5/gfx.c \
+./src/onl/nRF5/dfu_public_key.c \
+./src/onl/nRF5/bootloader.c \
 
 
 TESTS_SOURCES = \
@@ -186,40 +186,40 @@ LIB_SOURCES = \
 
 
 NRF5_SOURCES = \
-./src/platforms/nRF5/properties.c \
-./src/platforms/nRF5/time.c \
-./src/platforms/nRF5/random.c \
-./src/platforms/nRF5/gpio.c \
-./src/platforms/nRF5/log.c \
-./src/platforms/nRF5/mem.c \
-./src/platforms/nRF5/channel-serial.c \
+./src/onl/nRF5/properties.c \
+./src/onl/nRF5/time.c \
+./src/onl/nRF5/random.c \
+./src/onl/nRF5/gpio.c \
+./src/onl/nRF5/log.c \
+./src/onl/nRF5/mem.c \
+./src/onl/nRF5/channel-serial.c \
 
 
 PINETIME_SOURCES = \
-./src/platforms/nRF5/boot.c \
-./src/platforms/nRF5/i2c.c \
-./src/platforms/nRF5/spi.c \
-./src/platforms/nRF5/touch-cst816s.c \
-./src/platforms/nRF5/motion-bma421.c \
-./src/platforms/nRF5/display-st7789.c \
-./src/platforms/nRF5/gfx.c \
-./src/platforms/nRF5/blenus.c \
+./src/onl/nRF5/boot.c \
+./src/onl/nRF5/i2c.c \
+./src/onl/nRF5/spi.c \
+./src/onl/nRF5/touch-cst816s.c \
+./src/onl/nRF5/motion-bma421.c \
+./src/onl/nRF5/display-st7789.c \
+./src/onl/nRF5/gfx.c \
+./src/onl/nRF5/blenus.c \
 $(NRF5_SOURCES) \
 
 
 MAGIC3_SOURCES = \
-./src/platforms/nRF5/boot.c \
-./src/platforms/nRF5/i2c.c \
-./src/platforms/nRF5/spi.c \
-./src/platforms/nRF5/touch-cst816s.c \
-./src/platforms/nRF5/display-st7789.c \
-./src/platforms/nRF5/gfx.c \
+./src/onl/nRF5/boot.c \
+./src/onl/nRF5/i2c.c \
+./src/onl/nRF5/spi.c \
+./src/onl/nRF5/touch-cst816s.c \
+./src/onl/nRF5/display-st7789.c \
+./src/onl/nRF5/gfx.c \
 $(NRF5_SOURCES) \
 
 
 DONGLE_SOURCES = \
-./src/platforms/nRF5/serial.c \
-./src/platforms/nRF5/blenus.c \
+./src/onl/nRF5/serial.c \
+./src/onl/nRF5/blenus.c \
 $(NRF5_SOURCES) \
 
 #-------------------------------------------------------------------------------
@@ -742,10 +742,10 @@ flash-sd132:
 # for bootloader: -Os -g3
 LINKER_FLAGS = -O3 -g3 -mthumb -mabi=aapcs -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Wl,--gc-sections --specs=nano.specs
 
-LD_FILES_PINETIME_BL = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/pinetime-bl/onex.ld
-LD_FILES_PINETIME    = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/pinetime/onex.ld
-LD_FILES_DONGLE      = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/dongle/onex.ld
-LD_FILES_MAGIC3      = -L./sdk/modules/nrfx/mdk -T./src/platforms/nRF5/magic3/onex.ld
+LD_FILES_PINETIME_BL = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/pinetime-bl/onex.ld
+LD_FILES_PINETIME    = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/pinetime/onex.ld
+LD_FILES_DONGLE      = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/dongle/onex.ld
+LD_FILES_MAGIC3      = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/magic3/onex.ld
 
 ASSEMBLER_FLAGS = -c -g3 -mcpu=cortex-m4 -mthumb -mabi=aapcs -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
@@ -758,7 +758,7 @@ COMPILER_FLAGS = -std=c99 -O3 -g3 -mcpu=cortex-m4 -mthumb -mabi=aapcs -Wall -Wer
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(COMPILER_FLAGS) $(COMPILER_DEFINES) $(INCLUDES) -o $@ -c $<
 
 clean:
-	find src tests -name '*.o' -o -name '*.d' | xargs rm -f
+	find src tests mod-sdk -name '*.o' -o -name '*.d' | xargs rm -f
 	find . -name onex.ondb | xargs rm -f
 	touch ./sdk/banana-mango.o; find ./sdk/ -name '*.o' | xargs rm
 	rm -rf onex-kernel*.??? dfu.zip core oko

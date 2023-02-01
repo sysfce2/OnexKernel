@@ -7,8 +7,8 @@
 #include <onex-kernel/log.h>
 
 /*
-  lists for MCUs, not Linux, so move to src/platforms/nrf51
-  and do a proper list for Linux in src/platforms/unix
+  lists for MCUs, not Linux, so move to src/onl/nrf51
+  and do a proper list for Linux in src/onl/unix
 */
 
 #if defined(NRF5)
