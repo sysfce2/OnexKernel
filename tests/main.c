@@ -198,6 +198,61 @@ void run_tests_maybe()
 extern volatile char* event_log_buffer;
 #endif
 
+static char    typed[64];
+static uint8_t cursor=0;
+
+void del_char()
+{
+  if(cursor==0) return;
+  typed[--cursor]=0;
+}
+
+void add_char(char c)
+{
+  if(cursor==64) return;
+  typed[cursor++]=c;
+  typed[cursor]=0;
+}
+
+uint8_t key_index(uint16_t x, uint16_t y)
+{
+/*
+  170 right
+  155 ---
+  140 right centre
+  125 ---
+  110 bang centre
+   95 ---
+   80 left centre
+   65 ---
+   50 left
+   35 ---
+*/
+  uint8_t xstart=35;
+  uint8_t xend  =170;
+  uint8_t ystart=130;
+  uint8_t xinc  =30;
+  if(x<xstart) x=xstart;
+  if(x>xend)   x=xend;
+  if(y<ystart) y=ystart;
+  if(y>=130 && y<=165){
+    return 1+(x-xstart)/xinc;
+  }
+  else
+  if(y>165 && y<=200){
+    return 6+(x-xstart)/xinc;
+  }
+  else
+  if(y>200 && y<=235){
+    return 11+(x-xstart)/xinc;
+  }
+  else
+  if(y>235 && y<=280){
+    return 16+(x-xstart)/xinc;
+  }
+  return 0;
+}
+
 int main(void)
 {
 #if !defined(BOARD_MAGIC3)
@@ -317,13 +372,67 @@ int main(void)
     gfx_fast_clear_screen(0xff);
 
     static char buf[64];
-    snprintf(buf, 64, "%d", fps);
-    gfx_fast_text(ti.x,    ti.y,    "*", 0xf800, 0xffff, 6);
-    gfx_fast_text(ti.x-90, ti.y-60, buf, 0x001a, 0xffff, 6);
-    gfx_fast_text(ti.x-90, ti.y,    buf, 0x001a, 0xffff, 6);
-    gfx_fast_text(ti.x-90, ti.y+60, buf, 0x001a, 0xffff, 6);
+
+    snprintf(buf, 64, "fps: %02d (%d,%d)", fps, ti.x, ti.y);
+    gfx_fast_text(10, 20, buf, 0x001a, 0xffff, 2);
+
+    snprintf(buf, 64, "%s|", typed);
+    gfx_fast_text(10, 40, buf, 0x001a, 0xffff, 2);
+
+    uint8_t kbdstart_x=15;
+    uint8_t kbdstart_y=115;
+    uint8_t rowspacing=40;
+
+    static uint8_t kbpg=1;
+
+    static char key_indexes_page[7][21]={{ ' ', ' ', ' ', ' ', ' ', ' ',  ' ', ' ', ' ', ' ', ' ',  ' ', ' ', ' ', ' ', ' ',  ' ', ' ', ' ', ' ', ' ' },
+                                         { ' ', 'E', 'R', 'T', 'I', 'O',  'A', 'S', 'D', 'G', 'H',  '#', 'C', 'B', 'N', '~',  '^', ' ', ' ', ' ', '>' },
+                                         { ' ', 'Q', 'W', 'Y', 'U', 'P',  'F', 'J', 'K', 'L', 'M',  '#', 'Z', 'X', 'V', '~',  '^', ' ', ' ', ' ', '<' },
+                                         { ' ', '+', '!', ';', ':', '-',  '/', '#', '@', '~', '*',  '#', '(', ')', '%', '~',  '^', ' ', ',', '.', '>' },
+                                         { ' ', '^', '{', '}', '"', '&',  ' ', '<', '>', '_', ' ',  '#', '[', ']', '?', '~',  '^', ' ', ',', '.', '<' },
+                                         { ' ', '+', '1', '2', '3', '-',  '/', '4', '5', '6', '*',  '#', '7', '8', '9', '=',  '^', ' ', '0', '.', '>' },
+                                         { ' ', '^', '1', '2', '3', 'e',  ' ', '4', '5', '6', ' ',  '#', '7', '8', '9', '=',  '^', ' ', '0', '.', '<' }};
+
+    for(uint8_t j=0; j<4; j++){
+
+      snprintf(buf, 64, "%c %c %c %c %c",
+                         key_indexes_page[kbpg][1+j*5],
+                         key_indexes_page[kbpg][2+j*5],
+                         key_indexes_page[kbpg][3+j*5],
+                         key_indexes_page[kbpg][4+j*5],
+                         key_indexes_page[kbpg][5+j*5]);
+
+      gfx_fast_text(kbdstart_x, kbdstart_y+rowspacing*(j), buf, 0x0000, 0xffff, 4);
+    }
 
     gfx_fast_write_out_buffer();
+
+    if(new_touch_info){
+      new_touch_info=false;
+      static bool is_touched=false;
+      if(!is_touched && ti.action==TOUCH_ACTION_CONTACT){
+        is_touched=true;
+        uint8_t ki = key_index(ti.x, ti.y);
+        #define SELECT_TYPE 16
+        #define SELECT_PAGE 20
+        #define STOP__POINT 19
+        #define SPACE_COM_0 18
+        #define DELETE_LAST 11
+        if(ki==SELECT_TYPE){ if(kbpg==1 || kbpg==2) kbpg=3; else if(kbpg==3 || kbpg==4) kbpg=5; else if(kbpg==5 || kbpg==6) kbpg=1; }
+        else
+        if(ki==SELECT_PAGE){ if(kbpg==1) kbpg=2; else if(kbpg==2) kbpg=1; else if(kbpg==3) kbpg=4; else if(kbpg==4) kbpg=3; else if(kbpg==5) kbpg=6; else if(kbpg==6) kbpg=5; }
+        else
+        if(ki==DELETE_LAST) del_char();
+        else
+        if(ki>=1){ add_char(key_indexes_page[kbpg][ki]); if(kbpg==2 || kbpg==6) kbpg--; else if(kbpg==3 || kbpg==4) kbpg=1; }
+        else
+        if(ki==0) add_char('?');
+      }
+      else
+      if(is_touched && ti.action!=TOUCH_ACTION_CONTACT){
+        is_touched=false;
+      }
+    }
 #else
     snprintf(buf, 64, "fps: ===%02d===", fps);
     gfx_pos(10, 65);
