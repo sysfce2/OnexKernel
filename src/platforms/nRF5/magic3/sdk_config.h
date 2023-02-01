@@ -6086,6 +6086,10 @@
 // <o> ST7789_HEIGHT - ST7789 height  <0-162>
 
 
+#ifndef ST7789_ADDR_HEIGHT
+#define ST7789_ADDR_HEIGHT 300
+#endif
+
 #ifndef ST7789_HEIGHT
 #define ST7789_HEIGHT 280
 #endif

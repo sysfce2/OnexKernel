@@ -141,6 +141,10 @@ static void set_addr_window(uint16_t x_0, uint16_t y_0, uint16_t x_1, uint16_t y
     ASSERT(x_0 <= x_1);
     ASSERT(y_0 <= y_1);
 
+#if defined(ST7789_ADDR_HEIGHT)
+    y_0 = y_0 + (ST7789_ADDR_HEIGHT - ST7789_HEIGHT);
+    y_1 = y_1 + (ST7789_ADDR_HEIGHT - ST7789_HEIGHT);
+#endif
     uint8_t data[4];
     write_command(ST7789_CASET);
     data[0] = x_0 >> 8;
@@ -405,6 +409,9 @@ void write_char_fast(uint8_t d)
 
 static void set_addr_window_fast(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 {
+#if defined(ST7789_ADDR_HEIGHT)
+  y = y + (ST7789_ADDR_HEIGHT - ST7789_HEIGHT);
+#endif
   write_command_fast(ST7789_CASET);
   write_char_fast((x) >> 8);
   write_char_fast(x);
@@ -535,7 +542,7 @@ void init_command_list_fast()
 
   write_command_fast(ST7789_DISPON);
 
-  set_addr_window_fast(0, 20, ST7789_WIDTH, ST7789_HEIGHT);
+  set_addr_window_fast(0, 0, ST7789_WIDTH, ST7789_HEIGHT);
 
   end_write_fast();
 }
