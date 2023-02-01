@@ -687,20 +687,6 @@ nrf.tests.magic3: libonex-kernel-magic3.a $(TESTS_SOURCES:.c=.o)
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
 
-fast.tests.magic3: INCLUDES=$(INCLUDES_MAGIC3)
-fast.tests.magic3: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_MAGIC3) -DFAST
-fast.tests.magic3: COMPILER_DEFINES=$(COMPILER_DEFINES_MAGIC3) -DFAST
-fast.tests.magic3: libonex-kernel-magic3.a $(TESTS_SOURCES:.c=.o)
-	rm -rf oko
-	mkdir oko
-	ar x ./libonex-kernel-magic3.a --output oko
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_MAGIC3) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
-
-
-
 nrf.tests.dongle: INCLUDES=$(INCLUDES_DONGLE)
 nrf.tests.dongle: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_DONGLE)
 nrf.tests.dongle: COMPILER_DEFINES=$(COMPILER_DEFINES_DONGLE)
@@ -730,9 +716,6 @@ pinetime-flash: nrf.tests.pinetime
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel.hex" -c "reset run" -c exit
 
 magic3-flash: nrf.tests.magic3
-	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel.hex" -c "reset run" -c exit
-
-fast-magic3-flash: fast.tests.magic3
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel.hex" -c "reset run" -c exit
 
 dongle-flash: nrf.tests.dongle
