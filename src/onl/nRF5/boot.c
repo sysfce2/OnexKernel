@@ -56,7 +56,7 @@ void boot_sleep()
   dt=ct;
 
   if(ct>cpu_calc_time){
-    cpu_calc_time=ct+1000;
+    cpu_calc_time=ct+997;
 
     uint64_t running_time_diff =(running_time -last_running_time);
     uint64_t sleeping_time_diff=(sleeping_time-last_sleeping_time);
