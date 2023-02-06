@@ -66,7 +66,7 @@ extern "C" {
 07-+-1 = enables i2c and vibration; turns red led off
 06-+-vibration 0=on
 
-16---sc7a20 accel IRQ pin
+16---SC7A20 accel IRQ pin
 
 17---SPI Flash CS
 19---SPI Flash SCK
