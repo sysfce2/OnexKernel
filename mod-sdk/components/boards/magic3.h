@@ -18,6 +18,7 @@ extern "C" {
 
 #define BUTTONS_NUMBER       1
 #define BUTTON_1             NRF_GPIO_PIN_MAP(0,26)
+#define BUTTON_2             NRF_GPIO_PIN_MAP(1,14)
 #define BUTTON_PULL          NRF_GPIO_PIN_PULLDOWN
 #define BUTTONS_ACTIVE_STATE 1
 #define BUTTONS_LIST         { BUTTON_1 }
@@ -40,6 +41,9 @@ extern "C" {
 #define TOUCH_ADDRESS   0x15
 #define TOUCH_IRQ_PIN   32
 #define TOUCH_RESET_PIN 39
+
+#define CHARGE_SENSE NRF_GPIO_PIN_MAP(0,8)
+#define BATTERY_V    NRF_SAADC_INPUT_AIN6 // NRF_GPIO_PIN_MAP(0,30)
 
 /*
 12-+-backlight

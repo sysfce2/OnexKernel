@@ -531,6 +531,7 @@ SDK_C_SOURCES_MAGIC3 = \
 $(SDK_C_SOURCES_NO_SD) \
 ./mod-sdk/components/libraries/gfx/nrf_gfx.c \
 ./sdk/external/thedotfactory_fonts/orkney8pts.c \
+./sdk/modules/nrfx/drivers/src/nrfx_saadc.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_spim.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_twi.c \
 ./sdk/modules/nrfx/mdk/system_nrf52840.c \

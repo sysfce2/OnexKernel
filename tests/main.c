@@ -56,6 +56,12 @@ void button_changed(uint8_t pin, uint8_t type)
   if(pressed) display_state = !display_state;
 }
 
+static volatile bool is_charging=false;
+
+static void charging_changed(uint8_t pin, uint8_t type){
+  is_charging=!gpio_get(CHARGE_SENSE);
+}
+
 #if defined(BOARD_PCA10059)
 const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 #endif
@@ -73,6 +79,7 @@ static void set_up_gpio(void)
   gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
   gpio_mode(VIBRATION, OUTPUT);
   gpio_set(VIBRATION, 1);
+  gpio_mode_cb(CHARGE_SENSE, INPUT, RISING_AND_FALLING, charging_changed);
 #define ADC_CHANNEL 0
   gpio_adc_init(BATTERY_V, ADC_CHANNEL);
 #elif defined(BOARD_MAGIC3)
@@ -81,6 +88,9 @@ static void set_up_gpio(void)
   gpio_set( I2C_ENABLE, 1);
   gpio_mode(LCD_BACKLIGHT, OUTPUT);
   gpio_set(LCD_BACKLIGHT, LEDS_ACTIVE_STATE);
+  gpio_mode_cb(CHARGE_SENSE, INPUT, RISING_AND_FALLING, charging_changed);
+#define ADC_CHANNEL 0
+  gpio_adc_init(BATTERY_V, ADC_CHANNEL);
 #endif
 }
 #endif
@@ -144,15 +154,21 @@ void show_motion()
   gfx_pos(10, 60);
   gfx_text(buf);
 }
+#endif
 
+#if defined(BOARD_PINETIME) || defined(BOARD_MAGIC3)
 void show_battery()
 {
   int16_t bv = gpio_read(ADC_CHANNEL);
   int16_t mv = bv*2000/(1024/(33/10));
   int8_t  pc = ((mv-3520)*100/5200)*10;
-  snprintf(buf, 64, "%d%%(%d)", pc, mv);
-  gfx_pos(10, 160);
+
+  snprintf(buf, 64, "%d/%d/%d%%", bv, mv, pc);
+  gfx_pos(10, 135);
   gfx_text(buf);
+
+  gfx_pos(10, 155);
+  gfx_text(is_charging? "charging": "battery");
 }
 #endif
 
@@ -264,8 +280,8 @@ int main(void)
     if(new_touch_info){
       new_touch_info=false;
       show_touch();
-      show_random();
-#if defined(BOARD_PINETIME)
+    //show_random();
+#if defined(BOARD_PINETIME) || defined(BOARD_MAGIC3)
       show_battery();
 #endif
     }
