@@ -151,7 +151,7 @@ void show_touch()
 void show_motion()
 {
   snprintf(buf, 64, "(%05d)(%05d)(%05d)", mi.x, mi.y, mi.z);
-  gfx_pos(10, 60);
+  gfx_pos(10, 30);
   gfx_text(buf);
 }
 #endif
@@ -202,7 +202,7 @@ void run_tests_maybe()
   if(failures) gpio_set(leds_list[1], 0);
   else         gpio_set(leds_list[2], 0);
 #else
-  gfx_pos(10, 40);
+  gfx_pos(10, 10);
   gfx_text(failures? "FAIL": "SUCCESS");
 #endif
 #else
@@ -265,9 +265,7 @@ int main(void)
   gfx_rect_fill(175,210,  20, 20, GFX_MAGENTA);
   gfx_rect_fill(195,180,  20, 20, GFX_RGB256(0,255,255));
   gfx_rect_fill(195,210,  20, 20, GFX_CYAN);
-  gfx_pos(10, 40);
   gfx_text_colour(GFX_BLUE);
-  gfx_text("Onex");
   touch_init(touched);
 #if defined(BOARD_PINETIME)
   motion_init(moved);
@@ -292,10 +290,13 @@ int main(void)
       ticks++;
       if(!(ticks%20)) show_motion();
     }
+#endif
+#if defined(BOARD_PINETIME)
     if (display_state_prev != display_state){
       display_state_prev = display_state;
       gpio_set(LCD_BACKLIGHT_HIGH, display_state);
     }
+#endif
 #if defined(LOG_TO_GFX)
     if(event_log_buffer){
       gfx_pos(10, 10);
@@ -304,7 +305,7 @@ int main(void)
       event_log_buffer=0;
     }
 #endif
-#elif defined(BOARD_MAGIC3)
+#if defined(BOARD_MAGIC3)
     if (display_state_prev != display_state){
       display_state_prev = display_state;
       gpio_set(LCD_BACKLIGHT, display_state);
