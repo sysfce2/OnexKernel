@@ -11,7 +11,7 @@ static volatile bool initialised=false;
 #define TICKS_TO_MS(ticks) (((ticks)*1000)/EFFECTIVE_TIMER_CLOCK_FREQ)
 
 static volatile uint32_t seconds=0;
-static volatile uint64_t epoch_seconds=1585045750;
+static volatile uint64_t epoch_seconds=1675959628;
 static volatile uint32_t ticks_at_second=0;
 
 static void every_second(void* p)
@@ -30,6 +30,12 @@ APP_TIMER_DEF(m_timer_5);
 APP_TIMER_DEF(m_timer_6);
 
 static app_timer_id_t timer_ids[7];
+
+void time_init_set(uint64_t es)
+{
+  if(es) epoch_seconds=es;
+  time_init();
+}
 
 void time_init()
 {

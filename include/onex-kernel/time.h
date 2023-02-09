@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 void     time_init();
+void     time_init_set(uint64_t es);
 
 uint32_t time_s();  // seconds since startup
 uint64_t time_es(); // Unix epoch seconds
