@@ -56,11 +56,13 @@ void button_changed(uint8_t pin, uint8_t type)
   if(pressed) display_state = !display_state;
 }
 
+#if defined(BOARD_PINETIME) || defined(BOARD_MAGIC3)
 static volatile bool is_charging=false;
 
 static void charging_changed(uint8_t pin, uint8_t type){
   is_charging=!gpio_get(CHARGE_SENSE);
 }
+#endif
 
 #if defined(BOARD_PCA10059)
 const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
