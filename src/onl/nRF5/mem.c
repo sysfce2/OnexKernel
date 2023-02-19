@@ -20,7 +20,11 @@ void* Mem_alloc(char* func, int line, size_t n)
     if(LOG_MEM) log_write("****** mem_alloc using calloc %p", p);
     if((char*)p > top_alloc){
       top_alloc=p;
+#if defined(LOG_TO_GFX)
+      log_write("clc %lu %s:%d %p\n", n, func, line, p);
+#else
       log_write("=============== new calloc top: %p %lu %s:%d\n", p, n, func, line);
+#endif
     }
   }
   if(LOG_MEM) log_write("mem_alloc   %p %lu %s:%d\n", p, n, func, line);
