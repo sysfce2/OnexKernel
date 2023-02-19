@@ -21,9 +21,9 @@ void* Mem_alloc(char* func, int line, size_t n)
     if((char*)p > top_alloc){
       top_alloc=p;
 #if defined(LOG_TO_GFX)
-      log_write("clc %lu %s:%d %p\n", n, func, line, p);
+      if(LOG_MEM) log_write("clc %lu %s:%d %p\n", n, func, line, p);
 #else
-      log_write("=============== new calloc top: %p %lu %s:%d\n", p, n, func, line);
+      if(LOG_MEM) log_write("=============== new calloc top: %p %lu %s:%d\n", p, n, func, line);
 #endif
     }
   }
@@ -53,9 +53,9 @@ char* Mem_strdup(char* func, int line, const char* s)
     if((char*)p > top_alloc){
       top_alloc=p;
 #if defined(LOG_TO_GFX)
-      log_write("mlc %lu %s:%d %p\n", n, func, line, p);
+      if(LOG_MEM) log_write("mlc %lu %s:%d %p\n", n, func, line, p);
 #else
-      log_write("=============== new malloc top: %p %lu %s:%d\n", p, n, func, line);
+      if(LOG_MEM) log_write("=============== new malloc top: %p %lu %s:%d\n", p, n, func, line);
 #endif
     }
   }
