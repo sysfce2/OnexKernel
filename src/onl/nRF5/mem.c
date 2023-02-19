@@ -48,7 +48,11 @@ char* Mem_strdup(char* func, int line, const char* s)
     if(LOG_MEM) log_write("****** mem_strdup using malloc %p", p);
     if((char*)p > top_alloc){
       top_alloc=p;
+#if defined(LOG_TO_GFX)
+      log_write("mlc %lu %s:%d %p\n", n, func, line, p);
+#else
       log_write("=============== new malloc top: %p %lu %s:%d\n", p, n, func, line);
+#endif
     }
   }
   if(p) memcpy(p,s,n);
