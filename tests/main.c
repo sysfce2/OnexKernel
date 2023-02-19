@@ -302,8 +302,9 @@ int main(void)
 #if defined(LOG_TO_GFX)
     if(event_log_buffer){
       gfx_pos(10, 10);
-      gfx_text_colour(GFX_WHITE);
+      gfx_text_colour(GFX_RED);
       gfx_text((char*)event_log_buffer);
+      gfx_text_colour(GFX_BLUE);
       event_log_buffer=0;
     }
 #endif
