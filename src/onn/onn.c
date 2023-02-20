@@ -625,7 +625,7 @@ bool object_property_set(object* n, char* path, char* val)
   if(!n->running_evals && has_notifies(n)){
 #if defined(LOG_TO_GFX) || defined(LOG_TO_BLE)
     char* uid=value_string(n->uid);
-    log_write("N!%.*s", 12, uid+4);
+    log_write("N!%s %s %s %s", uid+4+15, object_property(n, "is"), path, val);
 #else
     log_write("\nSetting property in an object but not running in an evaluator! uid: %s  %s: '%s'\n\n", value_string(n->uid), path, val? val: "");
 #endif
