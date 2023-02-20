@@ -23,7 +23,8 @@
 
 void log_init();
 bool log_loop();
-int  log_write(const char* fmt, ...);
+#define log_write(...) log_write_file_line(__FILE__, __LINE__, __VA_ARGS__)
+int  log_write_file_line(char* file, uint32_t line, const char* fmt, ...);
 void log_flush();
 
 #endif

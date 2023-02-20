@@ -4,6 +4,7 @@
 #if defined(NRF5)
 
 #include <boards.h>
+#include <onex-kernel/log.h>
 
 #if defined(BOARD_PINETIME)
 
