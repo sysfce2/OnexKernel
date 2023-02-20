@@ -38,7 +38,7 @@ volatile char* event_log_buffer=0;
 #endif
 #endif
 
-int log_write_file_line(char* file, uint32_t line, const char* fmt, ...)
+int log_write_current_file_line(char* file, uint32_t line, const char* fmt, ...)
 {
   va_list args;
   va_start(args, fmt);
@@ -49,8 +49,8 @@ int log_write_file_line(char* file, uint32_t line, const char* fmt, ...)
   r=serial_vprintf(fmt, args);
   time_delay_ms(1);
 #elif defined(LOG_TO_GFX)
-  uint16_t ln=snprintf((char*)log_buffer,    LOG_BUF_SIZE, "%s:%ld:", file, line);
-  ;          vsnprintf((char*)log_buffer+ln, LOG_BUF_SIZE-ln, fmt, args);
+  uint16_t ln=file? snprintf((char*)log_buffer, LOG_BUF_SIZE, "%s:%ld:", file, line): 0;
+  vsnprintf((char*)log_buffer+ln, LOG_BUF_SIZE-ln, fmt, args);
   event_log_buffer=log_buffer;
 #elif defined(LOG_TO_BLE)
   vsnprintf((char*)log_buffer, LOG_BUF_SIZE, fmt, args);
