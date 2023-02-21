@@ -565,9 +565,34 @@ void display_fast_init()
 
 void display_fast_write_out_buffer(uint8_t* buf, uint32_t size)
 {
+  if(time_ready_after_wake_command){
+    int32_t time_till_ready=time_ready_after_wake_command-time_ms();
+    if(time_till_ready>0) time_delay_ms(time_till_ready);
+    time_ready_after_wake_command=0;
+  }
   start_write_fast();
   spi_fast_write(buf, size);
   end_write_fast();
+}
+
+#define SPI_FLUSH_TIME_FAST 29
+
+void display_fast_sleep() {
+
+  if(sleeping) return;
+  sleeping=true;
+
+  write_command_fast(ST7789_SLPIN);
+}
+
+void display_fast_wake() {
+
+  if(!sleeping) return;
+  sleeping=false;
+
+  write_command_fast(ST7789_SLPOUT);
+
+  time_ready_after_wake_command=time_ms()+SPI_FLUSH_TIME_FAST+ST7789_WAKE_SETTLE_TIME;
 }
 
 #endif // NRF52840_XXAA-only

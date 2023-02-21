@@ -9,5 +9,7 @@ void display_reset();
 
 void display_fast_init();
 void display_fast_write_out_buffer(uint8_t* buf, uint32_t size);
+void display_fast_sleep();
+void display_fast_wake();
 
 #endif
