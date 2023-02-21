@@ -240,8 +240,3 @@ void time_delay_ms(uint32_t ms)
   for(int t=0; t<ms; t++) time_delay_us(999);
 }
 
-void time_delay_s(uint32_t s)
-{
-  time_delay_ms(1000*s);
-}
-
