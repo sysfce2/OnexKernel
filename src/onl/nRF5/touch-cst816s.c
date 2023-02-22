@@ -45,12 +45,11 @@ void touch_init(touch_touched_cb cb)
 
   twip=i2c_init(400);
 
-  ret_code_t e;
+  gpio_mode_cb(TOUCH_IRQ_PIN, INPUT_PULLUP, FALLING, touched);
 
+  ret_code_t e;
   e=app_timer_create(&touch_timer, APP_TIMER_MODE_REPEATED, every_50ms); APP_ERROR_CHECK(e);
   e=app_timer_start(touch_timer, APP_TIMER_TICKS(50), NULL); APP_ERROR_CHECK(e);
-
-  gpio_mode_cb(TOUCH_IRQ_PIN, INPUT_PULLUP, FALLING, touched);
 }
 
 static bool pressed=false;
@@ -90,12 +89,13 @@ void touch_reset(uint8_t delay)
 
 void touch_sleep() {
   touch_reset(5);
+  time_delay_ms(50);
   i2c_write_register_byte(twip, TOUCH_ADDRESS, HYN_REG_POWER_MODE, HYN_REG_POWER_MODE_SLEEP);
 }
 
 void touch_wake() {
-  // touch_reset(10);
-  // ??
+  touch_reset(5);
+  time_delay_ms(50);
 }
 
 void touch_dump(touch_info_t ti)
