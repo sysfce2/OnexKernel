@@ -329,6 +329,14 @@ void display_init()
 
 uint64_t time_ready_after_wake_command=0;
 
+static void wait_for_display_to_settle_after_wake(){
+  if(time_ready_after_wake_command){
+    int32_t time_till_ready=time_ready_after_wake_command-time_ms();
+    if(time_till_ready>0) time_delay_ms(time_till_ready);
+    time_ready_after_wake_command=0;
+  }
+}
+
 static bool sleeping=false;
 
 void display_draw_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint16_t* pixels, void (*cb)())
@@ -338,11 +346,7 @@ void display_draw_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint1
     return;
   }
 
-  if(time_ready_after_wake_command){
-    int32_t time_till_ready=time_ready_after_wake_command-time_ms();
-    if(time_till_ready>0) time_delay_ms(time_till_ready);
-    time_ready_after_wake_command=0;
-  }
+  wait_for_display_to_settle_after_wake();
 
   set_addr_window(x1, y1, x2, y2);
 
@@ -351,7 +355,7 @@ void display_draw_area(uint16_t x1, uint16_t x2, uint16_t y1, uint16_t y2, uint1
 }
 
 #define SPI_FLUSH_TIME          2
-#define ST7789_WAKE_SETTLE_TIME 5
+#define ST7789_WAKE_SETTLE_TIME 120
 
 void display_sleep()
 {
@@ -407,8 +411,10 @@ void write_char_fast(uint8_t d)
   spi_fast_write(&d, 1);
 }
 
-static void set_addr_window_fast(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
-{
+static void set_addr_window_fast(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
+
+  wait_for_display_to_settle_after_wake();
+
 #if defined(ST7789_ADDR_HEIGHT)
   y = y + (ST7789_ADDR_HEIGHT - ST7789_HEIGHT);
 #endif
@@ -435,8 +441,10 @@ void display_reset_kinda_slow()
   time_delay_ms(100);
 }
 
-static void st7789_rotation_set_fast(nrf_lcd_rotation_t rotation)
-{
+static void st7789_rotation_set_fast(nrf_lcd_rotation_t rotation) {
+
+    wait_for_display_to_settle_after_wake();
+
     write_command_fast(ST7789_MADCTL);
 
     switch (rotation % 4) {
@@ -563,13 +571,10 @@ void display_fast_init()
   init_command_list_fast();
 }
 
-void display_fast_write_out_buffer(uint8_t* buf, uint32_t size)
-{
-  if(time_ready_after_wake_command){
-    int32_t time_till_ready=time_ready_after_wake_command-time_ms();
-    if(time_till_ready>0) time_delay_ms(time_till_ready);
-    time_ready_after_wake_command=0;
-  }
+void display_fast_write_out_buffer(uint8_t* buf, uint32_t size) {
+
+  wait_for_display_to_settle_after_wake();
+
   start_write_fast();
   spi_fast_write(buf, size);
   end_write_fast();
@@ -592,7 +597,7 @@ void display_fast_wake() {
 
   write_command_fast(ST7789_SLPOUT);
 
-  time_ready_after_wake_command=time_ms()+SPI_FLUSH_TIME_FAST+ST7789_WAKE_SETTLE_TIME;
+  time_ready_after_wake_command=time_ms() + SPI_FLUSH_TIME_FAST + ST7789_WAKE_SETTLE_TIME;
 }
 
 #endif // NRF52840_XXAA-only
