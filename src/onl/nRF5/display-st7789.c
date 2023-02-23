@@ -587,6 +587,7 @@ void display_fast_sleep() {
   if(sleeping) return;
   sleeping=true;
 
+  write_command_fast(ST7789_DISPOFF);
   write_command_fast(ST7789_SLPIN);
 }
 
@@ -596,6 +597,7 @@ void display_fast_wake() {
   sleeping=false;
 
   write_command_fast(ST7789_SLPOUT);
+  write_command_fast(ST7789_DISPON);
 
   time_ready_after_wake_command=time_ms() + SPI_FLUSH_TIME_FAST + ST7789_WAKE_SETTLE_TIME;
 }
