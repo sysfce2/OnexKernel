@@ -387,32 +387,33 @@ void display_reset()
 
 #if defined(NRF52840_XXAA)
 
-void start_write_fast(void)
-{
+void start_write_fast(void) {
+  if(sleeping) return;
   spi_fast_enable(true);
   gpio_set(SPIM_SS_PIN , 0);
 }
 
-void end_write_fast(void)
-{
+void end_write_fast(void) {
+  if(sleeping) return;
   gpio_set(SPIM_SS_PIN , 1);
   spi_fast_enable(false);
 }
 
-void write_command_fast(uint8_t d)
-{
+void write_command_fast(uint8_t d) {
+  if(sleeping) return;
   gpio_set(ST7789_DC_PIN , 0);
   spi_fast_write(&d, 1);
   gpio_set(ST7789_DC_PIN , 1);
 }
 
-void write_char_fast(uint8_t d)
-{
+void write_char_fast(uint8_t d) {
+  if(sleeping) return;
   spi_fast_write(&d, 1);
 }
 
 static void set_addr_window_fast(uint16_t x, uint16_t y, uint16_t w, uint16_t h) {
 
+  if(sleeping) return;
   wait_for_display_to_settle_after_wake();
 
 #if defined(ST7789_ADDR_HEIGHT)
@@ -431,8 +432,10 @@ static void set_addr_window_fast(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
   write_command_fast(ST7789_RAMWR);
 }
 
-void display_reset_kinda_slow()
-{
+void display_reset_kinda_slow() {
+
+  sleeping=false;
+
   gpio_set(ST7789_RST_PIN, 1);
   time_delay_ms(20);
   gpio_set(ST7789_RST_PIN, 0);
@@ -443,30 +446,31 @@ void display_reset_kinda_slow()
 
 static void st7789_rotation_set_fast(nrf_lcd_rotation_t rotation) {
 
-    wait_for_display_to_settle_after_wake();
+  if(sleeping) return;
+  wait_for_display_to_settle_after_wake();
 
-    write_command_fast(ST7789_MADCTL);
+  write_command_fast(ST7789_MADCTL);
 
-    switch (rotation % 4) {
-        case NRF_LCD_ROTATE_0:
-            write_char_fast(ST7789_MADCTL_MX | ST7789_MADCTL_MY | ST7789_MADCTL_RGB);
-            break;
-        case NRF_LCD_ROTATE_90:
-            write_char_fast(ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
-            break;
-        case NRF_LCD_ROTATE_180:
-            write_char_fast(ST7789_MADCTL_RGB);
-            break;
-        case NRF_LCD_ROTATE_270:
-            write_char_fast(ST7789_MADCTL_MX | ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
-            break;
-        default:
-            break;
-    }
+  switch (rotation % 4) {
+      case NRF_LCD_ROTATE_0:
+          write_char_fast(ST7789_MADCTL_MX | ST7789_MADCTL_MY | ST7789_MADCTL_RGB);
+          break;
+      case NRF_LCD_ROTATE_90:
+          write_char_fast(ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
+          break;
+      case NRF_LCD_ROTATE_180:
+          write_char_fast(ST7789_MADCTL_RGB);
+          break;
+      case NRF_LCD_ROTATE_270:
+          write_char_fast(ST7789_MADCTL_MX | ST7789_MADCTL_MV | ST7789_MADCTL_RGB);
+          break;
+      default:
+          break;
+  }
 }
 
-void init_command_list_fast()
-{
+void init_command_list_fast() {
+
   start_write_fast();
 
   write_command_fast(ST7789_SLPOUT);
@@ -555,8 +559,8 @@ void init_command_list_fast()
   end_write_fast();
 }
 
-void display_fast_init()
-{
+void display_fast_init() {
+
   spi_fast_init();
 
   gpio_mode(SPIM_SS_PIN, OUTPUT);
@@ -573,6 +577,7 @@ void display_fast_init()
 
 void display_fast_write_out_buffer(uint8_t* buf, uint32_t size) {
 
+  if(sleeping) return;
   wait_for_display_to_settle_after_wake();
 
   start_write_fast();
