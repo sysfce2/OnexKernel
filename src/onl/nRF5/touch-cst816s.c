@@ -88,14 +88,18 @@ void touch_reset(uint8_t delay)
 }
 
 void touch_sleep() {
+
   touch_reset(5);
   time_delay_ms(50);
+
   i2c_write_register_byte(twip, TOUCH_ADDRESS, HYN_REG_POWER_MODE, HYN_REG_POWER_MODE_SLEEP);
 }
 
 void touch_wake() {
+
   touch_reset(5);
   time_delay_ms(50);
+
 }
 
 void touch_dump(touch_info_t ti)

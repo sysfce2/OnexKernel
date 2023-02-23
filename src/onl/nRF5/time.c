@@ -14,8 +14,7 @@ static volatile uint32_t seconds=0;
 static volatile uint64_t epoch_seconds=1675959628;
 static volatile uint32_t ticks_at_second=0;
 
-static void every_second(void* p)
-{
+static void every_second(void* p) {
   seconds++;
   epoch_seconds++;
   ticks_at_second = app_timer_cnt_get();
