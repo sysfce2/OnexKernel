@@ -51,7 +51,7 @@ char* object_property(object* n, char* path);
 /** return property value or nothing if it's a list; don't observe any sub-objects on the path. */
 char* object_property_peek(object* n, char* path);
 
-/** return property value, or space-separated list of values, excluding uids and sub-properties. */
+/** DON'T USE return property value, or space-separated list of values, excluding uids and sub-properties. */
 char* object_property_values(object* n, char* path);
 
 /** return whether property at path is a single value and it matches supplied string. */
