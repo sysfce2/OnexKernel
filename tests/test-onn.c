@@ -173,21 +173,25 @@ void test_object_set_up()
   onex_assert(     !object_property_key(     n1, ":", 0),          "key of 0th item is 0");
   onex_assert(     !object_property_val(     n1, ":", 0),          "val of 0th item is 0");
 
-  object* nv=object_new("uid-6", "default", "varargs", 3);
-  onex_assert(      object_property_set(     nv, "v", "x"),         "can set val");
-  onex_assert(      object_property_add(     nv, "v", "y"),         "can add val");
-  onex_assert(      object_property_set_list(nv, "v", "a", "b", 0), "can set two vals using varargs");
-  onex_assert(      object_property_length(  nv, "v")==2,           "property 'v' is a list of two");
-  onex_assert(      object_property_is(      nv, "v:1", "a"),       "list items are correct");
-  onex_assert(      object_property_is(      nv, "v:2", "b"),       "list items are correct");
-  onex_assert(      object_property_add_list(nv, "v", "c", "d", 0), "can add two more vals using varargs");
-  onex_assert(      object_property_length(  nv, "v")==4,           "property 'v' is a list of two");
-  onex_assert(      object_property_is(      nv, "v:3", "c"),       "list items are correct");
-  onex_assert(      object_property_is(      nv, "v:4", "d"),       "list items are correct");
-  onex_assert(      object_property_add_list(nv, "w", "e", "f", 0), "can add two more vals using varargs");
-  onex_assert(      object_property_length(  nv, "w")==2,           "property 'v' is a list of two");
-  onex_assert(      object_property_is(      nv, "w:1", "e"),       "list items are correct");
-  onex_assert(      object_property_is(      nv, "w:2", "f"),       "list items are correct");
+  object* nv=object_new("uid-6", "default", "varargs", 4);
+  onex_assert(      object_property_set(     nv, "v", "x"),             "can set val");
+  onex_assert(      object_property_add(     nv, "v", "y"),             "can add val");
+  onex_assert(      object_property_set_list(nv, "v", "a", "b", 0),     "can set two vals using varargs");
+  onex_assert(      object_property_length(  nv, "v")==2,               "property 'v' is a list of two");
+  onex_assert(      object_property_is(      nv, "v:1", "a"),           "list items are correct");
+  onex_assert(      object_property_is(      nv, "v:2", "b"),           "list items are correct");
+  onex_assert(      object_property_add_list(nv, "v", "c", "d", 0),     "can add two more vals using varargs");
+  onex_assert(      object_property_length(  nv, "v")==4,               "property 'v' is a list of two");
+  onex_assert(      object_property_is(      nv, "v:3", "c"),           "list items are correct");
+  onex_assert(      object_property_is(      nv, "v:4", "d"),           "list items are correct");
+  onex_assert(      object_property_add_list(nv, "w", "e", "f", 0),     "can add two more vals using varargs");
+  onex_assert(      object_property_length(  nv, "w")==2,               "property 'v' is a list of two");
+  onex_assert(      object_property_is(      nv, "w:1", "e"),           "list items are correct");
+  onex_assert(      object_property_is(      nv, "w:2", "f"),           "list items are correct");
+  onex_assert(      object_property_set_fmt( nv, "x", "%d %d", 10, 20), "can add two number vals using varargs and format");
+  onex_assert(      object_property_length(  nv, "x")==2,               "property 'v' is a list of two");
+  onex_assert(      object_property_is(      nv, "x:1", "10"),          "list items are correct");
+  onex_assert(      object_property_is(      nv, "x:2", "20"),          "list items are correct");
 }
 
 // ---------------------------------------------------------------------------------

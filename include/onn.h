@@ -45,6 +45,9 @@ bool  object_property_add(object* n, char* path, char* val);
 /** set property values into list. only use inside an evaluator for 'n'. must finish list with 0! */
 bool  object_property_set_list(object* n, char* path, ... /* char* val, ..., 0 */);
 
+/** set property values into list from printf format. only use inside an evaluator for 'n'. */
+bool  object_property_set_fmt(object* n, char* path, char* fmt, ... /* <any> val, ... */);
+
 /** add property values to list, or make a list. only use inside an evaluator for 'n'. must finish list with 0! */
 bool  object_property_add_list(object* n, char* path, ... /* char* val, ..., 0 */);
 

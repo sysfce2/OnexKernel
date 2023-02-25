@@ -791,6 +791,18 @@ bool object_property_set_list(object* n, char* path, ... /* char* val, ..., 0 */
   return ok;
 }
 
+static char argbuf[MAX_TEXT_LEN];
+
+bool object_property_set_fmt(object* n, char* path, char* fmt, ... /* <any> val, ... */){
+  bool ok=true;
+  va_list args;
+  va_start(args, fmt);
+  vsnprintf((char*)argbuf, MAX_TEXT_LEN, fmt, args);
+  ok=object_property_set(n, path, argbuf);
+  va_end(args);
+  return ok;
+}
+
 bool object_property_add_list(object* n, char* path, ... /* char* val, ..., 0 */){
   bool ok=true;
   char* val;
