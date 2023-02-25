@@ -363,6 +363,7 @@ void display_sleep()
   sleeping=true;
 
   write_command(ST7789_SLPIN);
+  time_delay_ms(5);
 }
 
 void display_wake()
@@ -433,9 +434,6 @@ static void set_addr_window_fast(uint16_t x, uint16_t y, uint16_t w, uint16_t h)
 }
 
 void display_reset_kinda_slow() {
-
-  sleeping=false;
-
   gpio_set(ST7789_RST_PIN, 1);
   time_delay_ms(20);
   gpio_set(ST7789_RST_PIN, 0);
@@ -470,6 +468,8 @@ static void st7789_rotation_set_fast(nrf_lcd_rotation_t rotation) {
 }
 
 void init_command_list_fast() {
+
+  sleeping=false;
 
   start_write_fast();
 
@@ -587,23 +587,33 @@ void display_fast_write_out_buffer(uint8_t* buf, uint32_t size) {
 
 #define SPI_FLUSH_TIME_FAST 29
 
-void display_fast_sleep() {
+void display_fast_sleep(bool hard) {
 
   if(sleeping) return;
   sleeping=true;
 
+  if(hard){
+    display_reset_kinda_slow();
+    return;
+  }
   write_command_fast(ST7789_DISPOFF);
   write_command_fast(ST7789_SLPIN);
+
+  time_delay_ms(5);
 }
 
-void display_fast_wake() {
+void display_fast_wake(bool hard) {
 
   if(!sleeping) return;
   sleeping=false;
 
+  if(hard){
+    init_command_list_fast();
+    return;
+  }
   write_command_fast(ST7789_SLPOUT);
   write_command_fast(ST7789_DISPON);
-
+  
   time_ready_after_wake_command=time_ms() + SPI_FLUSH_TIME_FAST + ST7789_WAKE_SETTLE_TIME;
 }
 
