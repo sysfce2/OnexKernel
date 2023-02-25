@@ -63,15 +63,16 @@ void test_object_set_up()
   onex_assert(      object_property_size(          n1, "state")== -1,    "property 'state' is not a properties");
   // UID: uid-1  is: setup  state: good mostly
                     object_property_add(           n1, "state", "mostly");
-  onex_assert(     !object_property_is(            n1, "state", "good"),        "object_property_is says 'state' is not all 'good'");
-  onex_assert(      object_property_contains(      n1, "state", "good"),        "object_property_contains says it is 'good'");
-  onex_assert(      object_property_contains(      n1, "state", "mostly"),      "object_property_contains says it is 'mostly'");
-  onex_assert(      object_property_length(        n1, "state")==2,             "property 'state' is now a list of two");
-  onex_assert(      object_property_size(          n1, "state")== -1,           "property 'state' is not a properties");
+  onex_assert(     !object_property_is(            n1, "state", "good"),   "object_property_is says 'state' is not all 'good'");
+  onex_assert(      object_property_contains(      n1, "state", "good"),   "object_property_contains says it is 'good'");
+  onex_assert(      object_property_contains(      n1, "state", "mostly"), "object_property_contains says it is 'mostly'");
+  onex_assert(      object_property_length(        n1, "state")==2,        "property 'state' is now a list of two");
+  onex_assert(      object_property_size(          n1, "state")== -1,      "property 'state' is not a properties");
   // UID: uid-1  is: setup  state: good  1: a
   onex_assert(          object_property_add(     n1, "1", "a"),  "can add new property");
   onex_assert_equal_num(object_property_length(  n1, "1"), 1,    "property '1' is a single value");
-  onex_assert(          object_property_size(    n1, "1")== -1,    "not a properties");
+  onex_assert(          object_property_size(    n1, "1")== -1,  "not a properties");
+
   onex_assert_equal(object_property(         n1, "1:1"), "a",  "1st value in list can be found by path-indexing and is 'a'");
   onex_assert(     !object_property(         n1, "1:1:"),      "cannot end in :");
   onex_assert(     !object_property(         n1, "1:2"),       "2nd value in list by path index is null");
@@ -91,12 +92,12 @@ void test_object_set_up()
   onex_assert(     !object_property(         n1, "1:1:"),      "cannot end in :");
   onex_assert(     !object_property(         n1, "1:2:"),      "cannot end in :'");
   onex_assert(     !object_property(         n1, "1:3"),       "3rd value in list is null");
-  onex_assert(     !object_property_get_n(   n1, "1", 0),       "0th value in list is null");
-  onex_assert_equal(object_property_get_n(   n1, "1", 1), "a",  "1st value in list is 'a'");
-  onex_assert_equal(object_property_get_n(   n1, "1", 2), "b",  "2nd value in list is 'b'");
-  onex_assert(     !object_property_get_n(   n1, "1:", 1),      "cannot end in :");
-  onex_assert(     !object_property_get_n(   n1, "1:", 2),      "cannot end in :");
-  onex_assert(     !object_property_get_n(   n1, "1", 3),       "3rd value in list is null");
+  onex_assert(     !object_property_get_n(   n1, "1", 0),      "0th value in list is null");
+  onex_assert_equal(object_property_get_n(   n1, "1", 1), "a", "1st value in list is 'a'");
+  onex_assert_equal(object_property_get_n(   n1, "1", 2), "b", "2nd value in list is 'b'");
+  onex_assert(     !object_property_get_n(   n1, "1:", 1),     "cannot end in :");
+  onex_assert(     !object_property_get_n(   n1, "1:", 2),     "cannot end in :");
+  onex_assert(     !object_property_get_n(   n1, "1", 3),      "3rd value in list is null");
   onex_assert(     !object_property(         n1, "1:four"),    "four-th value in list is null");
   // UID: uid-1  is: setup  state: good  1: a b c
   onex_assert(      object_property_add(     n1, "1", "c"),    "can add a third to existing list");
@@ -247,8 +248,8 @@ bool evaluate_local_state_n3(object* n3, void* d)
   onex_assert_equal(object_property(         n3, "self"), "uid-3",              "can see self as string when it's all uids");
   onex_assert_equal(object_property(         n3, "n2"), "uid-2",                "can see n2 as string when it's all uids");
   onex_assert(     !object_property(         n3, "n*"),                         "can't see n* as string cos it's a list");
-  onex_assert(      object_property_contains(n3, "n2:n1:state", "good"),        "can see through n2 to n1");
-  onex_assert(      object_property_contains(n3, "n2:n1:state", "mostly"),      "can see through n2 to n1");
+  onex_assert_equal(object_property(         n3, "n2:n1:state:1"), "good",      "can see through n2 to n1");
+  onex_assert_equal(object_property(         n3, "n2:n1:state:2"), "mostly",    "can see through n2 to n1");
   return true;
 }
 
@@ -263,11 +264,11 @@ void test_local_state()
   onex_assert(      onex_get_from_cache("uid-2")==n2,   "onex_get_from_cache can find uid-2");
   onex_assert(      onex_get_from_cache("uid-3")==n3,   "onex_get_from_cache can find uid-3");
   // UID: uid-2  is: local-state  state: ok
-  onex_assert(      object_property_set(n2, "state", "ok"),  "can add 'state'");
-  onex_assert(      object_property_set(n2, "n1",    "uid-1"), "can add 'n1'");
+  onex_assert(      object_property_set(    n2, "state", "ok"),    "can add 'state'");
+  onex_assert(      object_property_set(    n2, "n1",    "uid-1"), "can add 'n1'");
   // UID: uid-3  is: local-state  n2: uid-2  self: uid-3
-  onex_assert(      object_property_set(n3, "n2",    "uid-2"), "can add 'n2'");
-  onex_assert(      object_property_set(n3, "self",  "uid-3"), "can add 'self'");
+  onex_assert(      object_property_set(    n3, "n2",    "uid-2"), "can add 'n2'");
+  onex_assert(      object_property_set(    n3, "self",  "uid-3"), "can add 'self'");
   // UID: uid-3  is: local-state  n2: uid-2  self: uid-3  n* uid-1 uid-2 uid-3 uid-4
   onex_assert(      object_property_set(    n3, "n*", "uid-1"),    "can set uid-1 in n*");
   onex_assert(      object_property_add(    n3, "n*", "uid-2"),    "can add uid-2 to n*");
@@ -284,8 +285,8 @@ void test_local_state()
   onex_assert_equal(object_property_get_n(  n3, "n*", 4), "uid-4", "n*:4 is uid-4");
   onex_assert_equal(object_property_get_n(  n3, "n*", 5), "uid-5", "n*:5 is uid-5");
   // UID: uid-2  is: local-state  state: good
-  onex_assert_equal(object_property(    n3, "n2:state"), "ok", "can see through n2 to uid-2's state");
-  onex_assert(      object_property_set(n2, "state", "good"),  "can set 'state' to trigger evaluate_local_state_n3");
+  onex_assert_equal(object_property(        n3, "n2:state"), "ok", "can see through n2 to uid-2's state");
+  onex_assert(      object_property_set(    n2, "state", "good"),  "can set 'state' to trigger evaluate_local_state_n3");
 }
 
 // ---------------------------------------------------------------------------------
@@ -355,28 +356,28 @@ bool evaluate_local_notify_n3(object* n3, void* d)
   }
   i++;
   if(evaluate_local_notify_n3_called==i){
-    onex_assert_equal(object_property(   n3, "Alerted"),              "uid-2",     "4: n3/uid-3 can see that it was uid-2 update that triggered eval");
-    onex_assert_equal(object_property(   n3, "Alerted:UID"),          "uid-2",     "4: n3/uid-3 can see that it was uid-2 update that triggered eval");
-    onex_assert_equal(object_property(   n3, "Alerted:n5"),           "uid-5",     "4: n3/uid-3 can see state update");
+    onex_assert_equal(object_property(   n3, "Alerted"),               "uid-2",   "4: n3/uid-3 can see that it was uid-2 update that triggered eval");
+    onex_assert_equal(object_property(   n3, "Alerted:UID"),           "uid-2",   "4: n3/uid-3 can see that it was uid-2 update that triggered eval");
+    onex_assert_equal(object_property(   n3, "Alerted:n5"),            "uid-5",   "4: n3/uid-3 can see state update");
   }
   i++;
   if(evaluate_local_notify_n3_called==i){
-    onex_assert_equal(object_property(         n3, "Alerted"),         "uid-1",  "5: n3/uid-3 can see that it was uid-1 update that triggered eval");
-    onex_assert_equal(object_property(         n3, "Alerted:UID"),     "uid-1",  "5: n3/uid-3 can see that it was uid-1 update that triggered eval");
-    onex_assert_equal(object_property(         n3, "Alerted:state:1"), "good:",  "5: n3/uid-3 can see state update 3");
-    onex_assert_equal(object_property(         n3, "Alerted:state:2"), "good",   "5: n3/uid-3 can see state update 4");
-    onex_assert(      object_property_contains(n3, "n2:n1:state",      "good:"), "5: n3/uid-3 can see state update 5");
-    onex_assert(      object_property_contains(n3, "n2:n1:state",      "good"),  "5: n3/uid-3 can see state update 5");
+    onex_assert_equal(object_property(         n3, "Alerted"),         "uid-1",   "5: n3/uid-3 can see that it was uid-1 update that triggered eval");
+    onex_assert_equal(object_property(         n3, "Alerted:UID"),     "uid-1",   "5: n3/uid-3 can see that it was uid-1 update that triggered eval");
+    onex_assert_equal(object_property(         n3, "Alerted:state:1"), "good:",   "5: n3/uid-3 can see state update 3");
+    onex_assert_equal(object_property(         n3, "Alerted:state:2"), "good",    "5: n3/uid-3 can see state update 4");
+    onex_assert_equal(object_property(         n3, "n2:n1:state:1"),   "good:",   "5: n3/uid-3 can see state update 5");
+    onex_assert_equal(object_property(         n3, "n2:n1:state:2"),   "good",    "5: n3/uid-3 can see state update 5");
   }
   i++;
   if(evaluate_local_notify_n3_called==i){
 #if !defined(NRF5)
-    onex_assert_equal(object_property(         n3, "Alerted"),       "uid-1",    "6: n3/uid-3 can see that it was uid-1 update that triggered eval");
-    onex_assert_equal(object_property(         n3, "Alerted:UID"),   "uid-1",    "6: n3/uid-3 can see that it was uid-1 update that triggered eval");
-    onex_assert(      object_property_contains(n3, "Alerted:state",  ":better"), "6: n3/uid-3 can see the state update");
-    onex_assert(      object_property_contains(n3, "Alerted:state",  "better:"), "6: n3/uid-3 can see the state update");
-    onex_assert_equal(object_property(         n3, "n2:n1:state:1"), ":better",  "6: n3/uid-3 can see the state update");
-    onex_assert_equal(object_property(         n3, "n2:n1:state:2"), "better:",  "6: n3/uid-3 can see the state update");
+    onex_assert_equal(object_property(         n3, "Alerted"),         "uid-1",   "6: n3/uid-3 can see that it was uid-1 update that triggered eval");
+    onex_assert_equal(object_property(         n3, "Alerted:UID"),     "uid-1",   "6: n3/uid-3 can see that it was uid-1 update that triggered eval");
+    onex_assert_equal(object_property(         n3, "Alerted:state:1"), ":better", "6: n3/uid-3 can see the state update");
+    onex_assert_equal(object_property(         n3, "Alerted:state:2"), "better:", "6: n3/uid-3 can see the state update");
+    onex_assert_equal(object_property(         n3, "n2:n1:state:1"),   ":better", "6: n3/uid-3 can see the state update");
+    onex_assert_equal(object_property(         n3, "n2:n1:state:2"),   "better:", "6: n3/uid-3 can see the state update");
 #endif
   }
   return true;
@@ -493,12 +494,12 @@ void test_from_text()
   onex_assert_equal(object_property(         n4, "is:1"), "remote", "object_new_from parses 'is' first list item" );
   onex_assert_equal(object_property(         n4, "is:2"), "state",  "object_new_from parses 'is' second list item" );
   onex_assert_equal(object_property(         n4, "n3"), "uid-3",    "object_new_from parses n3");
-  onex_assert(      object_property_contains(n4, "ab", "m:"),       "object_new_from parses all the escaped colons");
-  onex_assert(      object_property_contains(n4, "ab", ":c:d:"),    "object_new_from parses all the escaped colons");
-  onex_assert(      object_property_contains(n4, "ab", "n"),        "object_new_from parses all the escaped colons");
-  onex_assert(      object_property_contains(n4, "xy", "a"),        "object_new_from parses all the escaped colons");
-  onex_assert(      object_property_contains(n4, "xy", ":z:q:"),    "object_new_from parses all the escaped colons");
-  onex_assert(      object_property_contains(n4, "xy", "b"),        "object_new_from parses all the escaped colons");
+  onex_assert_equal(object_property(         n4, "ab:1"), "m:",     "object_new_from parses all the escaped colons");
+  onex_assert_equal(object_property(         n4, "ab:2"), ":c:d:",  "object_new_from parses all the escaped colons");
+  onex_assert_equal(object_property(         n4, "ab:3"), "n",      "object_new_from parses all the escaped colons");
+  onex_assert_equal(object_property(         n4, "xy:1"), "a",      "object_new_from parses all the escaped colons");
+  onex_assert_equal(object_property(         n4, "xy:2"), ":z:q:",  "object_new_from parses all the escaped colons");
+  onex_assert_equal(object_property(         n4, "xy:3"), "b",      "object_new_from parses all the escaped colons");
   onex_assert_equal(object_property(         n4, "last"), "one",    "object_new_from parses last one as single value without newline");
 
   onex_assert_equal(object_to_text(        n4,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), totext, "gives same text back from reconstruction");
@@ -539,9 +540,9 @@ uint8_t evaluate_persistence_n1_called=0;
 bool evaluate_persistence_n1(object* n1, void* d)
 {
   if(evaluate_persistence_n1_called) return true;
-  onex_assert(object_property_contains(n1, "state", "good:"), "can still see n1's state because it's refetched from persistence");
-  onex_assert(object_property_contains(n1, "state", "good"),  "can still see n1's state because it's refetched from persistence");
-  onex_assert(      object_property_set(   n1, "state", ":better better:"), "can change n1 to :better better: (awaiting n3/n4 to be notified)");
+  onex_assert_equal(object_property(    n1, "state:1"), "good:",            "can still see n1's state because it's refetched from persistence");
+  onex_assert_equal(object_property(    n1, "state:2"), "good",             "can still see n1's state because it's refetched from persistence");
+  onex_assert(      object_property_set(n1, "state",    ":better better:"), "can change n1 to :better better: (awaiting n3/n4 to be notified)");
   evaluate_persistence_n1_called++;
   return true;
 }
@@ -550,8 +551,8 @@ uint8_t evaluate_persistence_n4_before_called=0;
 
 bool evaluate_persistence_n4_before(object* n4, void* d)
 {
-  onex_assert(object_property_contains(n4, "n3:n2:n1:state", "good:"), "n4 can look through objects in the cache on notify before persist");
-  onex_assert(object_property_contains(n4, "n3:n2:n1:state", "good"),  "n4 can look through objects in the cache on notify before persist");
+  onex_assert_equal(object_property(n4, "n3:n2:n1:state:1"), "good:", "n4 can look through objects in the cache on notify before persist");
+  onex_assert_equal(object_property(n4, "n3:n2:n1:state:2"), "good",  "n4 can look through objects in the cache on notify before persist");
   evaluate_persistence_n4_before_called++;
   return true;
 }
@@ -560,8 +561,8 @@ uint8_t evaluate_persistence_n4_after_called=0;
 
 bool evaluate_persistence_n4_after(object* n4, void* d)
 {
-  onex_assert(object_property_contains(n4, "n3:n2:n1:state", ":better"),   "n4 can look through objects in the cache on notify after persist");
-  onex_assert(object_property_contains(n4, "n3:n2:n1:state", "better:"), "n4 can look through objects in the cache on notify after persist");
+  onex_assert_equal(object_property(n4, "n3:n2:n1:state:1"), ":better", "n4 can look through objects in the cache on notify after persist");
+  onex_assert_equal(object_property(n4, "n3:n2:n1:state:2"), "better:", "n4 can look through objects in the cache on notify after persist");
   evaluate_persistence_n4_after_called++;
   return true;
 }
@@ -581,9 +582,9 @@ void test_persistence(bool actually)
   object_set_evaluator(n1, "evaluate_persistence_n1");
   object_set_evaluator(n4, "evaluate_persistence_n4");
 
-  onex_assert(object_property_contains(n4, "n3:n2:n1:state", "good"),   "n4 can look through objects in the cache");
-  onex_assert(object_property_contains(n4, "n3:n2:n1:state", "mostly"), "n4 can look through objects in the cache");
-  onex_assert(object_property_set(     n1, "state", "good: good"),      "can change n1 to good: good (awaiting n3/n4 to be notified)");
+  onex_assert_equal(object_property(n4, "n3:n2:n1:state:1"), "good",   "n4 can look through objects in the cache");
+  onex_assert_equal(object_property(n4, "n3:n2:n1:state:2"), "mostly", "n4 can look through objects in the cache");
+  onex_assert(object_property_set(     n1, "state", "good: good"),     "can change n1 to good: good (awaiting n3/n4 to be notified)");
   onex_loop();
   onex_loop();
   onex_loop();
@@ -633,7 +634,7 @@ void test_timer()
 
   object_property_set(n4, "Timer", "150");
 
-  onex_assert_equal(object_property(    n4, "Timer"), "150",  "Timer is 150");
+  onex_assert_equal(object_property(    n4, "Timer"),    "150", "Timer is 150");
   onex_assert_equal(object_property(    n2, "n4:Timer"), "150", "n4:Timer is 150");
 }
 
