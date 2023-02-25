@@ -42,6 +42,12 @@ bool  object_property_set(object* n, char* path, char* val);
 /** add property value to list, or make a list. only use inside an evaluator for 'n' */
 bool  object_property_add(object* n, char* path, char* val);
 
+/** set property values into list. only use inside an evaluator for 'n'. must finish list with 0! */
+bool  object_property_set_list(object* n, char* path, ... /* char* val, ..., 0 */);
+
+/** add property values to list, or make a list. only use inside an evaluator for 'n'. must finish list with 0! */
+bool  object_property_add_list(object* n, char* path, ... /* char* val, ..., 0 */);
+
 // object_property_add to ensure in the set
 // object_property_append to add to end of list
 
@@ -117,7 +123,7 @@ void onex_init(char* dbpath);
     which is passed to each evaluator in the chain. */
 void onex_run_evaluators(char* uid, void* data);
 
-/** set the evaluator mapping from name to evaluator function chain. Must finish list with 0! */
+/** set the evaluator mapping from name to evaluator function chain. must finish list with 0! */
 void onex_set_evaluators(char* name, ... /* onex_evaluator evaluator, ..., 0 */);
 
 /** call this to give CPU to Onex.

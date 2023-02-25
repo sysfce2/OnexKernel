@@ -778,6 +778,31 @@ bool object_property_add(object* n, char* path, char* val)
   return ok;
 }
 
+bool object_property_set_list(object* n, char* path, ... /* char* val, ..., 0 */){
+  bool ok=true;
+  object_property_set(n, path, 0);
+  char* val;
+  va_list valist;
+  va_start(valist, path);
+  while(ok && (val = va_arg(valist, char*))){
+    ok=ok && object_property_add(n, path, val);
+  }
+  va_end(valist);
+  return ok;
+}
+
+bool object_property_add_list(object* n, char* path, ... /* char* val, ..., 0 */){
+  bool ok=true;
+  char* val;
+  va_list valist;
+  va_start(valist, path);
+  while(ok && (val = va_arg(valist, char*))){
+    ok=ok && object_property_add(n, path, val);
+  }
+  va_end(valist);
+  return ok;
+}
+
 // ------------------------------------------------------
 
 #define TO_NOTIFY_FREE    0
