@@ -192,6 +192,16 @@ void test_object_set_up()
   onex_assert(      object_property_length(  nv, "x")==2,               "property 'v' is a list of two");
   onex_assert(      object_property_is(      nv, "x:1", "10"),          "list items are correct");
   onex_assert(      object_property_is(      nv, "x:2", "20"),          "list items are correct");
+  // { UID: uid-6  Eval: default  is: varargs  v: a b c d  w: e f  x: 10 20 }
+  onex_assert(      object_property_set_n(   nv, "w", 1, "E"),          "can set 1st el in list");
+  onex_assert(      object_property_is(      nv, "w:1", "E"),           "list items are correct");
+  onex_assert(      object_property_set_n(   nv, "v", 3, "C"),          "can set 3rd el in list");
+  onex_assert(      object_property_is(      nv, "v:3", "C"),           "list items are correct");
+  onex_assert(      object_property_set_n(   nv, "v", 3, ""),           "can set 3rd el in list to empty to delete");
+  onex_assert(      object_property_is(      nv, "v:3", "d"),           "list items are correct");
+  onex_assert(      object_property_set_n(   nv, "v", 1, 0),            "can set 1st el in list to null to delete");
+  onex_assert(      object_property_is(      nv, "v:1", "b"),           "list items are correct");
+  onex_assert(      object_property_is(      nv, "v:2", "d"),           "list items are correct");
 }
 
 // ---------------------------------------------------------------------------------

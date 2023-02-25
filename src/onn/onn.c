@@ -45,40 +45,42 @@
 
 // ---------------------------------------------------------------------------------
 
-static value*      generate_uid();
-static char*       get_key(char** p);
-static char*       get_val(char** p);
-static bool        add_to_cache(object* n);
-static bool        add_to_cache_and_persist(object* n);
-static object*     find_object(char* uid, object* n, bool observe);
-static item*       property_item(object* n, char* path, object* t, bool observe);
-static item*       nested_property_item(object* n, char* path, object* t, bool observe);
-static bool        nested_property_set(object* n, char* path, char* val);
-static bool        nested_property_delete(object* n, char* path);
-static bool        set_value_or_list(object* n, char* key, char* val);
-static bool        add_notify(object* o, char* notify);
-static void        set_notifies(object* o, char* notify);
-static void        save_and_notify(object* n);
-static bool        has_notifies(object* o);
-static void        show_notifies(object* o);
-static object*     new_object(value* uid, char* evaluator, char* is, uint8_t max_size);
-static object*     new_object_from(char* text, uint8_t max_size);
-static object*     new_shell(value* uid);
-static bool        is_shell(object* o);
-static void        run_evaluators(object* o, void* data, value* alerted, bool timedout);
-static bool        run_any_evaluators();
-static void        set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout);
+static value*  generate_uid();
+static char*   get_key(char** p);
+static char*   get_val(char** p);
+static bool    add_to_cache(object* n);
+static bool    add_to_cache_and_persist(object* n);
+static object* find_object(char* uid, object* n, bool observe);
+static item*   property_item(object* n, char* path, object* t, bool observe);
+static item*   nested_property_item(object* n, char* path, object* t, bool observe);
+static bool    nested_property_set(object* n, char* path, char* val);
+static bool    nested_property_set_n(object* n, char* path, uint16_t index, char* val);
+static bool    nested_property_del(object* n, char* path);
+static bool    nested_property_del_n(object* n, char* path, uint16_t index);
+static bool    set_value_or_list(object* n, char* key, char* val);
+static bool    add_notify(object* o, char* notify);
+static void    set_notifies(object* o, char* notify);
+static void    save_and_notify(object* n);
+static bool    has_notifies(object* o);
+static void    show_notifies(object* o);
+static object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size);
+static object* new_object_from(char* text, uint8_t max_size);
+static object* new_shell(value* uid);
+static bool    is_shell(object* o);
+static void    run_evaluators(object* o, void* data, value* alerted, bool timedout);
+static bool    run_any_evaluators();
+static void    set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout);
 
-static void        device_init();
+static void    device_init();
 
-static void        persistence_init(char* filename);
-static bool        persistence_loop();
-static object*     persistence_get(char* uid);
-static void        persistence_put(object* o);
-static void        persistence_flush();
-static void        scan_objects_text_for_keep_active();
+static void    persistence_init(char* filename);
+static bool    persistence_loop();
+static object* persistence_get(char* uid);
+static void    persistence_put(object* o);
+static void    persistence_flush();
+static void    scan_objects_text_for_keep_active();
 
-static void        timer_init();
+static void    timer_init();
 
 // ---------------------------------
 
@@ -398,9 +400,9 @@ item* nested_property_item(object* n, char* path, object* t, bool observe)
     return 0;
   }
   if(i->type==ITEM_LIST){
-    char* e; uint32_t index=strtol(c,&e,10);
+    char* e; uint16_t in=(uint16_t)strtol(c,&e,10);
     if(!(*e==0 || *e==':')) return 0;
-    item* r=list_get_n((list*)i,index);
+    item* r=list_get_n((list*)i,in);
     if(!(r && r->type==ITEM_VALUE && *e==':')) return r;
     char* uid=value_string((value*)r);
     object* o=find_object(uid,t,observe2);
@@ -458,7 +460,7 @@ uint16_t object_property_length(object* n, char* path)
   return 0;
 }
 
-char* object_property_get_n(object* n, char* path, uint8_t index)
+char* object_property_get_n(object* n, char* path, uint16_t index)
 {
   item* v=0;
   item* i=property_item(n,path,n,true);
@@ -641,7 +643,7 @@ bool object_property_set(object* n, char* path, char* val)
   char p[m]; memcpy(p, path, m);
   char* c=strrchr(p, ':');
   if(del){
-    if(c) return nested_property_delete(n, path);
+    if(c) return nested_property_del(n, path);
     item* i=properties_delete(n->properties, p);
     item_free(i);
     bool ok=!!i;
@@ -667,24 +669,33 @@ bool set_value_or_list(object* n, char* key, char* val)
   return ok;
 }
 
-bool nested_property_set(object* n, char* path, char* val)
-{
+bool nested_property_set(object* n, char* path, char* val) {
+  return nested_property_set_n(n, path, 0, val);
+}
+
+bool nested_property_set_n(object* n, char* path, uint16_t index, char* val) {
+
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
-  char* c=strchr(p, ':');
-  *c=0; c++;
+  char* c=0;
+  if(!index){
+    c=strchr(p, ':');
+    *c=0; c++;
+  }
   item* i=property_item(n,p,0,true);
   bool ok=false;
   if(i) switch(i->type){
     case ITEM_VALUE: {
-      if(!strcmp(c,"1")) ok=set_value_or_list(n, p, val); // not single
+      if((index && index==1) || !strcmp(c,"1")){
+        ok=set_value_or_list(n, p, val); // not single
+      }
       break;
     }
     case ITEM_LIST: {
-      char* e; uint32_t index=strtol(c,&e,10);
+      char* e; uint16_t in=index? index: (uint16_t)strtol(c,&e,10);
       list* l=(list*)i;
-      item_free(list_get_n(l, index));
-      ok=list_set_n(l, index, value_new(val)); // not single
+      item_free(list_get_n(l, in));
+      ok=list_set_n(l, in, value_new(val)); // not single
       break;
     }
     case ITEM_PROPERTIES: {
@@ -695,17 +706,25 @@ bool nested_property_set(object* n, char* path, char* val)
   return ok;
 }
 
-bool nested_property_delete(object* n, char* path)
+bool nested_property_del(object* n, char* path)
 {
+  return nested_property_del_n(n, path, 0);
+}
+
+bool nested_property_del_n(object* n, char* path, uint16_t index) {
+
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
-  char* c=strchr(p, ':');
-  *c=0; c++;
+  char* c=0;
+  if(!index){
+    c=strchr(p, ':');
+    *c=0; c++;
+  }
   item* i=property_item(n,p,0,true);
   bool ok=false;
   if(i) switch(i->type){
     case ITEM_VALUE: {
-      if(!strcmp(c,"1")){
+      if((index && index==1) || !strcmp(c,"1")){
         item* i=properties_delete(n->properties, p);
         item_free(i);
         ok=!!i;
@@ -713,9 +732,9 @@ bool nested_property_delete(object* n, char* path)
       break;
     }
     case ITEM_LIST: {
-      char* e; uint32_t index=strtol(c,&e,10);
+      char* e; uint16_t in=index? index: (uint16_t)strtol(c,&e,10);
       list* l=(list*)i;
-      item* i=list_del_n(l, index);
+      item* i=list_del_n(l, in);
       item_free(i);
       ok=!!i;
       if(!ok) break;
@@ -801,6 +820,20 @@ bool object_property_set_fmt(object* n, char* path, char* fmt, ... /* <any> val,
   ok=object_property_set(n, path, argbuf);
   va_end(args);
   return ok;
+}
+
+bool object_property_set_n(object* n, char* path, uint16_t index, char* val){
+  if(!n->running_evals && has_notifies(n)){
+#if defined(LOG_TO_GFX) || defined(LOG_TO_BLE)
+    char* uid=value_string(n->uid);
+    log_write("N+%.*s", 12, uid+4);
+#else
+    log_write("\nSetting property in an object but not running in an evaluator! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
+#endif
+  }
+  bool del=(!val || !*val);
+  if(del) return nested_property_del_n(n, path, index);
+  ;       return nested_property_set_n(n, path, index, val);
 }
 
 bool object_property_add_list(object* n, char* path, ... /* char* val, ..., 0 */){

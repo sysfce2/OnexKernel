@@ -48,6 +48,9 @@ bool  object_property_set_list(object* n, char* path, ... /* char* val, ..., 0 *
 /** set property values into list from printf format. only use inside an evaluator for 'n'. */
 bool  object_property_set_fmt(object* n, char* path, char* fmt, ... /* <any> val, ... */);
 
+/** set property value at path and index into list. */
+bool object_property_set_n(object* n, char* path, uint16_t index, char* val);
+
 /** add property values to list, or make a list. only use inside an evaluator for 'n'. must finish list with 0! */
 bool  object_property_add_list(object* n, char* path, ... /* char* val, ..., 0 */);
 
@@ -79,7 +82,7 @@ bool  object_property_contains_peek(object* n, char* path, char* expected);
 uint16_t object_property_length(object* n, char* path);
 
 /** return property value at path and index into list. */
-char* object_property_get_n(object* n, char* path, uint8_t index);
+char* object_property_get_n(object* n, char* path, uint16_t index);
 
 /** return how many properties there are at a path, or -1 if it's not a properties there. */
 int16_t object_property_size(object* n, char* path);
