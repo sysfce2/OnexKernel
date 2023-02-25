@@ -686,7 +686,7 @@ bool nested_property_set_n(object* n, char* path, uint16_t index, char* val) {
   bool ok=false;
   if(i) switch(i->type){
     case ITEM_VALUE: {
-      if((index && index==1) || !strcmp(c,"1")){
+      if((index && index==1) || (c && !strcmp(c,"1"))){
         ok=set_value_or_list(n, p, val); // not single
       }
       break;
@@ -724,7 +724,7 @@ bool nested_property_del_n(object* n, char* path, uint16_t index) {
   bool ok=false;
   if(i) switch(i->type){
     case ITEM_VALUE: {
-      if((index && index==1) || !strcmp(c,"1")){
+      if((index && index==1) || (c && !strcmp(c,"1"))){
         item* i=properties_delete(n->properties, p);
         item_free(i);
         ok=!!i;

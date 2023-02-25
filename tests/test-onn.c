@@ -202,6 +202,16 @@ void test_object_set_up()
   onex_assert(      object_property_set_n(   nv, "v", 1, 0),            "can set 1st el in list to null to delete");
   onex_assert(      object_property_is(      nv, "v:1", "b"),           "list items are correct");
   onex_assert(      object_property_is(      nv, "v:2", "d"),           "list items are correct");
+  onex_assert(     !object_property_set_n(   nv, "v", 3, "C"),          "can't set 3rd el in list");
+  onex_assert(      object_property_set_n(   nv, "v", 1, ""),           "can delete 1st el in list");
+  onex_assert(      object_property_is(      nv, "v:1", "d"),           "list items are correct");
+  onex_assert(      object_property_is(      nv, "v", "d"),             "non-list items are correct");
+  onex_assert(     !object_property_set_n(   nv, "v", 2, "c"),          "can't set 2nd el in non-list");
+  onex_assert(     !object_property_set_n(   nv, "v", 2, 0),            "can't del 2nd el in non-list");
+  onex_assert(     !object_property_set(     nv, "v:2", "c"),           "can't set 2nd el in non-list");
+  onex_assert(     !object_property_set(     nv, "v:2", 0),             "can't del 2nd el in non-list");
+  onex_assert(     !object_property_get_n(   nv, "v", 2),               "can't get 2nd el in non-list");
+  onex_assert(     !object_property(         nv, "v:2"),                "can't get 2nd el in non-list");
 }
 
 // ---------------------------------------------------------------------------------
