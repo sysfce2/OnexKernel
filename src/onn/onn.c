@@ -823,10 +823,11 @@ bool object_property_set_fmt(object* n, char* path, char* fmt, ... /* <any> val,
 }
 
 bool object_property_set_n(object* n, char* path, uint16_t index, char* val){
+
   if(!n->running_evals && has_notifies(n)){
 #if defined(LOG_TO_GFX) || defined(LOG_TO_BLE)
     char* uid=value_string(n->uid);
-    log_write("N+%.*s", 12, uid+4);
+    log_write("N!%.*s", 12, uid+4);
 #else
     log_write("\nSetting property in an object but not running in an evaluator! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
 #endif
