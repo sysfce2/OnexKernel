@@ -212,6 +212,7 @@ void test_object_set_up()
   onex_assert(     !object_property_set(     nv, "v:2", 0),             "can't del 2nd el in non-list");
   onex_assert(     !object_property_get_n(   nv, "v", 2),               "can't get 2nd el in non-list");
   onex_assert(     !object_property(         nv, "v:2"),                "can't get 2nd el in non-list");
+  // { UID: uid-6 Eval: default is: varargs v: d w: E f x: 10 20 }
 }
 
 // ---------------------------------------------------------------------------------
@@ -241,7 +242,7 @@ bool evaluate_local_state_n3(object* n3, void* d)
 {
   evaluate_local_state_n3_called++;
   // UID: uid-2  is: local-state  state: good
-  // UID: uid-3  is: local-state  n2: uid-2  self: uid-3  n* uid-1 uid-2 uid-3 uid-4 uid-5
+  // UID: uid-3  is: local-state  n2: uid-2  self: uid-3  n*: uid-1 uid-2 uid-3 uid-4 uid-5
   onex_assert(     !object_property(         n3, "is:foo"),                     "can't find is:foo");
   onex_assert_equal(object_property(         n3, "n2"), "uid-2",                "can see UID of local object immediately: n2");
   onex_assert(     !object_property(         n3, "n2:"),                        "cannot end in :");
@@ -290,6 +291,11 @@ bool evaluate_local_state_n3(object* n3, void* d)
   onex_assert(     !object_property(         n3, "n*"),                         "can't see n* as string cos it's a list");
   onex_assert_equal(object_property(         n3, "n2:n1:state:1"), "good",      "can see through n2 to n1");
   onex_assert_equal(object_property(         n3, "n2:n1:state:2"), "mostly",    "can see through n2 to n1");
+/*
+{ UID: uid-3 is: local-state   n2: uid-2   self: uid-3   n*: uid-1 uid-2 uid-3 uid-4 uid-5 }
+{ UID: uid-2 is: local-state   state: good          n1: uid-1 }
+{ UID: uid-1 is: setup         state: good mostly   1: a c 2: ok m8 }
+*/
   return true;
 }
 
