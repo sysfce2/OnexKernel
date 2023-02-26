@@ -321,8 +321,7 @@ static char* object_property_observe(object* n, char* path, bool observe)
   return 0;
 }
 
-char* object_property(object* n, char* path)
-{
+char* object_property(object* n, char* path) {
   return object_property_observe(n, path, true);
 }
 
@@ -815,7 +814,7 @@ bool object_property_set_fmt(object* n, char* path, char* fmt, ... /* <any> val,
   char valbuf[MAX_TEXT_LEN];
   va_list args;
   va_start(args, fmt);
-  vsnprintf((char*)valbuf, MAX_TEXT_LEN, fmt, args);
+  vsnprintf(valbuf, MAX_TEXT_LEN, fmt, args);
   va_end(args);
 
   return object_property_set(n, path, valbuf);

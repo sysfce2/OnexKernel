@@ -57,7 +57,7 @@ bool  object_property_add_list(object* n, char* path, ... /* char* val, ..., 0 *
 // object_property_add to ensure in the set
 // object_property_append to add to end of list
 
-/** return property value or nothing if it's a list. */
+/** return single property value or nothing if it's a list. */
 char* object_property(object* n, char* path);
 
 /** return property value or nothing if it's a list; don't observe any sub-objects on the path. */
