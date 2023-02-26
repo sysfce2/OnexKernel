@@ -296,6 +296,12 @@ bool evaluate_local_state_n3(object* n3, void* d)
 { UID: uid-2 is: local-state   state: good          n1: uid-1 }
 { UID: uid-1 is: setup         state: good mostly   1: a c 2: ok m8 }
 */
+  onex_assert_equal(    object_pathpair(         n3, "n2:n1", "state:1"),  "good",    "can see through n2 to n1 using pathpair");
+  onex_assert(          object_pathpair_is(      n3, "n2:n1", "state:2",   "mostly"), "can see through n2 to n1 using pathpair and _is");
+  onex_assert(          object_pathpair_contains(n3, "n2:n1", "state",     "mostly"), "can see through n2 to n1 using pathpair and _contains");
+  onex_assert_equal_num(object_pathpair_length(  n3, "n2:n1", "state"),    2,         "pathpair length is 2");
+  onex_assert_equal(    object_pathpair_get_n(   n3, "n2:n1", "state", 1), "good",    "can see through n2 to n1 using pathpair");
+  onex_assert_equal(    object_pathpair_get_n(   n3, "n2:n1", "state", 2), "mostly",  "can see through n2 to n1 using pathpair");
   return true;
 }
 
