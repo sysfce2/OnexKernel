@@ -399,16 +399,16 @@ item* property_item(object* n, char* path, object* t, bool observe)
   if(!strcmp(path, "Alerted")) return (item*)n->alerted;
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
-  char* c=strrchr(p, ':');
+  char* c=find_unescaped_colon(p);
   if(!c) return properties_get(n->properties, p);
-  return nested_property_item(n, p, t, observe);
+  return nested_property_item(n, path, t, observe);
 }
 
 item* nested_property_item(object* n, char* path, object* t, bool observe)
 {
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
-  char* c=strchr(p, ':');
+  char* c=find_unescaped_colon(p);
   *c=0; c++;
   bool observe2=observe && !isupper((unsigned char)(*p));
   item* i=property_item(n,p,t,observe2);
@@ -704,7 +704,7 @@ bool object_property_set(object* n, char* path, char* val)
   }
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
-  char* c=strrchr(p, ':');
+  char* c=find_unescaped_colon(p);
   if(del){
     if(c) return nested_property_del(n, path);
     item* i=properties_delete(n->properties, p);
@@ -713,7 +713,7 @@ bool object_property_set(object* n, char* path, char* val)
     if(ok) save_and_notify(n);
     return ok;
   }
-  if(c) return nested_property_set(n, p, val);
+  if(c) return nested_property_set(n, path, val);
   bool ok=set_value_or_list(n, p, val);
   if(ok) save_and_notify(n);
   return ok;
@@ -742,7 +742,7 @@ bool nested_property_set_n(object* n, char* path, uint16_t index, char* val) {
   char p[m]; memcpy(p, path, m);
   char* c=0;
   if(!index){
-    c=strchr(p, ':');
+    c=find_unescaped_colon(p);
     *c=0; c++;
   }
   item* i=property_item(n,p,0,true);
@@ -780,7 +780,7 @@ bool nested_property_del_n(object* n, char* path, uint16_t index) {
   char p[m]; memcpy(p, path, m);
   char* c=0;
   if(!index){
-    c=strchr(p, ':');
+    c=find_unescaped_colon(p);
     *c=0; c++;
   }
   item* i=property_item(n,p,0,true);
@@ -825,17 +825,20 @@ bool object_property_add(object* n, char* path, char* val)
     log_write("\nSetting property in an object but not running in an evaluator! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
 #endif
   }
-  if(strchr(path, ':')) return false; // no sub-properties yet
+  size_t m=strlen(path)+1;
+  char p[m]; memcpy(p, path, m);
+  if(find_unescaped_colon(p)) return false; // no sub-properties yet
+
   if(!val || !*val) return 0;
-  if(!strcmp(path, "Notifying")){
+  if(!strcmp(p, "Notifying")){
     if(!is_uid(val)) return false;
     add_notify(n, val);
     return true;
   }
-  item* i=properties_get(n->properties, path);
+  item* i=properties_get(n->properties, p);
   bool ok=true;
   if(!i){
-    ok=properties_set(n->properties, path, value_new(val)); // not single
+    ok=properties_set(n->properties, p, value_new(val)); // not single
   }
   else
   switch(i->type){
@@ -843,7 +846,7 @@ bool object_property_add(object* n, char* path, char* val)
       list* l=list_new(MAX_LIST_SIZE);
       ok=ok && list_add(l,i);
       ok=ok && list_add(l,value_new(val)); // not single
-      ok=ok && properties_set(n->properties, path, l);
+      ok=ok && properties_set(n->properties, p, l);
       break;
     }
     case ITEM_LIST: {
