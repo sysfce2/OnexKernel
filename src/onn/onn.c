@@ -123,6 +123,15 @@ char* remove_char_in_place(char* s, char remove){
   return s;
 }
 
+char* prefix_char_in_place(char* s, char prefix, char target){
+  char ss[64]; mem_strncpy(ss, s, 64);
+  char* pr=ss;
+  char* pw=s;
+  while(*pr){ if(*pr==target) *pw++ = prefix; *pw++ = *pr++; }
+  *pw=0;
+  return s;
+}
+
 value* generate_uid()
 {
   char b[24];

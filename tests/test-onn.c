@@ -525,6 +525,7 @@ bool evaluate_remote_notify_n4(object* n4, void* d)
 
 extern char* find_unescaped_colon(char*);
 extern char* remove_char_in_place(char* s, char remove);
+extern char* prefix_char_in_place(char* s, char prefix, char target);
 
 void test_from_text() {
 
@@ -542,6 +543,8 @@ void test_from_text() {
   char banana_rem[]="banana";
   onex_assert_equal(remove_char_in_place(banana_rem, 'a'), "bnn", "can remove all of a given char");
 
+  char banana_pre[32]; memcpy(banana_pre, "banana", strlen("banana")+1);
+  onex_assert_equal(prefix_char_in_place(banana_pre, 'a', 'n'), "baanaana", "can prefix all of a given char");
 
   object* n1=onex_get_from_cache("uid-1");
   object* n2=onex_get_from_cache("uid-2");
