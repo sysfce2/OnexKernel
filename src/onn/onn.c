@@ -400,7 +400,7 @@ item* property_item(object* n, char* path, object* t, bool observe)
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
   char* c=find_unescaped_colon(p);
-  if(!c) return properties_get(n->properties, p);
+  if(!c) return properties_get(n->properties, remove_char_in_place(p, '\\'));
   return nested_property_item(n, path, t, observe);
 }
 
@@ -707,14 +707,14 @@ bool object_property_set(object* n, char* path, char* val)
   char* c=find_unescaped_colon(p);
   if(del){
     if(c) return nested_property_del(n, path);
-    item* i=properties_delete(n->properties, p);
+    item* i=properties_delete(n->properties, remove_char_in_place(p, '\\'));
     item_free(i);
     bool ok=!!i;
     if(ok) save_and_notify(n);
     return ok;
   }
   if(c) return nested_property_set(n, path, val);
-  bool ok=set_value_or_list(n, p, val);
+  bool ok=set_value_or_list(n, remove_char_in_place(p, '\\'), val);
   if(ok) save_and_notify(n);
   return ok;
 }
@@ -750,7 +750,7 @@ bool nested_property_set_n(object* n, char* path, uint16_t index, char* val) {
   if(i) switch(i->type){
     case ITEM_VALUE: {
       if((index && index==1) || (c && !strcmp(c,"1"))){
-        ok=set_value_or_list(n, p, val); // not single
+        ok=set_value_or_list(n, remove_char_in_place(p, '\\'), val); // not single
       }
       break;
     }
@@ -788,7 +788,7 @@ bool nested_property_del_n(object* n, char* path, uint16_t index) {
   if(i) switch(i->type){
     case ITEM_VALUE: {
       if((index && index==1) || (c && !strcmp(c,"1"))){
-        item* i=properties_delete(n->properties, p);
+        item* i=properties_delete(n->properties, remove_char_in_place(p, '\\'));
         item_free(i);
         ok=!!i;
       }
@@ -802,7 +802,7 @@ bool nested_property_del_n(object* n, char* path, uint16_t index) {
       ok=!!i;
       if(!ok) break;
       if(list_size(l)==1){
-        properties_set(n->properties, p, list_get_n(l,1));
+        properties_set(n->properties, remove_char_in_place(p, '\\'), list_get_n(l,1));
         list_free(l, false);
       }
       break;
@@ -835,6 +835,7 @@ bool object_property_add(object* n, char* path, char* val)
     add_notify(n, val);
     return true;
   }
+  remove_char_in_place(p, '\\');
   item* i=properties_get(n->properties, p);
   bool ok=true;
   if(!i){
