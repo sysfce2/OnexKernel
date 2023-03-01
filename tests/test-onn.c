@@ -489,7 +489,7 @@ void test_to_text()
   char* n1text="UID: uid-1 Eval: evaluate_remote_notify_n1 Notify: uid-3 is: setup state: good mostly 1: a c 2: ok m8";
   char* n2text="UID: uid-2 Eval: evaluate_remote_notify_n2 Notify: uid-3 is: local-state state: better\\: n1: uid-1";
   char* n3text="UID: uid-3 Eval: evaluate_local_notify_n3 Notify: uid-3 uid-2 uid-4 is: local state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5 state: changed";
-  char* n4text="UID: uid-4 Eval: evaluate_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 xy: a :z:q\\: b last: one state: good";
+  char* n4text="UID: uid-4 Eval: evaluate_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 x:y: a :z:q\\: b last: one state: good";
 
   onex_assert_equal(object_to_text(n1,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), n1text, "converts uid-1 to correct text");
   onex_assert_equal(object_to_text(n2,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), n2text, "converts uid-2 to correct text");
@@ -551,25 +551,25 @@ void test_from_text() {
   object_set_evaluator(n1, "evaluate_remote_notify_n1");
   object_set_evaluator(n2, "evaluate_remote_notify_n2");
 
-  char* text=" UID:   uid-4   Eval:  evaluate_remote_notify_n4 Notify: uid-1   uid-2   is: remote  state ab: m\\: :c:d\\:  n n3: uid-3 xy:  a :z:q\\:  b  last: one\n";
+  char* text=" UID:   uid-4   Eval:  evaluate_remote_notify_n4 Notify: uid-1   uid-2   is: remote  state ab: m\\: :c:d\\:  n n3: uid-3 x:y:  a :z:q\\:  b  last: one\n";
   object* n4=object_new_from(text, 6);
   onex_assert(!!n4, "input text was parsed into an object");
   if(!n4) return;
-  char* totext="UID: uid-4 Eval: evaluate_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 xy: a :z:q\\: b last: one";
+  char* totext="UID: uid-4 Eval: evaluate_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 x:y: a :z:q\\: b last: one";
 
-  onex_assert_equal(object_property(         n4, "UID"), "uid-4",   "object_new_from parses uid");
-  onex_assert(      object_property_contains(n4, "is", "remote"),   "object_new_from parses is");
-  onex_assert(      object_property_contains(n4, "is", "state"),    "object_new_from parses is");
-  onex_assert_equal(object_property(         n4, "is:1"), "remote", "object_new_from parses 'is' first list item" );
-  onex_assert_equal(object_property(         n4, "is:2"), "state",  "object_new_from parses 'is' second list item" );
-  onex_assert_equal(object_property(         n4, "n3"), "uid-3",    "object_new_from parses n3");
-  onex_assert_equal(object_property(         n4, "ab:1"), "m:",     "object_new_from parses all the escaped colons");
-  onex_assert_equal(object_property(         n4, "ab:2"), ":c:d:",  "object_new_from parses all the escaped colons");
-  onex_assert_equal(object_property(         n4, "ab:3"), "n",      "object_new_from parses all the escaped colons");
-  onex_assert_equal(object_property(         n4, "xy:1"), "a",      "object_new_from parses all the escaped colons");
-  onex_assert_equal(object_property(         n4, "xy:2"), ":z:q:",  "object_new_from parses all the escaped colons");
-  onex_assert_equal(object_property(         n4, "xy:3"), "b",      "object_new_from parses all the escaped colons");
-  onex_assert_equal(object_property(         n4, "last"), "one",    "object_new_from parses last one as single value without newline");
+  onex_assert_equal(object_property(         n4, "UID"), "uid-4",     "object_new_from parses uid");
+  onex_assert(      object_property_contains(n4, "is", "remote"),     "object_new_from parses is");
+  onex_assert(      object_property_contains(n4, "is", "state"),      "object_new_from parses is");
+  onex_assert_equal(object_property(         n4, "is:1"), "remote",   "object_new_from parses 'is' first list item" );
+  onex_assert_equal(object_property(         n4, "is:2"), "state",    "object_new_from parses 'is' second list item" );
+  onex_assert_equal(object_property(         n4, "n3"), "uid-3",      "object_new_from parses n3");
+  onex_assert_equal(object_property(         n4, "ab:1"), "m:",       "object_new_from parses all the escaped colons");
+  onex_assert_equal(object_property(         n4, "ab:2"), ":c:d:",    "object_new_from parses all the escaped colons");
+  onex_assert_equal(object_property(         n4, "ab:3"), "n",        "object_new_from parses all the escaped colons");
+  onex_assert_equal(object_property(         n4, "x\\:y:1"), "a",     "object_new_from parses all the escaped colons");
+  onex_assert_equal(object_property(         n4, "x\\:y:2"), ":z:q:", "object_new_from parses all the escaped colons");
+  onex_assert_equal(object_property(         n4, "x\\:y:3"), "b",     "object_new_from parses all the escaped colons");
+  onex_assert_equal(object_property(         n4, "last"), "one",      "object_new_from parses last one as single value without newline");
 
   onex_assert_equal(object_to_text(        n4,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), totext, "gives same text back from reconstruction");
 
