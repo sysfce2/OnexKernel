@@ -668,7 +668,11 @@ bool object_property_set(object* n, char* path, char* val)
     char* uid=value_string(n->uid);
     log_write("N!%s %s %s %s", uid+4+15, object_property(n, "is"), path, val);
 #else
-    log_write("\nSetting property in an object but not running in an evaluator! uid: %s  %s: '%s'\n\n", value_string(n->uid), path, val? val: "");
+    log_write("----\n"
+              "Setting property in an object but not running in an evaluator!\n"
+              "uid: %s is: %s %s: '%s'\n"
+              "----\n",
+              value_string(n->uid), object_property(n, "is:1"), path, val? val: "");
 #endif
   }
   bool del=(!val || !*val);
