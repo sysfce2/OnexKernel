@@ -1,0 +1,39 @@
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <string.h>
+
+#include <onex-kernel/mem.h>
+#include <onex-kernel/lib.h>
+
+char* find_unescaped_colon(char* p){
+  char* c;
+  char* t=p;
+  do {
+    c=strchr(t,':');
+    if(!c) return 0;
+    if(c && (c==p || (*(c-1)) != '\\')) return c;
+    t=c+1;
+  } while(*t);
+  return 0;
+}
+
+char* remove_char_in_place(char* s, char remove){
+  char* pr=s;
+  char* pw=s;
+  while(*pr){ if(*pr==remove) pr++; *pw++ = *pr++; }
+  *pw=0;
+  return s;
+}
+
+char* prefix_char_in_place(char* s, char prefix, char target){
+  char ss[64]; mem_strncpy(ss, s, 64);
+  char* pr=ss;
+  char* pw=s;
+  while(*pr){ if(*pr==target) *pw++ = prefix; *pw++ = *pr++; }
+  *pw=0;
+  return s;
+}
+
+

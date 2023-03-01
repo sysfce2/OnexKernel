@@ -23,6 +23,7 @@ TESTS_SOURCES = \
 
 
 LIB_SOURCES = \
+./src/lib/lib.c \
 ./src/lib/list.c \
 ./src/lib/value.c \
 ./src/lib/tests.c \
