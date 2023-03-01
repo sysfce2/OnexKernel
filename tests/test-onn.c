@@ -524,7 +524,7 @@ bool evaluate_remote_notify_n4(object* n4, void* d)
 }
 
 extern char* find_unescaped_colon(char*);
-extern char* remove_char_in_place(char*, char);
+extern char* remove_char_in_place(char* s, char remove);
 
 void test_from_text() {
 
@@ -539,8 +539,9 @@ void test_from_text() {
   onex_assert_equal(find_unescaped_colon("a:b\\:c"),   ":b\\:c", "found first colon not the unescaped one");
   onex_assert(     !find_unescaped_colon("a\\:b\\:c"),           "no colon if all escaped");
 
-  char banana[]="banana";
-  onex_assert_equal(remove_char_in_place(banana, 'a'), "bnn", "can remove all of a given char");
+  char banana_rem[]="banana";
+  onex_assert_equal(remove_char_in_place(banana_rem, 'a'), "bnn", "can remove all of a given char");
+
 
   object* n1=onex_get_from_cache("uid-1");
   object* n2=onex_get_from_cache("uid-2");

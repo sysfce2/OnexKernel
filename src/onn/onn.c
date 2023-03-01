@@ -115,12 +115,12 @@ char* find_unescaped_colon(char* p){
   return 0;
 }
 
-char* remove_char_in_place(char* p, char c) {
-  char* pr=p;
-  char* pw=p;
-  while(*pr){ *pw=*pr; pw+=(*pw!=c); pr++; }
+char* remove_char_in_place(char* s, char remove){
+  char* pr=s;
+  char* pw=s;
+  while(*pr){ if(*pr==remove) pr++; *pw++ = *pr++; }
   *pw=0;
-  return p;
+  return s;
 }
 
 value* generate_uid()
