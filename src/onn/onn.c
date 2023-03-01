@@ -1074,7 +1074,7 @@ void save_and_notify(object* o)
     set_to_notify(onex_device_object->uid, 0, o->uid, 0);
   }
   if(o==onex_device_object){
-    set_to_notify(value_new("all channels"), 0, o->uid, 0);
+    set_to_notify(value_new("all-channels"), 0, o->uid, 0);
   }
 }
 

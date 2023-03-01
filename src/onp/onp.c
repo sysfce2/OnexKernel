@@ -134,7 +134,7 @@ void send(char* buff, char* channel)
 {
   uint16_t size=0;
 #ifdef ONP_CHANNEL_SERIAL
-  if(!strcmp(channel, "serial") || !strcmp(channel, "all channels")){
+  if(!strcmp(channel, "serial") || !strcmp(channel, "all-channels")){
     size = channel_serial_send(buff, strlen(buff));
     log_sent(buff,size,channel,0);
   }
