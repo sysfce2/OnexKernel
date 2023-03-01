@@ -103,6 +103,26 @@ object* onex_device_object=0;
 
 // ---------------------------------
 
+char* find_unescaped_colon(char* p){
+  char* c;
+  char* t=p;
+  do {
+    c=strchr(t,':');
+    if(!c) return 0;
+    if(c && (c==p || (*(c-1)) != '\\')) return c;
+    t=c+1;
+  } while(*t);
+  return 0;
+}
+
+char* remove_char_in_place(char* p, char c) {
+  char* pr=p;
+  char* pw=p;
+  while(*pr){ *pw=*pr; pw+=(*pw!=c); pr++; }
+  *pw=0;
+  return p;
+}
+
 value* generate_uid()
 {
   char b[24];
