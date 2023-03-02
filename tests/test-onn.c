@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <onex-kernel/lib.h>
 #include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
 #include <tests.h>
@@ -522,10 +523,6 @@ bool evaluate_remote_notify_n4(object* n4, void* d)
   evaluate_remote_notify_n4_called++;
   return true;
 }
-
-extern char* find_unescaped_colon(char*);
-extern char* remove_char_in_place(char* s, char remove);
-extern char* prefix_char_in_place(char* s, char prefix, char target);
 
 void test_from_text() {
 
