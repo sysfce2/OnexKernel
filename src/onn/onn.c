@@ -803,7 +803,7 @@ bool object_property_add(object* n, char* path, char* val)
     char* uid=value_string(n->uid);
     log_write("N+%.*s", 12, uid+4);
 #else
-    log_write("\nSetting property in an object but not running in an evaluator! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
+    log_write("\nAdding property in an object but not running in an evaluator! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
 #endif
   }
   size_t m=strlen(path)+1;
@@ -811,6 +811,7 @@ bool object_property_add(object* n, char* path, char* val)
   if(find_unescaped_colon(p)) return false; // no sub-properties yet
 
   if(!val || !*val) return 0;
+
   if(!strcmp(p, "Notifying")){
     if(!is_uid(val)) return false;
     add_notify(n, val);

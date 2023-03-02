@@ -74,13 +74,13 @@ void* list_get_n(list* li, uint16_t index)
   return li->vals[index-1];
 }
 
-void* list_del_n(list* li, uint16_t index)
-{
+void* list_del_n(list* li, uint16_t index) {
+
   if(!li) return 0;
-  if(index<=0 || index>li->size) return 0;
-  int j=index-1;
-  void* v=li->vals[j];
-  for(; j < li->size-1; j++){
+  if(index==0 || index>li->size) return 0;
+
+  void* v=li->vals[index-1];
+  for(int16_t j=index-1; j < li->size-1; j++){
     li->vals[j] = li->vals[j+1];
   }
   li->size--;
@@ -96,7 +96,7 @@ uint16_t list_size(list* li)
 uint16_t list_find(list* li, item* it)
 {
   if(!li) return 0;
-  for(int j=0; j<li->size; j++){
+  for(uint16_t j=0; j<li->size; j++){
     if(item_equal((item*)li->vals[j], it)) return j+1;
   }
   return 0;
@@ -105,7 +105,7 @@ uint16_t list_find(list* li, item* it)
 void list_clear(list* li, bool free_items)
 {
   if(!li || !li->size) return;
-  if(free_items) for(int j=0; j<li->size; j++) item_free((item*)li->vals[j]);
+  if(free_items) for(uint16_t j=0; j<li->size; j++) item_free((item*)li->vals[j]);
   li->size=0;
 }
 
@@ -122,8 +122,8 @@ char* list_to_text(list* li, char* b, uint16_t s)
   if(!li){ *b = 0; return b; }
   *b=0;
   if(!li || !li->size) return b;
-  int ln=0;
-  for(int j=0; j<li->size; j++){
+  uint16_t ln=0;
+  for(uint16_t j=0; j<li->size; j++){
     ln+=strlen(item_to_text(li->vals[j], b+ln, s-ln));
     if(ln>=s){ *b = 0; return b; }
     if(j!=li->size-1) ln+=snprintf(b+ln, s-ln, " ");

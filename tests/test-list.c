@@ -10,7 +10,7 @@ void test_list()
 {
   char buf[32];
 
-  list* li=list_new(3);
+  list* li=list_new(4);
                                  list_add(  li, value_new("y"));
                                  list_add(  li, value_new("3"));
 
@@ -35,17 +35,21 @@ void test_list()
 
   onex_assert(                   list_set_n(li,3,value_new("+")), "now can set 3rd item");
 
-  onex_assert(                  !list_add(  li,value_new("N")),   "shouldn't be able to add a fourth item");
-  onex_assert(                   list_size( li)==3,               "size should still be 3");
+  onex_assert(                   list_add(  li,value_new("N")),   "should be able to add a fourth item");
+  onex_assert(                   list_size( li)==4,               "size should be 4");
+
+  onex_assert(                  !list_add(  li,value_new("X")),   "shouldn't be able to add a fifth item");
+  onex_assert(                   list_size( li)==4,               "size should still be 4");
 
   onex_assert_equal_num(         list_find( li, (item*)value_new("y")), 1,          "y is found at location 1");
   onex_assert_equal_num(         list_find( li, (item*)value_new("5")), 2,          "5 is found at location 2");
   onex_assert_equal_num(         list_find( li, (item*)value_new("+")), 3,          "+ is found at location 3");
   onex_assert_equal_num(         list_find( li, (item*)value_new("X")), 0,          "X is not found ");
 
-  onex_assert_equal(item_to_text(li, buf, 32), "y 5 +", "serialise to string works");
+  onex_assert_equal(item_to_text(li, buf, 32), "y 5 + N", "serialise to string works");
 
   onex_assert(                   list_del_n(li,2),                "can delete 2nd item");
+  onex_assert(                   list_del_n(li,3),                "can delete 3rd item");
   onex_assert(                   list_size( li)==2,               "size now 2");
 
   onex_assert_equal(item_to_text(li, buf, 32), "y +", "serialise to string works");

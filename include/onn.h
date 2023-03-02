@@ -39,8 +39,9 @@ bool object_is_keep_active(object* n);
 /** set property value. only use inside an evaluator for 'n' */
 bool  object_property_set(object* n, char* path, char* val);
 
-/** add property value to list, or make a list. only use inside an evaluator for 'n' */
+/** append property value onto end of any list. only use inside an evaluator for 'n' */
 bool  object_property_add(object* n, char* path, char* val);
+#define object_property_append(n, path, val) object_property_add(n, path, val)
 
 /** set property values into list. only use inside an evaluator for 'n'. must finish list with 0! */
 bool  object_property_set_list(object* n, char* path, ... /* char* val, ..., 0 */);
