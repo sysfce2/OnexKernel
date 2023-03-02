@@ -43,6 +43,10 @@ bool  object_property_set(object* n, char* path, char* val);
 bool  object_property_add(object* n, char* path, char* val);
 #define object_property_append(n, path, val) object_property_add(n, path, val)
 
+/** insert property value into any list or prepend. only use inside an evaluator for 'n' */
+bool  object_property_insert(object* n, char* path, char* val);
+#define object_property_prepend(n, path, val) object_property_insert(n, path, val)
+
 /** set property values into list. only use inside an evaluator for 'n'. must finish list with 0! */
 bool  object_property_set_list(object* n, char* path, ... /* char* val, ..., 0 */);
 

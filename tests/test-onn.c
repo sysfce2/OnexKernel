@@ -150,6 +150,23 @@ void test_object_set_up()
   onex_assert_equal(object_property(         n1, "2:2"), "mate", "2nd is mate");
   // UID: uid-1  is: setup  state: good mostly  1: a c  2: ok mate
   onex_assert(      object_property_length(  n1, "2")==2,        "2 els");
+  onex_assert(      object_property_set(     n1, "2", 0),        "can delete whole list");
+  onex_assert(      object_property_length(  n1, "2")==0,        "check empty");
+  // UID: uid-1  is: setup  state: good mostly  1: a c
+  onex_assert(      object_property_prepend( n1, "2", "mate"),   "can prepend to list using prepend macro");
+  onex_assert_equal(object_property(         n1, "2:1"), "mate", "1st is mate");
+  onex_assert(      object_property_length(  n1, "2")==1,        "1 el");
+  // UID: uid-1  is: setup  state: good mostly  1: a c  2: mate
+  onex_assert(      object_property_insert(  n1, "2", "ok"),     "can insert (prepend) into list");
+  onex_assert_equal(object_property(         n1, "2:1"), "ok",   "1st is now 'ok'");
+  onex_assert(      object_property_length(  n1, "2")==2,        "2 els");
+  // UID: uid-1  is: setup  state: good mostly  1: a c  2: ok mate
+  onex_assert(      object_property_insert(  n1, "2", "well"),   "can insert (prepend) into list");
+  onex_assert_equal(object_property(         n1, "2:1"), "well", "1st is now 'well'");
+  onex_assert_equal(object_property(         n1, "2:2"), "ok",   "2nd is now 'ok'");
+  onex_assert_equal(object_property(         n1, "2:3"), "mate", "3rd is now 'mate'");
+  onex_assert(      object_property_length(  n1, "2")==3,        "3 els");
+  // UID: uid-1  is: setup  state: good mostly  1: a c  2: well ok mate
   onex_assert(      object_property_set(     n1, "2", ""),   "can set property to empty");
   onex_assert(     !object_property(         n1, "2"),       "empty property returns null");
   onex_assert(      object_property_is(      n1, "2", 0),    "empty property is empty");
