@@ -138,6 +138,18 @@ void test_object_set_up()
   onex_assert(      object_property_contains(n1, "4", ""),   "empty property is empty");
   onex_assert(     !object_property_length(  n1, "4"),       "empty property is not a value");
   // UID: uid-1  is: setup  state: good mostly  1: a c    2: ok
+  onex_assert(      object_property_append(  n1, "1", "e"), "add another using append macro");
+  onex_assert_equal(object_property(         n1, "1:1"), "a",  "1st is a");
+  onex_assert_equal(object_property(         n1, "1:2"), "c",  "2nd is c");
+  onex_assert_equal(object_property(         n1, "1:3"), "e",  "3rd is e");
+  // UID: uid-1  is: setup  state: good mostly  1: a c e  2: ok
+  onex_assert(      object_property_set(     n1, "1:3", 0),      "delete 'e'");
+  onex_assert(     !object_property(         n1, "1:3"),         "3rd is not e");
+  // UID: uid-1  is: setup  state: good mostly  1: a c  2: ok
+  onex_assert(      object_property_append(  n1, "2", "mate"),   "add another using append macro");
+  onex_assert_equal(object_property(         n1, "2:2"), "mate", "2nd is mate");
+  // UID: uid-1  is: setup  state: good mostly  1: a c  2: ok mate
+  onex_assert(      object_property_length(  n1, "2")==2,        "2 els");
   onex_assert(      object_property_set(     n1, "2", ""),   "can set property to empty");
   onex_assert(     !object_property(         n1, "2"),       "empty property returns null");
   onex_assert(      object_property_is(      n1, "2", 0),    "empty property is empty");
