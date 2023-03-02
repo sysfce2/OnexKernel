@@ -59,6 +59,22 @@ bool list_add(list* li, void* val)
   return true;
 }
 
+bool list_ins(list* li, uint16_t index, void* val){
+
+  if(!li) return false;
+  if(index==0 || index-1 > li->size) return false;
+  if(li->size==li->max_size) return false;
+
+  if(index-1 < li->size){
+    for(int16_t j=li->size-1; j>=index-1; j--){
+      li->vals[j+1] = li->vals[j];
+    }
+  }
+  li->vals[index-1]=val;
+  li->size++;
+  return true;
+}
+
 bool list_set_n(list* li, uint16_t index, void* val)
 {
   if(!li) return false;

@@ -66,11 +66,23 @@ void test_list()
 
   onex_assert_equal(item_to_text(li, buf, 32), "", "serialise to string works");
 
-  onex_assert(                   list_add(  li,value_new("*")),   "can add an item back");
+  onex_assert(                   list_ins(  li,1,value_new("3")), "can insert an item into empty");
   onex_assert(                   list_size( li)==1,               "size should be 1");
 
-  onex_assert(                   list_add(  li,value_new("X")),   "can add another 2nd item");
+  onex_assert(                   list_ins(  li,1,value_new("1")), "can insert another item before it");
   onex_assert(                   list_size( li)==2,               "size should be 2");
+
+  onex_assert_equal(item_to_text(li, buf, 32), "1 3", "serialise to string works");
+
+  onex_assert(                   list_ins(  li,2,value_new("2")), "can insert another item before it");
+  onex_assert(                   list_size( li)==3,               "size should be 3");
+
+  onex_assert_equal(item_to_text(li, buf, 32), "1 2 3", "serialise to string works");
+
+  onex_assert(                   list_ins(  li,4,value_new("4")), "can insert item at end using index size+1");
+  onex_assert(                   list_size( li)==4,               "size should be 4");
+
+  onex_assert_equal(item_to_text(li, buf, 32), "1 2 3 4", "serialise to string works");
 
                                  list_clear(li, true);
   onex_assert_equal_num(         list_size( li), 0,               "can clear the list");
