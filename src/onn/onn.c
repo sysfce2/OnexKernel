@@ -796,8 +796,8 @@ bool nested_property_del_n(object* n, char* path, uint16_t index) {
   return ok;
 }
 
-bool object_property_add(object* n, char* path, char* val)
-{
+bool object_property_add(object* n, char* path, char* val) {
+
   if(!n->running_evals && has_notifies(n)){
 #if defined(LOG_TO_GFX) || defined(LOG_TO_BLE)
     char* uid=value_string(n->uid);
@@ -806,17 +806,17 @@ bool object_property_add(object* n, char* path, char* val)
     log_write("\nAdding property in an object but not running in an evaluator! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
 #endif
   }
-  size_t m=strlen(path)+1;
-  char p[m]; memcpy(p, path, m);
-  if(find_unescaped_colon(p)) return false; // no sub-properties yet
+  if(!val || !*val) return false;
 
-  if(!val || !*val) return 0;
-
-  if(!strcmp(p, "Notifying")){
+  if(!strcmp(path, "Notifying")){
     if(!is_uid(val)) return false;
     add_notify(n, val);
     return true;
   }
+  size_t m=strlen(path)+1;
+  char p[m]; memcpy(p, path, m);
+  if(find_unescaped_colon(p)) return false; // no sub-properties yet
+
   remove_char_in_place(p, '\\');
   item* i=properties_get(n->properties, p);
   bool ok=true;
