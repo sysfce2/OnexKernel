@@ -188,6 +188,19 @@ void test_object_set_up()
   onex_assert(     !object_property(         n1, "2:8"),           "no 8th el");
   onex_assert(      object_property_length(  n1, "2")==6,          "6 els");
   // UID: uid-1  is: setup  state: good mostly  1: a c  2: so well that's ok mate innit
+  onex_assert(      object_property_append(  n1, "2:2",  "hmmm"),   "can do indexed append");
+  onex_assert_equal(object_property(         n1, "2:1"), "so",      "1st is 'so'");
+  onex_assert_equal(object_property(         n1, "2:2"), "well",    "2nd is 'well'");
+  onex_assert_equal(object_property(         n1, "2:3"), "hmmm",    "3rd is now 'hmmm'");
+  onex_assert_equal(object_property(         n1, "2:4"), "that\'s", "4th is now 'that\'s'");
+  onex_assert(      object_property_length(  n1, "2")==7,           "7 els");
+  // UID: uid-1  is: setup  state: good mostly  1: a c  2: so well hmmm that's ok mate innit
+  onex_assert(      object_property_append(  n1, "2:7",  "bruv"),   "can do indexed append @ end");
+  onex_assert_equal(object_property(         n1, "2:6"), "mate",    "6th is 'mate'");
+  onex_assert_equal(object_property(         n1, "2:7"), "innit",   "7th is 'innit'");
+  onex_assert_equal(object_property(         n1, "2:8"), "bruv",    "8th is now 'bruv'");
+  onex_assert(      object_property_length(  n1, "2")==8,           "8 els");
+  // UID: uid-1  is: setup  state: good mostly  1: a c  2: so well hmmm that's ok mate innit bruv
   onex_assert(      object_property_set(     n1, "2", ""),   "can set property to empty");
   onex_assert(     !object_property(         n1, "2"),       "empty property returns null");
   onex_assert(      object_property_is(      n1, "2", 0),    "empty property is empty");
