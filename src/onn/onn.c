@@ -671,7 +671,7 @@ bool stop_timer(object* n)
 #if defined(LOG_TO_GFX)
   #define NOT_IN_EVAL(action,act) \
       /* char* uid=value_string(n->uid)+4+15; */\
-      log_write(act "N!|%s|%s|%s", object_property(n, "is:1"), path, val /*, uid*/);
+      log_write(act " %s|%s|%s", object_property(n, "is:1"), path, val /*, uid*/);
 #else
   #define NOT_IN_EVAL(action,act) \
     log_write("--------------------------\n" \
