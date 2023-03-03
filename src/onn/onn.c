@@ -737,9 +737,13 @@ bool nested_property_set_n(object* n, char* path, uint16_t index, char* val) {
     *c=0; c++;
     char* e; index=(uint16_t)strtol(c,&e,10);
   }
-  item* i=property_item(n,p,0,true);
+  item* i=properties_get(n->properties, p);
+  if(!i){
+    if(index!=1) return false;
+    return properties_set(n->properties, p, value_new(val)); // not single
+  }
   bool ok=false;
-  if(i) switch(i->type){
+  switch(i->type){
     case ITEM_VALUE: {
       if(index && index==1){
         ok=set_value_or_list(n, remove_char_in_place(p, '\\'), val); // not single
@@ -775,9 +779,12 @@ bool nested_property_del_n(object* n, char* path, uint16_t index) {
     *c=0; c++;
     char* e; index=(uint16_t)strtol(c,&e,10);
   }
-  item* i=property_item(n,p,0,true);
+  item* i=properties_get(n->properties, p);
+  if(!i){
+    return true;
+  }
   bool ok=false;
-  if(i) switch(i->type){
+  switch(i->type){
     case ITEM_VALUE: {
       if(index && index==1){
         item* i=properties_delete(n->properties, remove_char_in_place(p, '\\'));
