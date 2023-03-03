@@ -684,6 +684,10 @@ bool stop_timer(object* n)
 
 // ----------------------------------------------
 
+#define LIST_EDIT_MODE_SET     1
+#define LIST_EDIT_MODE_PREPEND 2
+#define LIST_EDIT_MODE_APPEND  3
+
 bool object_property_set(object* n, char* path, char* val) {
 
   if(!n->running_evals && has_notifies(n)){
@@ -714,6 +718,16 @@ bool object_property_set(object* n, char* path, char* val) {
   return ok;
 }
 
+bool object_property_set_n(object* n, char* path, uint16_t index, char* val){
+
+  if(!n->running_evals && has_notifies(n)){
+    NOT_IN_EVAL("Setting", "S!")
+  }
+  bool del=(!val || !*val);
+  if(del) return nested_property_del_n(n, path, index);
+  ;       return nested_property_edit_n(n, path, index, val, LIST_EDIT_MODE_SET);
+}
+
 bool set_value_or_list(object* n, char* key, char* val)
 {
   item* i=properties_get(n->properties, key);
@@ -727,62 +741,18 @@ bool set_value_or_list(object* n, char* key, char* val)
   return ok;
 }
 
-#define LIST_EDIT_MODE_SET     1
-#define LIST_EDIT_MODE_PREPEND 2
-#define LIST_EDIT_MODE_APPEND  3
 bool nested_property_set(object* n, char* path, char* val) {
   return nested_property_edit_n(n, path, 0, val, LIST_EDIT_MODE_SET);
 }
+
+// ------------------------------------------------------
 
 bool nested_property_del(object* n, char* path)
 {
   return nested_property_del_n(n, path, 0);
 }
 
-bool nested_property_del_n(object* n, char* path, uint16_t index) {
-
-  size_t m=strlen(path)+1;
-  char p[m]; memcpy(p, path, m);
-  char* c=0;
-  if(!index){
-    c=find_unescaped_colon(p);
-    *c=0; c++;
-    char* e; index=(uint16_t)strtol(c,&e,10);
-  }
-  item* i=properties_get(n->properties, remove_char_in_place(p, '\\'));
-  bool ok=false;
-  if(!i){
-    return true;
-  }
-  else
-  switch(i->type){
-    case ITEM_VALUE: {
-      if(index && index==1){
-        item* i=properties_delete(n->properties, remove_char_in_place(p, '\\'));
-        item_free(i);
-        ok=!!i;
-      }
-      break;
-    }
-    case ITEM_LIST: {
-      list* l=(list*)i;
-      item* i=list_del_n(l, index);
-      item_free(i);
-      ok=!!i;
-      if(!ok) break;
-      if(list_size(l)==1){
-        properties_set(n->properties, remove_char_in_place(p, '\\'), list_get_n(l,1));
-        list_free(l, false);
-      }
-      break;
-    }
-    case ITEM_PROPERTIES: {
-      break;
-    }
-  }
-  if(ok) save_and_notify(n);
-  return ok;
-}
+// ------------------------------------------------------
 
 bool object_property_add(object* n, char* path, char* val) {
 
@@ -838,6 +808,8 @@ bool nested_property_add(object* n, char* path, char* val){
   return nested_property_edit_n(n, path, 0, val, LIST_EDIT_MODE_APPEND);
 }
 
+// ------------------------------------------------------
+
 bool object_property_insert(object* n, char* path, char* val) {
 
   if(!n->running_evals && has_notifies(n)){
@@ -889,6 +861,8 @@ bool insert_value(object* n, char* key, char* val){
 bool nested_property_insert(object* n, char* path, char* val){
   return nested_property_edit_n(n, path, 0, val, LIST_EDIT_MODE_PREPEND);
 }
+
+// ------------------------------------------------------
 
 bool nested_property_edit_n(object* n, char* path, uint16_t index, char* val, uint8_t mode){
 
@@ -957,9 +931,68 @@ bool nested_property_edit_n(object* n, char* path, uint16_t index, char* val, ui
   return ok;
 }
 
+bool nested_property_del_n(object* n, char* path, uint16_t index) {
+
+  size_t m=strlen(path)+1;
+  char p[m]; memcpy(p, path, m);
+  char* c=0;
+  if(!index){
+    c=find_unescaped_colon(p);
+    *c=0; c++;
+    char* e; index=(uint16_t)strtol(c,&e,10);
+  }
+  item* i=properties_get(n->properties, remove_char_in_place(p, '\\'));
+  bool ok=false;
+  if(!i){
+    return true;
+  }
+  else
+  switch(i->type){
+    case ITEM_VALUE: {
+      if(index && index==1){
+        item* i=properties_delete(n->properties, remove_char_in_place(p, '\\'));
+        item_free(i);
+        ok=!!i;
+      }
+      break;
+    }
+    case ITEM_LIST: {
+      list* l=(list*)i;
+      item* i=list_del_n(l, index);
+      item_free(i);
+      ok=!!i;
+      if(!ok) break;
+      if(list_size(l)==1){
+        properties_set(n->properties, remove_char_in_place(p, '\\'), list_get_n(l,1));
+        list_free(l, false);
+      }
+      break;
+    }
+    case ITEM_PROPERTIES: {
+      break;
+    }
+  }
+  if(ok) save_and_notify(n);
+  return ok;
+}
+
+// ------------------------------------------------------
+
 bool object_property_set_list(object* n, char* path, ... /* char* val, ..., 0 */){
   bool ok=true;
   object_property_set(n, path, 0);
+  char* val;
+  va_list valist;
+  va_start(valist, path);
+  while(ok && (val = va_arg(valist, char*))){
+    ok=ok && object_property_add(n, path, val);
+  }
+  va_end(valist);
+  return ok;
+}
+
+bool object_property_add_list(object* n, char* path, ... /* char* val, ..., 0 */){
+  bool ok=true;
   char* val;
   va_list valist;
   va_start(valist, path);
@@ -979,28 +1012,6 @@ bool object_property_set_fmt(object* n, char* path, char* fmt, ... /* <any> val,
   va_end(args);
 
   return object_property_set(n, path, valbuf);
-}
-
-bool object_property_set_n(object* n, char* path, uint16_t index, char* val){
-
-  if(!n->running_evals && has_notifies(n)){
-    NOT_IN_EVAL("Setting", "S!")
-  }
-  bool del=(!val || !*val);
-  if(del) return nested_property_del_n(n, path, index);
-  ;       return nested_property_edit_n(n, path, index, val, LIST_EDIT_MODE_SET);
-}
-
-bool object_property_add_list(object* n, char* path, ... /* char* val, ..., 0 */){
-  bool ok=true;
-  char* val;
-  va_list valist;
-  va_start(valist, path);
-  while(ok && (val = va_arg(valist, char*))){
-    ok=ok && object_property_add(n, path, val);
-  }
-  va_end(valist);
-  return ok;
 }
 
 // ------------------------------------------------------
