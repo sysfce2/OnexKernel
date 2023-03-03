@@ -339,34 +339,35 @@ char* object_property_peek(object* n, char* path)
   return object_property_observe(n, path, false);
 }
 
-char* object_property_values(object* n, char* path)
-{
+char* object_property_values(object* n, char* path) {
+
+  log_write("object_property_values deprecated!\n");
+
   item* i=property_item(n,path,n,true);
-  if(i){
-    if(i->type==ITEM_VALUE){
-      char* v=value_string((value*)i);
-      if(is_uid(v)) return 0;
-      return v;
-    }
-    if(i->type==ITEM_LIST){
-      char b[MAX_TEXT_LEN]; *b=0;
-      int ln=0;
-      int j; int sz=list_size((list*)i);
-      for(j=1; j<=sz; j++){
-        item* y=list_get_n((list*)i, j);
-        if(y->type==ITEM_PROPERTIES) continue;
-        if(y->type==ITEM_LIST) continue;
-        if(y->type==ITEM_VALUE){
-          char* v=value_string((value*)y);
-          if(is_uid(v)) continue;
-          ln+=strlen(value_to_text((value*)y, b+ln, MAX_TEXT_LEN-ln));
-          if(ln>=MAX_TEXT_LEN) return 0;
-          if(j!=sz) ln+=snprintf(b+ln, MAX_TEXT_LEN-ln, " ");
-          if(ln>=MAX_TEXT_LEN) return 0;
-        }
+  if(!i) return 0;
+  if(i->type==ITEM_VALUE){
+    char* v=value_string((value*)i);
+    if(is_uid(v)) return 0;
+    return v;
+  }
+  if(i->type==ITEM_LIST){
+    char b[MAX_TEXT_LEN]; *b=0;
+    int ln=0;
+    int j; int sz=list_size((list*)i);
+    for(j=1; j<=sz; j++){
+      item* y=list_get_n((list*)i, j);
+      if(y->type==ITEM_PROPERTIES) continue;
+      if(y->type==ITEM_LIST) continue;
+      if(y->type==ITEM_VALUE){
+        char* v=value_string((value*)y);
+        if(is_uid(v)) continue;
+        ln+=strlen(value_to_text((value*)y, b+ln, MAX_TEXT_LEN-ln));
+        if(ln>=MAX_TEXT_LEN) return 0;
+        if(j!=sz) ln+=snprintf(b+ln, MAX_TEXT_LEN-ln, " ");
+        if(ln>=MAX_TEXT_LEN) return 0;
       }
-      return strlen(b)? value_string(value_new(b)): 0; // not single value
     }
+    return strlen(b)? value_string(value_new(b)): 0; // not single value
   }
   return 0;
 }
