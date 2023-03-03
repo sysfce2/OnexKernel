@@ -662,6 +662,23 @@ bool stop_timer(object* n)
   return true;
 }
 
+// ----------------------------------------------
+
+#if defined(LOG_TO_GFX)
+  #define NOT_IN_EVAL(action,act) \
+      /* char* uid=value_string(n->uid)+4+15; */\
+      log_write(act "N!|%s|%s|%s", object_property(n, "is:1"), path, val /*, uid*/);
+#else
+  #define NOT_IN_EVAL(action,act) \
+    log_write("--------------------------\n" \
+              action " property in an object but not running in an evaluator!\n" \
+              "uid: %s is: %s %s: '%s'\n" \
+              "--------------------------\n", \
+              value_string(n->uid), object_property(n, "is:1"), path, val? val: "");
+#endif
+
+// ----------------------------------------------
+
 bool object_property_set(object* n, char* path, char* val)
 {
   if(!n->running_evals && has_notifies(n)){
