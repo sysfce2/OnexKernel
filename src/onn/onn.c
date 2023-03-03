@@ -56,9 +56,12 @@ static item*   property_item(object* n, char* path, object* t, bool observe);
 static item*   nested_property_item(object* n, char* path, object* t, bool observe);
 static bool    nested_property_set(object* n, char* path, char* val);
 static bool    nested_property_set_n(object* n, char* path, uint16_t index, char* val);
+static bool    nested_property_insert(object* n, char* path, char* val);
+static bool    nested_property_insert_n(object* n, char* path, uint16_t index, char* val);
 static bool    nested_property_del(object* n, char* path);
 static bool    nested_property_del_n(object* n, char* path, uint16_t index);
 static bool    set_value_or_list(object* n, char* key, char* val);
+static bool    insert_value(object* n, char* key, char* val);
 static bool    add_notify(object* o, char* notify);
 static void    set_notifies(object* o, char* notify);
 static void    save_and_notify(object* n);
@@ -875,34 +878,41 @@ bool object_property_insert(object* n, char* path, char* val) {
 
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
-  if(find_unescaped_colon(p)) return false; // no sub-properties yet
+  char* c=find_unescaped_colon(p);
 
-  remove_char_in_place(p, '\\');
-  item* i=properties_get(n->properties, p);
-  bool ok=true;
+  if(c) return nested_property_insert(n, path, val);
+  bool ok=insert_value(n, remove_char_in_place(p, '\\'), val);
+  if(ok) save_and_notify(n);
+  return ok;
+}
+
+bool insert_value(object* n, char* key, char* val){
+
+  if(strchr(val, ' ') && strchr(val, '\n')) return false; // don't do space-sept val yet
+
+  item* i=properties_get(n->properties, key);
   if(!i){
-    ok=properties_set(n->properties, p, value_new(val)); // not single
+    return properties_set(n->properties, key, value_new(val));
   }
-  else
   switch(i->type){
     case ITEM_VALUE: {
       list* l=list_new(MAX_LIST_SIZE);
+      bool ok=true;
       ok=ok && list_add(l,value_new(val));
       ok=ok && list_add(l,i);
-      ok=ok && properties_set(n->properties, p, l);
-      break;
+      ok=ok && properties_set(n->properties, key, l);
+      if(!ok) list_free(l, true);
+      return ok;
     }
     case ITEM_LIST: {
       list* l=(list*)i;
-      ok=ok && list_ins(l,1,value_new(val)); // not single
-      break;
+      return list_ins(l,1,value_new(val));
     }
     case ITEM_PROPERTIES: {
       return false;
     }
   }
-  if(ok) save_and_notify(n);
-  return ok;
+  return false;
 }
 
 bool object_property_set_list(object* n, char* path, ... /* char* val, ..., 0 */){
@@ -1545,4 +1555,48 @@ void onn_recv_object(char* text, char* channel)
 }
 
 // -----------------------------------------------------------------------
+
+bool nested_property_insert(object* n, char* path, char* val){
+  return nested_property_insert_n(n, path, 0, val);
+}
+
+bool nested_property_insert_n(object* n, char* path, uint16_t index, char* val){
+
+  if(strchr(val, ' ') && strchr(val, '\n')) return false; // don't do space-sept val yet
+
+  size_t m=strlen(path)+1;
+  char p[m]; memcpy(p, path, m);
+  char* c=0;
+  if(!index){
+    c=find_unescaped_colon(p);
+    *c=0; c++;
+    char* e; index=(uint16_t)strtol(c,&e,10);
+  }
+  item* i=properties_get(n->properties, remove_char_in_place(p, '\\'));
+  bool ok=false;
+  if(!i){
+    if(index==1){
+      ok=properties_set(n->properties, remove_char_in_place(p, '\\'), value_new(val));
+    }
+  }
+  else
+  switch(i->type){
+    case ITEM_VALUE: {
+      if(index && index==1){
+        ok=insert_value(n, remove_char_in_place(p, '\\'), val);
+      }
+      break;
+    }
+    case ITEM_LIST: {
+      list* l=(list*)i;
+      ok=list_ins(l,index,value_new(val));
+      break;
+    }
+    case ITEM_PROPERTIES: {
+      break;
+    }
+  }
+  if(ok) save_and_notify(n);
+  return ok;
+}
 

@@ -167,6 +167,27 @@ void test_object_set_up()
   onex_assert_equal(object_property(         n1, "2:3"), "mate", "3rd is now 'mate'");
   onex_assert(      object_property_length(  n1, "2")==3,        "3 els");
   // UID: uid-1  is: setup  state: good mostly  1: a c  2: well ok mate
+  onex_assert(      object_property_insert(  n1, "2:2",  "that's"),"can do indexed insert");
+  onex_assert_equal(object_property(         n1, "2:1"), "well",   "1st is 'well'");
+  onex_assert_equal(object_property(         n1, "2:2"), "that's", "2nd is now 'thats'");
+  onex_assert_equal(object_property(         n1, "2:3"), "ok",     "3rd is now 'ok'");
+  onex_assert_equal(object_property(         n1, "2:4"), "mate",   "4th is now 'mate'");
+  onex_assert(      object_property_length(  n1, "2")==4,          "4 els");
+  // UID: uid-1  is: setup  state: good mostly  1: a c  2: well that's ok mate
+  onex_assert(      object_property_insert(  n1, "2:1",  "so"),    "can do indexed insert @1");
+  onex_assert_equal(object_property(         n1, "2:1"), "so",     "1st is 'so'");
+  onex_assert_equal(object_property(         n1, "2:2"), "well",   "2nd is now 'well'");
+  onex_assert(      object_property_length(  n1, "2")==5,          "5 els");
+  // UID: uid-1  is: setup  state: good mostly  1: a c  2: so well that's ok mate
+  onex_assert(      object_property_insert(  n1, "2:6",  "innit"), "can do indexed insert @ end");
+  onex_assert_equal(object_property(         n1, "2:5"), "mate",   "5th is 'mate'");
+  onex_assert_equal(object_property(         n1, "2:6"), "innit",  "6th is now 'innit'");
+  onex_assert(      object_property_length(  n1, "2")==6,          "6 els");
+  // UID: uid-1  is: setup  state: good mostly  1: a c  2: so well that's ok mate innit
+  onex_assert(     !object_property_insert(  n1, "2:8", "yeah?"),  "can't do indexed insert @ end +1");
+  onex_assert(     !object_property(         n1, "2:8"),           "no 8th el");
+  onex_assert(      object_property_length(  n1, "2")==6,          "6 els");
+  // UID: uid-1  is: setup  state: good mostly  1: a c  2: so well that's ok mate innit
   onex_assert(      object_property_set(     n1, "2", ""),   "can set property to empty");
   onex_assert(     !object_property(         n1, "2"),       "empty property returns null");
   onex_assert(      object_property_is(      n1, "2", 0),    "empty property is empty");
