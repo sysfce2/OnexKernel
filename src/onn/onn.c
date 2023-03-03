@@ -918,7 +918,8 @@ bool nested_property_del_n(object* n, char* path, uint16_t index) {
     *c=0; c++;
     char* e; index=(uint16_t)strtol(c,&e,10);
   }
-  item* i=properties_get(n->properties, remove_char_in_place(p, '\\'));
+  remove_char_in_place(p, '\\');
+  item* i=properties_get(n->properties, p);
   bool ok=false;
   if(!i){
     return true;
@@ -927,7 +928,7 @@ bool nested_property_del_n(object* n, char* path, uint16_t index) {
   switch(i->type){
     case ITEM_VALUE: {
       if(index && index==1){
-        item* i=properties_delete(n->properties, remove_char_in_place(p, '\\'));
+        item* i=properties_delete(n->properties, p);
         item_free(i);
         ok=!!i;
       }
@@ -940,7 +941,7 @@ bool nested_property_del_n(object* n, char* path, uint16_t index) {
       ok=!!i;
       if(!ok) break;
       if(list_size(l)==1){
-        properties_set(n->properties, remove_char_in_place(p, '\\'), list_get_n(l,1));
+        properties_set(n->properties, p, list_get_n(l,1));
         list_free(l, false);
       }
       break;
