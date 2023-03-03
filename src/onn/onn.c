@@ -890,6 +890,73 @@ bool nested_property_insert(object* n, char* path, char* val){
   return nested_property_edit_n(n, path, 0, val, LIST_EDIT_MODE_PREPEND);
 }
 
+bool nested_property_edit_n(object* n, char* path, uint16_t index, char* val, uint8_t mode){
+
+  if(strchr(val, ' ') && strchr(val, '\n')) return false; // don't do space-sept val yet
+
+  size_t m=strlen(path)+1;
+  char p[m]; memcpy(p, path, m);
+  char* c=0;
+  if(!index){
+    c=find_unescaped_colon(p);
+    *c=0; c++;
+    char* e; index=(uint16_t)strtol(c,&e,10);
+  }
+  remove_char_in_place(p, '\\');
+  item* i=properties_get(n->properties, p);
+  bool ok=false;
+  if(!i){
+    if(index==1){
+      ok=properties_set(n->properties, p, value_new(val));
+    }
+  }
+  else
+  switch(i->type){
+    case ITEM_VALUE: {
+      if(index && index==1){
+        switch(mode){
+          case LIST_EDIT_MODE_SET: {
+            ok=set_value_or_list(n, p, val);
+            break;
+          }
+          case LIST_EDIT_MODE_PREPEND: {
+            ok=insert_value(n, p, val);
+            break;
+          }
+          case LIST_EDIT_MODE_APPEND: {
+            ok=add_value(n, p, val);
+            break;
+          }
+        }
+      }
+      break;
+    }
+    case ITEM_LIST: {
+      list* l=(list*)i;
+      switch(mode){
+        case LIST_EDIT_MODE_SET: {
+          item_free(list_get_n(l, index));
+          ok=list_set_n(l, index, value_new(val));
+          break;
+        }
+        case LIST_EDIT_MODE_PREPEND: {
+          ok=list_ins(l, index, value_new(val));
+          break;
+        }
+        case LIST_EDIT_MODE_APPEND: {
+          ok=list_ins(l, index+1, value_new(val));
+          break;
+        }
+      }
+    }
+    case ITEM_PROPERTIES: {
+      break;
+    }
+  }
+  if(ok) save_and_notify(n);
+  return ok;
+}
+
 bool object_property_set_list(object* n, char* path, ... /* char* val, ..., 0 */){
   bool ok=true;
   object_property_set(n, path, 0);
@@ -1530,71 +1597,4 @@ void onn_recv_object(char* text, char* channel)
 }
 
 // -----------------------------------------------------------------------
-
-bool nested_property_edit_n(object* n, char* path, uint16_t index, char* val, uint8_t mode){
-
-  if(strchr(val, ' ') && strchr(val, '\n')) return false; // don't do space-sept val yet
-
-  size_t m=strlen(path)+1;
-  char p[m]; memcpy(p, path, m);
-  char* c=0;
-  if(!index){
-    c=find_unescaped_colon(p);
-    *c=0; c++;
-    char* e; index=(uint16_t)strtol(c,&e,10);
-  }
-  remove_char_in_place(p, '\\');
-  item* i=properties_get(n->properties, p);
-  bool ok=false;
-  if(!i){
-    if(index==1){
-      ok=properties_set(n->properties, p, value_new(val));
-    }
-  }
-  else
-  switch(i->type){
-    case ITEM_VALUE: {
-      if(index && index==1){
-        switch(mode){
-          case LIST_EDIT_MODE_SET: {
-            ok=set_value_or_list(n, p, val);
-            break;
-          }
-          case LIST_EDIT_MODE_PREPEND: {
-            ok=insert_value(n, p, val);
-            break;
-          }
-          case LIST_EDIT_MODE_APPEND: {
-            ok=add_value(n, p, val);
-            break;
-          }
-        }
-      }
-      break;
-    }
-    case ITEM_LIST: {
-      list* l=(list*)i;
-      switch(mode){
-        case LIST_EDIT_MODE_SET: {
-          item_free(list_get_n(l, index));
-          ok=list_set_n(l, index, value_new(val));
-          break;
-        }
-        case LIST_EDIT_MODE_PREPEND: {
-          ok=list_ins(l, index, value_new(val));
-          break;
-        }
-        case LIST_EDIT_MODE_APPEND: {
-          ok=list_ins(l, index+1, value_new(val));
-          break;
-        }
-      }
-    }
-    case ITEM_PROPERTIES: {
-      break;
-    }
-  }
-  if(ok) save_and_notify(n);
-  return ok;
-}
 
