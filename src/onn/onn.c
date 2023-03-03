@@ -367,7 +367,7 @@ char* object_property_values(object* n, char* path) {
         if(ln>=MAX_TEXT_LEN) return 0;
       }
     }
-    return strlen(b)? value_string(value_new(b)): 0; // not single value
+    return strlen(b)? value_string(value_new(b)): 0; // not a single value!
   }
   return 0;
 }
@@ -729,6 +729,8 @@ bool nested_property_set(object* n, char* path, char* val) {
 
 bool nested_property_set_n(object* n, char* path, uint16_t index, char* val) {
 
+  if(strchr(val, ' ') && strchr(val, '\n')) return false; // don't do space-sept val yet
+
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
   char* c=0;
@@ -738,22 +740,24 @@ bool nested_property_set_n(object* n, char* path, uint16_t index, char* val) {
     char* e; index=(uint16_t)strtol(c,&e,10);
   }
   item* i=properties_get(n->properties, remove_char_in_place(p, '\\'));
-  if(!i){
-    if(index!=1) return false;
-    return properties_set(n->properties, remove_char_in_place(p, '\\'), value_new(val));
-  }
   bool ok=false;
+  if(!i){
+    if(index==1){
+      ok=properties_set(n->properties, remove_char_in_place(p, '\\'), value_new(val));
+    }
+  }
+  else
   switch(i->type){
     case ITEM_VALUE: {
       if(index && index==1){
-        ok=set_value_or_list(n, remove_char_in_place(p, '\\'), val); // not single
+        ok=set_value_or_list(n, remove_char_in_place(p, '\\'), val);
       }
       break;
     }
     case ITEM_LIST: {
       list* l=(list*)i;
       item_free(list_get_n(l, index));
-      ok=list_set_n(l, index, value_new(val)); // not single
+      ok=list_set_n(l, index, value_new(val));
       break;
     }
     case ITEM_PROPERTIES: {
@@ -780,10 +784,11 @@ bool nested_property_del_n(object* n, char* path, uint16_t index) {
     char* e; index=(uint16_t)strtol(c,&e,10);
   }
   item* i=properties_get(n->properties, remove_char_in_place(p, '\\'));
+  bool ok=false;
   if(!i){
     return true;
   }
-  bool ok=false;
+  else
   switch(i->type){
     case ITEM_VALUE: {
       if(index && index==1){
@@ -815,11 +820,12 @@ bool nested_property_del_n(object* n, char* path, uint16_t index) {
 
 bool object_property_add(object* n, char* path, char* val) {
 
+  if(!val || !*val) return false;
+  if(strchr(val, ' ') && strchr(val, '\n')) return false; // don't do space-sept val yet
+
   if(!n->running_evals && has_notifies(n)){
     NOT_IN_EVAL("Adding", "A!")
   }
-  if(!val || !*val) return false;
-
   if(!strcmp(path, "Notifying")){
     if(!is_uid(val)) return false;
     add_notify(n, val);
@@ -831,7 +837,7 @@ bool object_property_add(object* n, char* path, char* val) {
 
   remove_char_in_place(p, '\\');
   item* i=properties_get(n->properties, remove_char_in_place(p, '\\'));
-  bool ok=true;
+  bool ok=false;
   if(!i){
     ok=properties_set(n->properties, remove_char_in_place(p, '\\'), value_new(val));
   }
@@ -839,14 +845,14 @@ bool object_property_add(object* n, char* path, char* val) {
   switch(i->type){
     case ITEM_VALUE: {
       list* l=list_new(MAX_LIST_SIZE);
-      ok=ok && list_add(l,i);
-      ok=ok && list_add(l,value_new(val)); // not single
+      ok=      list_add(l,i);
+      ok=ok && list_add(l,value_new(val));
       ok=ok && properties_set(n->properties, remove_char_in_place(p, '\\'), l);
       break;
     }
     case ITEM_LIST: {
       list* l=(list*)i;
-      ok=ok && list_add(l,value_new(val)); // not single
+      ok=list_add(l,value_new(val));
       break;
     }
     case ITEM_PROPERTIES: {
@@ -864,6 +870,7 @@ bool object_property_insert(object* n, char* path, char* val) {
     NOT_IN_EVAL("Inserting", "I!")
   }
   if(!val || !*val) return false;
+  if(!strcmp(path, "Timer")) return false;
   if(!strcmp(path, "Notifying")) return false;
 
   size_t m=strlen(path)+1;
@@ -880,7 +887,7 @@ bool object_property_insert(object* n, char* path, char* val) {
   switch(i->type){
     case ITEM_VALUE: {
       list* l=list_new(MAX_LIST_SIZE);
-      ok=ok && list_add(l,value_new(val)); // not single
+      ok=ok && list_add(l,value_new(val));
       ok=ok && list_add(l,i);
       ok=ok && properties_set(n->properties, p, l);
       break;
@@ -892,7 +899,6 @@ bool object_property_insert(object* n, char* path, char* val) {
     }
     case ITEM_PROPERTIES: {
       return false;
-      break;
     }
   }
   if(ok) save_and_notify(n);
