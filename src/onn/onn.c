@@ -737,10 +737,10 @@ bool nested_property_set_n(object* n, char* path, uint16_t index, char* val) {
     *c=0; c++;
     char* e; index=(uint16_t)strtol(c,&e,10);
   }
-  item* i=properties_get(n->properties, p);
+  item* i=properties_get(n->properties, remove_char_in_place(p, '\\'));
   if(!i){
     if(index!=1) return false;
-    return properties_set(n->properties, p, value_new(val)); // not single
+    return properties_set(n->properties, remove_char_in_place(p, '\\'), value_new(val));
   }
   bool ok=false;
   switch(i->type){
@@ -779,7 +779,7 @@ bool nested_property_del_n(object* n, char* path, uint16_t index) {
     *c=0; c++;
     char* e; index=(uint16_t)strtol(c,&e,10);
   }
-  item* i=properties_get(n->properties, p);
+  item* i=properties_get(n->properties, remove_char_in_place(p, '\\'));
   if(!i){
     return true;
   }
@@ -830,10 +830,10 @@ bool object_property_add(object* n, char* path, char* val) {
   if(find_unescaped_colon(p)) return false; // no sub-properties yet
 
   remove_char_in_place(p, '\\');
-  item* i=properties_get(n->properties, p);
+  item* i=properties_get(n->properties, remove_char_in_place(p, '\\'));
   bool ok=true;
   if(!i){
-    ok=properties_set(n->properties, p, value_new(val)); // not single
+    ok=properties_set(n->properties, remove_char_in_place(p, '\\'), value_new(val));
   }
   else
   switch(i->type){
@@ -841,7 +841,7 @@ bool object_property_add(object* n, char* path, char* val) {
       list* l=list_new(MAX_LIST_SIZE);
       ok=ok && list_add(l,i);
       ok=ok && list_add(l,value_new(val)); // not single
-      ok=ok && properties_set(n->properties, p, l);
+      ok=ok && properties_set(n->properties, remove_char_in_place(p, '\\'), l);
       break;
     }
     case ITEM_LIST: {
