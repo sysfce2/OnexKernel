@@ -695,6 +695,7 @@ bool object_property_set(object* n, char* path, char* val) {
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
   char* c=find_unescaped_colon(p);
+
   if(del){
     if(c) return nested_property_del(n, path);
     item* i=properties_delete(n->properties, remove_char_in_place(p, '\\'));
@@ -734,21 +735,21 @@ bool nested_property_set_n(object* n, char* path, uint16_t index, char* val) {
   if(!index){
     c=find_unescaped_colon(p);
     *c=0; c++;
+    char* e; index=(uint16_t)strtol(c,&e,10);
   }
   item* i=property_item(n,p,0,true);
   bool ok=false;
   if(i) switch(i->type){
     case ITEM_VALUE: {
-      if((index && index==1) || (c && !strcmp(c,"1"))){
+      if(index && index==1){
         ok=set_value_or_list(n, remove_char_in_place(p, '\\'), val); // not single
       }
       break;
     }
     case ITEM_LIST: {
-      char* e; uint16_t in=index? index: (uint16_t)strtol(c,&e,10);
       list* l=(list*)i;
-      item_free(list_get_n(l, in));
-      ok=list_set_n(l, in, value_new(val)); // not single
+      item_free(list_get_n(l, index));
+      ok=list_set_n(l, index, value_new(val)); // not single
       break;
     }
     case ITEM_PROPERTIES: {
@@ -772,12 +773,13 @@ bool nested_property_del_n(object* n, char* path, uint16_t index) {
   if(!index){
     c=find_unescaped_colon(p);
     *c=0; c++;
+    char* e; index=(uint16_t)strtol(c,&e,10);
   }
   item* i=property_item(n,p,0,true);
   bool ok=false;
   if(i) switch(i->type){
     case ITEM_VALUE: {
-      if((index && index==1) || (c && !strcmp(c,"1"))){
+      if(index && index==1){
         item* i=properties_delete(n->properties, remove_char_in_place(p, '\\'));
         item_free(i);
         ok=!!i;
@@ -785,9 +787,8 @@ bool nested_property_del_n(object* n, char* path, uint16_t index) {
       break;
     }
     case ITEM_LIST: {
-      char* e; uint16_t in=index? index: (uint16_t)strtol(c,&e,10);
       list* l=(list*)i;
-      item* i=list_del_n(l, in);
+      item* i=list_del_n(l, index);
       item_free(i);
       ok=!!i;
       if(!ok) break;
