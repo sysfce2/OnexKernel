@@ -679,19 +679,10 @@ bool stop_timer(object* n)
 
 // ----------------------------------------------
 
-bool object_property_set(object* n, char* path, char* val)
-{
+bool object_property_set(object* n, char* path, char* val) {
+
   if(!n->running_evals && has_notifies(n)){
-#if defined(LOG_TO_GFX) || defined(LOG_TO_BLE)
-    char* uid=value_string(n->uid);
-    log_write("N!%s %s %s %s", uid+4+15, object_property(n, "is"), path, val);
-#else
-    log_write("----\n"
-              "Setting property in an object but not running in an evaluator!\n"
-              "uid: %s is: %s %s: '%s'\n"
-              "----\n",
-              value_string(n->uid), object_property(n, "is:1"), path, val? val: "");
-#endif
+    NOT_IN_EVAL("Setting", "N!")
   }
   bool del=(!val || !*val);
   if(!strcmp(path, "Timer")){
@@ -816,12 +807,7 @@ bool nested_property_del_n(object* n, char* path, uint16_t index) {
 bool object_property_add(object* n, char* path, char* val) {
 
   if(!n->running_evals && has_notifies(n)){
-#if defined(LOG_TO_GFX) || defined(LOG_TO_BLE)
-    char* uid=value_string(n->uid);
-    log_write("N+%.*s", 12, uid+4);
-#else
-    log_write("\nAdding property in an object but not running in an evaluator! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
-#endif
+    NOT_IN_EVAL("Adding", "A!")
   }
   if(!val || !*val) return false;
 
@@ -866,12 +852,7 @@ bool object_property_add(object* n, char* path, char* val) {
 bool object_property_insert(object* n, char* path, char* val) {
 
   if(!n->running_evals && has_notifies(n)){
-#if defined(LOG_TO_GFX) || defined(LOG_TO_BLE)
-    char* uid=value_string(n->uid);
-    log_write("N+%.*s", 12, uid+4);
-#else
-    log_write("\nInserting property in an object but not running in an evaluator! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
-#endif
+    NOT_IN_EVAL("Inserting", "I!")
   }
   if(!val || !*val) return false;
   if(!strcmp(path, "Notifying")) return false;
@@ -936,12 +917,7 @@ bool object_property_set_fmt(object* n, char* path, char* fmt, ... /* <any> val,
 bool object_property_set_n(object* n, char* path, uint16_t index, char* val){
 
   if(!n->running_evals && has_notifies(n)){
-#if defined(LOG_TO_GFX) || defined(LOG_TO_BLE)
-    char* uid=value_string(n->uid);
-    log_write("N!%.*s", 12, uid+4);
-#else
-    log_write("\nSetting property in an object but not running in an evaluator! uid: %s  %s: +'%s'\n\n", value_string(n->uid), path, val? val: "");
-#endif
+    NOT_IN_EVAL("Setting", "S!")
   }
   bool del=(!val || !*val);
   if(del) return nested_property_del_n(n, path, index);
