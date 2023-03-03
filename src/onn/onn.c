@@ -54,11 +54,7 @@ static bool    add_to_cache_and_persist(object* n);
 static object* find_object(char* uid, object* n, bool observe);
 static item*   property_item(object* n, char* path, object* t, bool observe);
 static item*   nested_property_item(object* n, char* path, object* t, bool observe);
-static bool    nested_property_set(object* n, char* path, char* val);
-static bool    nested_property_insert(object* n, char* path, char* val);
 static bool    nested_property_edit_n(object* n, char* path, uint16_t index, char* val, uint8_t mode);
-static bool    nested_property_add(object* n, char* path, char* val);
-static bool    nested_property_del(object* n, char* path);
 static bool    nested_property_del_n(object* n, char* path, uint16_t index);
 static bool    set_value_or_list(object* n, char* key, char* val);
 static bool    insert_value(object* n, char* key, char* val);
@@ -705,14 +701,14 @@ bool object_property_set(object* n, char* path, char* val) {
   char* c=find_unescaped_colon(p);
 
   if(del){
-    if(c) return nested_property_del(n, path);
+    if(c) return nested_property_del_n(n, path, 0);
     item* i=properties_delete(n->properties, remove_char_in_place(p, '\\'));
     item_free(i);
     bool ok=!!i;
     if(ok) save_and_notify(n);
     return ok;
   }
-  if(c) return nested_property_set(n, path, val);
+  if(c) return nested_property_edit_n(n, path, 0, val, LIST_EDIT_MODE_SET);
   bool ok=set_value_or_list(n, remove_char_in_place(p, '\\'), val);
   if(ok) save_and_notify(n);
   return ok;
@@ -741,17 +737,6 @@ bool set_value_or_list(object* n, char* key, char* val)
   return ok;
 }
 
-bool nested_property_set(object* n, char* path, char* val) {
-  return nested_property_edit_n(n, path, 0, val, LIST_EDIT_MODE_SET);
-}
-
-// ------------------------------------------------------
-
-bool nested_property_del(object* n, char* path)
-{
-  return nested_property_del_n(n, path, 0);
-}
-
 // ------------------------------------------------------
 
 bool object_property_add(object* n, char* path, char* val) {
@@ -769,7 +754,7 @@ bool object_property_add(object* n, char* path, char* val) {
   char p[m]; memcpy(p, path, m);
   char* c=find_unescaped_colon(p);
 
-  if(c) return nested_property_add(n, path, val);
+  if(c) return nested_property_edit_n(n, path, 0, val, LIST_EDIT_MODE_APPEND);
   bool ok=add_value(n, remove_char_in_place(p, '\\'), val);
   if(ok) save_and_notify(n);
   return ok;
@@ -804,10 +789,6 @@ bool add_value(object* n, char* key, char* val){
   return false;
 }
 
-bool nested_property_add(object* n, char* path, char* val){
-  return nested_property_edit_n(n, path, 0, val, LIST_EDIT_MODE_APPEND);
-}
-
 // ------------------------------------------------------
 
 bool object_property_insert(object* n, char* path, char* val) {
@@ -823,7 +804,7 @@ bool object_property_insert(object* n, char* path, char* val) {
   char p[m]; memcpy(p, path, m);
   char* c=find_unescaped_colon(p);
 
-  if(c) return nested_property_insert(n, path, val);
+  if(c) return nested_property_edit_n(n, path, 0, val, LIST_EDIT_MODE_PREPEND);
   bool ok=insert_value(n, remove_char_in_place(p, '\\'), val);
   if(ok) save_and_notify(n);
   return ok;
@@ -856,10 +837,6 @@ bool insert_value(object* n, char* key, char* val){
     }
   }
   return false;
-}
-
-bool nested_property_insert(object* n, char* path, char* val){
-  return nested_property_edit_n(n, path, 0, val, LIST_EDIT_MODE_PREPEND);
 }
 
 // ------------------------------------------------------
