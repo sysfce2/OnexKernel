@@ -915,6 +915,50 @@ bool insert_value(object* n, char* key, char* val){
   return false;
 }
 
+bool nested_property_insert(object* n, char* path, char* val){
+  return nested_property_insert_n(n, path, 0, val);
+}
+
+bool nested_property_insert_n(object* n, char* path, uint16_t index, char* val){
+
+  if(strchr(val, ' ') && strchr(val, '\n')) return false; // don't do space-sept val yet
+
+  size_t m=strlen(path)+1;
+  char p[m]; memcpy(p, path, m);
+  char* c=0;
+  if(!index){
+    c=find_unescaped_colon(p);
+    *c=0; c++;
+    char* e; index=(uint16_t)strtol(c,&e,10);
+  }
+  item* i=properties_get(n->properties, remove_char_in_place(p, '\\'));
+  bool ok=false;
+  if(!i){
+    if(index==1){
+      ok=properties_set(n->properties, remove_char_in_place(p, '\\'), value_new(val));
+    }
+  }
+  else
+  switch(i->type){
+    case ITEM_VALUE: {
+      if(index && index==1){
+        ok=insert_value(n, remove_char_in_place(p, '\\'), val);
+      }
+      break;
+    }
+    case ITEM_LIST: {
+      list* l=(list*)i;
+      ok=list_ins(l,index,value_new(val));
+      break;
+    }
+    case ITEM_PROPERTIES: {
+      break;
+    }
+  }
+  if(ok) save_and_notify(n);
+  return ok;
+}
+
 bool object_property_set_list(object* n, char* path, ... /* char* val, ..., 0 */){
   bool ok=true;
   object_property_set(n, path, 0);
@@ -1555,48 +1599,4 @@ void onn_recv_object(char* text, char* channel)
 }
 
 // -----------------------------------------------------------------------
-
-bool nested_property_insert(object* n, char* path, char* val){
-  return nested_property_insert_n(n, path, 0, val);
-}
-
-bool nested_property_insert_n(object* n, char* path, uint16_t index, char* val){
-
-  if(strchr(val, ' ') && strchr(val, '\n')) return false; // don't do space-sept val yet
-
-  size_t m=strlen(path)+1;
-  char p[m]; memcpy(p, path, m);
-  char* c=0;
-  if(!index){
-    c=find_unescaped_colon(p);
-    *c=0; c++;
-    char* e; index=(uint16_t)strtol(c,&e,10);
-  }
-  item* i=properties_get(n->properties, remove_char_in_place(p, '\\'));
-  bool ok=false;
-  if(!i){
-    if(index==1){
-      ok=properties_set(n->properties, remove_char_in_place(p, '\\'), value_new(val));
-    }
-  }
-  else
-  switch(i->type){
-    case ITEM_VALUE: {
-      if(index && index==1){
-        ok=insert_value(n, remove_char_in_place(p, '\\'), val);
-      }
-      break;
-    }
-    case ITEM_LIST: {
-      list* l=(list*)i;
-      ok=list_ins(l,index,value_new(val));
-      break;
-    }
-    case ITEM_PROPERTIES: {
-      break;
-    }
-  }
-  if(ok) save_and_notify(n);
-  return ok;
-}
 
