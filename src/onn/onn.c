@@ -733,6 +733,97 @@ bool object_property_insert(object* n, char* path, char* val) {
 
 // ------------------------------------------------------
 
+bool object_property_edit(object* n, char* path, char* val, uint8_t mode) {
+
+  if(!n->running_evals && has_notifies(n)){
+    NOT_IN_EVAL("Inserting/Adding", "IA!");
+  }
+  if(!val || !*val) return false;
+  if(!strcmp(path, "Timer")) return false;
+  if(!strcmp(path, "Notifying")){
+    if(mode!=LIST_EDIT_MODE_APPEND) return false;
+    if(!is_uid(val)) return false;
+    add_notify(n, val);
+    return true;
+  }
+  if(find_unescaped_colon(path)){
+    return nested_property_edit_n(n, path, 0, val, mode);
+  }
+  size_t m=strlen(path)+1;
+  char p[m]; memcpy(p, path, m);
+  remove_char_in_place(p, '\\');
+
+  bool ok=edit_value(n, p, val, mode);
+
+  if(ok) save_and_notify(n);
+  return ok;
+}
+
+bool edit_value(object* n, char* key, char* val, uint8_t mode){
+
+  if(mode==LIST_EDIT_MODE_SET){
+    item* i=properties_get(n->properties, key);
+    if(i) item_free(i);
+    if(!strchr(val, ' ') && !strchr(val, '\n')){
+      return properties_set(n->properties, key, value_new(val));
+    }
+    list* l=list_new_from(val, MAX_LIST_SIZE);
+    bool ok=properties_set(n->properties, key, l);
+    if(!ok) list_free(l, true);
+    return ok;
+  }
+
+  if(mode==LIST_EDIT_MODE_DELETE){
+    item* i=properties_delete(n->properties, key);
+    item_free(i);
+    return !!i;
+  }
+
+  if(strchr(val, ' ') && strchr(val, '\n')) return false; // don't do space-sept val yet
+
+  item* i=properties_get(n->properties, key);
+  if(!i){
+    return properties_set(n->properties, key, value_new(val));
+  }
+  switch(i->type){
+    case ITEM_VALUE: {
+      list* l=list_new(MAX_LIST_SIZE);
+      bool ok=false;
+      switch(mode){
+        case LIST_EDIT_MODE_PREPEND: {
+          ok=      list_add(l,value_new(val));
+          ok=ok && list_add(l,i);
+          break;
+        }
+        case LIST_EDIT_MODE_APPEND: {
+          ok=      list_add(l,i);
+          ok=ok && list_add(l,value_new(val));
+          break;
+        }
+      }
+      ok=ok && properties_set(n->properties, key, l);
+      if(!ok) list_free(l, true);
+      return ok;
+    }
+    case ITEM_LIST: {
+      list* l=(list*)i;
+      switch(mode){
+        case LIST_EDIT_MODE_PREPEND: {
+          return list_ins(l,1,value_new(val));
+        }
+        case LIST_EDIT_MODE_APPEND: {
+          return list_add(l,value_new(val));
+        }
+      }
+      return false;
+    }
+    case ITEM_PROPERTIES: {
+      return false;
+    }
+  }
+  return false;
+}
+
 bool nested_property_edit_n(object* n, char* path, uint16_t index, char* val, uint8_t mode){
 
   if(mode!=LIST_EDIT_MODE_DELETE && strchr(val, ' ') && strchr(val, '\n')) return false;
@@ -1432,95 +1523,4 @@ void onn_recv_object(char* text, char* channel)
 }
 
 // -----------------------------------------------------------------------
-
-bool edit_value(object* n, char* key, char* val, uint8_t mode){
-
-  if(mode==LIST_EDIT_MODE_SET){
-    item* i=properties_get(n->properties, key);
-    if(i) item_free(i);
-    if(!strchr(val, ' ') && !strchr(val, '\n')){
-      return properties_set(n->properties, key, value_new(val));
-    }
-    list* l=list_new_from(val, MAX_LIST_SIZE);
-    bool ok=properties_set(n->properties, key, l);
-    if(!ok) list_free(l, true);
-    return ok;
-  }
-
-  if(mode==LIST_EDIT_MODE_DELETE){
-    item* i=properties_delete(n->properties, key);
-    item_free(i);
-    return !!i;
-  }
-
-  if(strchr(val, ' ') && strchr(val, '\n')) return false; // don't do space-sept val yet
-
-  item* i=properties_get(n->properties, key);
-  if(!i){
-    return properties_set(n->properties, key, value_new(val));
-  }
-  switch(i->type){
-    case ITEM_VALUE: {
-      list* l=list_new(MAX_LIST_SIZE);
-      bool ok=false;
-      switch(mode){
-        case LIST_EDIT_MODE_PREPEND: {
-          ok=      list_add(l,value_new(val));
-          ok=ok && list_add(l,i);
-          break;
-        }
-        case LIST_EDIT_MODE_APPEND: {
-          ok=      list_add(l,i);
-          ok=ok && list_add(l,value_new(val));
-          break;
-        }
-      }
-      ok=ok && properties_set(n->properties, key, l);
-      if(!ok) list_free(l, true);
-      return ok;
-    }
-    case ITEM_LIST: {
-      list* l=(list*)i;
-      switch(mode){
-        case LIST_EDIT_MODE_PREPEND: {
-          return list_ins(l,1,value_new(val));
-        }
-        case LIST_EDIT_MODE_APPEND: {
-          return list_add(l,value_new(val));
-        }
-      }
-      return false;
-    }
-    case ITEM_PROPERTIES: {
-      return false;
-    }
-  }
-  return false;
-}
-
-bool object_property_edit(object* n, char* path, char* val, uint8_t mode) {
-
-  if(!n->running_evals && has_notifies(n)){
-    NOT_IN_EVAL("Inserting/Adding", "IA!");
-  }
-  if(!val || !*val) return false;
-  if(!strcmp(path, "Timer")) return false;
-  if(!strcmp(path, "Notifying")){
-    if(mode!=LIST_EDIT_MODE_APPEND) return false;
-    if(!is_uid(val)) return false;
-    add_notify(n, val);
-    return true;
-  }
-  if(find_unescaped_colon(path)){
-    return nested_property_edit_n(n, path, 0, val, mode);
-  }
-  size_t m=strlen(path)+1;
-  char p[m]; memcpy(p, path, m);
-  remove_char_in_place(p, '\\');
-
-  bool ok=edit_value(n, p, val, mode);
-
-  if(ok) save_and_notify(n);
-  return ok;
-}
 
