@@ -684,30 +684,9 @@ bool stop_timer(object* n)
 // ----------------------------------------------
 
 bool object_property_set(object* n, char* path, char* val) {
-
-  if(!n->running_evals && has_notifies(n)){
-    NOT_IN_EVAL("Setting", "N!")
-  }
   bool del=(!val || !*val);
-  if(!strcmp(path, "Timer")){
-    bool zero=val && !strcmp(val, "0");
-    if(zero) return zero_timer(n);
-    if(del) return stop_timer(n);
-    return set_timer(n, val);
-  }
-
   uint8_t mode=del? LIST_EDIT_MODE_DELETE: LIST_EDIT_MODE_SET;
-  if(find_unescaped_colon(path)){
-    return nested_property_edit_n(n, path, 0, val, mode);
-  }
-  size_t m=strlen(path)+1;
-  char key[m]; memcpy(key, path, m);
-  remove_char_in_place(key, '\\');
-
-  bool ok=property_edit(n, key, val, mode);
-
-  if(ok) save_and_notify(n);
-  return ok;
+  return object_property_edit(n, path, val, mode);
 }
 
 bool object_property_set_n(object* n, char* path, uint16_t index, char* val){
@@ -733,10 +712,16 @@ bool object_property_insert(object* n, char* path, char* val) {
 bool object_property_edit(object* n, char* path, char* val, uint8_t mode) {
 
   if(!n->running_evals && has_notifies(n)){
-    NOT_IN_EVAL("Inserting/Adding", "IA!");
+    NOT_IN_EVAL("Editing", "E!");
   }
-  if(!val || !*val) return false;
-  if(!strcmp(path, "Timer")) return false;
+  if(mode!=LIST_EDIT_MODE_DELETE && (!val || !*val)) return false;
+  if(!strcmp(path, "Timer")){
+    if(!(mode==LIST_EDIT_MODE_SET || mode==LIST_EDIT_MODE_DELETE)) return false;
+    bool zero=val && !strcmp(val, "0");
+    if(zero) return zero_timer(n);
+    if(mode==LIST_EDIT_MODE_DELETE) return stop_timer(n);
+    return set_timer(n, val);
+  }
   if(!strcmp(path, "Notifying")){
     if(mode!=LIST_EDIT_MODE_APPEND) return false;
     if(!is_uid(val)) return false;
