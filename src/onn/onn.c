@@ -60,7 +60,7 @@ static object* find_object(char* uid, object* n, bool observe);
 static item*   property_item(object* n, char* path, object* t, bool observe);
 static item*   nested_property_item(object* n, char* path, object* t, bool observe);
 static bool    object_property_edit(object* n, char* path, char* val, uint8_t mode);
-static bool    nested_property_edit_n(object* n, char* path, uint16_t index, char* val, uint8_t mode);
+static bool    nested_property_edit(object* n, char* path, uint16_t index, char* val, uint8_t mode);
 static bool    property_edit(object* n, char* key, char* val, uint8_t mode);
 static bool    add_notify(object* o, char* notify);
 static void    set_notifies(object* o, char* notify);
@@ -382,11 +382,14 @@ item* property_item(object* n, char* path, object* t, bool observe)
   if(!strcmp(path, ""))        return (item*)n->properties;
   if(!strcmp(path, ":"))       return (item*)n->properties;
   if(!strcmp(path, "Alerted")) return (item*)n->alerted;
+  if(find_unescaped_colon(path)){
+    return nested_property_item(n, path, t, observe);
+  }
   size_t m=strlen(path)+1;
-  char p[m]; memcpy(p, path, m);
-  char* c=find_unescaped_colon(p);
-  if(!c) return properties_get(n->properties, remove_char_in_place(p, '\\'));
-  return nested_property_item(n, path, t, observe);
+  char key[m]; memcpy(key, path, m);
+  remove_char_in_place(key, '\\');
+
+  return properties_get(n->properties, key);
 }
 
 item* nested_property_item(object* n, char* path, object* t, bool observe)
@@ -692,11 +695,13 @@ bool object_property_set(object* n, char* path, char* val) {
 bool object_property_set_n(object* n, char* path, uint16_t index, char* val){
 
   if(!n->running_evals && has_notifies(n)){
-    NOT_IN_EVAL("Setting", "S!")
+    NOT_IN_EVAL("Editing", "E!")
   }
+  if(!strcmp(path, "Timer")) return false;
+  if(!strcmp(path, "Notifying")) return false;
   bool del=(!val || !*val);
-  if(del) return nested_property_edit_n(n, path, index, 0,   LIST_EDIT_MODE_DELETE);
-  ;       return nested_property_edit_n(n, path, index, val, LIST_EDIT_MODE_SET);
+  uint8_t mode=del? LIST_EDIT_MODE_DELETE: LIST_EDIT_MODE_SET;
+  return nested_property_edit(n, path, index, val, mode);
 }
 
 bool object_property_add(object* n, char* path, char* val) {
@@ -729,7 +734,7 @@ bool object_property_edit(object* n, char* path, char* val, uint8_t mode) {
     return true;
   }
   if(find_unescaped_colon(path)){
-    return nested_property_edit_n(n, path, 0, val, mode);
+    return nested_property_edit(n, path, 0, val, mode);
   }
   size_t m=strlen(path)+1;
   char key[m]; memcpy(key, path, m);
@@ -806,33 +811,33 @@ bool property_edit(object* n, char* key, char* val, uint8_t mode){
   return false;
 }
 
-bool nested_property_edit_n(object* n, char* path, uint16_t index, char* val, uint8_t mode){
+bool nested_property_edit(object* n, char* path, uint16_t index, char* val, uint8_t mode){
 
   if(mode!=LIST_EDIT_MODE_DELETE && strchr(val, ' ') && strchr(val, '\n')) return false;
   // don't do space-sept val yet
 
   size_t m=strlen(path)+1;
-  char p[m]; memcpy(p, path, m);
+  char key[m]; memcpy(key, path, m);
   char* c=0;
   if(!index){
-    c=find_unescaped_colon(p);
+    c=find_unescaped_colon(key);
     *c=0; c++;
     char* e; index=(uint16_t)strtol(c,&e,10);
   }
-  remove_char_in_place(p, '\\');
-  item* i=properties_get(n->properties, p);
+  remove_char_in_place(key, '\\');
+  item* i=properties_get(n->properties, key);
   bool ok=false;
   if(!i){
     if(mode==LIST_EDIT_MODE_DELETE) return true;
     if(index==1){
-      ok=properties_set(n->properties, p, value_new(val));
+      ok=properties_set(n->properties, key, value_new(val));
     }
   }
   else
   switch(i->type){
     case ITEM_VALUE: {
       if(index && index==1){
-        ok=property_edit(n, p, val, mode);
+        ok=property_edit(n, key, val, mode);
       }
       break;
     }
@@ -858,7 +863,7 @@ bool nested_property_edit_n(object* n, char* path, uint16_t index, char* val, ui
           ok=!!i;
           if(!ok) break;
           if(list_size(l)==1){
-            properties_set(n->properties, p, list_get_n(l,1));
+            properties_set(n->properties, key, list_get_n(l,1));
             list_free(l, false);
           }
           break;
