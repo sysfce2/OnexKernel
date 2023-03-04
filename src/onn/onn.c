@@ -672,16 +672,28 @@ bool stop_timer(object* n)
 // ----------------------------------------------
 
 #if defined(LOG_TO_GFX)
-  #define NOT_IN_EVAL(action,act) \
-      /* char* uid=value_string(n->uid)+4+15; */\
-      log_write(act " %s|%s|%s", object_property(n, "is:1"), path, val /*, uid*/);
+  #define NOT_IN_EVAL(o,action,act) \
+   /* char* uid=value_string(o->uid)+4+15; */ \
+   // log_write(act " %s|%s|%s", object_property(o, "is:1"), path, val /*, uid*/);
 #else
-  #define NOT_IN_EVAL(action,act) \
+  #define NOT_IN_EVAL(o,action,act) \
     log_write("--------------------------\n" \
               action " property in an object but not running in an evaluator!\n" \
               "uid: %s is: %s %s: '%s'\n" \
               "--------------------------\n", \
-              value_string(n->uid), object_property(n, "is:1"), path, val? val: "");
+              value_string(o->uid), object_property(o, "is:1"), path, val? val: "");
+#endif
+
+#if defined(LOG_TO_GFX)
+  #define IN_EVAL(o) \
+    char* uid=value_string(o->uid)+4+15; \
+    log_write("E %s", uid);
+#else
+  #define IN_EVAL(o) \
+    log_write("--------------------------\n" \
+              "Already in evaluators! %s\n" \
+              "--------------------------\n", \
+              value_string(o->uid));
 #endif
 
 // ----------------------------------------------
@@ -695,7 +707,7 @@ bool object_property_set(object* n, char* path, char* val) {
 bool object_property_set_n(object* n, char* path, uint16_t index, char* val){
 
   if(!n->running_evals && has_notifies(n)){
-    NOT_IN_EVAL("Editing", "E!")
+    NOT_IN_EVAL(n, "Editing", "E!")
   }
   if(!strcmp(path, "Timer")) return false;
   if(!strcmp(path, "Notifying")) return false;
@@ -717,7 +729,7 @@ bool object_property_insert(object* n, char* path, char* val) {
 bool object_property_edit(object* n, char* path, char* val, uint8_t mode) {
 
   if(!n->running_evals && has_notifies(n)){
-    NOT_IN_EVAL("Editing", "E!");
+    NOT_IN_EVAL(n, "Editing", "E!");
   }
   if(mode!=LIST_EDIT_MODE_DELETE && (!val || !*val)) return false;
   if(!strcmp(path, "Timer")){
@@ -1304,12 +1316,7 @@ void onex_run_evaluators(char* uid, void* data){
 void run_evaluators(object* o, void* data, value* alerted, bool timedout){
   if(!o || !o->evaluator) return;
   if(o->running_evals){
-#if defined(LOG_TO_GFX) || defined(LOG_TO_BLE)
-    char* uid=value_string(o->uid);
-    log_write("E!%.*s", 12, uid+4);
-#else
-    log_write("Already in evaluators! %s\n", value_string(o->uid));
-#endif
+    IN_EVAL(o);
     return;
   }
   o->running_evals=true;
