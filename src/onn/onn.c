@@ -695,20 +695,17 @@ bool object_property_set(object* n, char* path, char* val) {
     if(del) return stop_timer(n);
     return set_timer(n, val);
   }
-  size_t m=strlen(path)+1;
-  char p[m]; memcpy(p, path, m);
-  char* c=find_unescaped_colon(p);
 
-  if(del){
-    if(c) return nested_property_edit_n(n, path, 0, 0, LIST_EDIT_MODE_DELETE);
-    item* i=properties_delete(n->properties, remove_char_in_place(p, '\\'));
-    item_free(i);
-    bool ok=!!i;
-    if(ok) save_and_notify(n);
-    return ok;
+  uint8_t mode=del? LIST_EDIT_MODE_DELETE: LIST_EDIT_MODE_SET;
+  if(find_unescaped_colon(path)){
+    return nested_property_edit_n(n, path, 0, val, mode);
   }
-  if(c) return nested_property_edit_n(n, path, 0, val, LIST_EDIT_MODE_SET);
-  bool ok=property_edit(n, remove_char_in_place(p, '\\'), val, LIST_EDIT_MODE_SET);
+  size_t m=strlen(path)+1;
+  char key[m]; memcpy(key, path, m);
+  remove_char_in_place(key, '\\');
+
+  bool ok=property_edit(n, key, val, mode);
+
   if(ok) save_and_notify(n);
   return ok;
 }
@@ -750,10 +747,10 @@ bool object_property_edit(object* n, char* path, char* val, uint8_t mode) {
     return nested_property_edit_n(n, path, 0, val, mode);
   }
   size_t m=strlen(path)+1;
-  char p[m]; memcpy(p, path, m);
-  remove_char_in_place(p, '\\');
+  char key[m]; memcpy(key, path, m);
+  remove_char_in_place(key, '\\');
 
-  bool ok=property_edit(n, p, val, mode);
+  bool ok=property_edit(n, key, val, mode);
 
   if(ok) save_and_notify(n);
   return ok;
