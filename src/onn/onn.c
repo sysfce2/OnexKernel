@@ -46,6 +46,11 @@
 
 // ---------------------------------------------------------------------------------
 
+#define LIST_EDIT_MODE_SET     1
+#define LIST_EDIT_MODE_PREPEND 2
+#define LIST_EDIT_MODE_APPEND  3
+#define LIST_EDIT_MODE_DELETE  4
+
 static value*  generate_uid();
 static char*   get_key(char** p);
 static char*   get_val(char** p);
@@ -55,7 +60,6 @@ static object* find_object(char* uid, object* n, bool observe);
 static item*   property_item(object* n, char* path, object* t, bool observe);
 static item*   nested_property_item(object* n, char* path, object* t, bool observe);
 static bool    nested_property_edit_n(object* n, char* path, uint16_t index, char* val, uint8_t mode);
-static bool    set_value_or_list(object* n, char* key, char* val);
 static bool    edit_value(object* n, char* key, char* val, uint8_t mode);
 static bool    add_notify(object* o, char* notify);
 static void    set_notifies(object* o, char* notify);
@@ -173,7 +177,7 @@ object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size)
   object* n=(object*)mem_alloc(sizeof(object));
   n->uid=uid? uid: generate_uid();
   n->properties=properties_new(max_size);
-  if(is) set_value_or_list(n, "is", is);
+  if(is) edit_value(n, "is", is, LIST_EDIT_MODE_SET);
   n->evaluator=value_new(evaluator);
   return n;
 }
@@ -211,7 +215,7 @@ object* new_object_from(char* text, uint8_t max_size)
         if(cache) n->cache=cache;
         if(notify){ set_notifies(n, notify); mem_freestr(notify); }
       }
-      if(!set_value_or_list(n, key, val)) break;
+      if(!edit_value(n, key, val, LIST_EDIT_MODE_SET)) break;
     }
     mem_freestr(key); mem_freestr(val);
   }
@@ -678,11 +682,6 @@ bool stop_timer(object* n)
 
 // ----------------------------------------------
 
-#define LIST_EDIT_MODE_SET     1
-#define LIST_EDIT_MODE_PREPEND 2
-#define LIST_EDIT_MODE_APPEND  3
-#define LIST_EDIT_MODE_DELETE  4
-
 bool object_property_set(object* n, char* path, char* val) {
 
   if(!n->running_evals && has_notifies(n)){
@@ -708,7 +707,7 @@ bool object_property_set(object* n, char* path, char* val) {
     return ok;
   }
   if(c) return nested_property_edit_n(n, path, 0, val, LIST_EDIT_MODE_SET);
-  bool ok=set_value_or_list(n, remove_char_in_place(p, '\\'), val);
+  bool ok=edit_value(n, remove_char_in_place(p, '\\'), val, LIST_EDIT_MODE_SET);
   if(ok) save_and_notify(n);
   return ok;
 }
@@ -721,19 +720,6 @@ bool object_property_set_n(object* n, char* path, uint16_t index, char* val){
   bool del=(!val || !*val);
   if(del) return nested_property_edit_n(n, path, index, 0,   LIST_EDIT_MODE_DELETE);
   ;       return nested_property_edit_n(n, path, index, val, LIST_EDIT_MODE_SET);
-}
-
-bool set_value_or_list(object* n, char* key, char* val)
-{
-  item* i=properties_get(n->properties, key);
-  if(i) item_free(i);
-  if(!strchr(val, ' ') && !strchr(val, '\n')){
-    return properties_set(n->properties, key, value_new(val));
-  }
-  list* l=list_new_from(val, MAX_LIST_SIZE);
-  bool ok=properties_set(n->properties, key, l);
-  if(!ok) list_free(l, true);
-  return ok;
 }
 
 bool object_property_add(object* n, char* path, char* val) {
@@ -804,26 +790,7 @@ bool nested_property_edit_n(object* n, char* path, uint16_t index, char* val, ui
   switch(i->type){
     case ITEM_VALUE: {
       if(index && index==1){
-        switch(mode){
-          case LIST_EDIT_MODE_SET: {
-            ok=set_value_or_list(n, p, val);
-            break;
-          }
-          case LIST_EDIT_MODE_PREPEND: {
-            ok=edit_value(n, p, val, LIST_EDIT_MODE_PREPEND);
-            break;
-          }
-          case LIST_EDIT_MODE_APPEND: {
-            ok=edit_value(n, p, val, LIST_EDIT_MODE_APPEND);
-            break;
-          }
-          case LIST_EDIT_MODE_DELETE: {
-            item* i=properties_delete(n->properties, p);
-            item_free(i);
-            ok=!!i;
-            break;
-          }
-        }
+        ok=edit_value(n, p, val, mode);
       }
       break;
     }
@@ -1498,6 +1465,24 @@ void onn_recv_object(char* text, char* channel)
 // -----------------------------------------------------------------------
 
 bool edit_value(object* n, char* key, char* val, uint8_t mode){
+
+  if(mode==LIST_EDIT_MODE_SET){
+    item* i=properties_get(n->properties, key);
+    if(i) item_free(i);
+    if(!strchr(val, ' ') && !strchr(val, '\n')){
+      return properties_set(n->properties, key, value_new(val));
+    }
+    list* l=list_new_from(val, MAX_LIST_SIZE);
+    bool ok=properties_set(n->properties, key, l);
+    if(!ok) list_free(l, true);
+    return ok;
+  }
+
+  if(mode==LIST_EDIT_MODE_DELETE){
+    item* i=properties_delete(n->properties, key);
+    item_free(i);
+    return !!i;
+  }
 
   if(strchr(val, ' ') && strchr(val, '\n')) return false; // don't do space-sept val yet
 
