@@ -61,7 +61,7 @@ static item*   property_item(object* n, char* path, object* t, bool observe);
 static item*   nested_property_item(object* n, char* path, object* t, bool observe);
 static bool    object_property_edit(object* n, char* path, char* val, uint8_t mode);
 static bool    nested_property_edit_n(object* n, char* path, uint16_t index, char* val, uint8_t mode);
-static bool    edit_value(object* n, char* key, char* val, uint8_t mode);
+static bool    property_edit(object* n, char* key, char* val, uint8_t mode);
 static bool    add_notify(object* o, char* notify);
 static void    set_notifies(object* o, char* notify);
 static void    save_and_notify(object* n);
@@ -178,7 +178,7 @@ object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size)
   object* n=(object*)mem_alloc(sizeof(object));
   n->uid=uid? uid: generate_uid();
   n->properties=properties_new(max_size);
-  if(is) edit_value(n, "is", is, LIST_EDIT_MODE_SET);
+  if(is) property_edit(n, "is", is, LIST_EDIT_MODE_SET);
   n->evaluator=value_new(evaluator);
   return n;
 }
@@ -216,7 +216,7 @@ object* new_object_from(char* text, uint8_t max_size)
         if(cache) n->cache=cache;
         if(notify){ set_notifies(n, notify); mem_freestr(notify); }
       }
-      if(!edit_value(n, key, val, LIST_EDIT_MODE_SET)) break;
+      if(!property_edit(n, key, val, LIST_EDIT_MODE_SET)) break;
     }
     mem_freestr(key); mem_freestr(val);
   }
@@ -708,7 +708,7 @@ bool object_property_set(object* n, char* path, char* val) {
     return ok;
   }
   if(c) return nested_property_edit_n(n, path, 0, val, LIST_EDIT_MODE_SET);
-  bool ok=edit_value(n, remove_char_in_place(p, '\\'), val, LIST_EDIT_MODE_SET);
+  bool ok=property_edit(n, remove_char_in_place(p, '\\'), val, LIST_EDIT_MODE_SET);
   if(ok) save_and_notify(n);
   return ok;
 }
@@ -753,13 +753,13 @@ bool object_property_edit(object* n, char* path, char* val, uint8_t mode) {
   char p[m]; memcpy(p, path, m);
   remove_char_in_place(p, '\\');
 
-  bool ok=edit_value(n, p, val, mode);
+  bool ok=property_edit(n, p, val, mode);
 
   if(ok) save_and_notify(n);
   return ok;
 }
 
-bool edit_value(object* n, char* key, char* val, uint8_t mode){
+bool property_edit(object* n, char* key, char* val, uint8_t mode){
 
   if(mode==LIST_EDIT_MODE_SET){
     item* i=properties_get(n->properties, key);
@@ -850,7 +850,7 @@ bool nested_property_edit_n(object* n, char* path, uint16_t index, char* val, ui
   switch(i->type){
     case ITEM_VALUE: {
       if(index && index==1){
-        ok=edit_value(n, p, val, mode);
+        ok=property_edit(n, p, val, mode);
       }
       break;
     }
