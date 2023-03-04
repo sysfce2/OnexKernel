@@ -59,6 +59,7 @@ static bool    add_to_cache_and_persist(object* n);
 static object* find_object(char* uid, object* n, bool observe);
 static item*   property_item(object* n, char* path, object* t, bool observe);
 static item*   nested_property_item(object* n, char* path, object* t, bool observe);
+static bool    object_property_edit(object* n, char* path, char* val, uint8_t mode);
 static bool    nested_property_edit_n(object* n, char* path, uint16_t index, char* val, uint8_t mode);
 static bool    edit_value(object* n, char* key, char* val, uint8_t mode);
 static bool    add_notify(object* o, char* notify);
@@ -723,43 +724,11 @@ bool object_property_set_n(object* n, char* path, uint16_t index, char* val){
 }
 
 bool object_property_add(object* n, char* path, char* val) {
-
-  if(!n->running_evals && has_notifies(n)){
-    NOT_IN_EVAL("Adding", "A!")
-  }
-  if(!val || !*val) return false;
-  if(!strcmp(path, "Notifying")){
-    if(!is_uid(val)) return false;
-    add_notify(n, val);
-    return true;
-  }
-  size_t m=strlen(path)+1;
-  char p[m]; memcpy(p, path, m);
-  char* c=find_unescaped_colon(p);
-
-  if(c) return nested_property_edit_n(n, path, 0, val, LIST_EDIT_MODE_APPEND);
-  bool ok=edit_value(n, remove_char_in_place(p, '\\'), val, LIST_EDIT_MODE_APPEND);
-  if(ok) save_and_notify(n);
-  return ok;
+  return object_property_edit(n, path, val, LIST_EDIT_MODE_APPEND);
 }
 
 bool object_property_insert(object* n, char* path, char* val) {
-
-  if(!n->running_evals && has_notifies(n)){
-    NOT_IN_EVAL("Inserting", "I!")
-  }
-  if(!val || !*val) return false;
-  if(!strcmp(path, "Timer")) return false;
-  if(!strcmp(path, "Notifying")) return false;
-
-  size_t m=strlen(path)+1;
-  char p[m]; memcpy(p, path, m);
-  char* c=find_unescaped_colon(p);
-
-  if(c) return nested_property_edit_n(n, path, 0, val, LIST_EDIT_MODE_PREPEND);
-  bool ok=edit_value(n, remove_char_in_place(p, '\\'), val, LIST_EDIT_MODE_PREPEND);
-  if(ok) save_and_notify(n);
-  return ok;
+  return object_property_edit(n, path, val, LIST_EDIT_MODE_PREPEND);
 }
 
 // ------------------------------------------------------
@@ -1527,5 +1496,31 @@ bool edit_value(object* n, char* key, char* val, uint8_t mode){
     }
   }
   return false;
+}
+
+bool object_property_edit(object* n, char* path, char* val, uint8_t mode) {
+
+  if(!n->running_evals && has_notifies(n)){
+    NOT_IN_EVAL("Inserting/Adding", "IA!");
+  }
+  if(!val || !*val) return false;
+  if(!strcmp(path, "Timer")) return false;
+  if(!strcmp(path, "Notifying")){
+    if(mode!=LIST_EDIT_MODE_APPEND) return false;
+    if(!is_uid(val)) return false;
+    add_notify(n, val);
+    return true;
+  }
+  if(find_unescaped_colon(path)){
+    return nested_property_edit_n(n, path, 0, val, mode);
+  }
+  size_t m=strlen(path)+1;
+  char p[m]; memcpy(p, path, m);
+  remove_char_in_place(p, '\\');
+
+  bool ok=edit_value(n, p, val, mode);
+
+  if(ok) save_and_notify(n);
+  return ok;
 }
 
