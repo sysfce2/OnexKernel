@@ -344,7 +344,7 @@ char* object_property_peek(object* n, char* path)
 
 char* object_property_values(object* n, char* path) {
 
-  log_write("object_property_values deprecated!\n");
+  // object_property_values deprecated!
 
   item* i=property_item(n,path,n,true);
   if(!i) return 0;
