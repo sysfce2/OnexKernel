@@ -34,7 +34,7 @@ unsigned int string_hash(char* p)
   return h;
 }
 
-#define BX 30
+#define BX 256
 #define WARN_SIZE(h) if((h)->size && !((h)->size % BX)) log_write("%s# %d\n", (h)->name, (h)->size);
 #define WARN_SZLG(h) if((h)->size && !((h)->size % BX)) properties_log(h)
 
@@ -73,7 +73,7 @@ bool properties_set(properties* op, char* key, void* i)
     (*lisp)->item=i;
     (*lisp)->next=0;
     op->size++;
-    WARN_SIZE(op);
+    WARN_SZLG(op);
   }
   else{
     (*lisp)->item=i;
