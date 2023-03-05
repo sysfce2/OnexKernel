@@ -61,6 +61,10 @@ value* value_new(char* val)
     log_write("VALS!!\n"); // this is serious
     RETURN_UNLOCKING(0);
   }
+  if(strchr(val, ' ') || strchr(val, '\n')){
+    log_write("VALS ! '%s'\n", val); // this is serious
+ // RETURN_UNLOCKING(0); // it happens, so...
+  }
   ours->type=ITEM_VALUE;
   ours->val=mem_strdup(val);
   ours->refs=1; // don't count our own 2 uses in all_values
