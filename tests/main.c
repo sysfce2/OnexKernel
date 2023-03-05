@@ -166,7 +166,7 @@ void show_battery()
   int16_t mv = bv*2000/(1024/(33/10));
   int8_t  pc = ((mv-3520)*100/5200)*10;
 
-  snprintf(buf, 64, "%d/%d/%d%%", bv, mv, pc);
+  snprintf(buf, 64, "%d/%dmv/%d%%", bv, mv, pc);
   gfx_pos(10, 135);
   gfx_text(buf);
 
