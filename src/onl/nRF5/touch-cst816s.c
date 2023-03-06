@@ -1,7 +1,10 @@
 
 #include <boards.h>
 
+#if defined(BOARD_PINETIME)
 #define USE_50MS_HACK
+#endif
+
 #if defined(USE_50MS_HACK)
 #include <app_timer.h>
 #endif
