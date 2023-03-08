@@ -1142,60 +1142,60 @@ char* object_to_text(object* n, char* b, uint16_t s, int target)
   int ln=0;
 
   ln+=snprintf(b+ln, s-ln, "UID: %s", value_string(n->uid));
-  if(ln>=s){ *b = 0; return b; }
+  if(ln>=s){ *(b+s-1) = 0; return b; }
 
   if(target==OBJECT_TO_TEXT_NETWORK){
     ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(onex_device_object->uid));
-    if(ln>=s){ *b = 0; return b; }
+    if(ln>=s){ *(b+s-1) = 0; return b; }
   }
 
   if(n->evaluator && target>=OBJECT_TO_TEXT_PERSIST){
     ln+=snprintf(b+ln, s-ln, " Eval: %s", value_string(n->evaluator));
-    if(ln>=s){ *b = 0; return b; }
+    if(ln>=s){ *(b+s-1) = 0; return b; }
   }
 
   if(n->devices && target>=OBJECT_TO_TEXT_PERSIST){
     ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(n->devices));
-    if(ln>=s){ *b = 0; return b; }
+    if(ln>=s){ *(b+s-1) = 0; return b; }
   }
 
   if(n->cache && target>=OBJECT_TO_TEXT_PERSIST){
     ln+=snprintf(b+ln, s-ln, " Cache: %s", value_string(n->cache));
-    if(ln>=s){ *b = 0; return b; }
+    if(ln>=s){ *(b+s-1) = 0; return b; }
   }
 
   int j;
   for(j=0; j< OBJECT_MAX_NOTIFIES; j++){
     if(n->notify[j]){
       if(j==0) ln+=snprintf(b+ln, s-ln, " Notify:");
-      if(ln>=s){ *b = 0; return b; }
+      if(ln>=s){ *(b+s-1) = 0; return b; }
       ln+=snprintf(b+ln, s-ln, " ");
-      if(ln>=s){ *b = 0; return b; }
+      if(ln>=s){ *(b+s-1) = 0; return b; }
       ln+=strlen(value_to_text(n->notify[j], b+ln, s-ln));
-      if(ln>=s){ *b = 0; return b; }
+      if(ln>=s){ *(b+s-1) = 0; return b; }
     }
   }
 
   if(n->alerted && target>=OBJECT_TO_TEXT_PERSIST){
     ln+=snprintf(b+ln, s-ln, " Alerted: %s", value_string(n->alerted));
-    if(ln>=s){ *b = 0; return b; }
+    if(ln>=s){ *(b+s-1) = 0; return b; }
   }
 
   if(n->timer && target==OBJECT_TO_TEXT_LOG){
     ln+=snprintf(b+ln, s-ln, " Timer: %s", value_string(n->timer));
-    if(ln>=s){ *b = 0; return b; }
+    if(ln>=s){ *(b+s-1) = 0; return b; }
   }
 
   properties* p=n->properties;
   for(j=1; j<=properties_size(p); j++){
     ln+=snprintf(b+ln, s-ln, " ");
-    if(ln>=s){ *b = 0; return b; }
+    if(ln>=s){ *(b+s-1) = 0; return b; }
     ln+=snprintf(b+ln, s-ln, "%s", properties_key_n(p,j));
-    if(ln>=s){ *b = 0; return b; }
+    if(ln>=s){ *(b+s-1) = 0; return b; }
     ln+=snprintf(b+ln, s-ln, ": ");
-    if(ln>=s){ *b = 0; return b; }
+    if(ln>=s){ *(b+s-1) = 0; return b; }
     ln+=strlen(item_to_text(properties_get_n(p,j), b+ln, s-ln));
-    if(ln>=s){ *b = 0; return b; }
+    if(ln>=s){ *(b+s-1) = 0; return b; }
   }
   return b;
 }
