@@ -543,6 +543,18 @@ char* object_property_key(object* n, char* path, uint16_t index)
   return key;
 }
 
+char* object_property_key_esc(object* n, char* path, uint16_t index,
+                              char* keyesc, uint8_t len){
+
+  char* key=object_property_key(n, path, index);
+  if(!key){
+    *keyesc=0;
+    return 0;
+  }
+  mem_strncpy(keyesc, key, len);
+  return prefix_char_in_place(keyesc, '\\', ':');
+}
+
 char* object_property_val(object* n, char* path, uint16_t index)
 {
   item* v=0;

@@ -633,6 +633,11 @@ void test_from_text() {
   onex_assert_equal(object_property(         n4, "x\\:y:1"), "a",     "object_new_from parses all the escaped colons");
   onex_assert_equal(object_property(         n4, "x\\:y:2"), ":z:q:", "object_new_from parses all the escaped colons");
   onex_assert_equal(object_property(         n4, "x\\:y:3"), "b",     "object_new_from parses all the escaped colons");
+
+  onex_assert_equal(object_property_key(     n4, ":", 4),             "x:y",   "key of 4th item is 'x:y'");
+  char keyesc[64];
+  onex_assert_equal(object_property_key_esc( n4, ":", 4, keyesc, 64), "x\\:y", "key of 4th item escaped is 'x\\:y'");
+
   onex_assert_equal(object_property(         n4, "last"), "one",      "object_new_from parses last one as single value without newline");
 
   onex_assert_equal(object_to_text(        n4,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), totext, "gives same text back from reconstruction");

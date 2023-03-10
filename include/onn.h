@@ -110,6 +110,9 @@ int16_t object_property_size(object* n, char* path);
 /** return property key at path and index into properties. */
 char* object_property_key(object* n, char* path, uint16_t index);
 
+/** as object_property_key but escape any colons. */
+char* object_property_key_esc(object* n, char* path, uint16_t index, char* keyesc, uint8_t len);
+
 /** return property value at path and index into properties. */
 char* object_property_val(object* n, char* path, uint16_t index);
 
