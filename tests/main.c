@@ -4,22 +4,12 @@
 #if defined(NRF5)
 
 #include <boards.h>
-#include <onex-kernel/log.h>
-
-#if defined(BOARD_PINETIME)
-
-#include <onex-kernel/gfx.h>
-#include <onex-kernel/touch.h>
-#include <onex-kernel/motion.h>
-
-#elif defined(BOARD_MAGIC3)
-
-#include <onex-kernel/gfx.h>
-#include <onex-kernel/touch.h>
-
-#endif
 
 #include <onex-kernel/gpio.h>
+
+#if defined(BOARD_PINETIME)
+#include <onex-kernel/motion.h>
+#endif
 
 #if defined(HAS_SERIAL)
 #include <onex-kernel/serial.h>
@@ -29,14 +19,14 @@
 #include <onex-kernel/blenus.h>
 #endif
 
+#include <onex-kernel/gfx.h>
+#include <onex-kernel/touch.h>
+
 #endif // NRF5
 
 #include <onex-kernel/random.h>
 #include <onex-kernel/time.h>
-
-#if !defined(BOARD_MAGIC3)
 #include <onex-kernel/log.h>
-#endif
 
 #include <tests.h>
 
@@ -159,7 +149,6 @@ void show_motion()
 }
 #endif
 
-#if defined(BOARD_PINETIME) || defined(BOARD_MAGIC3)
 void show_battery()
 {
   int16_t bv = gpio_read(ADC_CHANNEL);
@@ -173,7 +162,6 @@ void show_battery()
   gfx_pos(10, 155);
   gfx_text(is_charging? "charging": "battery");
 }
-#endif
 
 #endif // watches
 
@@ -191,9 +179,8 @@ void run_tests_maybe()
   if(run_tests) return;
   run_tests++;
 
-#if !defined(BOARD_MAGIC3)
   log_write("-----------------OnexKernel tests------------------------\n");
-#endif
+
   run_value_tests();
   run_list_tests();
   run_properties_tests();
@@ -217,11 +204,10 @@ void run_tests_maybe()
 extern volatile char* event_log_buffer;
 #endif
 
-int main(void)
-{
-#if !defined(BOARD_MAGIC3)
+int main(void) {
+
   log_init();
-#endif
+
   time_init();
   random_init();
 #if defined(NRF5)
@@ -274,9 +260,9 @@ int main(void)
   motion_init(moved);
 #endif
   while(1){
-#if !defined(BOARD_MAGIC3)
+
     log_loop();
-#endif
+
     run_tests_maybe();
     if(new_touch_info){
       new_touch_info=false;
@@ -293,11 +279,15 @@ int main(void)
       ticks++;
       if(!(ticks%20)) show_motion();
     }
-#endif
-#if defined(BOARD_PINETIME)
     if (display_state_prev != display_state){
       display_state_prev = display_state;
       gpio_set(LCD_BACKLIGHT_HIGH, display_state);
+    }
+#endif
+#if defined(BOARD_MAGIC3)
+    if (display_state_prev != display_state){
+      display_state_prev = display_state;
+      gpio_set(LCD_BACKLIGHT, display_state);
     }
 #endif
 #if defined(LOG_TO_GFX)
@@ -307,12 +297,6 @@ int main(void)
       gfx_text((char*)event_log_buffer);
       gfx_text_colour(GFX_BLUE);
       event_log_buffer=0;
-    }
-#endif
-#if defined(BOARD_MAGIC3)
-    if (display_state_prev != display_state){
-      display_state_prev = display_state;
-      gpio_set(LCD_BACKLIGHT, display_state);
     }
 #endif
 
@@ -341,4 +325,3 @@ int main(void)
 }
 
 // --------------------------------------------------------------------
-
