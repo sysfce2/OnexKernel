@@ -71,9 +71,6 @@ char* object_pathpair(object* n, char* path1, char* path2);
 /** return property value or nothing if it's a list; don't observe any sub-objects on the path. */
 char* object_property_peek(object* n, char* path);
 
-/** DON'T USE return property value, or space-separated list of values, excluding uids and sub-properties. */
-char* object_property_values(object* n, char* path);
-
 /** return whether property at path is a single value and it matches supplied string. */
 bool  object_property_is(object* n, char* path, char* expected);
 
@@ -112,9 +109,6 @@ char* object_property_key(object* n, char* path, uint16_t index);
 
 /** as object_property_key but escape any colons. */
 char* object_property_key_esc(object* n, char* path, uint16_t index, char* keyesc, uint8_t len);
-
-/** return property value at path and index into properties. */
-char* object_property_val(object* n, char* path, uint16_t index);
 
 /* for style argument of object_to_text; bigger numbers more verbose. */
 #define OBJECT_TO_TEXT_NETWORK 1
@@ -159,14 +153,25 @@ void onex_set_evaluators(char* name, ... /* onex_evaluator evaluator, ..., 0 */)
     returns true if the main loop cannot sleep yet */
 bool onex_loop();
 
-/** get the given Object from the cache. DEPRECATED. */
-object* onex_get_from_cache(char* uid);
-
 /** log out all the objects in the cache. */
 void onex_show_cache();
 
 /** remove object from the cache. */
 void onex_un_cache(char* uid);
+
+// --------------------------------------------------------------------
+
+/** return property value, or space-separated list of values, excluding uids and sub-properties. */
+/** don't use this! it's nonsense and clutters the value cache */
+char* object_property_values(object* n, char* path);
+
+/** return property value at path and index into properties. */
+/** don't use this! so you're sure there's a single value? */
+char* object_property_val(object* n, char* path, uint16_t index);
+
+/** get the given Object from the cache. */
+/** don't use this! can't just grab objects you like in this way. */
+object* onex_get_from_cache(char* uid);
 
 // --------------------------------------------------------------------
 
