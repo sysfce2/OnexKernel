@@ -130,7 +130,7 @@ void show_random()
 void show_touch()
 {
   snprintf(buf, 64, "-%03d-%03d-", ti.x, ti.y);
-  gfx_pos(10, 85);
+  gfx_pos(10, 90);
   gfx_text(buf);
 
   snprintf(buf, 64, "-%s-%s-%d-", touch_actions[ti.action], touch_gestures[ti.gesture], irqs);
@@ -207,7 +207,6 @@ extern volatile char* event_log_buffer;
 int main(void) {
 
   log_init();
-
   time_init();
   random_init();
 #if defined(NRF5)
@@ -255,15 +254,18 @@ int main(void) {
   gfx_rect_fill(195,180,  20, 20, GFX_RGB256(0,255,255));
   gfx_rect_fill(195,210,  20, 20, GFX_CYAN);
   gfx_text_colour(GFX_BLUE);
+
   touch_init(touched);
 #if defined(BOARD_PINETIME)
   motion_init(moved);
 #endif
+
   while(1){
 
     log_loop();
 
     run_tests_maybe();
+
     if(new_touch_info){
       new_touch_info=false;
       show_touch();
@@ -300,20 +302,19 @@ int main(void) {
     }
 #endif
 
-    static uint8_t  frame_count = 0;
+    static uint8_t  loop_count = 0;
     static uint64_t tm_last = 0;
-    static uint8_t  fps = 111;
+    static uint8_t  lps = 111;
 
-    frame_count++;
+    loop_count++;
     uint64_t tm=time_ms();
     if(tm > tm_last + 1000) {
       tm_last = tm;
-      fps = frame_count;
-      frame_count = 0;
+      lps = loop_count;
+      loop_count = 0;
     }
-
-    snprintf(buf, 64, "fps: ===%d===", fps);
-    gfx_pos(10, 65);
+    snprintf(buf, 64, "lps: ===%d===", lps);
+    gfx_pos(10, 70);
     gfx_text(buf);
   }
 #endif // HAS_SERIAL

@@ -58,7 +58,7 @@ bool onex_assert_equal_num(int actual, int expected, const char* fail_message)
 int onex_assert_summary()
 {
   char s[128];
-  if(!failure) sprintf(s, "---------------------\nTests done: %d OK, no failures\n---------------------\n", success);
+  if(!failure) sprintf(s, "---------------------\nTests done: %d OK, 0 failed\n---------------------\n", success);
   else         sprintf(s, "---------------------\nTests done: %d OK, %d FAILED\n-----------------------\n", success, failure);
   log_write("%s", s);
   return failure;
