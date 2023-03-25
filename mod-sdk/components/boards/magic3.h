@@ -45,6 +45,13 @@ extern "C" {
 #define CHARGE_SENSE NRF_GPIO_PIN_MAP(0,8)
 #define BATTERY_V    NRF_SAADC_INPUT_AIN6 // NRF_GPIO_PIN_MAP(0,30)
 
+#define NRFX_QSPI_PIN_CSN 17
+#define NRFX_QSPI_PIN_SCK 19
+#define NRFX_QSPI_PIN_IO0 20
+#define NRFX_QSPI_PIN_IO1 21
+#define NRFX_QSPI_PIN_IO2 22
+#define NRFX_QSPI_PIN_IO3 23
+
 /*
 12-+-backlight
 

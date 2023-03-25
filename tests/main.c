@@ -7,6 +7,10 @@
 
 #include <onex-kernel/gpio.h>
 
+#if defined(BOARD_MAGIC3)
+#include <onex-kernel/spi-flash.h>
+#endif
+
 #if defined(BOARD_PINETIME)
 #include <onex-kernel/motion.h>
 #endif
@@ -174,12 +178,66 @@ void on_recv(unsigned char* chars, size_t size)
 }
 #endif
 
-void run_tests_maybe()
-{
+#if defined(BOARD_MAGIC3)
+
+#define FLASH_TEST_DATA_START 0x30000
+#define FLASH_TEST_DATA_SIZE  4096
+#define FLASH_TEST_ERASE_LEN  SPI_FLASH_ERASE_LEN_4KB
+
+static uint8_t wrbuf[FLASH_TEST_DATA_SIZE];
+static uint8_t rdbuf[FLASH_TEST_DATA_SIZE];
+
+char* run_flash_tests(char* allids) {
+
+  char* err;
+
+  err=spi_flash_init(allids);
+  if(err) return err;
+
+  err = spi_flash_erase(FLASH_TEST_DATA_START, FLASH_TEST_ERASE_LEN, 0);
+  if(err) return err;
+
+  for(uint32_t i=0; i < FLASH_TEST_DATA_SIZE; i++){
+    wrbuf[i] = random_ish_byte();
+  }
+  uint32_t start_write_ts=(uint32_t)time_ms();
+  static volatile uint32_t end_write_ts=0;
+  void record_end_ts(){ end_write_ts=(uint32_t)time_ms(); }
+  err = spi_flash_write(FLASH_TEST_DATA_START, wrbuf, FLASH_TEST_DATA_SIZE, record_end_ts);
+  if(err) return err;
+  while(!end_write_ts);
+
+  err = spi_flash_read(FLASH_TEST_DATA_START, rdbuf, FLASH_TEST_DATA_SIZE, 0);
+  if(err) return err;
+
+  bool ok=!memcmp(wrbuf, rdbuf, FLASH_TEST_DATA_SIZE);
+  static char res[64];
+  snprintf(res, 64, ok? "%ldms %x:%x:%x:%x==%x:%x:%x:%x":
+                        "%ldms %x:%x:%x:%x!=%x:%x:%x:%x",
+                    end_write_ts-start_write_ts,
+                    wrbuf[0], wrbuf[1], wrbuf[2], wrbuf[3],
+                    rdbuf[0], rdbuf[1], rdbuf[2], rdbuf[3]);
+  return res;
+}
+#endif
+
+void run_tests_maybe() {
+
   if(run_tests) return;
   run_tests++;
 
   log_write("-----------------OnexKernel tests------------------------\n");
+
+#if defined(BOARD_MAGIC3)
+  char allids[64];
+  char* flash_result=run_flash_tests(allids);
+
+  gfx_pos(15, 235);
+  gfx_text(flash_result);
+
+  gfx_pos(15, 255);
+  gfx_text(allids);
+#endif
 
   run_value_tests();
   run_list_tests();
@@ -192,7 +250,7 @@ void run_tests_maybe()
   if(failures) gpio_set(leds_list[1], 0);
   else         gpio_set(leds_list[2], 0);
 #else
-  gfx_pos(10, 10);
+  gfx_pos(10, 55);
   gfx_text(failures? "FAIL": "SUCCESS");
 #endif
 #else

@@ -216,6 +216,7 @@ MAGIC3_SOURCES = \
 ./src/onl/nRF5/touch-cst816s.c \
 ./src/onl/nRF5/display-st7789.c \
 ./src/onl/nRF5/gfx.c \
+./src/onl/nRF5/spi-flash.c \
 $(NRF5_SOURCES) \
 
 
@@ -535,6 +536,7 @@ $(SDK_C_SOURCES_NO_SD) \
 ./sdk/external/thedotfactory_fonts/orkney8pts.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_saadc.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_spim.c \
+./sdk/modules/nrfx/drivers/src/nrfx_qspi.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_twi.c \
 ./sdk/modules/nrfx/mdk/system_nrf52840.c \
 
