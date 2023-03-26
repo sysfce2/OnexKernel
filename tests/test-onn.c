@@ -707,6 +707,8 @@ bool evaluate_persistence_n4_after(object* n4, void* d)
 
 void test_persistence(bool actually)
 {
+  log_write("\n------------ Persistence ----------------\n\n");
+
   onex_show_cache();
 
   object* n4=onex_get_from_cache("uid-4");
@@ -729,8 +731,6 @@ void test_persistence(bool actually)
 
   onex_set_evaluators("evaluate_persistence_n4", evaluate_persistence_n4_after, 0);
 
-  onex_show_cache();
-
   if(!actually) return;
 
   onex_show_cache();
@@ -739,7 +739,6 @@ void test_persistence(bool actually)
   onex_un_cache("uid-3");
   onex_un_cache("uid-2");
   onex_un_cache("uid-1");
-  onex_show_cache();
 
   onex_show_cache();
   onex_un_cache(0); // flushes
