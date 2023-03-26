@@ -741,6 +741,7 @@ void test_persistence(bool actually)
   onex_un_cache("uid-1");
 
   onex_show_cache();
+
   onex_un_cache(0); // flushes
 }
 

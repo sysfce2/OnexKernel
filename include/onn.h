@@ -128,7 +128,7 @@ char* object_property_key_esc(object* n, char* path, uint16_t index, char* keyes
 /* for style argument of object_to_text; bigger numbers more verbose. */
 #define OBJECT_TO_TEXT_NETWORK 1
 #define OBJECT_TO_TEXT_PERSIST 2
-#define OBJECT_TO_TEXT_LOG 3
+#define OBJECT_TO_TEXT_LOG     3
 
 /** object to text; supply your own buffer, b, of length s. */
 char* object_to_text(object* n, char* b, uint16_t s, int style);

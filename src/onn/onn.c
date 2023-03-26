@@ -1346,10 +1346,21 @@ void scan_objects_text_for_keep_active()
     char* uid=0;
     char* p=properties_get_n(objects_text, n);
     while(true){
-      char* key=get_key(&p); if(!key) break;                   if(!*key){ mem_freestr(key); break; }
-      char* val=get_val(&p); if(!val || !*val){ mem_freestr(key); if(val) mem_freestr(val); break; }
+      char* key=get_key(&p);
+      if(!key) break;
+      if(!*key){
+        mem_freestr(key);
+        break;
+      }
+      char* val=get_val(&p);
+      if(!val || !*val){
+        mem_freestr(key);
+        if(val) mem_freestr(val);
+        break;
+      }
       if(!isupper((unsigned char)(*key))){
-        mem_freestr(key); mem_freestr(val);
+        mem_freestr(key);
+        mem_freestr(val);
         break;
       }
       if(!strcmp(key,"Cache") && !strcmp(val,"keep-active")){
@@ -1357,7 +1368,8 @@ void scan_objects_text_for_keep_active()
         mem_freestr(key); mem_freestr(val);
         break;
       }
-      mem_freestr(key); mem_freestr(val);
+      mem_freestr(key);
+      mem_freestr(val);
     }
     if(uid){
       object* o=onex_get_from_cache(uid);
