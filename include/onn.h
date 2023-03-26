@@ -45,11 +45,13 @@ object* object_new_from(char* text, uint8_t max_size);
 /** re-set evaluator callback. */
 void object_set_evaluator(object* n, char* evaluator);
 
-/** set/unset flag to kick the object on restart. */
-void object_keep_active(object* n, bool keepactive);
+/** set/unset flag to kick the object on restart.
+  * Cache: keep-active */
+void object_set_cache(object* n, char* keepactive);
 
-/** read keep-active flag. */
-bool object_is_keep_active(object* n);
+/** read Cache: (keep-active) flag. */
+char* object_get_cache(object* n);
+
 
 /** set property value. only use inside an evaluator for 'n' */
 bool  object_property_set(object* n, char* path, char* val);

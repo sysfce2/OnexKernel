@@ -657,9 +657,9 @@ void test_from_text() {
 
   char* nxuid=object_property(nx, "UID");
 
-  onex_assert(      is_local("uid-4"),          "n4 is local");
-  onex_assert(     !is_local(nxuid),            "nx is remote");
-  onex_assert(      object_is_keep_active(nx),  "nx is Cache: keep-active");
+  onex_assert(      is_local("uid-4"),                   "n4 is local");
+  onex_assert(     !is_local(nxuid),                     "nx is remote");
+  onex_assert_equal(object_get_cache(nx), "keep-active", "nx is Cache: keep-active");
 
   snprintf(fulltext, 256, "UID: %s %s", nxuid, text);
   onex_assert_equal(object_to_text(nx,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), fulltext, "gives same text back from reconstruction");
@@ -714,7 +714,7 @@ void test_persistence(bool actually)
   object* n4=onex_get_from_cache("uid-4");
   object* n1=onex_get_from_cache("uid-1");
 
-  object_keep_active(n1, true);
+  object_set_cache(n1, "keep-active");
 
   onex_set_evaluators("evaluate_persistence_n1", evaluate_persistence_n1, 0);
   onex_set_evaluators("evaluate_persistence_n4", evaluate_persistence_n4_before, 0);

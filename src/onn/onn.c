@@ -279,15 +279,16 @@ void object_set_evaluator(object* n, char* evaluator)
   persistence_put(n);
 }
 
-void object_keep_active(object* n, bool keepactive)
-{
-  n->cache=keepactive? value_new("keep-active"): 0;
+// ------------------------------------------------------
+
+void object_set_cache(object* n, char* cache) {
+  n->cache=value_new(cache);
   persistence_put(n);
 }
 
-bool object_is_keep_active(object* n)
-{
-  return n->cache && value_is(n->cache, "keep-active");
+char* object_get_cache(object* n) {
+  return value_string(n->cache);
+}
 }
 
 // ------------------------------------------------------
@@ -664,7 +665,7 @@ void device_init()
 {
   if(!onex_device_object){
     onex_device_object=object_new(0, 0, "device", 8);
-    object_keep_active(onex_device_object, true);
+    object_set_cache(onex_device_object, "keep-active");
   }
 }
 
