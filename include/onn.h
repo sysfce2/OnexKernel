@@ -47,7 +47,7 @@ void object_set_evaluator(object* n, char* evaluator);
 
 /** set/unset flag to kick the object on restart.
   * Cache: keep-active */
-void object_set_cache(object* n, char* keepactive);
+void object_set_cache(object* n, char* cache);
 
 /** read Cache: (keep-active) flag. */
 char* object_get_cache(object* n);
