@@ -29,23 +29,6 @@
 // ---------------------------------------------------------------------------------
 
 
-#define MAX_UID_LEN 128
-#if defined(NRF5)
-#define MAX_LIST_SIZE 256
-#define MAX_TEXT_LEN 1024
-#define MAX_OBJECTS 64
-#define MAX_TO_NOTIFY 64
-#define MAX_OBJECT_SIZE 16
-#else
-#define MAX_LIST_SIZE 256
-#define MAX_TEXT_LEN 2048
-#define MAX_OBJECTS 4096
-#define MAX_TO_NOTIFY 1024
-#define MAX_OBJECT_SIZE 32
-#endif
-
-// ---------------------------------------------------------------------------------
-
 #define LIST_EDIT_MODE_SET     1
 #define LIST_EDIT_MODE_PREPEND 2
 #define LIST_EDIT_MODE_APPEND  3
@@ -75,8 +58,6 @@ static void    run_evaluators(object* o, void* data, value* alerted, bool timedo
 static bool    run_any_evaluators();
 static void    set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout);
 
-static void    device_init();
-
 static void    persistence_init(char* filename);
 static bool    persistence_loop();
 static object* persistence_get(char* uid);
@@ -85,6 +66,7 @@ static void    persistence_flush();
 static void    scan_objects_text_for_keep_active();
 
 static void    timer_init();
+static void    device_init();
 
 // ---------------------------------
 
@@ -318,7 +300,7 @@ bool object_is_keep_active(object* n)
 static char* object_property_observe(object* n, char* path, bool observe)
 {
   if(!n) return 0;
-  if(!strcmp(path, "UID")) return value_string(n->uid);
+  if(!strcmp(path, "UID"))   return value_string(n->uid);
   if(!strcmp(path, "Timer")) return value_string(n->timer);
   item* i=property_item(n,path,n,observe);
   if(i && i->type==ITEM_VALUE) return value_string((value*)i);
@@ -679,6 +661,16 @@ bool stop_timer(object* n)
   n->timer=0;
   save_and_notify(n);
   return true;
+}
+
+// ----------------------------------------------
+
+void device_init()
+{
+  if(!onex_device_object){
+    onex_device_object=object_new(0, 0, "device", 8);
+    object_keep_active(onex_device_object, true);
+  }
 }
 
 // ----------------------------------------------
@@ -1263,8 +1255,8 @@ bool add_to_cache(object* n)
   return true;
 }
 
-object* onex_get_from_cache(char* uid) // or persistence! and hide this
-{
+object* onex_get_from_cache(char* uid) {
+
   if(!uid || !(*uid)) return 0;
   object* o=properties_get(objects_cache, uid);
   if(!o)  o=persistence_get(uid);
@@ -1409,14 +1401,6 @@ void persistence_init(char* filename)
   }
   mem_free(alldbtext);
   scan_objects_text_for_keep_active();
-}
-
-void device_init()
-{
-  if(!onex_device_object){
-    onex_device_object=object_new(0, 0, "device", 8);
-    object_keep_active(onex_device_object, true);
-  }
 }
 
 static uint32_t lasttime=0;
