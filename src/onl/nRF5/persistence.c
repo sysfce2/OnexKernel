@@ -38,6 +38,12 @@ void persistence_put(object* o) {
   if(!objects_to_save) return;
 
   char* uid=object_property(o, "UID");
+  char* p=object_get_persist(o);
+  if(p && !strcmp(p, "none")){
+    mem_freestr(properties_delete(objects_text, uid));
+    properties_delete(objects_to_save, uid);
+    return;
+  }
   properties_set(objects_to_save, uid, uid);
 }
 

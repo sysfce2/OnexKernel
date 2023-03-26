@@ -52,6 +52,13 @@ void object_set_cache(object* n, char* keepactive);
 /** read Cache: (keep-active) flag. */
 char* object_get_cache(object* n);
 
+/** set flag to determine persistence policy.
+  * Persist: async
+  * can be "none", "async" or "sync" (one day). */
+void object_set_persist(object* n, char* persist);
+
+/** read persist prop */
+char* object_get_persist(object* n);
 
 /** set property value. only use inside an evaluator for 'n' */
 bool  object_property_set(object* n, char* path, char* val);

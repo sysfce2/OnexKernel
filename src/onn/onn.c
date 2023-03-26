@@ -70,6 +70,7 @@ typedef struct object {
   value*      evaluator;
   properties* properties;
   value*      cache;
+  value*      persist;
   value*      notify[OBJECT_MAX_NOTIFIES];
   value*      alerted;
   value*      devices;
@@ -169,6 +170,7 @@ object* new_object_from(char* text, uint8_t max_size)
   value* evaluator=0;
   value* devices=0;
   value* cache=0;
+  value* persist=0;
   char* notify=0;
   char* p=t;
   while(true){
@@ -182,6 +184,8 @@ object* new_object_from(char* text, uint8_t max_size)
     else
     if(!strcmp(key,"Cache")) cache=value_new(val);
     else
+    if(!strcmp(key,"Persist")) persist=value_new(val);
+    else
     if(!strcmp(key,"Notify")) notify=mem_strdup(val);
     else
     if(isupper((unsigned char)(*key)));
@@ -191,6 +195,7 @@ object* new_object_from(char* text, uint8_t max_size)
         if(evaluator) n->evaluator=evaluator;
         if(devices) n->devices=devices;
         if(cache) n->cache=cache;
+        if(persist) n->persist=persist;
         if(notify){ set_notifies(n, notify); mem_freestr(notify); }
       }
       if(!property_edit(n, key, val, LIST_EDIT_MODE_SET)) break;
@@ -217,6 +222,7 @@ void object_free(object* o)
   value_free(o->evaluator);
   properties_free(o->properties, true);
   value_free(o->cache);
+  value_free(o->persist);
   for(uint8_t i=0; i< OBJECT_MAX_NOTIFIES; i++) value_free(o->notify[i]);
   value_free(o->alerted);
   value_free(o->devices);
@@ -289,6 +295,14 @@ void object_set_cache(object* n, char* cache) {
 char* object_get_cache(object* n) {
   return value_string(n->cache);
 }
+
+void object_set_persist(object* n, char* persist){
+  n->persist=value_new(persist);
+  persistence_put(n);
+}
+
+char* object_get_persist(object* n){
+  return value_string(n->persist);
 }
 
 // ------------------------------------------------------
@@ -1161,6 +1175,11 @@ char* object_to_text(object* n, char* b, uint16_t s, int target)
 
   if(n->cache && target>=OBJECT_TO_TEXT_PERSIST){
     ln+=snprintf(b+ln, s-ln, " Cache: %s", value_string(n->cache));
+    if(ln>=s){ *(b+s-1) = 0; return b; }
+  }
+
+  if(n->persist && target==OBJECT_TO_TEXT_LOG){
+    ln+=snprintf(b+ln, s-ln, " Persist: %s", value_string(n->persist));
     if(ln>=s){ *(b+s-1) = 0; return b; }
   }
 
