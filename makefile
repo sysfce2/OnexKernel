@@ -137,6 +137,7 @@ INCLUDES_PINETIME = \
 -I./include \
 -I./src/onl/nRF5/pinetime \
 -I./src/ \
+-I./src/onn/ \
 -I./src/onp/ \
 -I./tests \
 $(SDK_INCLUDES_PINETIME) \
@@ -146,6 +147,7 @@ INCLUDES_MAGIC3 = \
 -I./include \
 -I./src/onl/nRF5/magic3 \
 -I./src/ \
+-I./src/onn/ \
 -I./src/onp/ \
 -I./tests \
 $(SDK_INCLUDES_MAGIC3) \
@@ -155,6 +157,7 @@ INCLUDES_DONGLE = \
 -I./include \
 -I./src/onl/nRF5/dongle \
 -I./src/ \
+-I./src/onn/ \
 -I./src/onp/ \
 -I./tests \
 $(SDK_INCLUDES_DONGLE) \
@@ -195,6 +198,7 @@ NRF5_SOURCES = \
 ./src/onl/nRF5/log.c \
 ./src/onl/nRF5/mem.c \
 ./src/onl/nRF5/channel-serial.c \
+./src/onl/nRF5/persistence.c \
 
 
 PINETIME_SOURCES = \

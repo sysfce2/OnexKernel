@@ -9,6 +9,7 @@ targets:
 INCLUDES = \
 -I./include \
 -I./src/ \
+-I./src/onn/ \
 -I./src/onp/ \
 -I./tests \
 
@@ -39,6 +40,7 @@ UNIX_SOURCES = \
 ./src/onl/unix/mem.c \
 ./src/onl/unix/time.c \
 ./src/onl/unix/random.c \
+./src/onl/unix/persistence.c \
 
 #-------------------------------------------------------------------------------
 

@@ -23,11 +23,12 @@
 #endif
 #include <items.h>
 
+#include "persistence.h"
+
 #include <onp.h>
 #include <onn.h>
 
 // ---------------------------------------------------------------------------------
-
 
 #define LIST_EDIT_MODE_SET     1
 #define LIST_EDIT_MODE_PREPEND 2
@@ -57,12 +58,6 @@ static bool    is_shell(object* o);
 static void    run_evaluators(object* o, void* data, value* alerted, bool timedout);
 static bool    run_any_evaluators();
 static void    set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout);
-
-static void    persistence_init(char* filename);
-static bool    persistence_loop();
-static object* persistence_get(char* uid);
-static void    persistence_put(object* o);
-static void    persistence_flush();
 static void    scan_objects_text_for_keep_active();
 
 static void    timer_init();
@@ -1217,6 +1212,7 @@ void onex_init(char* dbpath)
   timer_init();
   random_init();
   persistence_init(dbpath);
+  scan_objects_text_for_keep_active();
   device_init();
   onp_init();
 }
@@ -1259,7 +1255,13 @@ object* onex_get_from_cache(char* uid) {
 
   if(!uid || !(*uid)) return 0;
   object* o=properties_get(objects_cache, uid);
-  if(!o)  o=persistence_get(uid);
+  if(!o){
+    char* text=persistence_get(uid);
+    if(!text) return 0;
+    o=new_object_from(text, MAX_OBJECT_SIZE);
+  }
+  if(!o) return 0;
+  if(!add_to_cache(o)) return 0;
   return o;
 }
 
@@ -1336,121 +1338,6 @@ void run_evaluators(object* o, void* data, value* alerted, bool timedout){
 }
 
 // -----------------------------------------------------------------------
-
-static properties* objects_text=0;
-static properties* objects_to_save=0;
-
-static FILE* db=0;
-
-#if !defined(NRF5)
-bool mkdir_p(char* filename)
-{
-  char* fn=mem_strdup(filename);
-  char* s=fn;
-  while((s=strchr(s+1, '/'))){
-    *s=0;
-    if(mkdir(fn, S_IRWXU) && errno != EEXIST) return false;
-    *s='/';
-  }
-  mem_freestr(fn);
-  return true;
-}
-#endif
-
-void persistence_init(char* filename)
-{
-  if(!*filename) return;
-#if !defined(NRF5)
-  if(!mkdir_p(filename)){
-    log_write("Couldn't make directory for '%s' errno=%d\n", filename, errno);
-    return;
-  }
-#endif
-  db=fopen(filename, "a+");
-  if(!db){
-    log_write("Couldn't open DB file '%s' errno=%d\n", filename, errno);
-    return;
-  }
-  fseek(db, 0, SEEK_END);
-  long len = ftell(db);
-  fseek(db, 0, SEEK_SET);
-  char* alldbtext=mem_alloc(len*sizeof(char)+1);
-  if(!alldbtext) {
-    fclose(db); db=0;
-    log_write("Can't allocate space for DB file %s\n", filename);
-    return;
-  }
-  objects_text=properties_new(MAX_OBJECTS);
-  objects_to_save=properties_new(MAX_OBJECTS);
-  long n=fread(alldbtext, sizeof(char), len, db);
-  alldbtext[n] = '\0';
-  char* text=strtok(alldbtext, "\n");
-  while(text){
-    if(!strncmp(text, "UID: ", 5)){
-      char* u=text+5;
-      char* e=strchr(u, ' ');
-      if(e) *e=0;
-      char uid[MAX_UID_LEN]; size_t m=snprintf(uid, MAX_UID_LEN, "%s", u);
-      if(e) *e=' ';
-      if(m<MAX_UID_LEN){
-        mem_freestr(properties_delete(objects_text, uid));
-        properties_set(objects_text, uid, mem_strdup(text));
-      }
-    }
-    text=strtok(0, "\n");
-  }
-  mem_free(alldbtext);
-  scan_objects_text_for_keep_active();
-}
-
-static uint32_t lasttime=0;
-
-bool persistence_loop()
-{
-  if(!objects_to_save) return false;
-  uint64_t curtime = time_ms();
-  if(curtime > lasttime+100){
-    persistence_flush();
-    lasttime = curtime;
-  }
-  return false;
-}
-
-object* persistence_get(char* uid)
-{
-  if(!objects_text) return 0;
-  char* text=properties_get(objects_text, uid);
-  if(!text) return 0;
-  object* o=new_object_from(text, MAX_OBJECT_SIZE);
-  if(!o) return 0;
-  if(!add_to_cache(o)) return 0;
-  return o;
-}
-
-void persistence_put(object* o)
-{
-  if(!objects_to_save) return;
-  value* uid=o->uid;
-  properties_set(objects_to_save, value_string(uid), uid);
-}
-
-void persistence_flush()
-{
-  if(!objects_to_save) return;
-  uint16_t sz=properties_size(objects_to_save);
-  if(!sz) return;
-  for(int j=1; j<=sz; j++){
-    char* uid=value_string(properties_get_n(objects_to_save, j));
-    object* o=onex_get_from_cache(uid);
-    char buff[MAX_TEXT_LEN];
-    char* text=object_to_text(o,buff,MAX_TEXT_LEN,OBJECT_TO_TEXT_PERSIST);
-    mem_freestr(properties_delete(objects_text, uid));
-    properties_set(objects_text, uid, mem_strdup(text));
-    fprintf(db, "%s\n", text);
-  }
-  properties_clear(objects_to_save, false);
-  fflush(db);
-}
 
 void scan_objects_text_for_keep_active()
 {
