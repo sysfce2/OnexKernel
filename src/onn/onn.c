@@ -303,7 +303,12 @@ void object_set_evaluator(object* n, char* evaluator)
 // ------------------------------------------------------
 
 void object_set_cache(object* n, char* cache) {
-  n->cache=value_new(cache);
+  if(!cache || !*cache){
+    n->cache=0;
+  }
+  else{
+    n->cache=value_new(cache);
+  }
   persistence_put(n);
 }
 
@@ -312,7 +317,12 @@ char* object_get_cache(object* n) {
 }
 
 void object_set_persist(object* n, char* persist){
-  n->persist=value_new(persist);
+  if(!persist || !*persist){
+    n->persist=0;
+  }
+  else{
+    n->persist=value_new(persist);
+  }
   persistence_put(n);
 }
 
