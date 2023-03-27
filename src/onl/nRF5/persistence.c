@@ -4,62 +4,19 @@
 #include <onex-kernel/log.h>
 #include <persistence.h>
 
-properties* objects_text=0;
-
-static properties* objects_to_save=0;
+properties* persistence_objects_text=0;
 
 void persistence_init(char* f) {
 
-  objects_to_save=properties_new(MAX_OBJECTS);
 }
 
-static uint32_t lasttime=0;
+void persistence_put(char* uid, char* text) {
 
-#define FLUSH_RATE_MS 1000
+  // while we're keeping an in-mem db!
+  mem_freestr(properties_delete(persistence_objects_text, uid));
+  properties_set(persistence_objects_text, uid, mem_strdup(text));
 
-bool persistence_loop() {
-
-  if(!objects_to_save) return false;
-
-  uint64_t curtime = time_ms();
-  if(curtime > lasttime+FLUSH_RATE_MS){
-    persistence_flush();
-    lasttime = curtime;
-  }
-  return false;
-}
-
-char* persistence_get(char* uid) {
-  return 0;
-}
-
-void persistence_put(object* o) {
-
-  if(!objects_to_save) return;
-
-  char* uid=object_property(o, "UID");
-  char* p=object_get_persist(o);
-  if(p && !strcmp(p, "none")){
-    mem_freestr(properties_delete(objects_text, uid));
-    properties_delete(objects_to_save, uid);
-    return;
-  }
-  properties_set(objects_to_save, uid, uid);
-}
-
-void persistence_flush() {
-
-  if(!objects_to_save) return;
-
-  uint16_t sz=properties_size(objects_to_save);
-  if(!sz) return;
-  for(int j=1; j<=sz; j++){
-    char* uid=properties_get_n(objects_to_save, j);
-    object* o=onex_get_from_cache(uid);
-    char buff[MAX_TEXT_LEN];
-    char* text=object_to_text(o,buff,MAX_TEXT_LEN,OBJECT_TO_TEXT_PERSIST);
-  }
-  properties_clear(objects_to_save, false);
+  log_write("%0.35s", strstr(text, "is: "));
 }
 
 

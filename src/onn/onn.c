@@ -58,7 +58,12 @@ static bool    is_shell(object* o);
 static void    run_evaluators(object* o, void* data, value* alerted, bool timedout);
 static bool    run_any_evaluators();
 static void    set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout);
-static void    scan_objects_text_for_keep_active();
+
+static void    persist_init(char* dbpath);
+static void    persist_put(object* o);
+static bool    persist_loop();
+static void    persist_flush();
+static void    persist_pull_keep_active();
 
 static void    timer_init();
 static void    device_init();
@@ -297,7 +302,7 @@ char* get_val(char** p)
 void object_set_evaluator(object* n, char* evaluator)
 {
   n->evaluator=value_new(evaluator);
-  persistence_put(n);
+  persist_put(n);
 }
 
 // ------------------------------------------------------
@@ -309,7 +314,7 @@ void object_set_cache(object* n, char* cache) {
   else{
     n->cache=value_new(cache);
   }
-  persistence_put(n);
+  persist_put(n);
 }
 
 char* object_get_cache(object* n) {
@@ -323,7 +328,7 @@ void object_set_persist(object* n, char* persist){
   else{
     n->persist=value_new(persist);
   }
-  persistence_put(n);
+  persist_put(n);
 }
 
 char* object_get_persist(object* n){
@@ -1137,7 +1142,7 @@ void set_notifies(object* o, char* notify)
 
 void save_and_notify(object* o)
 {
-  persistence_put(o);
+  persist_put(o);
 
   for(int i=0; i< OBJECT_MAX_NOTIFIES; i++){
     value* notifyuid=o->notify[i];
@@ -1256,8 +1261,7 @@ void onex_init(char* dbpath)
 {
   timer_init();
   random_init();
-  persistence_init(dbpath);
-  scan_objects_text_for_keep_active();
+  persist_init(dbpath);
   device_init();
   onp_init();
 }
@@ -1271,13 +1275,13 @@ bool onex_loop()
 #endif
   lka = log_loop();
 #endif
-  pka = persistence_loop();
+  pka = persist_loop();
   oka = onp_loop();
   eka = run_any_evaluators();
 #if defined(LOG_KEEP_AWAKE)
   if(ska) log_write("keep awake by serial_loop");
   if(lka) log_write("keep awake by log_loop");
-  if(pka) log_write("keep awake by persistence_loop");
+  if(pka) log_write("keep awake by persist_loop");
   if(oka) log_write("keep awake by onp_loop");
   if(eka) log_write("keep awake by run_any_evaluators");
 #endif
@@ -1299,21 +1303,25 @@ bool add_to_cache(object* n)
 object* onex_get_from_cache(char* uid) {
 
   if(!uid || !(*uid)) return 0;
+
   object* o=properties_get(objects_cache, uid);
-  if(!o){
-    char* text=persistence_get(uid);
-    if(!text) return 0;
-    o=new_object_from(text, MAX_OBJECT_SIZE);
-  }
-  if(!o) return 0;
-  if(!add_to_cache(o)) return 0;
-  return o;
+  if(o) return o;
+
+  if(!persistence_objects_text) return 0;
+  char* text=properties_get(persistence_objects_text, uid);
+  if(!text) return 0;
+
+  o=new_object_from(text, MAX_OBJECT_SIZE);
+  // mem_freestr(text); // with properties_delete above while in-mem db
+
+  if(o && add_to_cache(o)) return o;
+  return 0;
 }
 
-bool add_to_cache_and_persist(object* n)
-{
+bool add_to_cache_and_persist(object* n) {
+
   if(!add_to_cache(n)) return false;
-  persistence_put(n);
+  persist_put(n);
   return true;
 }
 
@@ -1330,11 +1338,11 @@ void onex_show_cache()
 
 void onex_un_cache(char* uid)
 {
-  persistence_flush();
+  persist_flush();
   if(!uid || !(*uid)) return;
   object* o=properties_delete(objects_cache, uid);
   object_free(o);
-  scan_objects_text_for_keep_active();
+  persist_pull_keep_active();
 }
 
 static properties* evaluators=0;
@@ -1384,12 +1392,69 @@ void run_evaluators(object* o, void* data, value* alerted, bool timedout){
 
 // -----------------------------------------------------------------------
 
-void scan_objects_text_for_keep_active()
-{
-  if(!objects_text) return;
-  for(int n=1; n<=properties_size(objects_text); n++){
+static properties* objects_to_save=0;
+
+void persist_init(char* dbpath){
+  objects_to_save=properties_new(MAX_OBJECTS);
+  persistence_init(dbpath);
+  persist_pull_keep_active();
+}
+
+static uint32_t lasttime=0;
+
+#if defined(NRF5)
+#define FLUSH_RATE_MS 500
+#else
+#define FLUSH_RATE_MS 100
+#endif
+
+bool persist_loop() {
+
+  if(!objects_to_save) return false;
+  uint64_t curtime = time_ms();
+  if(curtime > lasttime+FLUSH_RATE_MS){
+    persist_flush();
+    lasttime = curtime;
+  }
+  return false;
+}
+
+void persist_put(object* o) {
+
+  if(!objects_to_save) return;
+
+  char* uid=object_property(o, "UID");
+  char* p=object_get_persist(o);
+  if(p && !strcmp(p, "none")){
+    mem_freestr(properties_delete(persistence_objects_text, uid));
+    properties_delete(objects_to_save, uid);
+    return;
+  }
+  properties_set(objects_to_save, uid, uid);
+}
+
+void persist_flush() {
+
+  if(!objects_to_save) return;
+
+  char buff[MAX_TEXT_LEN];
+  uint16_t sz=properties_size(objects_to_save);
+  if(!sz) return;
+  for(int j=1; j<=sz; j++){
+    char* uid=properties_get_n(objects_to_save, j);
+    object* o=onex_get_from_cache(uid);
+    char* text=object_to_text(o,buff,MAX_TEXT_LEN,OBJECT_TO_TEXT_PERSIST);
+    persistence_put(uid, text);
+  }
+  properties_clear(objects_to_save, false);
+}
+
+void persist_pull_keep_active() {
+
+  if(!persistence_objects_text) return;
+  for(int n=1; n<=properties_size(persistence_objects_text); n++){
     char* uid=0;
-    char* p=properties_get_n(objects_text, n);
+    char* p=properties_get_n(persistence_objects_text, n);
     while(true){
       char* key=get_key(&p);
       if(!key) break;
@@ -1409,7 +1474,7 @@ void scan_objects_text_for_keep_active()
         break;
       }
       if(!strcmp(key,"Cache") && !strcmp(val,"keep-active")){
-        uid=properties_key_n(objects_text, n);
+        uid=properties_key_n(persistence_objects_text, n);
         mem_freestr(key);
         mem_freestr(val);
         break;
