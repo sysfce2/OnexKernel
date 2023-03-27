@@ -731,13 +731,13 @@ void test_persistence(bool actually)
 
   onex_set_evaluators("evaluate_persistence_n4", evaluate_persistence_n4_after, 0);
 
-  if(!actually) return;
-
   object* nn=object_new("uid-n", "default", "volatile", 4);
   object_set_persist(nn, "none");
 
   onex_assert(onex_get_from_cache("uid-n"), "onex_get_from_cache can find uid-n");
   onex_assert(onex_get_from_cache("uid-1"), "onex_get_from_cache can find uid-1");
+
+  if(!actually) return;
 
   onex_show_cache();
 
