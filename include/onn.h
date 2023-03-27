@@ -131,6 +131,9 @@ int16_t object_property_size(object* n, char* path);
 /** return property key at path and index into properties. */
 char* object_property_key(object* n, char* path, uint16_t index);
 
+/** return property value at path and index into properties. */
+char* object_property_val(object* n, char* path, uint16_t index);
+
 /** as object_property_key but escape any colons. */
 char* object_property_key_esc(object* n, char* path, uint16_t index, char* keyesc, uint8_t len);
 
@@ -188,10 +191,6 @@ void onex_un_cache(char* uid);
 /** return property value, or space-separated list of values, excluding uids and sub-properties. */
 /** don't use this! it's nonsense and clutters the value cache */
 char* object_property_values(object* n, char* path);
-
-/** return property value at path and index into properties. */
-/** don't use this! so you're sure there's a single value? */
-char* object_property_val(object* n, char* path, uint16_t index);
 
 /** get the given Object from the cache. */
 /** don't use this! can't just grab objects you like in this way. */

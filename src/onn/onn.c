@@ -1423,7 +1423,7 @@ void persist_put(object* o) {
 
   if(!objects_to_save) return;
 
-  char* uid=object_property(o, "UID");
+  char* uid=value_string(o->uid);
   char* p=object_get_persist(o);
   if(p && !strcmp(p, "none")){
     mem_freestr(properties_delete(persistence_objects_text, uid));
