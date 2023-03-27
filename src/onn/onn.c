@@ -174,8 +174,22 @@ object* new_object_from(char* text, uint8_t max_size)
   char* notify=0;
   char* p=t;
   while(true){
-    char* key=get_key(&p); if(!key) break;                   if(!*key){ mem_freestr(key); object_free(n); n=0; break; }
-    char* val=get_val(&p); if(!val || !*val){ mem_freestr(key); if(val) mem_freestr(val); object_free(n); n=0; break; }
+    char* key=get_key(&p);
+    if(!key) break;
+    if(!*key){
+      mem_freestr(key);
+      object_free(n);
+      n=0;
+      break;
+    }
+    char* val=get_val(&p);
+    if(!val || !*val){
+      mem_freestr(key);
+      if(val) mem_freestr(val);
+      object_free(n);
+      n=0;
+      break;
+    }
     if(!strcmp(key,"UID")) uid=value_new(val);
     else
     if(!strcmp(key,"Eval")) evaluator=value_new(val);
@@ -200,7 +214,8 @@ object* new_object_from(char* text, uint8_t max_size)
       }
       if(!property_edit(n, key, val, LIST_EDIT_MODE_SET)) break;
     }
-    mem_freestr(key); mem_freestr(val);
+    mem_freestr(key);
+    mem_freestr(val);
   }
   return n;
 }
@@ -1385,7 +1400,8 @@ void scan_objects_text_for_keep_active()
       }
       if(!strcmp(key,"Cache") && !strcmp(val,"keep-active")){
         uid=properties_key_n(objects_text, n);
-        mem_freestr(key); mem_freestr(val);
+        mem_freestr(key);
+        mem_freestr(val);
         break;
       }
       mem_freestr(key);
