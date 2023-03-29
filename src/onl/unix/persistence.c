@@ -33,7 +33,7 @@ bool mkdir_p(char* filename) {
 
 void persistence_init(char* filename) {
 
-  if(!*filename) return;
+  if(!filename || !*filename) return;
 
   if(!mkdir_p(filename)){
     log_write("Couldn't make directory for '%s' errno=%d\n", filename, errno);
@@ -76,6 +76,8 @@ void persistence_init(char* filename) {
 }
 
 void persistence_put(char* uid, char* text) {
+
+  if(!persistence_objects_text) return;
 
   fprintf(db, "%s\n", text);
   fflush(db);
