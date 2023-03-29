@@ -1312,9 +1312,11 @@ object* onex_get_from_cache(char* uid) {
   if(!text) return 0;
 
   o=new_object_from(text, MAX_OBJECT_SIZE);
-  // mem_freestr(text); // with properties_delete above while in-mem db
 
-  if(o && add_to_cache(o)) return o;
+  if(o && add_to_cache(o)){
+    mem_freestr(properties_delete(persistence_objects_text, uid));
+    return o;
+  }
   return 0;
 }
 
@@ -1336,12 +1338,21 @@ void onex_show_cache()
   log_write("+---------------------------------\n");
 }
 
-void onex_un_cache(char* uid)
-{
+void onex_un_cache(char* uid) {
+
+  // currently only exists to give some testability of persistence
+  // but still hides a text serialisation instead of using backing store
   persist_flush();
   if(!uid || !(*uid)) return;
+
   object* o=properties_delete(objects_cache, uid);
-  object_free(o);
+  if(o){
+    char buff[MAX_TEXT_LEN];
+    char* text=object_to_text(o,buff,MAX_TEXT_LEN,OBJECT_TO_TEXT_PERSIST);
+    mem_freestr(properties_delete(persistence_objects_text, uid));
+    properties_set(persistence_objects_text, uid, mem_strdup(text));
+    object_free(o);
+  }
   persist_pull_keep_active();
 }
 
