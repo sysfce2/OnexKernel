@@ -1360,7 +1360,7 @@ void onex_un_cache(char* uid) {
     properties_set(persistence_objects_text, uid, mem_strdup(text));
     object_free(o);
   }
-  persist_pull_keep_active();
+  persist_pull_keep_active(); //??
 }
 
 static properties* evaluators=0;

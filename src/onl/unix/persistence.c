@@ -77,10 +77,6 @@ void persistence_init(char* filename) {
 
 void persistence_put(char* uid, char* text) {
 
-  // while we're keeping an in-mem db!
-  mem_freestr(properties_delete(persistence_objects_text, uid));
-  properties_set(persistence_objects_text, uid, mem_strdup(text));
-
   fprintf(db, "%s\n", text);
   fflush(db);
 }
