@@ -143,14 +143,20 @@ object* object_new_from(char* text, uint8_t max_size)
   object* n=new_object_from(text, max_size);
   if(!n) return 0;
   char* uid=value_string(n->uid);
-  if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
+  if(onex_get_from_cache(uid)){
+    log_write("Attempt to create an object with UID %s that already exists\n", uid);
+    return 0;
+  }
   if(!add_to_cache_and_persist(n)) return 0;
   return n;
 }
 
 object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size)
 {
-  if(onex_get_from_cache(uid)){ log_write("Attempt to create an object with UID %s that already exists\n", uid); return 0; }
+  if(onex_get_from_cache(uid)){
+    log_write("Attempt to create an object with UID %s that already exists\n", uid);
+    return 0;
+  }
   object* n=new_object(value_new(uid), evaluator, is, max_size);
   if(!add_to_cache_and_persist(n)) return 0;
   return n;
