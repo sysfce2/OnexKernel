@@ -60,7 +60,7 @@ static bool    run_any_evaluators();
 static void    set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout);
 
 static void    persist_init(char* dbpath);
-static void    persist_put(object* o);
+static void    persist_put(object* o, bool saving_metadata);
 static bool    persist_loop();
 static void    persist_flush();
 static void    persist_pull_keep_active();
@@ -302,7 +302,7 @@ char* get_val(char** p)
 void object_set_evaluator(object* n, char* evaluator)
 {
   n->evaluator=value_new(evaluator);
-  persist_put(n);
+  persist_put(n, true);
 }
 
 // ------------------------------------------------------
@@ -314,7 +314,7 @@ void object_set_cache(object* n, char* cache) {
   else{
     n->cache=value_new(cache);
   }
-  persist_put(n);
+  persist_put(n, true);
 }
 
 char* object_get_cache(object* n) {
@@ -328,7 +328,7 @@ void object_set_persist(object* n, char* persist){
   else{
     n->persist=value_new(persist);
   }
-  persist_put(n);
+  persist_put(n, true);
 }
 
 char* object_get_persist(object* n){
@@ -1142,7 +1142,7 @@ void set_notifies(object* o, char* notify)
 
 void save_and_notify(object* o)
 {
-  persist_put(o);
+  persist_put(o, false);
 
   for(int i=0; i< OBJECT_MAX_NOTIFIES; i++){
     value* notifyuid=o->notify[i];
@@ -1208,7 +1208,7 @@ char* object_to_text(object* n, char* b, uint16_t s, int target)
     if(ln>=s){ *(b+s-1) = 0; return b; }
   }
 
-  if(n->persist && target==OBJECT_TO_TEXT_LOG){
+  if(n->persist && target!=OBJECT_TO_TEXT_NETWORK){
     ln+=snprintf(b+ln, s-ln, " Persist: %s", value_string(n->persist));
     if(ln>=s){ *(b+s-1) = 0; return b; }
   }
@@ -1321,7 +1321,7 @@ object* onex_get_from_cache(char* uid) {
 bool add_to_cache_and_persist(object* n) {
 
   if(!add_to_cache(n)) return false;
-  persist_put(n);
+  persist_put(n, true);
   return true;
 }
 
@@ -1419,16 +1419,14 @@ bool persist_loop() {
   return false;
 }
 
-void persist_put(object* o) {
+void persist_put(object* o, bool saving_metadata) {
 
   if(!objects_to_save) return;
 
   char* uid=value_string(o->uid);
-  char* p=object_get_persist(o);
-  if(p && !strcmp(p, "none")){
-    mem_freestr(properties_delete(persistence_objects_text, uid));
-    properties_delete(objects_to_save, uid);
-    return;
+  if(!saving_metadata){
+    char* p=object_get_persist(o);
+    if(p && !strcmp(p, "none")) return;
   }
   properties_set(objects_to_save, uid, uid);
 }
