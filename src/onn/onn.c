@@ -1122,8 +1122,8 @@ bool run_any_evaluators()
   return keep_awake;
 }
 
-bool add_notify(object* o, char* notify)
-{
+bool add_notify(object* o, char* notify){
+  // Persist??
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
     if(o->notify[i] && value_is(o->notify[i], notify)) return true;
@@ -1199,17 +1199,17 @@ char* object_to_text(object* n, char* b, uint16_t s, int target)
     if(ln>=s){ *(b+s-1) = 0; return b; }
   }
 
-  if(n->evaluator && target>=OBJECT_TO_TEXT_PERSIST){
+  if(n->evaluator && target!=OBJECT_TO_TEXT_NETWORK){
     ln+=snprintf(b+ln, s-ln, " Eval: %s", value_string(n->evaluator));
     if(ln>=s){ *(b+s-1) = 0; return b; }
   }
 
-  if(n->devices && target>=OBJECT_TO_TEXT_PERSIST){
+  if(n->devices && target!=OBJECT_TO_TEXT_NETWORK){
     ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(n->devices));
     if(ln>=s){ *(b+s-1) = 0; return b; }
   }
 
-  if(n->cache && target>=OBJECT_TO_TEXT_PERSIST){
+  if(n->cache && target!=OBJECT_TO_TEXT_NETWORK){
     ln+=snprintf(b+ln, s-ln, " Cache: %s", value_string(n->cache));
     if(ln>=s){ *(b+s-1) = 0; return b; }
   }
@@ -1231,7 +1231,7 @@ char* object_to_text(object* n, char* b, uint16_t s, int target)
     }
   }
 
-  if(n->alerted && target>=OBJECT_TO_TEXT_PERSIST){
+  if(n->alerted && target==OBJECT_TO_TEXT_LOG){
     ln+=snprintf(b+ln, s-ln, " Alerted: %s", value_string(n->alerted));
     if(ln>=s){ *(b+s-1) = 0; return b; }
   }
@@ -1252,6 +1252,7 @@ char* object_to_text(object* n, char* b, uint16_t s, int target)
     ln+=strlen(item_to_text(properties_get_n(p,j), b+ln, s-ln));
     if(ln>=s){ *(b+s-1) = 0; return b; }
   }
+
   return b;
 }
 
@@ -1315,7 +1316,7 @@ object* onex_get_from_cache(char* uid) {
 
   if(!persistence_objects_text) return 0;
   char* text=properties_get(persistence_objects_text, uid);
-  if(!text) return 0;
+  if(!text) return 0; // <-- now pull from persistence!
 
   o=new_object_from(text, MAX_OBJECT_SIZE);
 
