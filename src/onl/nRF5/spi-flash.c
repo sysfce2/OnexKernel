@@ -33,12 +33,18 @@ bool spi_flash_busy(){
   return busy;
 }
 
+static bool initialised=false;
+
 char* spi_flash_init(char* allids) {
+
+  if(initialised) return 0;
 
   uint32_t err_code;
 
   nrfx_qspi_config_t config = NRFX_QSPI_DEFAULT_CONFIG;
   if(nrfx_qspi_init(&config, qspi_handler, 0)) return "init!nrfx";
+
+  initialised=true;
 
   nrf_qspi_cinstr_conf_t cinstr_cfg = {
       .io2_level = true,
