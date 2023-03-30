@@ -6,14 +6,21 @@
 
 properties* persistence_objects_text=0;
 
-void persistence_init(char* f) {
+
+void persistence_init(char* db) {
+
+#if defined(BOARD_MAGIC3)
+#endif
 
   persistence_objects_text=properties_new(MAX_OBJECTS);
 }
 
 void persistence_put(char* uid, char* text) {
 
-  log_write("%0.35s", strstr(text, "is: "));
+#if defined(BOARD_MAGIC3)
+#else
+  log_write("=> %s\n", text);
+#endif
 }
 
 
