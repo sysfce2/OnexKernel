@@ -269,7 +269,7 @@ int main(void) {
   random_init();
 #if defined(NRF5)
   gpio_init();
-#if defined(HAS_SERIAL)
+#if defined(HAS_SERIAL) // board dongle or dk?
   serial_init((serial_recv_cb)on_recv,0);
   blenus_init(0,0);
   set_up_gpio();
@@ -328,9 +328,7 @@ int main(void) {
       new_touch_info=false;
       show_touch();
     //show_random();
-#if defined(BOARD_PINETIME) || defined(BOARD_MAGIC3)
       show_battery();
-#endif
     }
 #if defined(BOARD_PINETIME)
     if(new_motion_info){

@@ -11,7 +11,8 @@
 typedef nrf_qspi_erase_len_t spi_flash_erase_len;
 
 /** init SPI flash and fill supplied buffer with chip ids.
-  * returns 0 or error string */
+  * returns 0 or error string.
+  * note allids is 64 max - FIXME */
 char* spi_flash_init(char* allids);
 
 /** erase one of the above chunk lengths: 4K, 64K or all.

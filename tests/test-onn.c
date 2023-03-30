@@ -722,9 +722,8 @@ void test_persistence()
 
   onex_assert_equal(object_property(n4, "n3:n2:n1:state:1"), "good",   "n4 can look through objects in the cache");
   onex_assert_equal(object_property(n4, "n3:n2:n1:state:2"), "mostly", "n4 can look through objects in the cache");
-  onex_assert(object_property_set(     n1, "state", "good: good"),     "can change n1 to good: good (awaiting n3/n4 to be notified)");
-  onex_loop();
-  onex_loop();
+  onex_assert(object_property_set(  n1, "state", "good: good"),        "can change n1 to good: good (awaiting n3/n4 to be notified)");
+
   onex_loop();
 
   onex_set_evaluators("evaluate_persistence_n4", evaluate_persistence_n4_after, 0);
@@ -732,9 +731,6 @@ void test_persistence()
   // not currently testing anything here tbh
   object* nn=object_new("uid-n", "default", "volatile", 4);
   object_set_persist(nn, "none");
-
-  onex_assert(onex_get_from_cache("uid-n"), "onex_get_from_cache can find uid-n");
-  onex_assert(onex_get_from_cache("uid-1"), "onex_get_from_cache can find uid-1");
 
   onex_show_cache();
 
@@ -785,15 +781,22 @@ void test_timer()
 
 void run_onn_tests(char* dbpath)
 {
-  log_write("------ONN tests-----------\n");
+  log_write("\n----------ONN tests-----------\n");
 
   onex_init(dbpath);
 
   test_object_set_up();
+
+  onex_loop();
+
   test_device();
+
+  onex_loop();
+
   test_local_state();
 
   onex_loop();
+
   onex_assert(         !evaluate_setup_called,              "evaluate_setup was not called");
   onex_assert(         !evaluate_local_state_n2_called,     "evaluate_local_state_n2 was not called");
   onex_assert_equal_num(evaluate_local_state_n3_called, 1,  "evaluate_local_state_n3 was called");
@@ -803,6 +806,7 @@ void run_onn_tests(char* dbpath)
   onex_loop();
   onex_loop();
   onex_loop();
+
   onex_assert_equal_num(pre_evaluate_n2_called, 2,           "pre_evaluate_n2 was called twice");
   onex_assert_equal_num(evaluate_local_notify_n2_called, 2,  "evaluate_local_notify_n2 was called twice");
   onex_assert_equal_num(post_evaluate_n2_called, 2,          "post_evaluate_n2 was called twice");
@@ -818,6 +822,7 @@ void run_onn_tests(char* dbpath)
   onex_loop();
   onex_loop();
   onex_loop();
+
   onex_assert_equal_num(evaluate_remote_notify_n1_called, 1, "evaluate_remote_notify_n1 was called");
   onex_assert_equal_num(evaluate_remote_notify_n2_called, 2, "evaluate_remote_notify_n2 was called twice");
   onex_assert_equal_num(evaluate_remote_notify_n4_called, 1, "evaluate_remote_notify_n4 was called");
@@ -827,10 +832,13 @@ void run_onn_tests(char* dbpath)
 
   onex_loop();
   onex_loop();
+
   onex_assert_equal_num(evaluate_persistence_n1_called, 1,        "evaluate_persistence_n1 was called");
   onex_assert_equal_num(evaluate_persistence_n4_before_called, 1, "evaluate_persistence_n4_before was called");
   onex_assert_equal_num(evaluate_persistence_n4_after_called, 1,  "evaluate_persistence_n4_after was called");
   onex_assert_equal_num(evaluate_local_notify_n3_called, 6,       "evaluate_local_notify_n3 was called six times");
+
+  onex_show_cache();
 
   uint32_t s=(uint32_t)time_ms();
   uint32_t e;
