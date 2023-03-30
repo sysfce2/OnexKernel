@@ -487,14 +487,12 @@ bool evaluate_local_notify_n3(object* n3, void* d)
   }
   i++;
   if(evaluate_local_notify_n3_called==i){
-#if !defined(NRF5)
     onex_assert_equal(object_property(         n3, "Alerted"),         "uid-1",   "6: n3/uid-3 can see that it was uid-1 update that triggered eval");
     onex_assert_equal(object_property(         n3, "Alerted:UID"),     "uid-1",   "6: n3/uid-3 can see that it was uid-1 update that triggered eval");
     onex_assert_equal(object_property(         n3, "Alerted:state:1"), ":better", "6: n3/uid-3 can see the state update");
     onex_assert_equal(object_property(         n3, "Alerted:state:2"), "better:", "6: n3/uid-3 can see the state update");
     onex_assert_equal(object_property(         n3, "n2:n1:state:1"),   ":better", "6: n3/uid-3 can see the state update");
     onex_assert_equal(object_property(         n3, "n2:n1:state:2"),   "better:", "6: n3/uid-3 can see the state update");
-#endif
   }
   return true;
 }
@@ -705,7 +703,7 @@ bool evaluate_persistence_n4_after(object* n4, void* d)
   return true;
 }
 
-void test_persistence(bool actually)
+void test_persistence()
 {
   log_write("\n------------ Persistence ----------------\n\n");
 
@@ -737,8 +735,6 @@ void test_persistence(bool actually)
 
   onex_assert(onex_get_from_cache("uid-n"), "onex_get_from_cache can find uid-n");
   onex_assert(onex_get_from_cache("uid-1"), "onex_get_from_cache can find uid-1");
-
-  if(!actually) return;
 
   onex_show_cache();
 
@@ -827,25 +823,14 @@ void run_onn_tests(char* dbpath)
   onex_assert_equal_num(evaluate_remote_notify_n4_called, 1, "evaluate_remote_notify_n4 was called");
   onex_assert_equal_num(evaluate_local_notify_n3_called,  4, "evaluate_local_notify_n3 was called four times");
 
-#if !defined(NRF5)
-  test_persistence(true);
+  test_persistence();
 
-  onex_loop();
-  onex_loop();
-  onex_loop();
   onex_loop();
   onex_loop();
   onex_assert_equal_num(evaluate_persistence_n1_called, 1,        "evaluate_persistence_n1 was called");
   onex_assert_equal_num(evaluate_persistence_n4_before_called, 1, "evaluate_persistence_n4_before was called");
   onex_assert_equal_num(evaluate_persistence_n4_after_called, 1,  "evaluate_persistence_n4_after was called");
   onex_assert_equal_num(evaluate_local_notify_n3_called, 6,       "evaluate_local_notify_n3 was called six times");
-#else
-  test_persistence(false);
-  onex_loop();
-  onex_loop();
-  onex_assert_equal_num(evaluate_persistence_n4_before_called, 1, "evaluate_persistence_n4_before was called");
-  onex_assert_equal_num(evaluate_local_notify_n3_called, 5,       "evaluate_local_notify_n3 was called five times");
-#endif
 
   uint32_t s=(uint32_t)time_ms();
   uint32_t e;

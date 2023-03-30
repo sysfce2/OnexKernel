@@ -8,6 +8,7 @@ properties* persistence_objects_text=0;
 
 void persistence_init(char* f) {
 
+  persistence_objects_text=properties_new(MAX_OBJECTS);
 }
 
 void persistence_put(char* uid, char* text) {
