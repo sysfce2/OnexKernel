@@ -189,9 +189,12 @@ void* timer_thread(void* data)
 
   while(thread_running) {
 
+#if !defined(__ANDROID__)
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, 0);
     pthread_testcancel();
     pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, 0);
+#else
+#endif
 
     memset(ufds, 0, sizeof(struct pollfd)*MAX_TIMER_COUNT);
     timer = timer_list;
