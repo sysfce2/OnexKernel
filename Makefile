@@ -94,7 +94,7 @@ x86.valgrind: tests.x86
 
 #-------------------------------------------------------------------------------
 
-ARM_FLAGS=-g3 -ggdb
+ARM_FLAGS=-g3 -ggdb -fPIC
 ARM_CC_SYMBOLS = -D$(TARGET) $(CHANNELS)
 
 X86_FLAGS=-g3 -ggdb
