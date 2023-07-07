@@ -631,6 +631,53 @@ SDK_C_SOURCES_NO_SD = \
 ./sdk/modules/nrfx/drivers/src/prs/nrfx_prs.c \
 ./sdk/modules/nrfx/soc/nrfx_atomic.c \
 
+
+#-------------------------------------------------------------------------------
+
+COMPILER_DEFINES_TEENSY40 = -DF_CPU=600000000 -D__IMXRT1062__ -DTARGET_TEENSY_4 -DARDUINO_TEENSY40 -DUSB_SERIAL
+
+
+TEENSY_INCLUDES = \
+-I./src/onl/m7 \
+-I./src/onl/drivers \
+-I./src/onl/teensy40 \
+
+
+TEENSY_BOARD_OBJECTS = \
+./src/onl/teensy40/time.c \
+./src/onl/teensy40/gpio.c \
+./src/onl/teensy40/serial.c \
+./src/onl/teensy40/spi.c \
+
+
+TFT_OBJECTS = \
+./src/onl/drivers/tft.c \
+./src/onl/drivers/adafruit_tft28.c \
+
+
+TEENSY_SYS_OBJECTS = \
+./src/onl/teensy40/usb.c \
+./src/onl/teensy40/usb_desc.c \
+./src/onl/teensy40/usb_serial.c \
+./src/onl/teensy40/digital.c \
+./src/onl/teensy40/delay.c \
+./src/onl/teensy40/yield.c \
+./src/onl/teensy40/rtc.c \
+./src/onl/teensy40/strlib.c \
+
+
+M7_SYS_OBJECTS = \
+./src/onl/m7/bootdata.c \
+./src/onl/m7/startup.c \
+./src/onl/m7/clockspeed.c \
+./src/onl/m7/tempmon.c \
+./src/onl/m7/imxrt1062.c \
+
+
+WATCH_OBJECTS = \
+./tests/ont-examples/watch/watch.c \
+
+
 #-------------------------------------------------------------------------------
 # Targets
 
@@ -739,21 +786,40 @@ device-erase:
 flash-sd132:
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./sdk/components/softdevice/s132/hex/s132_nrf52_7.0.1_softdevice.hex" -c "reset run" -c exit
 
+#-------------------------------:
+
+watch.teensy.elf: COMPILE_LINE = ${M7_CPU} $(M7_CC_FLAGS) $(COMPILER_DEFINES_TEENSY40) $(TEENSY_INCLUDES)
+watch.teensy.elf: $(TEENSY_SYS_OBJECTS:.c=.o) $(M7_SYS_OBJECTS:.c=.o) $(TEENSY_BOARD_OBJECTS:.c=.o) $(TFT_OBJECTS:.c=.o) $(WATCH_OBJECTS:.c=.o)
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M7_LD_FLAGS) $(LD_FILES_TEENSY40) -o $@ $^ -lm
+
+teensy.watch: watch.teensy.hex
+	until ~/Sources/teensy_loader_cli/teensy_loader_cli -v --mcu=TEENSY40 -w $^; do echo retrying; done
+
 #-------------------------------------------------------------------------------
 
 M4_CPU = -O3 -g3 -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mabi=aapcs
 
+M7_CPU = -O2 -g  -mcpu=cortex-m7 -mthumb -mfloat-abi=hard -mfpu=fpv5-d16
+
+
 M4_CC_FLAGS = -std=c99  -Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin -fshort-enums
+
+M7_CC_FLAGS = -MMD -std=gnu99 -Wall -Werror -Wno-pointer-sign -Wno-unused-but-set-variable -Wno-unused-function -Wno-unused-variable -Wno-strict-aliasing -Wno-maybe-uninitialized -ffunction-sections -fdata-sections -nostdlib
+
+M7_CXX_FLAGS = -MMD -std=gnu++14 -Wall -Wno-error=narrowing -ffunction-sections -fdata-sections -fno-exceptions -fpermissive -fno-rtti -fno-threadsafe-statics -felide-constructors -nostdlib
 
 # for bootloader: -O2 -ggdb
 # for bootloader: -Os -g3
 M4_LD_FLAGS = $(M4_CPU) -Wl,--gc-sections -specs=nano.specs
+
+M7_LD_FLAGS = $(M7_CPU) -Wl,--gc-sections,--relax
 
 LD_FILES_PINETIME_BL = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/pinetime-bl/onex.ld
 LD_FILES_PINETIME    = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/pinetime/onex.ld
 LD_FILES_DONGLE      = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/dongle/onex.ld
 LD_FILES_MAGIC3      = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/magic3/onex.ld
 
+LD_FILES_TEENSY40    = -T./src/onl/m7/imxrt1062.ld
 
 ############################################################################################
 
@@ -762,6 +828,9 @@ LD_FILES_MAGIC3      = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/magic3/onex.ld
 
 .c.o:
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(COMPILE_LINE) -o $@ -c $<
+
+%.hex: %.elf
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex -R .eeprom $< $@
 
 clean:
 	find src tests mod-sdk -name '*.o' -o -name '*.d' | xargs rm -f
