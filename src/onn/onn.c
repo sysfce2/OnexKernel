@@ -1423,7 +1423,7 @@ void persist_init(char* dbpath){
 static uint32_t lasttime=0;
 
 #if defined(NRF5)
-#define FLUSH_RATE_MS 500
+#define FLUSH_RATE_MS 200
 #else
 #define FLUSH_RATE_MS 100
 #endif

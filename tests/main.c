@@ -180,7 +180,7 @@ void on_recv(unsigned char* chars, size_t size)
 
 #if defined(BOARD_MAGIC3)
 
-#define FLASH_TEST_DATA_START 0x30000
+#define FLASH_TEST_DATA_START 0x31000
 #define FLASH_TEST_DATA_SIZE  4096
 #define FLASH_TEST_ERASE_LEN  SPI_FLASH_ERASE_LEN_4KB
 

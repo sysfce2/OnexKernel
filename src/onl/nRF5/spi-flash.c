@@ -22,7 +22,7 @@ static volatile bool busy=false;
 static void (*spi_flash_done_cb)();
 
 static void qspi_handler(nrfx_qspi_evt_t event, void * p_context) {
-  if(spi_flash_done_cb){
+  if(event==NRFX_QSPI_EVENT_DONE && spi_flash_done_cb){
     spi_flash_done_cb();
     spi_flash_done_cb=0;
   }
