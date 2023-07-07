@@ -162,6 +162,7 @@ INCLUDES_DONGLE = \
 -I./tests \
 $(SDK_INCLUDES_DONGLE) \
 
+
 #-------------------------------------------------------------------------------
 
 BOOTLOADER_SOURCES = \
@@ -633,77 +634,70 @@ SDK_C_SOURCES_NO_SD = \
 #-------------------------------------------------------------------------------
 # Targets
 
-libonex-kernel-pinetime.a: INCLUDES=$(INCLUDES_PINETIME)
-libonex-kernel-pinetime.a: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_PINETIME)
-libonex-kernel-pinetime.a: COMPILER_DEFINES=$(COMPILER_DEFINES_PINETIME)
+libonex-kernel-pinetime.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_PINETIME)
+libonex-kernel-pinetime.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_PINETIME) $(INCLUDES_PINETIME)
 libonex-kernel-pinetime.a: $(LIB_SOURCES:.c=.o) $(PINETIME_SOURCES:.c=.o) $(SDK_C_SOURCES_PINETIME:.c=.o) $(SDK_ASSEMBLER_SOURCES_52832:.S=.o)
 	rm -f $@
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
 
 
-libonex-kernel-magic3.a: INCLUDES=$(INCLUDES_MAGIC3)
-libonex-kernel-magic3.a: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_MAGIC3)
-libonex-kernel-magic3.a: COMPILER_DEFINES=$(COMPILER_DEFINES_MAGIC3)
+libonex-kernel-magic3.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_MAGIC3)
+libonex-kernel-magic3.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_MAGIC3) $(INCLUDES_MAGIC3)
 libonex-kernel-magic3.a: $(LIB_SOURCES:.c=.o) $(MAGIC3_SOURCES:.c=.o) $(SDK_C_SOURCES_MAGIC3:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
 	rm -f $@
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
 
 
-libonex-kernel-dongle.a: INCLUDES=$(INCLUDES_DONGLE)
-libonex-kernel-dongle.a: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_DONGLE)
-libonex-kernel-dongle.a: COMPILER_DEFINES=$(COMPILER_DEFINES_DONGLE)
+libonex-kernel-dongle.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_DONGLE)
+libonex-kernel-dongle.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_DONGLE) $(INCLUDES_DONGLE)
 libonex-kernel-dongle.a: $(LIB_SOURCES:.c=.o) $(DONGLE_SOURCES:.c=.o) $(SDK_C_SOURCES_DONGLE:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
 	rm -f $@
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
 
 
-nrf.bootloader.pinetime: INCLUDES=$(INCLUDES_PINETIME_BL)
-nrf.bootloader.pinetime: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_PINETIME_BL)
-nrf.bootloader.pinetime: COMPILER_DEFINES=$(COMPILER_DEFINES_PINETIME_BL)
+nrf.bootloader.pinetime: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_PINETIME_BL)
+nrf.bootloader.pinetime: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_PINETIME_BL) $(INCLUDES_PINETIME_BL)
 nrf.bootloader.pinetime: $(BOOTLOADER_SOURCES:.c=.o) $(SDK_C_SOURCES_PINETIME_BL:.c=.o) $(SDK_ASSEMBLER_SOURCES_52832:.S=.o)
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_PINETIME_BL) -Wl,-Map=./onex-kernel-bootloader.map -o ./onex-kernel-bootloader.out $^
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M4_LD_FLAGS) $(LD_FILES_PINETIME_BL) -Wl,-Map=./onex-kernel-bootloader.map -o ./onex-kernel-bootloader.out $^
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel-bootloader.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel-bootloader.out ./onex-kernel-bootloader.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel-bootloader.out ./onex-kernel-bootloader.hex
 
 
-nrf.tests.pinetime: INCLUDES=$(INCLUDES_PINETIME)
-nrf.tests.pinetime: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_PINETIME)
-nrf.tests.pinetime: COMPILER_DEFINES=$(COMPILER_DEFINES_PINETIME)
+nrf.tests.pinetime: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_PINETIME)
+nrf.tests.pinetime: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_PINETIME) $(INCLUDES_PINETIME)
 nrf.tests.pinetime: libonex-kernel-pinetime.a $(TESTS_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
 	ar x ./libonex-kernel-pinetime.a --output oko
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_PINETIME) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M4_LD_FLAGS) $(LD_FILES_PINETIME) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
 
-nrf.tests.magic3: INCLUDES=$(INCLUDES_MAGIC3)
-nrf.tests.magic3: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_MAGIC3)
-nrf.tests.magic3: COMPILER_DEFINES=$(COMPILER_DEFINES_MAGIC3)
+nrf.tests.magic3: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_MAGIC3)
+nrf.tests.magic3: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_MAGIC3) $(INCLUDES_MAGIC3)
 nrf.tests.magic3: libonex-kernel-magic3.a $(TESTS_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
 	ar x ./libonex-kernel-magic3.a --output oko
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_MAGIC3) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M4_LD_FLAGS) $(LD_FILES_MAGIC3) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
 
-nrf.tests.dongle: INCLUDES=$(INCLUDES_DONGLE)
-nrf.tests.dongle: ASSEMBLER_DEFINES=$(ASSEMBLER_DEFINES_DONGLE)
-nrf.tests.dongle: COMPILER_DEFINES=$(COMPILER_DEFINES_DONGLE)
+nrf.tests.dongle: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_DONGLE)
+nrf.tests.dongle: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_DONGLE) $(INCLUDES_DONGLE)
 nrf.tests.dongle: libonex-kernel-dongle.a $(TESTS_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
 	ar x ./libonex-kernel-dongle.a --output oko
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(LINKER_FLAGS) $(LD_FILES_DONGLE) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M4_LD_FLAGS) $(LD_FILES_DONGLE) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
@@ -747,24 +741,27 @@ flash-sd132:
 
 #-------------------------------------------------------------------------------
 
+M4_CPU = -O3 -g3 -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mabi=aapcs
+
+M4_CC_FLAGS = -std=c99  -Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin -fshort-enums
+
 # for bootloader: -O2 -ggdb
 # for bootloader: -Os -g3
-LINKER_FLAGS = -O3 -g3 -mthumb -mabi=aapcs -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Wl,--gc-sections --specs=nano.specs
+M4_LD_FLAGS = $(M4_CPU) -Wl,--gc-sections -specs=nano.specs
 
 LD_FILES_PINETIME_BL = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/pinetime-bl/onex.ld
 LD_FILES_PINETIME    = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/pinetime/onex.ld
 LD_FILES_DONGLE      = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/dongle/onex.ld
 LD_FILES_MAGIC3      = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/magic3/onex.ld
 
-ASSEMBLER_FLAGS = -c -g3 -mcpu=cortex-m4 -mthumb -mabi=aapcs -mfloat-abi=hard -mfpu=fpv4-sp-d16
 
-COMPILER_FLAGS = -std=c99 -O3 -g3 -mcpu=cortex-m4 -mthumb -mabi=aapcs -Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin -fshort-enums
+############################################################################################
 
 .S.o:
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(ASSEMBLER_FLAGS) $(ASSEMBLER_DEFINES) $(INCLUDES) -o $@ -c $<
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(ASSEMBLER_LINE) -o $@ -c $<
 
 .c.o:
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(COMPILER_FLAGS) $(COMPILER_DEFINES) $(INCLUDES) -o $@ -c $<
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(COMPILE_LINE) -o $@ -c $<
 
 clean:
 	find src tests mod-sdk -name '*.o' -o -name '*.d' | xargs rm -f
