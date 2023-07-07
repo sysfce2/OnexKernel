@@ -168,10 +168,10 @@ $(SDK_INCLUDES_DONGLE) \
 BOOTLOADER_SOURCES = \
 ./src/onl/nRF5/gpio.c \
 ./src/onl/nRF5/spi.c \
-./src/onl/nRF5/display-st7789.c \
 ./src/onl/nRF5/gfx.c \
 ./src/onl/nRF5/dfu_public_key.c \
 ./src/onl/nRF5/bootloader.c \
+./src/onl/drivers/display-st7789.c \
 
 
 TESTS_SOURCES = \
@@ -187,30 +187,30 @@ LIB_SOURCES = \
 ./src/lib/list.c \
 ./src/lib/value.c \
 ./src/lib/tests.c \
+./src/lib/properties-lite.c \
 ./src/onp/onp.c \
 ./src/onn/onn.c \
 
 
 NRF5_SOURCES = \
-./src/onl/nRF5/properties.c \
 ./src/onl/nRF5/time.c \
 ./src/onl/nRF5/random.c \
 ./src/onl/nRF5/gpio.c \
 ./src/onl/nRF5/log.c \
 ./src/onl/nRF5/mem.c \
-./src/onl/nRF5/channel-serial.c \
-./src/onl/nRF5/persistence.c \
+./src/onl/drivers/channel-serial.c \
+./src/onl/drivers/persistence.c \
 
 
 PINETIME_SOURCES = \
 ./src/onl/nRF5/boot.c \
 ./src/onl/nRF5/i2c.c \
 ./src/onl/nRF5/spi.c \
-./src/onl/nRF5/touch-cst816s.c \
-./src/onl/nRF5/motion-bma421.c \
-./src/onl/nRF5/display-st7789.c \
 ./src/onl/nRF5/gfx.c \
 ./src/onl/nRF5/blenus.c \
+./src/onl/drivers/touch-cst816s.c \
+./src/onl/drivers/motion-bma421.c \
+./src/onl/drivers/display-st7789.c \
 $(NRF5_SOURCES) \
 
 
@@ -218,10 +218,10 @@ MAGIC3_SOURCES = \
 ./src/onl/nRF5/boot.c \
 ./src/onl/nRF5/i2c.c \
 ./src/onl/nRF5/spi.c \
-./src/onl/nRF5/touch-cst816s.c \
-./src/onl/nRF5/display-st7789.c \
 ./src/onl/nRF5/gfx.c \
 ./src/onl/nRF5/spi-flash.c \
+./src/onl/drivers/touch-cst816s.c \
+./src/onl/drivers/display-st7789.c \
 $(NRF5_SOURCES) \
 
 
@@ -834,6 +834,7 @@ LD_FILES_TEENSY40    = -T./src/onl/m7/imxrt1062.ld
 
 clean:
 	find src tests mod-sdk -name '*.o' -o -name '*.d' | xargs rm -f
+	rm -f *.bin *.elf *.hex
 	find . -name onex.ondb | xargs rm -f
 	touch ./sdk/banana-mango.o; find ./sdk/ -name '*.o' | xargs rm
 	rm -rf onex-kernel*.??? dfu.zip core oko
