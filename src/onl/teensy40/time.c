@@ -31,4 +31,15 @@ void time_delay_us(uint32_t us)
   delayMicroseconds(us);
 }
 
+uint16_t time_timeout(time_up_cb cb)
+{
+  return 1;
+}
+
+void time_start_timer(uint16_t id, uint32_t timeout)
+{
+}
+
+void time_end(){
+}
 

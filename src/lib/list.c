@@ -13,6 +13,8 @@
 
 #if defined(NRF5)
 #define MAX_TEXT_LEN 512
+#elif defined(TARGET_TEENSY_4)
+#define MAX_TEXT_LEN 512
 #else
 #define MAX_TEXT_LEN 4096
 #endif

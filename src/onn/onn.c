@@ -1017,6 +1017,7 @@ void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
 {
 #if defined(NRF5)
   CRITICAL_REGION_ENTER();
+#elif defined(TARGET_TEENSY_4)
 #else
   static pthread_mutex_t to_notify_lock;
   pthread_mutex_lock(&to_notify_lock);
@@ -1066,6 +1067,7 @@ void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
   }
 #if defined(NRF5)
   CRITICAL_REGION_EXIT();
+#elif defined(TARGET_TEENSY_4)
 #else
   pthread_mutex_unlock(&to_notify_lock);
 #endif
@@ -1276,7 +1278,7 @@ void onex_init(char* dbpath)
 bool onex_loop()
 {
   bool ska=false, lka=false, pka=false, oka=false, eka=false;
-#if defined(NRF5)
+#if defined(NRF5) || defined(TARGET_TEENSY_4)
 #if defined(HAS_SERIAL)
   ska = serial_loop();
 #endif
@@ -1422,7 +1424,7 @@ void persist_init(char* dbpath){
 
 static uint32_t lasttime=0;
 
-#if defined(NRF5)
+#if defined(NRF5) || defined(TARGET_TEENSY_4)
 #define FLUSH_RATE_MS 200
 #else
 #define FLUSH_RATE_MS 100

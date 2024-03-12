@@ -26,12 +26,16 @@ static properties* all_values=0;
 #if defined(NRF5)
 #define MAX_VALUES 256
 #define MAX_TEXT_LEN 64
+#elif defined(TARGET_TEENSY_4)
+#define MAX_VALUES 256
+#define MAX_TEXT_LEN 64
 #else
 #define MAX_VALUES 4096
 #define MAX_TEXT_LEN 4096
 #endif
 
 #if defined(NRF5)
+
 #define ENTER_LOCKING                                  \
         uint8_t __CR_NESTED = 0;                       \
         app_util_critical_region_enter(&__CR_NESTED)
@@ -39,10 +43,20 @@ static properties* all_values=0;
 #define RETURN_UNLOCKING(x)                            \
         app_util_critical_region_exit(__CR_NESTED);    \
         return x
+
+#elif defined(TARGET_TEENSY_4)
+
+#define ENTER_LOCKING
+
+#define RETURN_UNLOCKING(x)  \
+        return x
+
 #else
+
 static pthread_mutex_t value_lock;
 #define ENTER_LOCKING       pthread_mutex_lock(&value_lock)
 #define RETURN_UNLOCKING(x) pthread_mutex_unlock(&value_lock); return x
+
 #endif
 
 value* value_new(char* val)

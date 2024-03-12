@@ -22,18 +22,18 @@ void     time_start_timer(uint16_t id, uint32_t timeout); // for time_timeout()
 void     time_stop_timer(uint16_t id);
 void     time_end();
 
-#if !defined(NRF5)
+#if defined(NRF5) || defined(TARGET_TEENSY_4)
+
+void time_delay_ms(uint32_t ms);
+void time_delay_us(uint32_t us);
+
+#else
 
  #include <unistd.h>
  #include <time.h>
 
  #define time_delay_ms(m) usleep(   1000 * (m))
  #define time_delay_us(m) usleep(          (m))
-
-#else
-
-void time_delay_ms(uint32_t ms);
-void time_delay_us(uint32_t us);
 
 #endif
 

@@ -289,19 +289,19 @@ SDK_INCLUDES_S132_BL = \
 -I./sdk/components/libraries/ringbuf \
 
 
-SDK_INCLUDES_MAGIC3 = \
--I./mod-sdk/components/libraries/gfx \
--I./sdk/external/thedotfactory_fonts \
--I./sdk/components/drivers_nrf/nrf_soc_nosd/ \
--I./sdk/components/softdevice/mbr/headers/ \
-$(SDK_INCLUDES) \
-
-
 SDK_INCLUDES_PINETIME = \
 -I./mod-sdk/components/libraries/gfx \
 -I./sdk/external/thedotfactory_fonts \
 -I./sdk/components/softdevice/s132/headers \
 -I./sdk/components/softdevice/s132/headers/nrf52 \
+$(SDK_INCLUDES) \
+
+
+SDK_INCLUDES_MAGIC3 = \
+-I./mod-sdk/components/libraries/gfx  \
+-I./sdk/external/thedotfactory_fonts  \
+-I./sdk/components/drivers_nrf/nrf_soc_nosd/ \
+-I./sdk/components/softdevice/mbr/headers/ \
 $(SDK_INCLUDES) \
 
 
@@ -637,6 +637,15 @@ SDK_C_SOURCES_NO_SD = \
 COMPILER_DEFINES_TEENSY40 = -DF_CPU=600000000 -D__IMXRT1062__ -DTARGET_TEENSY_4 -DARDUINO_TEENSY40 -DUSB_SERIAL
 
 
+INCLUDES_TEENSY = \
+$(TEENSY_INCLUDES) \
+-I./include \
+-I./src/ \
+-I./src/onn/ \
+-I./src/onp/ \
+-I./tests \
+
+
 TEENSY_INCLUDES = \
 -I./src/onl/m7 \
 -I./src/onl/drivers \
@@ -644,10 +653,14 @@ TEENSY_INCLUDES = \
 
 
 TEENSY_BOARD_OBJECTS = \
+./src/onl/teensy40/log.c \
+./src/onl/teensy40/mem.c \
+./src/onl/teensy40/random.c \
 ./src/onl/teensy40/time.c \
 ./src/onl/teensy40/gpio.c \
 ./src/onl/teensy40/serial.c \
 ./src/onl/teensy40/spi.c \
+./src/onl/drivers/persistence.c \
 
 
 TFT_OBJECTS = \
@@ -795,6 +808,26 @@ watch.teensy.elf: $(TEENSY_SYS_OBJECTS:.c=.o) $(M7_SYS_OBJECTS:.c=.o) $(TEENSY_B
 teensy.watch: watch.teensy.hex
 	until ~/Sources/teensy_loader_cli/teensy_loader_cli -v --mcu=TEENSY40 -w $^; do echo retrying; done
 
+#-------------------------------:
+
+libonex-kernel-teensy.a: COMPILE_LINE = ${M7_CPU} $(M7_CC_FLAGS) $(COMPILER_DEFINES_TEENSY40) $(INCLUDES_TEENSY)
+libonex-kernel-teensy.a: $(TEENSY_SYS_OBJECTS:.c=.o) $(M7_SYS_OBJECTS:.c=.o) $(LIB_SOURCES:.c=.o) $(TEENSY_BOARD_OBJECTS:.c=.o)
+	rm -f $@
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
+
+
+tests.teensy.elf: COMPILE_LINE = ${M7_CPU} $(M7_CC_FLAGS) $(COMPILER_DEFINES_TEENSY40) $(INCLUDES_TEENSY)
+tests.teensy.elf: libonex-kernel-teensy.a $(TESTS_SOURCES:.c=.o)
+	rm -rf oko
+	mkdir oko
+	ar x ./libonex-kernel-teensy.a --output oko
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M7_LD_FLAGS) $(LD_FILES_TEENSY40) -o $@ $(TESTS_SOURCES:.c=.o) oko/* -lm
+
+
+teensy-flash: tests.teensy.hex
+	until ~/Sources/teensy_loader_cli/teensy_loader_cli -v --mcu=TEENSY40 -w $^; do echo retrying; done
+
 #-------------------------------------------------------------------------------
 
 M4_CPU = -O3 -g3 -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mabi=aapcs
@@ -814,10 +847,10 @@ M4_LD_FLAGS = $(M4_CPU) -Wl,--gc-sections -specs=nano.specs
 
 M7_LD_FLAGS = $(M7_CPU) -Wl,--gc-sections,--relax
 
-LD_FILES_PINETIME_BL = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/pinetime-bl/onex.ld
-LD_FILES_PINETIME    = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/pinetime/onex.ld
-LD_FILES_DONGLE      = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/dongle/onex.ld
-LD_FILES_MAGIC3      = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/magic3/onex.ld
+LD_FILES_PINETIME_BL     = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/pinetime-bl/onex.ld
+LD_FILES_PINETIME        = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/pinetime/onex.ld
+LD_FILES_MAGIC3          = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/magic3/onex.ld
+LD_FILES_DONGLE          = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/dongle/onex.ld
 
 LD_FILES_TEENSY40    = -T./src/onl/m7/imxrt1062.ld
 
