@@ -45,7 +45,7 @@ extern void run_onn_tests(char* dbpath);
 
 #if defined(NRF5)
 static volatile bool display_state_prev=!LEDS_ACTIVE_STATE;
-static volatile bool display_state=LEDS_ACTIVE_STATE;
+static volatile bool display_state     = LEDS_ACTIVE_STATE;
 
 void button_changed(uint8_t pin, uint8_t type)
 {
@@ -65,12 +65,20 @@ static void charging_changed(uint8_t pin, uint8_t type){
 const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 #endif
 
+#if defined(BOARD_PCA10059)
+#define DISPLAY_STATE_LED 0  // the single green LED
+#define FAILURE_LED       1  // red of RGB
+#define SUCCESS_LED       2  // green of RGB
+#define READY_LED         3  // blue of RGB
+#endif
+
 static void set_up_gpio(void)
 {
 #if defined(BOARD_PCA10059)
   gpio_mode_cb(BUTTON_1, INPUT_PULLUP, RISING_AND_FALLING, button_changed);
-  for(uint8_t l=0; l< LEDS_NUMBER; l++){ gpio_mode(leds_list[l], OUTPUT); gpio_set(leds_list[l], 1); }
-  gpio_set(leds_list[0], 0);
+  for(uint8_t l=0; l< LEDS_NUMBER; l++){ gpio_mode(leds_list[l], OUTPUT); gpio_set(leds_list[l], !LEDS_ACTIVE_STATE); }
+  gpio_set(leds_list[DISPLAY_STATE_LED], display_state);
+  gpio_set(leds_list[READY_LED], LEDS_ACTIVE_STATE);
 #elif defined(BOARD_PINETIME)
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, RISING_AND_FALLING, button_changed);
   gpio_mode(BUTTON_ENABLE, OUTPUT);
@@ -241,6 +249,10 @@ void run_tests_maybe() {
   gfx_text(allids);
 #endif
 
+#if defined(BOARD_PCA10059)
+  gpio_set(leds_list[READY_LED], !LEDS_ACTIVE_STATE);
+#endif
+
   run_value_tests();
   run_list_tests();
   run_properties_tests();
@@ -249,8 +261,8 @@ void run_tests_maybe() {
 #if defined(NRF5)
   int failures=onex_assert_summary();
 #if defined(BOARD_PCA10059)
-  if(failures) gpio_set(leds_list[1], 0);
-  else         gpio_set(leds_list[2], 0);
+  if(failures) gpio_set(leds_list[FAILURE_LED], LEDS_ACTIVE_STATE);
+  else         gpio_set(leds_list[SUCCESS_LED], LEDS_ACTIVE_STATE);
 #else
   gfx_pos(10, 55);
   gfx_text(failures? "FAIL": "SUCCESS");
@@ -284,7 +296,7 @@ int main(void) {
     run_tests_maybe();
     if (display_state_prev != display_state){
       display_state_prev = display_state;
-      gpio_set(leds_list[3], display_state);
+      gpio_set(leds_list[DISPLAY_STATE_LED], display_state);
       log_write("#%d %d %d\n", display_state, random_ish_byte(), random_byte());
     }
   }
