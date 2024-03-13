@@ -76,6 +76,15 @@ $(COMMON_DEFINES_NO_SD) \
 
 
 
+COMMON_DEFINES_ADAFRUIT_DONGLE = \
+$(COMMON_DEFINES_NO_SD) \
+-DBOARD_ADAFRUIT_DONGLE \
+-DNRF52840_XXAA \
+-D__HEAP_SIZE=8192 \
+-D__STACK_SIZE=8192 \
+
+
+
 COMMON_DEFINES_DONGLE = \
 $(COMMON_DEFINES_NO_SD) \
 -DBOARD_PCA10059 \
@@ -98,6 +107,10 @@ ASSEMBLER_DEFINES_MAGIC3 = \
 $(COMMON_DEFINES_MAGIC3) \
 
 
+ASSEMBLER_DEFINES_ADAFRUIT_DONGLE = \
+$(COMMON_DEFINES_ADAFRUIT_DONGLE) \
+
+
 ASSEMBLER_DEFINES_DONGLE = \
 $(COMMON_DEFINES_DONGLE) \
 
@@ -113,6 +126,16 @@ $(COMMON_DEFINES_PINETIME) \
 
 COMPILER_DEFINES_MAGIC3 = \
 $(COMMON_DEFINES_MAGIC3) \
+
+
+COMPILER_DEFINES_ADAFRUIT_DONGLE = \
+$(COMMON_DEFINES_ADAFRUIT_DONGLE) \
+-DLOG_TO_SERIAL \
+-DHAS_SERIAL \
+-DONP_CHANNEL_SERIAL \
+-DONP_DEBUG \
+-DONP_OVER_SERIAL \
+# above are baked in but need to be runtime options!
 
 
 COMPILER_DEFINES_DONGLE = \
@@ -150,6 +173,16 @@ INCLUDES_MAGIC3 = \
 -I./src/onp/ \
 -I./tests \
 $(SDK_INCLUDES_MAGIC3) \
+
+
+INCLUDES_ADAFRUIT_DONGLE = \
+-I./include \
+-I./src/onl/nRF5/adafruit-dongle \
+-I./src/ \
+-I./src/onn/ \
+-I./src/onp/ \
+-I./tests \
+$(SDK_INCLUDES_ADAFRUIT_DONGLE) \
 
 
 INCLUDES_DONGLE = \
@@ -221,6 +254,11 @@ MAGIC3_SOURCES = \
 ./src/onl/nRF5/spi-flash.c \
 ./src/onl/drivers/touch-cst816s.c \
 ./src/onl/drivers/display-st7789.c \
+$(NRF5_SOURCES) \
+
+
+ADAFRUIT_DONGLE_SOURCES = \
+./src/onl/nRF5/serial.c \
 $(NRF5_SOURCES) \
 
 
@@ -298,6 +336,14 @@ $(SDK_INCLUDES) \
 SDK_INCLUDES_MAGIC3 = \
 -I./mod-sdk/components/libraries/gfx  \
 -I./sdk/external/thedotfactory_fonts  \
+-I./sdk/components/drivers_nrf/nrf_soc_nosd/ \
+-I./sdk/components/softdevice/mbr/headers/ \
+$(SDK_INCLUDES) \
+
+
+SDK_INCLUDES_ADAFRUIT_DONGLE = \
+-I./sdk/components/libraries/bsp \
+-I./sdk/components/libraries/cli/uart \
 -I./sdk/components/drivers_nrf/nrf_soc_nosd/ \
 -I./sdk/components/softdevice/mbr/headers/ \
 $(SDK_INCLUDES) \
@@ -544,6 +590,29 @@ $(SDK_C_SOURCES_NO_SD) \
 ./sdk/modules/nrfx/mdk/system_nrf52840.c \
 
 
+SDK_C_SOURCES_ADAFRUIT_DONGLE = \
+$(SDK_C_SOURCES_NO_SD) \
+./sdk/components/libraries/bsp/bsp.c \
+./sdk/components/libraries/bsp/bsp_cli.c \
+./sdk/components/libraries/cli/nrf_cli.c \
+./sdk/components/libraries/cli/uart/nrf_cli_uart.c \
+./sdk/components/libraries/log/src/nrf_log_backend_uart.c \
+./sdk/components/libraries/queue/nrf_queue.c \
+./sdk/components/libraries/usbd/app_usbd.c \
+./sdk/components/libraries/usbd/app_usbd_core.c \
+./sdk/components/libraries/usbd/app_usbd_serial_num.c \
+./sdk/components/libraries/usbd/app_usbd_string_desc.c \
+./sdk/components/libraries/usbd/class/cdc/acm/app_usbd_cdc_acm.c \
+./sdk/integration/nrfx/legacy/nrf_drv_power.c \
+./sdk/integration/nrfx/legacy/nrf_drv_uart.c \
+./sdk/modules/nrfx/drivers/src/nrfx_power.c \
+./sdk/modules/nrfx/drivers/src/nrfx_systick.c \
+./sdk/modules/nrfx/drivers/src/nrfx_uart.c \
+./sdk/modules/nrfx/drivers/src/nrfx_uarte.c \
+./sdk/modules/nrfx/drivers/src/nrfx_usbd.c \
+./sdk/modules/nrfx/mdk/system_nrf52840.c \
+
+
 SDK_C_SOURCES_DONGLE = \
 $(SDK_C_SOURCES_NO_SD) \
 ./sdk/components/libraries/bsp/bsp.c \
@@ -708,6 +777,14 @@ libonex-kernel-magic3.a: $(LIB_SOURCES:.c=.o) $(MAGIC3_SOURCES:.c=.o) $(SDK_C_SO
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
 
 
+libonex-kernel-adafruit-dongle.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_ADAFRUIT_DONGLE)
+libonex-kernel-adafruit-dongle.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_ADAFRUIT_DONGLE) $(INCLUDES_ADAFRUIT_DONGLE)
+libonex-kernel-adafruit-dongle.a: $(LIB_SOURCES:.c=.o) $(ADAFRUIT_DONGLE_SOURCES:.c=.o) $(SDK_C_SOURCES_ADAFRUIT_DONGLE:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
+	rm -f $@
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
+
+
 libonex-kernel-dongle.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_DONGLE)
 libonex-kernel-dongle.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_DONGLE) $(INCLUDES_DONGLE)
 libonex-kernel-dongle.a: $(LIB_SOURCES:.c=.o) $(DONGLE_SOURCES:.c=.o) $(SDK_C_SOURCES_DONGLE:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
@@ -749,6 +826,18 @@ nrf.tests.magic3: libonex-kernel-magic3.a $(TESTS_SOURCES:.c=.o)
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
 
+nrf.tests.adafruit-dongle: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_ADAFRUIT_DONGLE)
+nrf.tests.adafruit-dongle: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_ADAFRUIT_DONGLE) $(INCLUDES_ADAFRUIT_DONGLE)
+nrf.tests.adafruit-dongle: libonex-kernel-adafruit-dongle.a $(TESTS_SOURCES:.c=.o)
+	rm -rf oko
+	mkdir oko
+	ar x ./libonex-kernel-adafruit-dongle.a --output oko
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M4_LD_FLAGS) $(LD_FILES_ADAFRUIT_DONGLE) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
+
+
 nrf.tests.dongle: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_DONGLE)
 nrf.tests.dongle: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_DONGLE) $(INCLUDES_DONGLE)
 nrf.tests.dongle: libonex-kernel-dongle.a $(TESTS_SOURCES:.c=.o)
@@ -778,6 +867,9 @@ pinetime-flash: nrf.tests.pinetime
 
 magic3-flash: nrf.tests.magic3
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel.hex" -c "reset run" -c exit
+
+adafruit-dongle-flash: nrf.tests.adafruit-dongle
+	uf2conv.py onex-kernel.hex --family 0xada52840 --output onex-kernel.uf2
 
 dongle-flash: nrf.tests.dongle
 	nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application ./onex-kernel.hex --key-file $(PRIVATE_PEM) dfu.zip
@@ -848,6 +940,7 @@ M7_LD_FLAGS = $(M7_CPU) -Wl,--gc-sections,--relax
 LD_FILES_PINETIME_BL     = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/pinetime-bl/onex.ld
 LD_FILES_PINETIME        = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/pinetime/onex.ld
 LD_FILES_MAGIC3          = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/magic3/onex.ld
+LD_FILES_ADAFRUIT_DONGLE = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/adafruit-dongle/onex.ld
 LD_FILES_DONGLE          = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/dongle/onex.ld
 
 LD_FILES_TEENSY40    = -T./src/onl/m7/imxrt1062.ld

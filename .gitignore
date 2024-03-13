@@ -3,6 +3,7 @@
 *.d
 *.elf
 *.hex
+*.uf2
 *.in
 *.map
 *.o

@@ -71,6 +71,8 @@
   #include "pca20020.h"
 #elif defined(BOARD_PCA10059)
   #include "pca10059.h"
+#elif defined(BOARD_ADAFRUIT_DONGLE)
+  #include "adafruit_dongle.h"
 #elif defined(BOARD_PINETIME)
   #include "pinetime.h"
 #elif defined(BOARD_MAGIC3)

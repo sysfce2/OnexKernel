@@ -61,7 +61,7 @@ static void charging_changed(uint8_t pin, uint8_t type){
 }
 #endif
 
-#if defined(BOARD_PCA10059)
+#if defined(BOARD_PCA10059) || defined(BOARD_ADAFRUIT_DONGLE)
 const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 #endif
 
@@ -70,15 +70,19 @@ const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 #define FAILURE_LED       1  // red of RGB
 #define SUCCESS_LED       2  // green of RGB
 #define READY_LED         3  // blue of RGB
+#elif defined(BOARD_ADAFRUIT_DONGLE)
+#define DISPLAY_STATE_LED 0
 #endif
 
 static void set_up_gpio(void)
 {
-#if defined(BOARD_PCA10059)
+#if defined(BOARD_PCA10059) || defined(BOARD_ADAFRUIT_DONGLE)
   gpio_mode_cb(BUTTON_1, INPUT_PULLUP, RISING_AND_FALLING, button_changed);
   for(uint8_t l=0; l< LEDS_NUMBER; l++){ gpio_mode(leds_list[l], OUTPUT); gpio_set(leds_list[l], !LEDS_ACTIVE_STATE); }
   gpio_set(leds_list[DISPLAY_STATE_LED], display_state);
+#if defined(BOARD_PCA10059)
   gpio_set(leds_list[READY_LED], LEDS_ACTIVE_STATE);
+#endif
 #elif defined(BOARD_PINETIME)
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, RISING_AND_FALLING, button_changed);
   gpio_mode(BUTTON_ENABLE, OUTPUT);
@@ -249,8 +253,11 @@ void run_tests_maybe() {
   gfx_text(allids);
 #endif
 
+#if defined(BOARD_PCA10059) || defined(BOARD_ADAFRUIT_DONGLE)
+  gpio_set(leds_list[DISPLAY_STATE_LED], !LEDS_ACTIVE_STATE);
 #if defined(BOARD_PCA10059)
-  gpio_set(leds_list[READY_LED], !LEDS_ACTIVE_STATE);
+  gpio_set(leds_list[READY_LED],         !LEDS_ACTIVE_STATE);
+#endif
 #endif
 
   run_value_tests();
@@ -263,6 +270,8 @@ void run_tests_maybe() {
 #if defined(BOARD_PCA10059)
   if(failures) gpio_set(leds_list[FAILURE_LED], LEDS_ACTIVE_STATE);
   else         gpio_set(leds_list[SUCCESS_LED], LEDS_ACTIVE_STATE);
+#elif defined(BOARD_ADAFRUIT_DONGLE)
+  if(!failures) gpio_set(leds_list[DISPLAY_STATE_LED], LEDS_ACTIVE_STATE);
 #else
   gfx_pos(10, 55);
   gfx_text(failures? "FAIL": "SUCCESS");
