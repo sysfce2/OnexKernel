@@ -77,10 +77,9 @@ $(COMMON_DEFINES_NO_SD) \
 
 
 COMMON_DEFINES_DONGLE = \
-$(COMMON_DEFINES) \
+$(COMMON_DEFINES_NO_SD) \
 -DBOARD_PCA10059 \
 -DNRF52840_XXAA \
--DS140 \
 -D__HEAP_SIZE=8192 \
 -D__STACK_SIZE=8192 \
 #-DLOG_TO_RTT \
@@ -227,7 +226,6 @@ $(NRF5_SOURCES) \
 
 DONGLE_SOURCES = \
 ./src/onl/nRF5/serial.c \
-./src/onl/nRF5/blenus.c \
 $(NRF5_SOURCES) \
 
 #-------------------------------------------------------------------------------
@@ -308,8 +306,8 @@ $(SDK_INCLUDES) \
 SDK_INCLUDES_DONGLE = \
 -I./sdk/components/libraries/bsp \
 -I./sdk/components/libraries/cli/uart \
--I./sdk/components/softdevice/s140/headers \
--I./sdk/components/softdevice/s140/headers/nrf52 \
+-I./sdk/components/drivers_nrf/nrf_soc_nosd/ \
+-I./sdk/components/softdevice/mbr/headers/ \
 $(SDK_INCLUDES) \
 
 
@@ -547,7 +545,7 @@ $(SDK_C_SOURCES_NO_SD) \
 
 
 SDK_C_SOURCES_DONGLE = \
-$(SDK_C_SOURCES) \
+$(SDK_C_SOURCES_NO_SD) \
 ./sdk/components/libraries/bsp/bsp.c \
 ./sdk/components/libraries/bsp/bsp_cli.c \
 ./sdk/components/libraries/cli/nrf_cli.c \
@@ -782,7 +780,7 @@ magic3-flash: nrf.tests.magic3
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel.hex" -c "reset run" -c exit
 
 dongle-flash: nrf.tests.dongle
-	nrfutil pkg generate --hw-version 52 --sd-req 0xCA --application-version 1 --application ./onex-kernel.hex --key-file $(PRIVATE_PEM) dfu.zip
+	nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application ./onex-kernel.hex --key-file $(PRIVATE_PEM) dfu.zip
 	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM0 -b 115200
 
 #-------------------------------:
