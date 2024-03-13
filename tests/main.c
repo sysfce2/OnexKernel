@@ -21,7 +21,7 @@
 #include <onex-kernel/serial.h>
 #endif
 
-#if defined(BOARD_PCA10059) || defined(BOARD_PINETIME)
+#if defined(BOARD_PINETIME)
 #include <onex-kernel/blenus.h>
 #endif
 
@@ -278,7 +278,6 @@ int main(void) {
   gpio_init();
 #if defined(HAS_SERIAL) // board dongle or dk?
   serial_init((serial_recv_cb)on_recv,0);
-  blenus_init(0,0);
   set_up_gpio();
   time_ticker((void (*)())serial_loop, 1);
   while(1){
