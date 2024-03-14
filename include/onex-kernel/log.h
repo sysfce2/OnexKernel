@@ -21,24 +21,11 @@
   (x & 0x00000080? '1': '0'), (x & 0x00000040? '1': '0'), (x & 0x00000020? '1': '0'), (x & 0x00000010? '1': '0'), \
   (x & 0x00000008? '1': '0'), (x & 0x00000004? '1': '0'), (x & 0x00000002? '1': '0'), (x & 0x00000001? '1': '0')
 
-#if !defined(__ANDROID__)
-
 void log_init();
 bool log_loop();
 #define log_write(...)     log_write_current_file_line(0,0, __VA_ARGS__)
 #define log_write_src(...) log_write_current_file_line(__FILE__, __LINE__, __VA_ARGS__)
 int  log_write_current_file_line(char* file, uint32_t line, const char* fmt, ...);
 void log_flush();
-
-#else
-
-#include <android/log.h>
-
-#define log_init()
-#define log_loop() true
-#define log_write(...) ((void)__android_log_print(ANDROID_LOG_INFO, "Onex", __VA_ARGS__))
-#define log_flush()
-
-#endif
 
 #endif
