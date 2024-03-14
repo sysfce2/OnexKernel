@@ -1,8 +1,8 @@
 // --------------------------------------------------------------------
 
-#include <stdint.h>
-#include <variant.h>
+#include <boards.h>
 
+#include <onex-kernel/log.h>
 #include <onex-kernel/gpio.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/serial.h>
@@ -10,10 +10,11 @@
 
 static uint16_t speed = 128;
 
-static void serial_received(char* ch)
+static void serial_received(unsigned char* chars, size_t size)
 {
-  if(*ch=='o') speed/=2;
-  if(*ch=='i') speed*=2;
+  if(!size) return;
+  if(chars[0]=='o') speed/=2;
+  if(chars[0]=='i') speed*=2;
   if(!speed)  speed=1;
 }
 
@@ -21,19 +22,33 @@ const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 
 int main()
 {
+  log_init();
+  gpio_init();
+
   for(uint8_t l=0; l< LEDS_NUMBER; l++) gpio_mode(leds_list[l], OUTPUT);
-  serial_init(serial_received, 9600);
+  for(uint8_t l=0; l< LEDS_NUMBER; l++) gpio_set( leds_list[l], !LEDS_ACTIVE_STATE);
+
+  serial_init((serial_recv_cb)serial_received,0);
+
   time_init();
   random_init();
 
+  time_ticker((void (*)())serial_loop, 1);
+
   serial_printf("Type 'o' or 'i'\n");
-  for(;;){
+
+  while(1){
+
     serial_printf("%dms %d %d\n", time_ms(), speed, random_ish_byte());
+
     gpio_set(leds_list[3], 0);
     gpio_set(leds_list[10], 0);
+
     time_delay_ms(speed);
+
     gpio_set(leds_list[3], 1);
     gpio_set(leds_list[10], 1);
+
     time_delay_ms(speed);
 /*
     for(uint8_t l=0; l<LEDS_NUMBER; l++){ gpio_toggle(leds_list[l]); time_delay_ms(speed); }
