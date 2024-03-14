@@ -15,58 +15,16 @@ PRIVATE_PEM = ./doc/local/private.pem
 
 #-------------------------------------------------------------------------------
 
-COMMON_DEFINES_NO_SD = \
--DAPP_TIMER_V2 \
--DAPP_TIMER_V2_RTC1_ENABLED \
--DCONFIG_GPIO_AS_PINRESET \
--DFLOAT_ABI_HARD \
--DNRF5 \
-
-
 COMMON_DEFINES = \
 -DAPP_TIMER_V2 \
 -DAPP_TIMER_V2_RTC1_ENABLED \
 -DCONFIG_GPIO_AS_PINRESET \
 -DFLOAT_ABI_HARD \
 -DNRF5 \
--DNRF_SD_BLE_API_VERSION=7 \
--DSOFTDEVICE_PRESENT \
-
-
-COMMON_DEFINES_PINETIME_BL = \
-$(COMMON_DEFINES) \
--DBOARD_PINETIME \
--DNRF52832_XXAA \
--DS132 \
--DNRF52 \
--DNRF52_PAN_74 \
--DBLE_STACK_SUPPORT_REQD \
--DNRF_DFU_SETTINGS_VERSION=2 \
--DNRF_DFU_SVCI_ENABLED \
--DSVC_INTERFACE_CALL_AS_NORMAL_FUNCTION \
--DuECC_ENABLE_VLI_API=0 \
--DuECC_OPTIMIZATION_LEVEL=3 \
--DuECC_SQUARE_FUNC=0 \
--DuECC_SUPPORT_COMPRESSED_POINT=0 \
--DuECC_VLI_NATIVE_LITTLE_ENDIAN=1 \
--D__HEAP_SIZE=0 \
-
-
-COMMON_DEFINES_PINETIME = \
-$(COMMON_DEFINES) \
--DBOARD_PINETIME \
--DNRF52832_XXAA \
--DS132 \
--DNRF52_PAN_74 \
--D__HEAP_SIZE=8192 \
--D__STACK_SIZE=8192 \
-#-DSPI_BLOCKING \
-#-DLOG_TO_GFX \
-
 
 
 COMMON_DEFINES_MAGIC3 = \
-$(COMMON_DEFINES_NO_SD) \
+$(COMMON_DEFINES) \
 -DBOARD_MAGIC3 \
 -DNRF52840_XXAA \
 -D__HEAP_SIZE=8192 \
@@ -75,9 +33,8 @@ $(COMMON_DEFINES_NO_SD) \
 #-DSPI_BLOCKING \
 
 
-
 COMMON_DEFINES_ADAFRUIT_DONGLE = \
-$(COMMON_DEFINES_NO_SD) \
+$(COMMON_DEFINES) \
 -DBOARD_ADAFRUIT_DONGLE \
 -DNRF52840_XXAA \
 -D__HEAP_SIZE=8192 \
@@ -86,7 +43,7 @@ $(COMMON_DEFINES_NO_SD) \
 
 
 COMMON_DEFINES_FEATHER_SENSE = \
-$(COMMON_DEFINES_NO_SD) \
+$(COMMON_DEFINES) \
 -DBOARD_FEATHER_SENSE \
 -DNRF52840_XXAA \
 -D__HEAP_SIZE=8192 \
@@ -95,21 +52,12 @@ $(COMMON_DEFINES_NO_SD) \
 
 
 COMMON_DEFINES_DONGLE = \
-$(COMMON_DEFINES_NO_SD) \
+$(COMMON_DEFINES) \
 -DBOARD_PCA10059 \
 -DNRF52840_XXAA \
 -D__HEAP_SIZE=8192 \
 -D__STACK_SIZE=8192 \
 #-DLOG_TO_RTT \
-
-
-
-ASSEMBLER_DEFINES_PINETIME_BL = \
-$(COMMON_DEFINES_PINETIME_BL) \
-
-
-ASSEMBLER_DEFINES_PINETIME = \
-$(COMMON_DEFINES_PINETIME) \
 
 
 ASSEMBLER_DEFINES_MAGIC3 = \
@@ -126,15 +74,6 @@ $(COMMON_DEFINES_FEATHER_SENSE) \
 
 ASSEMBLER_DEFINES_DONGLE = \
 $(COMMON_DEFINES_DONGLE) \
-
-
-COMPILER_DEFINES_PINETIME_BL = \
-$(COMMON_DEFINES_PINETIME_BL) \
-
-
-COMPILER_DEFINES_PINETIME = \
-$(COMMON_DEFINES_PINETIME) \
--DONP_CHANNEL_SERIAL \
 
 
 COMPILER_DEFINES_MAGIC3 = \
@@ -169,23 +108,6 @@ $(COMMON_DEFINES_DONGLE) \
 -DONP_DEBUG \
 -DONP_OVER_SERIAL \
 # above are baked in but need to be runtime options!
-
-
-INCLUDES_PINETIME_BL = \
--I./include \
--I./src/onl/nRF5/pinetime-bl \
--I./src/ \
-$(SDK_INCLUDES_S132_BL) \
-
-
-INCLUDES_PINETIME = \
--I./include \
--I./src/onl/nRF5/pinetime \
--I./src/ \
--I./src/onn/ \
--I./src/onp/ \
--I./tests \
-$(SDK_INCLUDES_PINETIME) \
 
 
 INCLUDES_MAGIC3 = \
@@ -230,15 +152,6 @@ $(SDK_INCLUDES_DONGLE) \
 
 #-------------------------------------------------------------------------------
 
-BOOTLOADER_SOURCES = \
-./src/onl/nRF5/gpio.c \
-./src/onl/nRF5/spi.c \
-./src/onl/nRF5/gfx.c \
-./src/onl/nRF5/dfu_public_key.c \
-./src/onl/nRF5/bootloader.c \
-./src/onl/drivers/display-st7789.c \
-
-
 TESTS_SOURCES = \
 ./tests/test-properties.c \
 ./tests/test-list.c \
@@ -267,18 +180,6 @@ NRF5_SOURCES = \
 ./src/onl/drivers/persistence.c \
 
 
-PINETIME_SOURCES = \
-./src/onl/nRF5/boot.c \
-./src/onl/nRF5/i2c.c \
-./src/onl/nRF5/spi.c \
-./src/onl/nRF5/gfx.c \
-./src/onl/nRF5/blenus.c \
-./src/onl/drivers/touch-cst816s.c \
-./src/onl/drivers/motion-bma421.c \
-./src/onl/drivers/display-st7789.c \
-$(NRF5_SOURCES) \
-
-
 MAGIC3_SOURCES = \
 ./src/onl/nRF5/boot.c \
 ./src/onl/nRF5/i2c.c \
@@ -305,71 +206,6 @@ DONGLE_SOURCES = \
 $(NRF5_SOURCES) \
 
 #-------------------------------------------------------------------------------
-
-SDK_INCLUDES_S132_BL = \
--I./mod-sdk/components/libraries/gfx \
--I./mod-sdk/components/boards \
--I./mod-sdk/components/libraries/mem_manager \
--I./sdk/external/thedotfactory_fonts \
--I./sdk/modules/nrfx/drivers/include \
--I./sdk/components/libraries/gfx \
--I./sdk/examples/dfu/secure_bootloader \
--I./sdk/components/libraries/crypto/backend/micro_ecc \
--I./sdk/components/softdevice/s132/headers \
--I./sdk/components/libraries/memobj \
--I./sdk/components/libraries/sha256 \
--I./sdk/components/libraries/crc32 \
--I./sdk/components/libraries/experimental_section_vars \
--I./sdk/components/libraries/mem_manager \
--I./sdk/components/libraries/fstorage \
--I./sdk/components/libraries/util \
--I./sdk/modules/nrfx \
--I./sdk/external/nrf_oberon/include \
--I./sdk/components/libraries/crypto/backend/oberon \
--I./sdk/components/libraries/crypto/backend/cifra \
--I./sdk/components/libraries/atomic \
--I./sdk/integration/nrfx \
--I./sdk/components/libraries/crypto/backend/cc310_bl \
--I./sdk/components/softdevice/s132/headers/nrf52 \
--I./sdk/components/libraries/log/src \
--I./sdk/components/libraries/bootloader/dfu \
--I./sdk/components/ble/common \
--I./sdk/components/libraries/delay \
--I./sdk/components/libraries/svc \
--I./sdk/components/libraries/stack_info \
--I./sdk/components/libraries/crypto/backend/nrf_hw \
--I./sdk/components/libraries/log \
--I./sdk/external/nrf_oberon \
--I./sdk/components/libraries/strerror \
--I./sdk/components/libraries/crypto/backend/mbedtls \
--I./sdk/components/boards \
--I./sdk/components/libraries/crypto/backend/cc310 \
--I./sdk/components/libraries/bootloader \
--I./sdk/external/fprintf \
--I./sdk/components/libraries/crypto \
--I./sdk/components/libraries/crypto/backend/optiga \
--I./sdk/components/libraries/scheduler \
--I./sdk/modules/nrfx/hal \
--I./sdk/components/toolchain/cmsis/include \
--I./sdk/components/libraries/balloc \
--I./sdk/components/libraries/atomic_fifo \
--I/home/duncan/nordic/micro-ecc \
--I./sdk/components/libraries/crypto/backend/nrf_sw \
--I./sdk/modules/nrfx/mdk \
--I./sdk/components/libraries/bootloader/ble_dfu \
--I./sdk/components/softdevice/common \
--I./sdk/external/nano-pb \
--I./sdk/components/libraries/queue \
--I./sdk/components/libraries/ringbuf \
-
-
-SDK_INCLUDES_PINETIME = \
--I./mod-sdk/components/libraries/gfx \
--I./sdk/external/thedotfactory_fonts \
--I./sdk/components/softdevice/s132/headers \
--I./sdk/components/softdevice/s132/headers/nrf52 \
-$(SDK_INCLUDES) \
-
 
 SDK_INCLUDES_MAGIC3 = \
 -I./mod-sdk/components/libraries/gfx  \
@@ -407,44 +243,12 @@ SDK_INCLUDES = \
 -I./mod-sdk/components/boards \
 -I./mod-sdk/components/libraries/mem_manager \
 -I./sdk/components \
--I./sdk/components/ble/ble_advertising \
--I./sdk/components/ble/ble_dtm \
--I./sdk/components/ble/ble_link_ctx_manager \
--I./sdk/components/ble/ble_racp \
--I./sdk/components/ble/ble_services/ble_ancs_c \
--I./sdk/components/ble/ble_services/ble_ans_c \
--I./sdk/components/ble/ble_services/ble_bas \
--I./sdk/components/ble/ble_services/ble_bas_c \
--I./sdk/components/ble/ble_services/ble_cscs \
--I./sdk/components/ble/ble_services/ble_cts_c \
--I./sdk/components/ble/ble_services/ble_dfu \
--I./sdk/components/ble/ble_services/ble_dis \
--I./sdk/components/ble/ble_services/ble_gls \
--I./sdk/components/ble/ble_services/ble_hids \
--I./sdk/components/ble/ble_services/ble_hrs \
--I./sdk/components/ble/ble_services/ble_hrs_c \
--I./sdk/components/ble/ble_services/ble_hts \
--I./sdk/components/ble/ble_services/ble_ias \
--I./sdk/components/ble/ble_services/ble_ias_c \
--I./sdk/components/ble/ble_services/ble_lbs \
--I./sdk/components/ble/ble_services/ble_lbs_c \
--I./sdk/components/ble/ble_services/ble_lls \
--I./sdk/components/ble/ble_services/ble_nus \
--I./sdk/components/ble/ble_services/ble_nus_c \
--I./sdk/components/ble/ble_services/ble_rscs \
--I./sdk/components/ble/ble_services/ble_rscs_c \
--I./sdk/components/ble/ble_services/ble_tps \
--I./sdk/components/ble/common \
--I./sdk/components/ble/nrf_ble_gatt \
--I./sdk/components/ble/nrf_ble_qwr \
--I./sdk/components/ble/peer_manager \
 -I./sdk/components/boards \
 -I./sdk/components/libraries/atomic \
 -I./sdk/components/libraries/atomic_fifo \
 -I./sdk/components/libraries/atomic_flags \
 -I./sdk/components/libraries/balloc \
 -I./sdk/components/libraries/bootloader/ \
--I./sdk/components/libraries/bootloader/ble_dfu \
 -I./sdk/components/libraries/bsp \
 -I./sdk/components/libraries/button \
 -I./sdk/components/libraries/cli \
@@ -508,12 +312,8 @@ SDK_INCLUDES = \
 -I./sdk/components/libraries/util \
 -I./sdk/components/nfc/ndef/conn_hand_parser \
 -I./sdk/components/nfc/ndef/conn_hand_parser/ac_rec_parser \
--I./sdk/components/nfc/ndef/conn_hand_parser/ble_oob_advdata_parser \
 -I./sdk/components/nfc/ndef/conn_hand_parser/le_oob_rec_parser \
 -I./sdk/components/nfc/ndef/connection_handover/ac_rec \
--I./sdk/components/nfc/ndef/connection_handover/ble_oob_advdata \
--I./sdk/components/nfc/ndef/connection_handover/ble_pair_lib \
--I./sdk/components/nfc/ndef/connection_handover/ble_pair_msg \
 -I./sdk/components/nfc/ndef/connection_handover/common \
 -I./sdk/components/nfc/ndef/connection_handover/ep_oob_rec \
 -I./sdk/components/nfc/ndef/connection_handover/hs_rec \
@@ -547,86 +347,12 @@ SDK_INCLUDES = \
 -I./sdk/modules/nrfx/soc \
 
 
-SDK_ASSEMBLER_SOURCES_52832 = \
-./sdk/modules/nrfx/mdk/gcc_startup_nrf52.S \
-
-
 SDK_ASSEMBLER_SOURCES_52840 = \
 ./sdk/modules/nrfx/mdk/gcc_startup_nrf52840.S \
 
 
-SDK_C_SOURCES_PINETIME_BL = \
-./mod-sdk/components/libraries/bootloader/nrf_bootloader.c \
-./mod-sdk/components/libraries/gfx/nrf_gfx.c \
-./sdk/components/ble/common/ble_srv_common.c \
-./sdk/components/libraries/atomic/nrf_atomic.c \
-./sdk/components/libraries/atomic_fifo/nrf_atfifo.c \
-./sdk/components/libraries/balloc/nrf_balloc.c \
-./sdk/components/libraries/experimental_section_vars/nrf_section_iter.c \
-./sdk/components/libraries/scheduler/app_scheduler.c \
-./sdk/components/libraries/util/app_util_platform.c \
-./sdk/components/softdevice/common/nrf_sdh.c \
-./sdk/components/softdevice/common/nrf_sdh_ble.c \
-./sdk/modules/nrfx/drivers/src/prs/nrfx_prs.c \
-./sdk/components/libraries/bootloader/ble_dfu/nrf_dfu_ble.c \
-./sdk/components/libraries/bootloader/dfu/dfu-cc.pb.c \
-./sdk/components/libraries/bootloader/dfu/nrf_dfu.c \
-./sdk/components/libraries/bootloader/dfu/nrf_dfu_flash.c \
-./sdk/components/libraries/bootloader/dfu/nrf_dfu_handling_error.c \
-./sdk/components/libraries/bootloader/dfu/nrf_dfu_mbr.c \
-./sdk/components/libraries/bootloader/dfu/nrf_dfu_req_handler.c \
-./sdk/components/libraries/bootloader/dfu/nrf_dfu_settings.c \
-./sdk/components/libraries/bootloader/dfu/nrf_dfu_settings_svci.c \
-./sdk/components/libraries/bootloader/dfu/nrf_dfu_svci.c \
-./sdk/components/libraries/bootloader/dfu/nrf_dfu_svci_handler.c \
-./sdk/components/libraries/bootloader/dfu/nrf_dfu_transport.c \
-./sdk/components/libraries/bootloader/dfu/nrf_dfu_utils.c \
-./sdk/components/libraries/bootloader/dfu/nrf_dfu_validation.c \
-./sdk/components/libraries/bootloader/dfu/nrf_dfu_ver_validation.c \
-./sdk/components/libraries/bootloader/nrf_bootloader_app_start.c \
-./sdk/components/libraries/bootloader/nrf_bootloader_app_start_final.c \
-./sdk/components/libraries/bootloader/nrf_bootloader_dfu_timers.c \
-./sdk/components/libraries/bootloader/nrf_bootloader_fw_activation.c \
-./sdk/components/libraries/bootloader/nrf_bootloader_info.c \
-./sdk/components/libraries/bootloader/nrf_bootloader_wdt.c \
-./sdk/components/libraries/crc32/crc32.c \
-./sdk/components/libraries/crypto/backend/micro_ecc/micro_ecc_backend_ecc.c \
-./sdk/components/libraries/crypto/backend/micro_ecc/micro_ecc_backend_ecdsa.c \
-./sdk/components/libraries/crypto/backend/nrf_sw/nrf_sw_backend_hash.c \
-./sdk/components/libraries/crypto/backend/oberon/oberon_backend_ecc.c \
-./sdk/components/libraries/crypto/backend/oberon/oberon_backend_ecdsa.c \
-./sdk/components/libraries/crypto/nrf_crypto_ecc.c \
-./sdk/components/libraries/crypto/nrf_crypto_ecdsa.c \
-./sdk/components/libraries/crypto/nrf_crypto_hash.c \
-./sdk/components/libraries/crypto/nrf_crypto_init.c \
-./sdk/components/libraries/crypto/nrf_crypto_shared.c \
-./sdk/components/libraries/fstorage/nrf_fstorage.c \
-./sdk/components/libraries/fstorage/nrf_fstorage_nvmc.c \
-./sdk/components/libraries/fstorage/nrf_fstorage_sd.c \
-./sdk/components/libraries/sha256/sha256.c \
-./sdk/components/libraries/svc/nrf_svc_handler.c \
-./sdk/components/softdevice/common/nrf_sdh_soc.c \
-/home/duncan/nordic/micro-ecc/uECC.c \
-./sdk/external/nano-pb/pb_common.c \
-./sdk/external/nano-pb/pb_decode.c \
-./sdk/modules/nrfx/drivers/src/nrfx_spim.c \
-./sdk/modules/nrfx/hal/nrf_nvmc.c \
-./sdk/modules/nrfx/mdk/system_nrf52.c \
-
-
-
-SDK_C_SOURCES_PINETIME = \
-$(SDK_C_SOURCES) \
-./mod-sdk/components/libraries/gfx/nrf_gfx.c \
-./sdk/external/thedotfactory_fonts/orkney8pts.c \
-./sdk/modules/nrfx/drivers/src/nrfx_saadc.c \
-./sdk/modules/nrfx/drivers/src/nrfx_spim.c \
-./sdk/modules/nrfx/drivers/src/nrfx_twi.c \
-./sdk/modules/nrfx/mdk/system_nrf52.c \
-
-
 SDK_C_SOURCES_MAGIC3 = \
-$(SDK_C_SOURCES_NO_SD) \
+$(SDK_C_SOURCES) \
 ./mod-sdk/components/libraries/gfx/nrf_gfx.c \
 ./sdk/external/thedotfactory_fonts/orkney8pts.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_saadc.c \
@@ -637,7 +363,7 @@ $(SDK_C_SOURCES_NO_SD) \
 
 
 SDK_C_SOURCES_ADAFRUIT_DONGLE = \
-$(SDK_C_SOURCES_NO_SD) \
+$(SDK_C_SOURCES) \
 ./sdk/components/libraries/bsp/bsp.c \
 ./sdk/components/libraries/bsp/bsp_cli.c \
 ./sdk/components/libraries/cli/nrf_cli.c \
@@ -660,7 +386,7 @@ $(SDK_C_SOURCES_NO_SD) \
 
 
 SDK_C_SOURCES_FEATHER_SENSE = \
-$(SDK_C_SOURCES_NO_SD) \
+$(SDK_C_SOURCES) \
 ./sdk/components/libraries/bsp/bsp.c \
 ./sdk/components/libraries/bsp/bsp_cli.c \
 ./sdk/components/libraries/cli/nrf_cli.c \
@@ -683,7 +409,7 @@ $(SDK_C_SOURCES_NO_SD) \
 
 
 SDK_C_SOURCES_DONGLE = \
-$(SDK_C_SOURCES_NO_SD) \
+$(SDK_C_SOURCES) \
 ./sdk/components/libraries/bsp/bsp.c \
 ./sdk/components/libraries/bsp/bsp_cli.c \
 ./sdk/components/libraries/cli/nrf_cli.c \
@@ -706,22 +432,6 @@ $(SDK_C_SOURCES_NO_SD) \
 
 
 SDK_C_SOURCES = \
-./sdk/components/ble/ble_link_ctx_manager/ble_link_ctx_manager.c \
-./sdk/components/ble/ble_services/ble_lbs/ble_lbs.c \
-./sdk/components/ble/ble_services/ble_nus/ble_nus.c \
-./sdk/components/ble/common/ble_advdata.c \
-./sdk/components/ble/common/ble_conn_params.c \
-./sdk/components/ble/common/ble_conn_state.c \
-./sdk/components/ble/common/ble_srv_common.c \
-./sdk/components/ble/nrf_ble_gatt/nrf_ble_gatt.c \
-./sdk/components/ble/nrf_ble_qwr/nrf_ble_qwr.c \
-./sdk/components/softdevice/common/nrf_sdh.c \
-./sdk/components/softdevice/common/nrf_sdh_ble.c \
-./sdk/components/softdevice/common/nrf_sdh_soc.c \
-$(SDK_C_SOURCES_NO_SD) \
-
-
-SDK_C_SOURCES_NO_SD = \
 ./mod-sdk/components/libraries/mem_manager/mem_manager.c \
 ./mod-sdk/components/boards/boards.c \
 ./sdk/components/libraries/crypto/backend/nrf_hw/nrf_hw_backend_rng.c \
@@ -830,14 +540,6 @@ WATCH_OBJECTS = \
 #-------------------------------------------------------------------------------
 # Targets
 
-libonex-kernel-pinetime.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_PINETIME)
-libonex-kernel-pinetime.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_PINETIME) $(INCLUDES_PINETIME)
-libonex-kernel-pinetime.a: $(LIB_SOURCES:.c=.o) $(PINETIME_SOURCES:.c=.o) $(SDK_C_SOURCES_PINETIME:.c=.o) $(SDK_ASSEMBLER_SOURCES_52832:.S=.o)
-	rm -f $@
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
-
-
 libonex-kernel-magic3.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_MAGIC3)
 libonex-kernel-magic3.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_MAGIC3) $(INCLUDES_MAGIC3)
 libonex-kernel-magic3.a: $(LIB_SOURCES:.c=.o) $(MAGIC3_SOURCES:.c=.o) $(SDK_C_SOURCES_MAGIC3:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
@@ -868,27 +570,6 @@ libonex-kernel-dongle.a: $(LIB_SOURCES:.c=.o) $(DONGLE_SOURCES:.c=.o) $(SDK_C_SO
 	rm -f $@
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
-
-
-nrf.bootloader.pinetime: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_PINETIME_BL)
-nrf.bootloader.pinetime: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_PINETIME_BL) $(INCLUDES_PINETIME_BL)
-nrf.bootloader.pinetime: $(BOOTLOADER_SOURCES:.c=.o) $(SDK_C_SOURCES_PINETIME_BL:.c=.o) $(SDK_ASSEMBLER_SOURCES_52832:.S=.o)
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M4_LD_FLAGS) $(LD_FILES_PINETIME_BL) -Wl,-Map=./onex-kernel-bootloader.map -o ./onex-kernel-bootloader.out $^
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel-bootloader.out
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel-bootloader.out ./onex-kernel-bootloader.bin
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel-bootloader.out ./onex-kernel-bootloader.hex
-
-
-nrf.tests.pinetime: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_PINETIME)
-nrf.tests.pinetime: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_PINETIME) $(INCLUDES_PINETIME)
-nrf.tests.pinetime: libonex-kernel-pinetime.a $(TESTS_SOURCES:.c=.o)
-	rm -rf oko
-	mkdir oko
-	ar x ./libonex-kernel-pinetime.a --output oko
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M4_LD_FLAGS) $(LD_FILES_PINETIME) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
 
 nrf.tests.magic3: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_MAGIC3)
@@ -938,21 +619,7 @@ nrf.tests.dongle: libonex-kernel-dongle.a $(TESTS_SOURCES:.c=.o)
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
-bootloader: nrf.bootloader.pinetime
-	echo $$(($$(cat bootloader-number.txt) + 1)) > bootloader-number.txt
-
-pinetime-erase-flash-sd-and-bl: bootloader
-	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "nrf5 mass_erase" -c "reset run" -c exit
-	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./sdk/components/softdevice/s132/hex/s132_nrf52_7.0.1_softdevice.hex" -c "reset run" -c exit
-	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel-bootloader.hex" -c "reset run" -c exit
-
-pinetime-flash-bl: nrf.bootloader.pinetime
-	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel-bootloader.hex" -c "reset run" -c exit
-
 #-------------------------------:
-
-pinetime-flash: nrf.tests.pinetime
-	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel.hex" -c "reset run" -c exit
 
 magic3-flash: nrf.tests.magic3
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel.hex" -c "reset run" -c exit
@@ -977,9 +644,6 @@ device-reset:
 
 device-erase:
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "nrf5 mass_erase" -c "reset run" -c exit
-
-flash-sd132:
-	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./sdk/components/softdevice/s132/hex/s132_nrf52_7.0.1_softdevice.hex" -c "reset run" -c exit
 
 #-------------------------------:
 
@@ -1023,14 +687,10 @@ M7_CC_FLAGS = -MMD -std=gnu99 -Wall -Werror -Wno-pointer-sign -Wno-unused-but-se
 
 M7_CXX_FLAGS = -MMD -std=gnu++14 -Wall -Wno-error=narrowing -ffunction-sections -fdata-sections -fno-exceptions -fpermissive -fno-rtti -fno-threadsafe-statics -felide-constructors -nostdlib
 
-# for bootloader: -O2 -ggdb
-# for bootloader: -Os -g3
 M4_LD_FLAGS = $(M4_CPU) -Wl,--gc-sections -specs=nano.specs
 
 M7_LD_FLAGS = $(M7_CPU) -Wl,--gc-sections,--relax
 
-LD_FILES_PINETIME_BL     = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/pinetime-bl/onex.ld
-LD_FILES_PINETIME        = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/pinetime/onex.ld
 LD_FILES_MAGIC3          = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/magic3/onex.ld
 LD_FILES_ADAFRUIT_DONGLE = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/adafruit-dongle/onex.ld
 LD_FILES_FEATHER_SENSE   = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/feather-sense/onex.ld

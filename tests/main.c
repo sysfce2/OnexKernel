@@ -13,16 +13,12 @@
 #include <onex-kernel/spi-flash.h>
 #endif
 
-#if defined(BOARD_PINETIME)
+#if defined(DO_MOTION)
 #include <onex-kernel/motion.h>
 #endif
 
 #if defined(HAS_SERIAL)
 #include <onex-kernel/serial.h>
-#endif
-
-#if defined(BOARD_PINETIME)
-#include <onex-kernel/blenus.h>
 #endif
 
 #include <onex-kernel/gfx.h>
@@ -53,7 +49,7 @@ void button_changed(uint8_t pin, uint8_t type)
   if(pressed) display_state = !display_state;
 }
 
-#if defined(BOARD_PINETIME) || defined(BOARD_MAGIC3)
+#if defined(BOARD_MAGIC3)
 static volatile bool is_charging=false;
 
 static void charging_changed(uint8_t pin, uint8_t type){
@@ -83,16 +79,6 @@ static void set_up_gpio(void)
 #if defined(BOARD_PCA10059)
   gpio_set(leds_list[READY_LED], LEDS_ACTIVE_STATE);
 #endif
-#elif defined(BOARD_PINETIME)
-  gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, RISING_AND_FALLING, button_changed);
-  gpio_mode(BUTTON_ENABLE, OUTPUT);
-  gpio_set( BUTTON_ENABLE, 1);
-  gpio_mode(LCD_BACKLIGHT_HIGH, OUTPUT);
-  gpio_mode(VIBRATION, OUTPUT);
-  gpio_set(VIBRATION, 1);
-  gpio_mode_cb(CHARGE_SENSE, INPUT, RISING_AND_FALLING, charging_changed);
-#define ADC_CHANNEL 0
-  gpio_adc_init(BATTERY_V, ADC_CHANNEL);
 #elif defined(BOARD_MAGIC3)
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, RISING_AND_FALLING, button_changed);
   gpio_mode(I2C_ENABLE, OUTPUT);
@@ -106,12 +92,12 @@ static void set_up_gpio(void)
 }
 #endif
 
-#if defined(BOARD_PINETIME) || defined(BOARD_MAGIC3)
+#if defined(BOARD_MAGIC3)
 static void show_touch();
 static bool new_touch_info=false;
 static touch_info_t ti={ 120, 140 };
 
-#if defined(BOARD_PINETIME)
+#if defined(DO_MOTION)
 static void show_motion();
 static bool new_motion_info=false;
 static motion_info_t mi;
@@ -126,7 +112,7 @@ void touched(touch_info_t touchinfo)
   irqs++;
 }
 
-#if defined(BOARD_PINETIME)
+#if defined(DO_MOTION)
 void moved(motion_info_t motioninfo)
 {
   mi=motioninfo;
@@ -158,7 +144,7 @@ void show_touch()
   run_tests++;
 }
 
-#if defined(BOARD_PINETIME)
+#if defined(DO_MOTION)
 void show_motion()
 {
   snprintf(buf, 64, "(%05d)(%05d)(%05d)", mi.x, mi.y, mi.z);
@@ -310,9 +296,6 @@ int main(void) {
     }
   }
 #else
-#if defined(BOARD_PINETIME)
-  blenus_init((blenus_recv_cb)on_recv, 0);
-#endif
   set_up_gpio();
   gfx_init();
   gfx_screen_colour(GFX_YELLOW);
@@ -341,7 +324,7 @@ int main(void) {
   gfx_text_colour(GFX_BLUE);
 
   touch_init(touched);
-#if defined(BOARD_PINETIME)
+#if defined(DO_MOTION)
   motion_init(moved);
 #endif
 
@@ -357,16 +340,12 @@ int main(void) {
     //show_random();
       show_battery();
     }
-#if defined(BOARD_PINETIME)
+#if defined(DO_MOTION)
     if(new_motion_info){
       new_motion_info=false;
       static int ticks=0; // every 20ms
       ticks++;
       if(!(ticks%20)) show_motion();
-    }
-    if (display_state_prev != display_state){
-      display_state_prev = display_state;
-      gpio_set(LCD_BACKLIGHT_HIGH, display_state);
     }
 #endif
 #if defined(BOARD_MAGIC3)

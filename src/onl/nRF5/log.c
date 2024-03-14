@@ -7,8 +7,6 @@
 
 #if defined(LOG_TO_SERIAL)
 #include <onex-kernel/serial.h>
-#elif defined(LOG_TO_BLE)
-#include <onex-kernel/blenus.h>
 #endif
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
@@ -30,7 +28,7 @@ bool log_loop()
 #endif
 }
 
-#if defined(LOG_TO_BLE) || defined(LOG_TO_GFX) || defined(LOG_TO_RTT)
+#if defined(LOG_TO_GFX) || defined(LOG_TO_RTT)
 #define LOG_BUF_SIZE 1024
 static volatile char log_buffer[LOG_BUF_SIZE];
 #if defined(LOG_TO_GFX)
@@ -52,11 +50,6 @@ int log_write_current_file_line(char* file, uint32_t line, const char* fmt, ...)
   uint16_t ln=file? snprintf((char*)log_buffer, LOG_BUF_SIZE, "%s:%ld:", file, line): 0;
   vsnprintf((char*)log_buffer+ln, LOG_BUF_SIZE-ln, fmt, args);
   event_log_buffer=log_buffer;
-#elif defined(LOG_TO_BLE)
-  vsnprintf((char*)log_buffer, LOG_BUF_SIZE, fmt, args);
-  //if(strlen(log_buffer)>19){ log_buffer[18]='\n'; log_buffer[19]=0; }
-  r=blenus_printf((char*)log_buffer);
-  time_delay_ms(5);
 #elif defined(LOG_TO_RTT)
   vsnprintf((char*)log_buffer, LOG_BUF_SIZE, fmt, args);
   NRF_LOG_DEBUG("%s", (char*)log_buffer);

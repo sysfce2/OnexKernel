@@ -1,14 +1,6 @@
 
 #include <boards.h>
 
-#if defined(BOARD_PINETIME)
-#define USE_50MS_HACK
-#endif
-
-#if defined(USE_50MS_HACK)
-#include <app_timer.h>
-#endif
-
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 #include <onex-kernel/gpio.h>
@@ -39,11 +31,6 @@ static void touched(uint8_t pin, uint8_t type) {
   if(touch_cb) touch_cb(ti);
 }
 
-#if defined(USE_50MS_HACK)
-APP_TIMER_DEF(touch_timer);
-static void every_50ms(void* p);
-#endif
-
 void touch_init(touch_touched_cb cb)
 {
   touch_cb = cb;
@@ -54,27 +41,9 @@ void touch_init(touch_touched_cb cb)
   twip=i2c_init(400);
 
   gpio_mode_cb(TOUCH_IRQ_PIN, INPUT_PULLUP, FALLING, touched);
-
-#if defined(USE_50MS_HACK)
-  ret_code_t e;
-  e=app_timer_create(&touch_timer, APP_TIMER_MODE_REPEATED, every_50ms); APP_ERROR_CHECK(e);
-  e=app_timer_start(touch_timer, APP_TIMER_TICKS(50), NULL); APP_ERROR_CHECK(e);
-#endif
 }
 
 static bool pressed=false;
-
-#if defined(USE_50MS_HACK)
-void every_50ms(void* xx)
-{
-  touch_get_info();
-  bool p=(ti.action==TOUCH_ACTION_CONTACT);
-  if(p!=pressed){
-    pressed=p;
-    if(touch_cb) touch_cb(ti);
-  }
-}
-#endif
 
 touch_info_t touch_get_info()
 {

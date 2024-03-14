@@ -3,9 +3,9 @@
 Onex Object Network C implementation: object graph API, persistence, notification (ONN),
 networking (ONP).
 
-Currently builds for Linux, Ubuntu Touch, Nordic nRF52 dongle and the PineTime watch.
+Currently builds for Linux, Pi, Nordic nRF52.
 
-Type 'make' for a list of build targets.
+Type 'make' for a list of build targets, or make -f Makefile.
 
 See include/onn.h for the ONN API.
 
