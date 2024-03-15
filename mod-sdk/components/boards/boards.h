@@ -47,6 +47,8 @@
   #include "pca10059.h"
 #elif defined(BOARD_ADAFRUIT_DONGLE)
   #include "adafruit_dongle.h"
+#elif defined(BOARD_ITSYBITSY)
+  #include "itsybitsy.h"
 #elif defined(BOARD_FEATHER_SENSE)
   #include "feather_sense.h"
 #elif defined(BOARD_MAGIC3)
