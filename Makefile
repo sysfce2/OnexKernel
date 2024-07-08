@@ -4,6 +4,8 @@
 targets:
 	@grep '^[a-zA-Z0-9\.#-]\+:' Makefile | grep -v '^\.' | grep -v targets | sed 's/:.*//' | uniq | sed 's/\.elf/.hex/' | sed 's/^/Make clean \&\& Make -j /'
 
+MAKEFLAGS += --no-builtin-rules
+
 #-------------------------------------------------------------------------------
 
 INCLUDES = \
@@ -13,6 +15,15 @@ INCLUDES = \
 -I./src/onp/ \
 -I./tests \
 
+
+INCLUDESV = \
+-I./include \
+-I./include/vulkan \
+-I./src \
+-I./src/lib \
+-I./src/onl/desktop/vulkan \
+-I./tests/ont-examples/vulkan \
+
 #-------------------------------------------------------------------------------
 
 TESTS_SOURCES = \
@@ -21,6 +32,22 @@ TESTS_SOURCES = \
 ./tests/test-value.c \
 ./tests/test-onn.c \
 ./tests/main.c \
+
+#-------------------------------------------------------------------------------
+
+SHADERS = \
+  tests/ont-examples/vulkan/onx.vert.spv \
+  tests/ont-examples/vulkan/onx.frag.spv \
+
+#-------------------------------------------------------------------------------
+
+VULKAN_SOURCES = \
+./src/onl/desktop/vulkan-xcb.c \
+./src/onl/onl.c \
+./src/onl/desktop/vulkan/vk.c \
+./tests/ont-examples/vulkan/onx-vk.c \
+./tests/ont-examples/vulkan/user-3d.c \
+./tests/ont-examples/vulkan/g2d-vulkan.c \
 
 
 LIB_SOURCES = \
@@ -82,6 +109,17 @@ tests.x86: CHANNELS=-DONP_CHANNEL_SERIAL
 tests.x86: libonex-kernel-x86.a $(TESTS_SOURCES:.c=.o)
 	$(LD) $(TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-x86 -o $@
 
+vulkan.x86: COMPILE_LINE=$(X86V_FLAGS) $(CCV_FLAGS) $(X86V_CC_SYMBOLS) $(INCLUDESV)
+vulkan.x86: CC=/usr/bin/gcc
+vulkan.x86: LD=/usr/bin/gcc
+vulkan.x86: TARGET=TARGET_X86
+vulkan.x86: libonex-kernel-x86.a $(VULKAN_SOURCES:.c=.o) ${SHADERS:.spv=.o}
+	@echo ================
+	@echo $@ '<=' $(VULKAN_SOURCES:.c=.o) ${SHADERS:.spv=.o}
+	@echo -----
+	$(LD) $(VULKAN_SOURCES:.c=.o) ${SHADERS:.spv=.o} -pthread -L. -lonex-kernel-x86 -lvulkan -lxcb -lfreetype -lm -o $@
+
+
 arm.tests: tests.arm
 	mkdir -p ok
 	cp -a ./tests.arm ok
@@ -102,16 +140,57 @@ X86_CC_SYMBOLS = -D$(TARGET) $(CHANNELS)
 
 CC_FLAGS = -c -std=gnu99 -Werror -Wall -Wextra -Wno-misleading-indentation -Wno-unused-function  -Wno-unused-parameter -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer
 
-.c.o:
+X86V_FLAGS=-g -O2
+
+CCV_FLAGS = -std=gnu17 -Wall -Werror -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -fno-strict-aliasing -fno-builtin-memcmp -Wimplicit-fallthrough=0 -fvisibility=hidden -Wno-unused-function -Wno-incompatible-pointer-types -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-result -Wno-switch
+
+X86V_CC_SYMBOLS = -DVK_USE_PLATFORM_XCB_KHR
+
+
+%.o: %.c
+	@echo ================
+	@echo $@ '<=' $<
+	@echo -----
 	$(CC) $(COMPILE_LINE) -o $@ -c $<
+
+%.o: %.cpp
+	@echo ================
+	@echo $@ '<=' $<
+	@echo -----
+	$(CC) $(COMPILE_LINE) -o $@ -c $<
+
+%.vert.spv: %.vert
+	@echo ================
+	@echo $@ '<=' $<
+	@echo -----
+	glslc $< -o $@
+
+%.frag.spv: %.frag
+	@echo ================
+	@echo $@ '<=' $<
+	@echo -----
+	glslc $< -o $@
+
+%.vert.c: %.vert.spv
+	@echo ================
+	@echo $@ '<=' $<
+	@echo -----
+	xxd -i $< > $@
+
+%.frag.c: %.frag.spv
+	@echo ================
+	@echo $@ '<=' $<
+	@echo -----
+	xxd -i $< > $@
 
 copy:
 	rsync -ruav --stats --progress --delete ok/ phablet@dorold:ok
 
 clean:
 	find src tests -name '*.o' -o -name '*.d' | xargs rm -f
-	rm -f ,* core
+	rm -f core
 	rm -rf *.arm *.x86 ok
+	rm -rf ${TARGETS} tests/ont-examples/vulkan/*.{inc,spv,vert.c,frag.c}
 	find . -name onex.ondb | xargs rm -f
 	@echo "------------------------------"
 	@echo "files not cleaned:"
