@@ -126,7 +126,7 @@ static void do_render_pass() {
 static bool            scene_ready = false;
 static pthread_mutex_t scene_lock;
 
-void set_up_scene_begin(void** vertices) {
+void set_up_scene_begin(float** vertices) {
 
   pthread_mutex_lock(&scene_lock);
   scene_ready = false;
@@ -134,7 +134,7 @@ void set_up_scene_begin(void** vertices) {
   size_t vertex_size = MAX_PANELS * 6*6 * (3 * sizeof(float) +
                                            2 * sizeof(float)  );
 
-  VK_CHECK(vkMapMemory(device, vertex_buffer_memory,           0, vertex_size, 0, vertices));
+  VK_CHECK(vkMapMemory(device, vertex_buffer_memory, 0, vertex_size, 0, (void**)vertices));
 }
 
 void set_up_scene_end() {

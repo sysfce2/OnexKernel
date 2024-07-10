@@ -10,10 +10,13 @@ MAKEFLAGS += --no-builtin-rules
 
 INCLUDES = \
 -I./include \
+-I./include/vulkan \
 -I./src/ \
+-I./src/onl/desktop/vulkan \
 -I./src/onn/ \
 -I./src/onp/ \
 -I./tests \
+-I./tests/ont-examples/vulkan \
 
 
 INCLUDESV = \
@@ -42,9 +45,6 @@ SHADERS = \
 #-------------------------------------------------------------------------------
 
 VULKAN_SOURCES = \
-./src/onl/desktop/vulkan-xcb.c \
-./src/onl/onl.c \
-./src/onl/desktop/vulkan/vk.c \
 ./tests/ont-examples/vulkan/onx-vk.c \
 ./tests/ont-examples/vulkan/user-3d.c \
 ./tests/ont-examples/vulkan/g2d-vulkan.c \
@@ -56,8 +56,11 @@ LIB_SOURCES = \
 ./src/lib/value.c \
 ./src/lib/tests.c \
 ./src/lib/properties.c \
-./src/onp/onp.c \
+./src/onl/desktop/vulkan-xcb.c \
+./src/onl/desktop/vulkan/vk.c \
+./src/onl/onl.c \
 ./src/onn/onn.c \
+./src/onp/onp.c \
 
 
 UNIX_SOURCES = \
@@ -109,7 +112,7 @@ tests.x86: CHANNELS=-DONP_CHANNEL_SERIAL
 tests.x86: libonex-kernel-x86.a $(TESTS_SOURCES:.c=.o)
 	$(LD) $(TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-x86 -o $@
 
-vulkan.x86: COMPILE_LINE=$(X86V_FLAGS) $(CCV_FLAGS) $(X86V_CC_SYMBOLS) $(INCLUDESV)
+vulkan.x86: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDESV)
 vulkan.x86: CC=/usr/bin/gcc
 vulkan.x86: LD=/usr/bin/gcc
 vulkan.x86: TARGET=TARGET_X86
@@ -132,19 +135,13 @@ x86.valgrind: tests.x86
 
 #-------------------------------------------------------------------------------
 
-ARM_FLAGS=-g3 -ggdb -fPIC
+ARM_FLAGS=-ggdb3 -fPIC
 ARM_CC_SYMBOLS = -D$(TARGET) $(CHANNELS)
 
-X86_FLAGS=-g3 -ggdb
-X86_CC_SYMBOLS = -D$(TARGET) $(CHANNELS)
+X86_FLAGS=-ggdb3 -O2
+X86_CC_SYMBOLS = -D$(TARGET) $(CHANNELS) -DVK_USE_PLATFORM_XCB_KHR
 
-CC_FLAGS = -c -std=gnu99 -Werror -Wall -Wextra -Wno-misleading-indentation -Wno-unused-function  -Wno-unused-parameter -fno-common -fno-exceptions -ffunction-sections -fdata-sections -fomit-frame-pointer
-
-X86V_FLAGS=-g -O2
-
-CCV_FLAGS = -std=gnu17 -Wall -Werror -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -fno-strict-aliasing -fno-builtin-memcmp -Wimplicit-fallthrough=0 -fvisibility=hidden -Wno-unused-function -Wno-incompatible-pointer-types -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-result -Wno-switch
-
-X86V_CC_SYMBOLS = -DVK_USE_PLATFORM_XCB_KHR
+CC_FLAGS = -std=gnu17 -Wall -Werror -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -fno-strict-aliasing -fno-builtin-memcmp -Wimplicit-fallthrough=0 -fvisibility=hidden -Wno-unused-function -Wno-incompatible-pointer-types -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-result -Wno-switch
 
 
 %.o: %.c
