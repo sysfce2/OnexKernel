@@ -11,7 +11,7 @@
 #include <vulkan/vulkan.h>
 
 #include <onex-kernel/log.h>
-#include "onl/onl.h"
+#include <onl.h>
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 

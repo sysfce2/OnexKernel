@@ -805,7 +805,7 @@ clean:
 	find src tests mod-sdk -name '*.o' -o -name '*.d' | xargs rm -f
 	rm -f *.bin *.elf *.hex
 	find . -name onex.ondb | xargs rm -f
-	touch ./sdk/banana-mango.o; find ./sdk/ -name '*.o' | xargs rm
+	find ./sdk/ -name '*.o' | xargs -r rm
 	rm -rf onex-kernel*.??? dfu.zip core oko
 	rm -f ,*
 	@echo "------------------------------"

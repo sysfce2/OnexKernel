@@ -12,19 +12,12 @@ INCLUDES = \
 -I./include \
 -I./include/vulkan \
 -I./src/ \
+-I./src/lib \
+-I./src/onl \
 -I./src/onl/desktop/vulkan \
 -I./src/onn/ \
 -I./src/onp/ \
 -I./tests \
--I./tests/ont-examples/vulkan \
-
-
-INCLUDESV = \
--I./include \
--I./include/vulkan \
--I./src \
--I./src/lib \
--I./src/onl/desktop/vulkan \
 -I./tests/ont-examples/vulkan \
 
 #-------------------------------------------------------------------------------
@@ -112,7 +105,7 @@ tests.x86: CHANNELS=-DONP_CHANNEL_SERIAL
 tests.x86: libonex-kernel-x86.a $(TESTS_SOURCES:.c=.o)
 	$(LD) $(TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-x86 -o $@
 
-vulkan.x86: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDESV)
+vulkan.x86: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
 vulkan.x86: CC=/usr/bin/gcc
 vulkan.x86: LD=/usr/bin/gcc
 vulkan.x86: TARGET=TARGET_X86
@@ -188,7 +181,7 @@ clean:
 	rm -f core
 	rm -rf *.arm *.x86 ok
 	rm -rf ${TARGETS} tests/ont-examples/vulkan/*.{inc,spv,vert.c,frag.c}
-	find . -name onex.ondb | xargs rm -f
+	find . -name onex.ondb | xargs -r rm
 	@echo "------------------------------"
 	@echo "files not cleaned:"
 	@git ls-files --others --exclude-from=.git/info/exclude | xargs -r ls -Fla
