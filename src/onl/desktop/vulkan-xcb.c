@@ -231,7 +231,7 @@ void onl_finish() {
 
 int main() {
 
-  log_write("----------------------\nStarting onx (OnexOS)\n-----------------------\n");
+  log_write("----------------------\nXCB Vulkan\n-----------------------\n");
 
   event_loop();
 }
