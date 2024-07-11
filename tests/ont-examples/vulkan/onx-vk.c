@@ -95,8 +95,8 @@ static void do_render_pass() {
   VkBuffer vertex_buffers[] = {
     vertex_buffer,
   };
-  VkDeviceSize offsets[] = { 0, 0 };
-  vkCmdBindVertexBuffers(cmd_buf, 0, 2, vertex_buffers, offsets);
+  VkDeviceSize offsets[] = { 0 };
+  vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertex_buffers, offsets);
 
   vkCmdBindDescriptorSets(cmd_buf,
                           VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -875,24 +875,6 @@ void onx_vk_prepare_descriptor_layout(bool restart) {
       },
       {
           .binding = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-          .descriptorCount = 1,
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-      },
-      {
-          .binding = 2,
-          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-          .descriptorCount = 1,
-          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-      },
-      {
-          .binding = 3,
-          .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-          .descriptorCount = 1,
-          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-      },
-      {
-          .binding = 4,
           .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
           .descriptorCount = TEXTURE_COUNT,
           .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -902,7 +884,7 @@ void onx_vk_prepare_descriptor_layout(bool restart) {
 
   VkDescriptorSetLayoutCreateInfo descriptor_set_layout_ci = {
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-      .bindingCount = 5,
+      .bindingCount = 2,
       .pBindings = bindings,
   };
 
