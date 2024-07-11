@@ -1,10 +1,11 @@
 // ------------------------------------------------------------------------------------------------------------------------------------
 
-#include "user-onx-vk.h"
-#include "onl/desktop/vulkan/vk.h"
-#include "onx-vk.h"
-
 #include <onex-kernel/log.h>
+#include <onx-vk.h>
+
+#include "user-onx-vk.h"
+
+extern void ont_vk_restart(); //!! FIXME
 
 static uint32_t image_count;
 static uint32_t image_index;

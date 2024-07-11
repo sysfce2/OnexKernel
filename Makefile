@@ -39,8 +39,7 @@ SHADERS = \
 
 VULKAN_SOURCES = \
 ./tests/ont-examples/vulkan/onx-vk.c \
-./tests/ont-examples/vulkan/user-3d.c \
-./tests/ont-examples/vulkan/g2d-vulkan.c \
+./tests/ont-examples/vulkan/one-panel.c \
 
 
 LIB_SOURCES = \

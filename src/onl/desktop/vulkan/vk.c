@@ -10,7 +10,7 @@
 #include "inttypes.h"
 
 #if defined(VK_USE_PLATFORM_XCB_KHR)
-bool validate = false;
+bool validate = true;
 #endif
 
 #define GET_INSTANCE_PROC_ADDR(inst, entrypoint) \
