@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 
-#include "onl/onl.h"
+#include <onl.h>
 #include <linmath-plus.h>
 
 extern bool prepared;

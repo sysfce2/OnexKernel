@@ -3,7 +3,7 @@
 
 #include <onex-kernel/log.h>
 
-#include "onl/desktop/vulkan/onx-vk.h"
+#include "onx-vk.h"
 #include "onl/desktop/vulkan/object_type_string_helper.h"
 #include "onl/desktop/vulkan/vk.h"
 

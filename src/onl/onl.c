@@ -1,7 +1,7 @@
 
 #include <stdbool.h>
 
-#include "onl.h"
+#include <onl.h>
 
 bool quit = false;
 

@@ -2,7 +2,7 @@
 
 #include "user-onx-vk.h"
 #include "onl/desktop/vulkan/vk.h"
-#include "onl/desktop/vulkan/onx-vk.h"
+#include "onx-vk.h"
 
 #include <onex-kernel/log.h>
 
