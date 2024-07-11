@@ -913,18 +913,14 @@ static void finish(bool restart) {
   }
 }
 
-//extern void onx_init();
+extern void onx_init();
 extern void onx_iostate_changed();
-extern bool g2d_clear_screen(uint8_t colour);
-extern void g2d_render();
 
 void ont_vk_loop(bool running) {
 
   if(running && !prepared){
     prepare(false);
-    g2d_clear_screen(0x00);
-    g2d_render();
-    //onx_init();
+    onx_init();
   }
   else
   if(!running && prepared){

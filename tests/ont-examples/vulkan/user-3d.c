@@ -116,6 +116,14 @@ void onx_iostate_changed() {
   }
 }
 
+extern bool g2d_clear_screen(uint8_t colour);
+extern void g2d_render();
+
+void onx_init(){
+  g2d_clear_screen(0x00);
+  g2d_render();
+}
+
 // ---------------------------------
 
 static void show_matrix(mat4x4 m){
