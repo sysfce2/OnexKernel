@@ -49,7 +49,6 @@ VkQueueFamilyProperties *queue_props;
 uint32_t enabled_extension_count;
 uint32_t enabled_layer_count;
 char *extension_names[64];
-char *enabled_layers[64];
 VkFormat surface_format;
 VkColorSpaceKHR color_space;
 
@@ -67,10 +66,12 @@ PFN_vkGetPhysicalDeviceSurfacePresentModesKHR fpGetPhysicalDeviceSurfacePresentM
 PFN_vkCreateSwapchainKHR fpCreateSwapchainKHR;
 PFN_vkDestroySwapchainKHR fpDestroySwapchainKHR;
 PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR;
+PFN_vkGetPhysicalDeviceFeatures fpGetPhysicalDeviceFeatures;
 PFN_vkGetPhysicalDeviceFeatures2 fpGetPhysicalDeviceFeatures2;
 PFN_vkGetPhysicalDeviceProperties2 fpGetPhysicalDeviceProperties2;
 PFN_vkAcquireNextImageKHR fpAcquireNextImageKHR;
 PFN_vkQueuePresentKHR fpQueuePresentKHR;
+
 PFN_vkCreateDebugUtilsMessengerEXT CreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT DestroyDebugUtilsMessengerEXT;
 PFN_vkSubmitDebugUtilsMessageEXT SubmitDebugUtilsMessageEXT;
@@ -79,7 +80,8 @@ PFN_vkCmdEndDebugUtilsLabelEXT CmdEndDebugUtilsLabelEXT;
 PFN_vkCmdInsertDebugUtilsLabelEXT CmdInsertDebugUtilsLabelEXT;
 PFN_vkSetDebugUtilsObjectNameEXT SetDebugUtilsObjectNameEXT;
 
-VkDebugUtilsMessengerEXT dbg_messenger;
+VkDebugUtilsMessengerCreateInfoEXT dbg_messenger_ci;
+VkDebugUtilsMessengerEXT           dbg_messenger;
 
 static int validation_error = 0;
 
@@ -132,6 +134,11 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_messenger_callback(
             }
             strcat(prefix, "PERFORMANCE");
         }
+    }
+
+    if(!strcmp(pCallbackData->pMessageIdName, "Loader Message")){
+      free(message);
+      return false;
     }
 
     sprintf(message,
@@ -214,6 +221,10 @@ static void prepare_swapchain() {
     VkPhysicalDeviceMultiviewFeaturesKHR extFeatures = {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR,
     };
+
+    VkPhysicalDeviceFeatures deviceFeatures;
+    fpGetPhysicalDeviceFeatures(gpu, &deviceFeatures);
+
     VkPhysicalDeviceFeatures2KHR deviceFeatures2 = {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR,
       .pNext = &extFeatures,
@@ -384,20 +395,20 @@ static void prepare_command_pools()
 {
     VkResult err;
     if (command_pool == VK_NULL_HANDLE) {
-        const VkCommandPoolCreateInfo cmd_pool_info = {
+        const VkCommandPoolCreateInfo cmd_pool_ci = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .pNext = NULL,
             .queueFamilyIndex = queue_family_index,
             .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
         };
-        err = vkCreateCommandPool(device, &cmd_pool_info, NULL, &command_pool);
+        err = vkCreateCommandPool(device, &cmd_pool_ci, NULL, &command_pool);
         assert(!err);
     }
 }
 
 static void begin_command_buffer() {
 
-    const VkCommandBufferAllocateInfo cbi = {
+    const VkCommandBufferAllocateInfo cb_ai = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .pNext = NULL,
         .commandPool = command_pool,
@@ -405,16 +416,16 @@ static void begin_command_buffer() {
         .commandBufferCount = 1,
     };
     VkResult err;
-    err = vkAllocateCommandBuffers(device, &cbi, &initcmd);
+    err = vkAllocateCommandBuffers(device, &cb_ai, &initcmd);
     assert(!err);
 
-    VkCommandBufferBeginInfo cmd_buf_info = {
+    VkCommandBufferBeginInfo cmd_buf_bi = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .pNext = NULL,
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
         .pInheritanceInfo = NULL,
     };
-    err = vkBeginCommandBuffer(initcmd, &cmd_buf_info);
+    err = vkBeginCommandBuffer(initcmd, &cmd_buf_bi);
     assert(!err);
 }
 
@@ -476,13 +487,14 @@ static VkBool32 check_layers(uint32_t check_count, char **check_names, uint32_t 
     return 1;
 }
 
-VkDebugUtilsMessengerCreateInfoEXT dbg_messenger_create_info;
-
 static void create_instance() {
     VkResult err;
     uint32_t instance_extension_count = 0;
     uint32_t instance_layer_count = 0;
-    char *instance_validation_layers[] = {"VK_LAYER_KHRONOS_validation"};
+    char *instance_validation_layers[] = {
+      "VK_LAYER_KHRONOS_validation",
+    //"VK_LAYER_LUNARG_api_dump",
+    };
     enabled_extension_count = 0;
     enabled_layer_count = 0;
     command_pool = VK_NULL_HANDLE;
@@ -497,11 +509,12 @@ static void create_instance() {
             err = vkEnumerateInstanceLayerProperties(&instance_layer_count, instance_layers);
             assert(!err);
 
-            validation_found = check_layers(ARRAY_SIZE(instance_validation_layers), instance_validation_layers,
-                                                 instance_layer_count, instance_layers);
+            validation_found = check_layers(ARRAY_SIZE(instance_validation_layers),
+                                            instance_validation_layers,
+                                            instance_layer_count,
+                                            instance_layers);
             if (validation_found) {
                 enabled_layer_count = ARRAY_SIZE(instance_validation_layers);
-                enabled_layers[0] = "VK_LAYER_KHRONOS_validation";
             }
             free(instance_layers);
         }
@@ -567,7 +580,7 @@ static void create_instance() {
         .engineVersion = 0,
         .apiVersion = VK_API_VERSION_1_0,
     };
-    VkInstanceCreateInfo inst_info = {
+    VkInstanceCreateInfo inst_ci = {
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
         .pNext = NULL,
         .flags = (portabilityEnumerationActive ? VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR : 0),
@@ -585,20 +598,23 @@ static void create_instance() {
      */
     if (validate) {
         // VK_EXT_debug_utils style
-        dbg_messenger_create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        dbg_messenger_create_info.pNext = NULL;
-        dbg_messenger_create_info.flags = 0;
-        dbg_messenger_create_info.messageSeverity =
-            VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        dbg_messenger_create_info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                                                VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                                                VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        dbg_messenger_create_info.pfnUserCallback = debug_messenger_callback;
-        dbg_messenger_create_info.pUserData = 0;
-        inst_info.pNext = &dbg_messenger_create_info;
+        dbg_messenger_ci.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        dbg_messenger_ci.pNext = NULL;
+        dbg_messenger_ci.flags = 0;
+        dbg_messenger_ci.messageSeverity =
+              VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+              VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+              VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+              VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        dbg_messenger_ci.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                                       VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                                       VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        dbg_messenger_ci.pfnUserCallback = debug_messenger_callback;
+        dbg_messenger_ci.pUserData = 0;
+        inst_ci.pNext = &dbg_messenger_ci;
     }
 
-    err = vkCreateInstance(&inst_info, NULL, &inst);
+    err = vkCreateInstance(&inst_ci, NULL, &inst);
     if (err == VK_ERROR_INCOMPATIBLE_DRIVER) {
         ERR_EXIT("Cannot find a compatible Vulkan installable client driver (ICD).\n\n");
     } else if (err == VK_ERROR_EXTENSION_NOT_PRESENT) {
@@ -725,7 +741,7 @@ static void pick_physical_device(){
             ERR_EXIT("GetProcAddr: Failed to init VK_EXT_debug_utils\n");
         }
 
-        err = CreateDebugUtilsMessengerEXT(inst, &dbg_messenger_create_info, NULL, &dbg_messenger);
+        err = CreateDebugUtilsMessengerEXT(inst, &dbg_messenger_ci, NULL, &dbg_messenger);
         switch (err) {
             case VK_SUCCESS:
                 break;
@@ -745,6 +761,7 @@ static void do_weird_shit_1(){
     GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceSurfaceFormatsKHR);
     GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceSurfacePresentModesKHR);
     GET_INSTANCE_PROC_ADDR(inst, GetSwapchainImagesKHR);
+    GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceFeatures);
     GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceFeatures2);
     GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceProperties2);
 }
@@ -752,13 +769,14 @@ static void do_weird_shit_1(){
 static void create_device() {
     VkResult err;
     float queue_priorities[1] = {0.0};
-    VkDeviceQueueCreateInfo queues[2];
-    queues[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queues[0].pNext = NULL;
-    queues[0].queueFamilyIndex = queue_family_index;
-    queues[0].queueCount = 1;
-    queues[0].pQueuePriorities = queue_priorities;
-    queues[0].flags = 0;
+    VkDeviceQueueCreateInfo queues_ci = {
+      .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+      .pNext = NULL,
+      .queueFamilyIndex = queue_family_index,
+      .queueCount = 1,
+      .pQueuePriorities = queue_priorities,
+      .flags = 0,
+    };
 
     VkPhysicalDeviceMultiviewFeaturesKHR gpu_mv_features = {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR,
@@ -771,18 +789,18 @@ static void create_device() {
       .pNext = &gpu_mv_features,
     };
 
-    VkDeviceCreateInfo devinfo = {
+    VkDeviceCreateInfo dev_ci = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .pNext = &gpu_features2,
         .queueCreateInfoCount = 1,
-        .pQueueCreateInfos = queues,
+        .pQueueCreateInfos = &queues_ci,
         .enabledLayerCount = 0,
         .ppEnabledLayerNames = NULL,
         .enabledExtensionCount = enabled_extension_count,
         .ppEnabledExtensionNames = (const char *const *)extension_names,
-        .pEnabledFeatures = NULL,
+        .pEnabledFeatures = 0,
     };
-    err = vkCreateDevice(gpu, &devinfo, NULL, &device);
+    err = vkCreateDevice(gpu, &dev_ci, NULL, &device);
     assert(!err);
     vkGetDeviceQueue(device, queue_family_index, 0, &queue);
 }
@@ -928,6 +946,7 @@ static void prepare(bool restart) {
     onx_vk_prepare_render_data(restart);
     onx_vk_prepare_uniform_buffers(restart);
     onx_vk_prepare_descriptor_layout(restart);
+    onx_vk_prepare_pipeline_layout(restart);
     onx_vk_prepare_descriptor_pool(restart);
     onx_vk_prepare_descriptor_set(restart);
     onx_vk_prepare_render_pass(restart);

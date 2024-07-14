@@ -55,11 +55,11 @@ struct push_constants {
   uint32_t phase;
 };
 
-static void do_render_pass() {
+static void build_render_pass_and_cmdbufs(uint32_t ii) {
 
-  vkWaitForFences(device, 1, &swapchain_image_resources[image_index].command_buffer_fence, VK_TRUE, UINT64_MAX);
+  vkWaitForFences(device, 1, &swapchain_image_resources[ii].command_buffer_fence, VK_TRUE, UINT64_MAX);
 
-  VkCommandBuffer cmd_buf = swapchain_image_resources[image_index].command_buffer;
+  VkCommandBuffer cmd_buf = swapchain_image_resources[ii].command_buffer;
 
   const VkCommandBufferBeginInfo command_buffer_bi = {
     .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -80,7 +80,7 @@ static void do_render_pass() {
   const VkRenderPassBeginInfo render_pass_bi = {
       .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
       .renderPass = render_pass,
-      .framebuffer = swapchain_image_resources[image_index].framebuffer,
+      .framebuffer = swapchain_image_resources[ii].framebuffer,
       .renderArea.offset = { 0, 0 },
       .renderArea.extent = swapchain_extent,
       .clearValueCount = 2,
@@ -90,11 +90,7 @@ static void do_render_pass() {
 
   vkCmdBeginRenderPass(cmd_buf, &render_pass_bi, VK_SUBPASS_CONTENTS_INLINE);
 
-  // --------------------------------------------
-
-  VkBuffer vertex_buffers[] = {
-    vertex_buffer,
-  };
+  VkBuffer vertex_buffers[] = { vertex_buffer, };
   VkDeviceSize offsets[] = { 0 };
   vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertex_buffers, offsets);
 
@@ -102,7 +98,7 @@ static void do_render_pass() {
                           VK_PIPELINE_BIND_POINT_GRAPHICS,
                           pipeline_layout,
                           0, 1,
-                          &uniform_mem[image_index].descriptor_set,
+                          &uniform_mem[ii].descriptor_set,
                           0, NULL);
 
   vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
@@ -143,9 +139,8 @@ void set_up_scene_end() {
 
   vkUnmapMemory(device, vertex_buffer_memory);
 
-  for (uint32_t i = 0; i < image_count; i++) {
-      image_index = i;
-      do_render_pass();
+  for (uint32_t ii = 0; ii < image_count; ii++) {
+      build_render_pass_and_cmdbufs(ii);
   }
   image_index = 0;
 
@@ -191,6 +186,7 @@ void onx_vk_render_frame() {
       }
       else
       if (err == VK_ERROR_OUT_OF_DATE_KHR) {
+        pthread_mutex_unlock(&scene_lock); // ??
         ont_vk_restart();
       }
       else {
@@ -210,15 +206,15 @@ void onx_vk_render_frame() {
     .commandBufferCount = 1,
   };
 
+  VkSemaphore img_acq_semaphore[] = { image_acquired_semaphore };
+  VkSemaphore ren_com_semaphore[] = { render_complete_semaphore };
+
   vkWaitForFences(device, 1, &swapchain_image_resources[image_index].command_buffer_fence,
                   VK_TRUE, UINT64_MAX);
   vkResetFences(device, 1, &swapchain_image_resources[image_index].command_buffer_fence);
 
-  VkSemaphore wait_semaphores[] = { image_acquired_semaphore };
-  VkSemaphore signal_semaphores[] = { render_complete_semaphore };
-
-  submit_info.pWaitSemaphores = wait_semaphores;
-  submit_info.pSignalSemaphores = signal_semaphores;
+  submit_info.pWaitSemaphores   = img_acq_semaphore;
+  submit_info.pSignalSemaphores = ren_com_semaphore;
   submit_info.pCommandBuffers = &swapchain_image_resources[image_index].command_buffer,
 
   err = vkQueueSubmit(queue, 1, &submit_info,
@@ -227,7 +223,7 @@ void onx_vk_render_frame() {
   VkPresentInfoKHR present_info = {
     .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
     .waitSemaphoreCount = 1,
-    .pWaitSemaphores = signal_semaphores,
+    .pWaitSemaphores = ren_com_semaphore,
     .swapchainCount = 1,
     .pSwapchains = &swapchain,
     .pImageIndices = &image_index,
@@ -236,13 +232,13 @@ void onx_vk_render_frame() {
 
   err = vkQueuePresentKHR(queue, &present_info);
 
+  pthread_mutex_unlock(&scene_lock); // ??
   if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR) {
     ont_vk_restart();
   }
-  pthread_mutex_unlock(&scene_lock);
 }
 
-// --------------------------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
 
 static VkFormat texture_format = VK_FORMAT_R8G8B8A8_UNORM;
 
@@ -708,7 +704,7 @@ static void prepare_textures(){
             assert(!"No support for R8G8B8A8_UNORM as texture image format");
         }
 
-        const VkSamplerCreateInfo sampler = {
+        VkSamplerCreateInfo sampler_ci = {
             .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
             .pNext = NULL,
             .magFilter = VK_FILTER_NEAREST,
@@ -749,7 +745,7 @@ static void prepare_textures(){
             .flags = 0,
         };
 
-        err = vkCreateSampler(device, &sampler, NULL, &textures[i].sampler);
+        err = vkCreateSampler(device, &sampler_ci, NULL, &textures[i].sampler);
         assert(!err);
 
         image_view_ci.image = textures[i].image;
@@ -774,7 +770,7 @@ static void prepare_vertex_buffers(){
                             &vertex_buffer_memory);
 }
 
-// --------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------
 
 void onx_vk_prepare_swapchain_images(bool restart) {
     VkResult err;
@@ -791,6 +787,7 @@ void onx_vk_prepare_swapchain_images(bool restart) {
     for (uint32_t i = 0; i < image_count; i++) {
         VkImageViewCreateInfo image_view_ci = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .image = swapchainImages[i],
             .pNext = NULL,
             .format = surface_format,
             .components = {
@@ -810,8 +807,8 @@ void onx_vk_prepare_swapchain_images(bool restart) {
             .flags = 0,
         };
 
-        image_view_ci.image = swapchainImages[i];
-        VK_CHECK(vkCreateImageView(device, &image_view_ci, NULL, &swapchain_image_resources[i].image_view));
+        VK_CHECK(vkCreateImageView(device, &image_view_ci, NULL,
+                                   &swapchain_image_resources[i].image_view));
     }
 
     if (NULL != swapchainImages) {
@@ -920,6 +917,9 @@ void onx_vk_prepare_descriptor_layout(bool restart) {
                                        &descriptor_set_layout_ci,
                                        0,
                                        &descriptor_layout));
+}
+
+void onx_vk_prepare_pipeline_layout(bool restart) {
 
   VkPushConstantRange push_constant_range = {
     .offset = 0,
@@ -1091,7 +1091,7 @@ void onx_vk_prepare_render_pass(bool restart) {
             },
     };
 
-    VkRenderPassCreateInfo rp_info = {
+    VkRenderPassCreateInfo rp_ci = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
         .pNext = NULL,
         .flags = 0,
@@ -1105,7 +1105,7 @@ void onx_vk_prepare_render_pass(bool restart) {
 
 
     VkResult err;
-    err = vkCreateRenderPass(device, &rp_info, NULL, &render_pass);
+    err = vkCreateRenderPass(device, &rp_ci, NULL, &render_pass);
     assert(!err);
 }
 
@@ -1114,7 +1114,7 @@ void onx_vk_prepare_pipeline(bool restart) {
   VkShaderModule vert_shader_module = load_c_shader(false);
   VkShaderModule frag_shader_module = load_c_shader(true);
 
-  VkPipelineShaderStageCreateInfo shader_stages[] = {
+  VkPipelineShaderStageCreateInfo shader_stages_ci[] = {
     {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
       .stage = VK_SHADER_STAGE_VERTEX_BIT,
@@ -1145,7 +1145,7 @@ void onx_vk_prepare_pipeline(bool restart) {
     vertices_input_binding,
   };
 
-  VkPipelineVertexInputStateCreateInfo vertex_input_state = {
+  VkPipelineVertexInputStateCreateInfo vertex_input_state_ci = {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
       .vertexBindingDescriptionCount = 1,
       .pVertexBindingDescriptions = vibds,
@@ -1153,35 +1153,47 @@ void onx_vk_prepare_pipeline(bool restart) {
       .pVertexAttributeDescriptions = vertex_input_attributes,
   };
 
-  VkPipelineInputAssemblyStateCreateInfo input_assembly_state = {
+  VkPipelineInputAssemblyStateCreateInfo input_assembly_state_ci = {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
       .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
       .primitiveRestartEnable = VK_FALSE,
   };
 
+  float width  = io.swap_width;
+  float height = io.swap_height;
+
   VkViewport viewport = {
       .x = 0.0f,
       .y = 0.0f,
-      .width  = io.swap_width,
-      .height = io.swap_height,
+      .width  = width,
+      .height = height,
       .minDepth = 0.0f,
       .maxDepth = 1.0f,
   };
 
   VkRect2D scissor = {
-      .offset = { 0, 0 },
-      .extent = swapchain_extent,
+      .offset = {
+         0,
+         0
+      },
+      .extent = {
+         width,
+         height,
+      },
   };
 
-  VkPipelineViewportStateCreateInfo viewport_state = {
+  VkViewport viewports[] = { viewport };
+  VkRect2D   scissors[]  = { scissor };
+
+  VkPipelineViewportStateCreateInfo viewport_state_ci = {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
       .viewportCount = 1,
       .scissorCount = 1,
-      .pViewports = &viewport,
-      .pScissors = &scissor,
+      .pViewports = viewports,
+      .pScissors = scissors,
   };
 
-  VkPipelineRasterizationStateCreateInfo rasterizer_state = {
+  VkPipelineRasterizationStateCreateInfo rasterizer_state_ci = {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
       .polygonMode = VK_POLYGON_MODE_FILL,
       .cullMode = VK_CULL_MODE_BACK_BIT,
@@ -1243,28 +1255,26 @@ void onx_vk_prepare_pipeline(bool restart) {
                                  0,
                                  &pipeline_cache));
 
-  VkGraphicsPipelineCreateInfo graphics_pipeline_ci[] = {
-    {
-      .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-      .pViewportState = &viewport_state,
-      .pRasterizationState = &rasterizer_state,
-      .pMultisampleState = &multisample_ci,
-      .pColorBlendState = &blend_state_ci,
-      .pDepthStencilState = &depth_stencil_ci,
-      .stageCount = 2,
-      .pStages = shader_stages,
-      .pVertexInputState = &vertex_input_state,
-      .pInputAssemblyState = &input_assembly_state,
-      .layout = pipeline_layout,
-      .renderPass = render_pass,
-      .subpass = 0,
-    },
+  VkGraphicsPipelineCreateInfo graphics_pipeline_ci = {
+    .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+    .pViewportState = &viewport_state_ci,
+    .pRasterizationState = &rasterizer_state_ci,
+    .pMultisampleState = &multisample_ci,
+    .pColorBlendState = &blend_state_ci,
+    .pDepthStencilState = &depth_stencil_ci,
+    .stageCount = 2,
+    .pStages = shader_stages_ci,
+    .pVertexInputState = &vertex_input_state_ci,
+    .pInputAssemblyState = &input_assembly_state_ci,
+    .layout = pipeline_layout,
+    .renderPass = render_pass,
+    .subpass = 0,
   };
 
   VK_CHECK(vkCreateGraphicsPipelines(device,
                                      pipeline_cache,
                                      1,
-                                     graphics_pipeline_ci,
+                                     &graphics_pipeline_ci,
                                      0,
                                      &pipeline));
 
@@ -1274,25 +1284,26 @@ void onx_vk_prepare_pipeline(bool restart) {
 
 void onx_vk_prepare_framebuffers(bool restart) {
 
-    VkImageView attachments[2];
-
-    const VkFramebufferCreateInfo fb_info = {
+    VkFramebufferCreateInfo fb_ci = {
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .pNext = NULL,
+        .pNext = 0,
         .renderPass = render_pass,
         .attachmentCount = 2,
-        .pAttachments = attachments,
         .width =  io.swap_width,
         .height = io.swap_height,
         .layers = 1,
     };
-    VkResult err;
-    uint32_t i;
 
-    attachments[1] = depth.image_view;
-    for (i = 0; i < image_count; i++) {
-        attachments[0] = swapchain_image_resources[i].image_view;
-        err = vkCreateFramebuffer(device, &fb_info, NULL, &swapchain_image_resources[i].framebuffer);
+    for (uint32_t i = 0; i < image_count; i++) {
+
+        VkImageView attachments[] = {
+          swapchain_image_resources[i].image_view,
+          depth.image_view,
+        };
+        fb_ci.pAttachments = attachments;
+
+        VkResult err = vkCreateFramebuffer(device, &fb_ci, 0,
+                                           &swapchain_image_resources[i].framebuffer);
         assert(!err);
     }
 }
