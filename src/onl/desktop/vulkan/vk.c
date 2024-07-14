@@ -968,7 +968,10 @@ void ont_vk_loop(bool running) {
   if(!running && prepared){
     finish(false);
   }
-  if(prepared) onx_vk_render_frame();
+  if(prepared){
+    onx_vk_update_uniforms();
+    onx_vk_render_frame();
+  }
 }
 
 void ont_vk_restart(){

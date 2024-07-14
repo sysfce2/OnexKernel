@@ -54,6 +54,7 @@ void onx_vk_prepare_descriptor_set(bool restart);
 void onx_vk_prepare_render_pass(bool restart);
 void onx_vk_prepare_pipeline(bool restart);
 void onx_vk_prepare_framebuffers(bool restart);
+void onx_vk_update_uniforms();
 void onx_vk_render_frame();
 void onx_vk_finish();
 
