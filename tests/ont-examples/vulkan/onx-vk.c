@@ -171,9 +171,6 @@ void onx_vk_update_uniforms() {
 
 void onx_vk_render_frame() {
 
-  VkFence previous_fence = swapchain_image_resources[image_index].command_buffer_fence;
-  vkWaitForFences(device, 1, &previous_fence, VK_TRUE, UINT64_MAX);
-
   pthread_mutex_lock(&scene_lock);
   if(!scene_ready){
     pthread_mutex_unlock(&scene_lock);
@@ -202,28 +199,30 @@ void onx_vk_render_frame() {
       }
   } while(true);
 
-  VkFence current_fence = swapchain_image_resources[image_index].command_buffer_fence;
-  vkWaitForFences(device, 1, &current_fence, VK_TRUE, UINT64_MAX);
-  vkResetFences(device, 1, &current_fence);
-
-  VkSemaphore wait_semaphores[] = { image_acquired_semaphore };
   VkPipelineStageFlags wait_stages[] = {
     VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
   };
-  VkSemaphore signal_semaphores[] = { render_complete_semaphore };
-
   VkSubmitInfo submit_info = {
     .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-    .waitSemaphoreCount = 1,
-    .pWaitSemaphores = wait_semaphores,
     .pWaitDstStageMask = wait_stages,
-    .commandBufferCount = 1,
-    .pCommandBuffers = &swapchain_image_resources[image_index].command_buffer,
+    .waitSemaphoreCount = 1,
     .signalSemaphoreCount = 1,
-    .pSignalSemaphores = signal_semaphores,
+    .commandBufferCount = 1,
   };
 
-  err = vkQueueSubmit(queue, 1, &submit_info, current_fence);
+  vkWaitForFences(device, 1, &swapchain_image_resources[image_index].command_buffer_fence,
+                  VK_TRUE, UINT64_MAX);
+  vkResetFences(device, 1, &swapchain_image_resources[image_index].command_buffer_fence);
+
+  VkSemaphore wait_semaphores[] = { image_acquired_semaphore };
+  VkSemaphore signal_semaphores[] = { render_complete_semaphore };
+
+  submit_info.pWaitSemaphores = wait_semaphores;
+  submit_info.pSignalSemaphores = signal_semaphores;
+  submit_info.pCommandBuffers = &swapchain_image_resources[image_index].command_buffer,
+
+  err = vkQueueSubmit(queue, 1, &submit_info,
+                      swapchain_image_resources[image_index].command_buffer_fence);
 
   VkPresentInfoKHR present_info = {
     .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
