@@ -67,6 +67,8 @@ PFN_vkGetPhysicalDeviceSurfacePresentModesKHR fpGetPhysicalDeviceSurfacePresentM
 PFN_vkCreateSwapchainKHR fpCreateSwapchainKHR;
 PFN_vkDestroySwapchainKHR fpDestroySwapchainKHR;
 PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR;
+PFN_vkGetPhysicalDeviceFeatures2 fpGetPhysicalDeviceFeatures2;
+PFN_vkGetPhysicalDeviceProperties2 fpGetPhysicalDeviceProperties2;
 PFN_vkAcquireNextImageKHR fpAcquireNextImageKHR;
 PFN_vkQueuePresentKHR fpQueuePresentKHR;
 PFN_vkCreateDebugUtilsMessengerEXT CreateDebugUtilsMessengerEXT;
@@ -208,6 +210,32 @@ static void prepare_swapchain() {
     VkPresentModeKHR *presentModes = (VkPresentModeKHR *)malloc(presentModeCount * sizeof(VkPresentModeKHR));
     assert(presentModes);
     VK_CHECK(fpGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface, &presentModeCount, presentModes));
+
+    VkPhysicalDeviceMultiviewFeaturesKHR extFeatures = {
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR,
+    };
+    VkPhysicalDeviceFeatures2KHR deviceFeatures2 = {
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR,
+      .pNext = &extFeatures,
+    };
+    fpGetPhysicalDeviceFeatures2(gpu, &deviceFeatures2);
+
+    VkPhysicalDeviceMultiviewPropertiesKHR extProps = {
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PROPERTIES_KHR,
+    };
+    VkPhysicalDeviceProperties2KHR deviceProps2 = {
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR,
+      .pNext = &extProps,
+    };
+    fpGetPhysicalDeviceProperties2(gpu, &deviceProps2);
+
+    printf("Multiview features:\n");
+    printf("  multiview = %d\n", extFeatures.multiview);
+    printf("  multiviewGeometryShader =  %d\n", extFeatures.multiviewGeometryShader);
+    printf("  multiviewTessellationShader =  %d\n", extFeatures.multiviewTessellationShader);
+    printf("Multiview properties:\n");
+    printf("  maxMultiviewViewCount = %d\n", extProps.maxMultiviewViewCount);
+    printf("  maxMultiviewInstanceIndex = %d\n", extProps.maxMultiviewInstanceIndex);
 
     // width and height are either both 0xFFFFFFFF, or both not 0xFFFFFFFF.
     if (surfCapabilities.currentExtent.width == 0xFFFFFFFF) {
@@ -514,8 +542,6 @@ static void create_instance() {
                     extension_names[enabled_extension_count++] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
                 }
             }
-            // We want to be able to enumerate drivers that support the portability_subset extension, so we have to enable the
-            // portability enumeration extension.
             if (!strcmp(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME, instance_extensions[i].extensionName)) {
                 portabilityEnumerationActive = true;
                 extension_names[enabled_extension_count++] = VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME;
@@ -657,6 +683,9 @@ static void pick_physical_device(){
         assert(!err);
 
         for (uint32_t i = 0; i < device_extension_count; i++) {
+            if (!strcmp(VK_KHR_MULTIVIEW_EXTENSION_NAME, device_extensions[i].extensionName)) {
+                extension_names[enabled_extension_count++] = VK_KHR_MULTIVIEW_EXTENSION_NAME;
+            }
             if (!strcmp(VK_KHR_SWAPCHAIN_EXTENSION_NAME, device_extensions[i].extensionName)) {
                 swapchainExtFound = 1;
                 extension_names[enabled_extension_count++] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
@@ -716,6 +745,8 @@ static void do_weird_shit_1(){
     GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceSurfaceFormatsKHR);
     GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceSurfacePresentModesKHR);
     GET_INSTANCE_PROC_ADDR(inst, GetSwapchainImagesKHR);
+    GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceFeatures2);
+    GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceProperties2);
 }
 
 static void create_device() {
@@ -729,16 +760,27 @@ static void create_device() {
     queues[0].pQueuePriorities = queue_priorities;
     queues[0].flags = 0;
 
+    VkPhysicalDeviceMultiviewFeaturesKHR gpu_mv_features = {
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR,
+      .multiview = VK_TRUE,
+    };
+
+    VkPhysicalDeviceFeatures2 gpu_features2 = {
+      .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+      .features = {},
+      .pNext = &gpu_mv_features,
+    };
+
     VkDeviceCreateInfo devinfo = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pNext = NULL,
+        .pNext = &gpu_features2,
         .queueCreateInfoCount = 1,
         .pQueueCreateInfos = queues,
         .enabledLayerCount = 0,
         .ppEnabledLayerNames = NULL,
         .enabledExtensionCount = enabled_extension_count,
         .ppEnabledExtensionNames = (const char *const *)extension_names,
-        .pEnabledFeatures = NULL,  // If specific features are required, pass them in here
+        .pEnabledFeatures = NULL,
     };
     err = vkCreateDevice(gpu, &devinfo, NULL, &device);
     assert(!err);
