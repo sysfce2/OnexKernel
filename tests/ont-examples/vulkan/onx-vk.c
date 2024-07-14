@@ -119,8 +119,9 @@ static void do_render_pass() {
   vkCmdPushConstants(cmd_buf, pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(struct push_constants), &pc);
   vkCmdDraw(cmd_buf, 6*6, 1, 0, 0);
 
-  vkCmdEndRenderPass(cmd_buf);
+  // --------------------------------------------
 
+  vkCmdEndRenderPass(cmd_buf);
   VK_CHECK(vkEndCommandBuffer(cmd_buf));
 }
 
@@ -546,20 +547,28 @@ static void prepare_texture_buffer(const char *filename, struct texture_object *
     vkUnmapMemory(device, texture_obj->device_memory);
 }
 
-static void set_image_layout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout old_image_layout,
+static void set_image_layout(VkImage image, VkImageLayout old_image_layout,
                              VkImageLayout new_image_layout, VkAccessFlagBits srcAccessMask, VkPipelineStageFlags src_stages,
                              VkPipelineStageFlags dest_stages) {
 
-    VkImageMemoryBarrier image_memory_barrier = {.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-                                                 .pNext = NULL,
-                                                 .srcAccessMask = srcAccessMask,
-                                                 .dstAccessMask = 0,
-                                                 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                                                 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-                                                 .oldLayout = old_image_layout,
-                                                 .newLayout = new_image_layout,
-                                                 .image = image,
-                                                 .subresourceRange = {aspectMask, 0, 1, 0, 1}};
+    VkImageMemoryBarrier image_memory_barrier = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .pNext = NULL,
+        .srcAccessMask = srcAccessMask,
+        .dstAccessMask = 0,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .oldLayout = old_image_layout,
+        .newLayout = new_image_layout,
+        .image = image,
+        .subresourceRange = {
+            .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel   = 0,
+            .levelCount     = 1,
+            .baseArrayLayer = 0,
+            .layerCount     = 1,
+        }
+    };
 
     switch (new_image_layout) {
         case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
@@ -598,7 +607,9 @@ static void set_image_layout(VkImage image, VkImageAspectFlags aspectMask, VkIma
 }
 
 static void prepare_depth() {
+
     const VkFormat depth_format = VK_FORMAT_D16_UNORM;
+
     VkImageCreateInfo image_ci = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = NULL,
@@ -613,17 +624,6 @@ static void prepare_depth() {
         .flags = 0,
     };
 
-    VkImageViewCreateInfo image_view_ci = {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .pNext = NULL,
-        .image = VK_NULL_HANDLE,
-        .format = depth_format,
-        .subresourceRange =
-            {.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1},
-        .flags = 0,
-        .viewType = VK_IMAGE_VIEW_TYPE_2D,
-    };
-
     depth.format = depth_format;
 
     VkMemoryPropertyFlags prop_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -633,7 +633,22 @@ static void prepare_depth() {
                              &depth.image,
                              &depth.device_memory);
 
-    image_view_ci.image = depth.image;
+    VkImageViewCreateInfo image_view_ci = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext = NULL,
+        .image = depth.image,
+        .format = depth_format,
+        .subresourceRange = {
+           .aspectMask     = VK_IMAGE_ASPECT_DEPTH_BIT,
+           .baseMipLevel   = 0,
+           .levelCount     = 1,
+           .baseArrayLayer = 0,
+           .layerCount     = 1,
+        },
+        .flags = 0,
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+    };
+
     VK_CHECK(vkCreateImageView(device, &image_view_ci, NULL, &depth.image_view));
 }
 
@@ -650,7 +665,7 @@ static void prepare_textures(){
             prepare_texture_image(texture_files[i], &textures[i], VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT,
                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-            set_image_layout(textures[i].image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED,
+            set_image_layout(textures[i].image, VK_IMAGE_LAYOUT_PREINITIALIZED,
                              textures[i].image_layout, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
@@ -666,7 +681,7 @@ static void prepare_textures(){
                                        (VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT),
                                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-            set_image_layout(textures[i].image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_PREINITIALIZED,
+            set_image_layout(textures[i].image, VK_IMAGE_LAYOUT_PREINITIALIZED,
                                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                                   VK_PIPELINE_STAGE_TRANSFER_BIT);
 
@@ -682,7 +697,7 @@ static void prepare_textures(){
             vkCmdCopyBufferToImage(initcmd, staging_texture.buffer, textures[i].image,
                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_region);
 
-            set_image_layout(textures[i].image, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            set_image_layout(textures[i].image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                   textures[i].image_layout, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
                                   VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
         } else {
@@ -714,14 +729,19 @@ static void prepare_textures(){
             .image = VK_NULL_HANDLE,
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
             .format = texture_format,
-            .components =
-                {
-                    VK_COMPONENT_SWIZZLE_IDENTITY,
-                    VK_COMPONENT_SWIZZLE_IDENTITY,
-                    VK_COMPONENT_SWIZZLE_IDENTITY,
-                    VK_COMPONENT_SWIZZLE_IDENTITY,
+            .components = {
+                    .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .a = VK_COMPONENT_SWIZZLE_IDENTITY,
                 },
-            .subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1},
+            .subresourceRange = {
+                .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel   = 0,
+                .levelCount     = 1,
+                .baseArrayLayer = 0,
+                .layerCount     = 1,
+            },
             .flags = 0,
         };
 
@@ -769,15 +789,19 @@ void onx_vk_prepare_swapchain_images(bool restart) {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .pNext = NULL,
             .format = surface_format,
-            .components =
-                {
+            .components = {
                     .r = VK_COMPONENT_SWIZZLE_IDENTITY,
                     .g = VK_COMPONENT_SWIZZLE_IDENTITY,
                     .b = VK_COMPONENT_SWIZZLE_IDENTITY,
                     .a = VK_COMPONENT_SWIZZLE_IDENTITY,
                 },
-            .subresourceRange =
-                {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .baseMipLevel = 0, .levelCount = 1, .baseArrayLayer = 0, .layerCount = 1},
+            .subresourceRange = {
+                .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel   = 0,
+                .levelCount     = 1,
+                .baseArrayLayer = 0,
+                .layerCount     = 1,
+            },
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
             .flags = 0,
         };
@@ -1063,7 +1087,7 @@ void onx_vk_prepare_render_pass(bool restart) {
             },
     };
 
-    const VkRenderPassCreateInfo rp_info = {
+    VkRenderPassCreateInfo rp_info = {
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
         .pNext = NULL,
         .flags = 0,
@@ -1074,8 +1098,9 @@ void onx_vk_prepare_render_pass(bool restart) {
         .dependencyCount = 2,
         .pDependencies = attachmentDependencies,
     };
-    VkResult err;
 
+
+    VkResult err;
     err = vkCreateRenderPass(device, &rp_info, NULL, &render_pass);
     assert(!err);
 }
@@ -1217,12 +1242,12 @@ void onx_vk_prepare_pipeline(bool restart) {
   VkGraphicsPipelineCreateInfo graphics_pipeline_ci[] = {
     {
       .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-      .stageCount = 2,
       .pViewportState = &viewport_state,
       .pRasterizationState = &rasterizer_state,
       .pMultisampleState = &multisample_ci,
       .pColorBlendState = &blend_state_ci,
       .pDepthStencilState = &depth_stencil_ci,
+      .stageCount = 2,
       .pStages = shader_stages,
       .pVertexInputState = &vertex_input_state,
       .pInputAssemblyState = &input_assembly_state,
@@ -1232,7 +1257,6 @@ void onx_vk_prepare_pipeline(bool restart) {
     },
   };
 
-  // this call takes several seconds on Konstakang
   VK_CHECK(vkCreateGraphicsPipelines(device,
                                      pipeline_cache,
                                      1,
@@ -1245,8 +1269,8 @@ void onx_vk_prepare_pipeline(bool restart) {
 }
 
 void onx_vk_prepare_framebuffers(bool restart) {
+
     VkImageView attachments[2];
-    attachments[1] = depth.image_view;
 
     const VkFramebufferCreateInfo fb_info = {
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -1261,6 +1285,7 @@ void onx_vk_prepare_framebuffers(bool restart) {
     VkResult err;
     uint32_t i;
 
+    attachments[1] = depth.image_view;
     for (i = 0; i < image_count; i++) {
         attachments[0] = swapchain_image_resources[i].image_view;
         err = vkCreateFramebuffer(device, &fb_info, NULL, &swapchain_image_resources[i].framebuffer);
