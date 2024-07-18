@@ -166,6 +166,9 @@ void onx_vk_update_uniforms() {
 
 void onx_vk_render_frame() {
 
+  vkWaitForFences(device, 1, &swapchain_image_resources[image_index].command_buffer_fence,
+                  VK_TRUE, UINT64_MAX);
+
   pthread_mutex_lock(&scene_lock);
   if(!scene_ready){
     pthread_mutex_unlock(&scene_lock);
@@ -209,13 +212,11 @@ void onx_vk_render_frame() {
   VkSemaphore img_acq_semaphore[] = { image_acquired_semaphore };
   VkSemaphore ren_com_semaphore[] = { render_complete_semaphore };
 
-  vkWaitForFences(device, 1, &swapchain_image_resources[image_index].command_buffer_fence,
-                  VK_TRUE, UINT64_MAX);
-  vkResetFences(device, 1, &swapchain_image_resources[image_index].command_buffer_fence);
-
   submit_info.pWaitSemaphores   = img_acq_semaphore;
   submit_info.pSignalSemaphores = ren_com_semaphore;
   submit_info.pCommandBuffers = &swapchain_image_resources[image_index].command_buffer,
+
+  vkResetFences(device, 1, &swapchain_image_resources[image_index].command_buffer_fence);
 
   err = vkQueueSubmit(queue, 1, &submit_info,
                       swapchain_image_resources[image_index].command_buffer_fence);
