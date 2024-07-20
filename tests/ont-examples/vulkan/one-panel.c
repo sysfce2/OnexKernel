@@ -316,7 +316,7 @@ void onx_iostate_changed() {
 // ---------------------------------
 
 void onx_init(){
-  one_panel_render();
+  one_panel_render(); // static scene! this can be done per frame
 }
 
 // ---------------------------------

@@ -9,33 +9,7 @@
 
 #include "inttypes.h"
 
-#if defined(VK_USE_PLATFORM_XCB_KHR)
 bool validate = true;
-#endif
-
-#define GET_INSTANCE_PROC_ADDR(inst, entrypoint) \
-  { \
-    fp##entrypoint = (PFN_vk##entrypoint)vkGetInstanceProcAddr(inst, "vk" #entrypoint); \
-    if (fp##entrypoint == NULL) {  \
-      ERR_EXIT("vkGetInstanceProcAddr failed to find vk" #entrypoint); \
-    } \
- }
-
-static PFN_vkGetDeviceProcAddr vkgdpa = NULL;
-
-#define GET_DEVICE_PROC_ADDR(dev, entrypoint) \
-  { \
-    if(!vkgdpa){ \
-      vkgdpa=(PFN_vkGetDeviceProcAddr)vkGetInstanceProcAddr(inst, "vkGetDeviceProcAddr"); \
-    } \
-    fp##entrypoint = (PFN_vk##entrypoint)vkgdpa(dev, "vk" #entrypoint); \
-    if(fp##entrypoint == NULL) { \
-      ERR_EXIT("vkGetDeviceProcAddr failed to find vk" #entrypoint); \
-    } \
-  }
-
-#define MILLION 1000000L
-#define BILLION 1000000000L
 
 VkSurfaceKHR surface;
 bool prepared;
@@ -59,26 +33,8 @@ VkCommandPool command_pool;
 VkCommandBuffer initcmd;
 uint32_t queue_family_count;
 
-PFN_vkGetPhysicalDeviceSurfaceSupportKHR fpGetPhysicalDeviceSurfaceSupportKHR;
-PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR fpGetPhysicalDeviceSurfaceCapabilitiesKHR;
-PFN_vkGetPhysicalDeviceSurfaceFormatsKHR fpGetPhysicalDeviceSurfaceFormatsKHR;
-PFN_vkGetPhysicalDeviceSurfacePresentModesKHR fpGetPhysicalDeviceSurfacePresentModesKHR;
-PFN_vkCreateSwapchainKHR fpCreateSwapchainKHR;
-PFN_vkDestroySwapchainKHR fpDestroySwapchainKHR;
-PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR;
-PFN_vkGetPhysicalDeviceFeatures fpGetPhysicalDeviceFeatures;
-PFN_vkGetPhysicalDeviceFeatures2 fpGetPhysicalDeviceFeatures2;
-PFN_vkGetPhysicalDeviceProperties2 fpGetPhysicalDeviceProperties2;
-PFN_vkAcquireNextImageKHR fpAcquireNextImageKHR;
-PFN_vkQueuePresentKHR fpQueuePresentKHR;
-
-PFN_vkCreateDebugUtilsMessengerEXT CreateDebugUtilsMessengerEXT;
-PFN_vkDestroyDebugUtilsMessengerEXT DestroyDebugUtilsMessengerEXT;
-PFN_vkSubmitDebugUtilsMessageEXT SubmitDebugUtilsMessageEXT;
-PFN_vkCmdBeginDebugUtilsLabelEXT CmdBeginDebugUtilsLabelEXT;
-PFN_vkCmdEndDebugUtilsLabelEXT CmdEndDebugUtilsLabelEXT;
-PFN_vkCmdInsertDebugUtilsLabelEXT CmdInsertDebugUtilsLabelEXT;
-PFN_vkSetDebugUtilsObjectNameEXT SetDebugUtilsObjectNameEXT;
+PFN_vkCreateDebugUtilsMessengerEXT  vxCreateDebugUtilsMessengerEXT;
+PFN_vkDestroyDebugUtilsMessengerEXT vxDestroyDebugUtilsMessengerEXT;
 
 VkDebugUtilsMessengerCreateInfoEXT dbg_messenger_ci;
 VkDebugUtilsMessengerEXT           dbg_messenger;
@@ -210,26 +166,28 @@ static void prepare_swapchain() {
     VkSwapchainKHR oldSwapchain = swapchain;
 
     VkSurfaceCapabilitiesKHR surfCapabilities;
-    VK_CHECK(fpGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu, surface, &surfCapabilities));
+    VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu, surface, &surfCapabilities));
 
     uint32_t presentModeCount;
-    VK_CHECK(fpGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface, &presentModeCount, NULL));
+    VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface, &presentModeCount, NULL));
     VkPresentModeKHR *presentModes = (VkPresentModeKHR *)malloc(presentModeCount * sizeof(VkPresentModeKHR));
     assert(presentModes);
-    VK_CHECK(fpGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface, &presentModeCount, presentModes));
+    VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface, &presentModeCount, presentModes));
 
     VkPhysicalDeviceMultiviewFeaturesKHR extFeatures = {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR,
     };
 
     VkPhysicalDeviceFeatures deviceFeatures;
-    fpGetPhysicalDeviceFeatures(gpu, &deviceFeatures);
+    vkGetPhysicalDeviceFeatures(gpu, &deviceFeatures);
+
+    printf("multiViewport = %d\n", deviceFeatures.multiViewport);
 
     VkPhysicalDeviceFeatures2KHR deviceFeatures2 = {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR,
       .pNext = &extFeatures,
     };
-    fpGetPhysicalDeviceFeatures2(gpu, &deviceFeatures2);
+    vkGetPhysicalDeviceFeatures2(gpu, &deviceFeatures2);
 
     VkPhysicalDeviceMultiviewPropertiesKHR extProps = {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_PROPERTIES_KHR,
@@ -238,7 +196,7 @@ static void prepare_swapchain() {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR,
       .pNext = &extProps,
     };
-    fpGetPhysicalDeviceProperties2(gpu, &deviceProps2);
+    vkGetPhysicalDeviceProperties2(gpu, &deviceProps2);
 
     printf("Multiview features:\n");
     printf("  multiview = %d\n", extFeatures.multiview);
@@ -376,14 +334,14 @@ static void prepare_swapchain() {
         .oldSwapchain = oldSwapchain,
         .clipped = true,
     };
-    VK_CHECK(fpCreateSwapchainKHR(device, &swapchain_ci, NULL, &swapchain));
+    VK_CHECK(vkCreateSwapchainKHR(device, &swapchain_ci, NULL, &swapchain));
 
     // If we just re-created an existing swapchain, we should destroy the old
     // swapchain at this point.
     // Note: destroying the swapchain also cleans up all its associated
     // presentable images once the platform is done with them.
     if (oldSwapchain != VK_NULL_HANDLE) {
-        fpDestroySwapchainKHR(device, oldSwapchain, NULL);
+        vkDestroySwapchainKHR(device, oldSwapchain, NULL);
     }
 
     if (NULL != presentModes) {
@@ -720,50 +678,30 @@ static void pick_physical_device(){
     }
 
     if (validate) {
-        CreateDebugUtilsMessengerEXT =
-            (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(inst, "vkCreateDebugUtilsMessengerEXT");
-        DestroyDebugUtilsMessengerEXT =
-            (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(inst, "vkDestroyDebugUtilsMessengerEXT");
-        SubmitDebugUtilsMessageEXT =
-            (PFN_vkSubmitDebugUtilsMessageEXT)vkGetInstanceProcAddr(inst, "vkSubmitDebugUtilsMessageEXT");
-        CmdBeginDebugUtilsLabelEXT =
-            (PFN_vkCmdBeginDebugUtilsLabelEXT)vkGetInstanceProcAddr(inst, "vkCmdBeginDebugUtilsLabelEXT");
-        CmdEndDebugUtilsLabelEXT =
-            (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetInstanceProcAddr(inst, "vkCmdEndDebugUtilsLabelEXT");
-        CmdInsertDebugUtilsLabelEXT =
-            (PFN_vkCmdInsertDebugUtilsLabelEXT)vkGetInstanceProcAddr(inst, "vkCmdInsertDebugUtilsLabelEXT");
-        SetDebugUtilsObjectNameEXT =
-            (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(inst, "vkSetDebugUtilsObjectNameEXT");
-        if (NULL == CreateDebugUtilsMessengerEXT || NULL == DestroyDebugUtilsMessengerEXT ||
-            NULL == SubmitDebugUtilsMessageEXT || NULL == CmdBeginDebugUtilsLabelEXT ||
-            NULL == CmdEndDebugUtilsLabelEXT || NULL == CmdInsertDebugUtilsLabelEXT ||
-            NULL == SetDebugUtilsObjectNameEXT) {
+
+        vxCreateDebugUtilsMessengerEXT = (PFN_vkCreateDebugUtilsMessengerEXT)
+                 vkGetInstanceProcAddr(inst, "vkCreateDebugUtilsMessengerEXT");
+
+        vxDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)
+                 vkGetInstanceProcAddr(inst,  "vkDestroyDebugUtilsMessengerEXT");
+
+        if (!vxCreateDebugUtilsMessengerEXT || !vxDestroyDebugUtilsMessengerEXT) {
+
             ERR_EXIT("GetProcAddr: Failed to init VK_EXT_debug_utils\n");
         }
 
-        err = CreateDebugUtilsMessengerEXT(inst, &dbg_messenger_ci, NULL, &dbg_messenger);
+        err = vxCreateDebugUtilsMessengerEXT(inst, &dbg_messenger_ci, NULL, &dbg_messenger);
         switch (err) {
             case VK_SUCCESS:
                 break;
             case VK_ERROR_OUT_OF_HOST_MEMORY:
-                ERR_EXIT("CreateDebugUtilsMessengerEXT: out of host memory\n");
+                ERR_EXIT("vkCreateDebugUtilsMessengerEXT: out of host memory\n");
                 break;
             default:
-                ERR_EXIT("CreateDebugUtilsMessengerEXT: unknown failure\n");
+                ERR_EXIT("vkCreateDebugUtilsMessengerEXT: unknown failure\n");
                 break;
         }
     }
-}
-
-static void do_weird_shit_1(){
-    GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceSurfaceSupportKHR);
-    GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceSurfaceCapabilitiesKHR);
-    GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceSurfaceFormatsKHR);
-    GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceSurfacePresentModesKHR);
-    GET_INSTANCE_PROC_ADDR(inst, GetSwapchainImagesKHR);
-    GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceFeatures);
-    GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceFeatures2);
-    GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceProperties2);
 }
 
 static void create_device() {
@@ -815,7 +753,7 @@ static void find_queue_families() {
 
     VkBool32 *supportsPresent = (VkBool32 *)malloc(queue_family_count * sizeof(VkBool32));
     for (uint32_t i = 0; i < queue_family_count; i++) {
-        fpGetPhysicalDeviceSurfaceSupportKHR(gpu, i, surface, &supportsPresent[i]);
+        vkGetPhysicalDeviceSurfaceSupportKHR(gpu, i, surface, &supportsPresent[i]);
     }
 
     uint32_t graphicsQueueFamilyIndex = UINT32_MAX;
@@ -847,14 +785,6 @@ static void find_queue_families() {
     queue_family_index = graphicsQueueFamilyIndex;
 }
 
-static void do_weird_shit(){
-    GET_DEVICE_PROC_ADDR(device, CreateSwapchainKHR);
-    GET_DEVICE_PROC_ADDR(device, DestroySwapchainKHR);
-    GET_DEVICE_PROC_ADDR(device, GetSwapchainImagesKHR);
-    GET_DEVICE_PROC_ADDR(device, AcquireNextImageKHR);
-    GET_DEVICE_PROC_ADDR(device, QueuePresentKHR);
-}
-
 static VkSurfaceFormatKHR pick_surface_format(const VkSurfaceFormatKHR *surface_formats, uint32_t count) {
     // Prefer non-SRGB formats...
     for (uint32_t i = 0; i < count; i++) {
@@ -878,9 +808,9 @@ static void choose_surface_format(){
 
     uint32_t count;
 
-    assert(!fpGetPhysicalDeviceSurfaceFormatsKHR(gpu, surface, &count, NULL));
+    assert(!vkGetPhysicalDeviceSurfaceFormatsKHR(gpu, surface, &count, NULL));
     VkSurfaceFormatKHR *surface_formats = (VkSurfaceFormatKHR *)malloc(count * sizeof(VkSurfaceFormatKHR));
-    assert(!fpGetPhysicalDeviceSurfaceFormatsKHR(gpu, surface, &count, surface_formats));
+    assert(!vkGetPhysicalDeviceSurfaceFormatsKHR(gpu, surface, &count, surface_formats));
 
     VkSurfaceFormatKHR surfaceFormat = pick_surface_format(surface_formats, count);
 
@@ -892,7 +822,7 @@ static void choose_surface_format(){
 
 static void cleanup_swapchain_surface_instance(){
 
-  fpDestroySwapchainKHR(device, swapchain, NULL);
+  vkDestroySwapchainKHR(device, swapchain, NULL);
   swapchain=0;
 
   free(queue_props);
@@ -904,7 +834,7 @@ static void cleanup_swapchain_surface_instance(){
   device=0;
 
   if(validate) {
-      DestroyDebugUtilsMessengerEXT(inst, dbg_messenger, NULL);
+      vxDestroyDebugUtilsMessengerEXT(inst, dbg_messenger, NULL);
   }
   vkDestroySurfaceKHR(inst, surface, NULL);
   surface=0;
@@ -922,15 +852,11 @@ static void prepare(bool restart) {
 
     create_instance();
 
-    do_weird_shit_1();
-
     onl_create_surface(inst, &surface);
 
     pick_physical_device();
     find_queue_families();
     create_device();
-
-    do_weird_shit();
 
     prepare_command_pools();
     choose_surface_format();
