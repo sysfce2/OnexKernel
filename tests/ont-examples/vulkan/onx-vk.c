@@ -33,6 +33,32 @@ static VkPhysicalDeviceMemoryProperties memory_properties;
 
 // ---------------------------------
 
+static VkFormat texture_format = VK_FORMAT_R8G8B8A8_UNORM;
+
+struct texture_object {
+    int32_t texture_width;
+    int32_t texture_height;
+    VkSampler sampler;
+    VkBuffer buffer;
+    VkImageLayout image_layout;
+    VkDeviceMemory device_memory;
+    VkImage image;
+    VkImageView image_view;
+};
+
+struct {
+    VkFormat format;
+    VkDeviceMemory device_memory;
+    VkImage image;
+    VkImageView image_view;
+} depth;
+
+struct uniforms {
+    float proj[4][4];
+    float view[4][4];
+    float model[MAX_PANELS][4][4];
+};
+
 typedef struct {
     VkBuffer        uniform_buffer;
     VkDeviceMemory  uniform_memory;
@@ -240,32 +266,6 @@ void onx_vk_render_frame() {
 }
 
 // ---------------------------------------------------------------------------------------
-
-static VkFormat texture_format = VK_FORMAT_R8G8B8A8_UNORM;
-
-struct texture_object {
-    int32_t texture_width;
-    int32_t texture_height;
-    VkSampler sampler;
-    VkBuffer buffer;
-    VkImageLayout image_layout;
-    VkDeviceMemory device_memory;
-    VkImage image;
-    VkImageView image_view;
-};
-
-struct {
-    VkFormat format;
-    VkDeviceMemory device_memory;
-    VkImage image;
-    VkImageView image_view;
-} depth;
-
-struct uniforms {
-    float proj[4][4];
-    float view[4][4];
-    float model[MAX_PANELS][4][4];
-};
 
 #if defined(VK_USE_PLATFORM_XCB_KHR) // Ubuntu Desktop; Pi4
 //static char* font_face = "/usr/share/fonts/truetype/open-sans/OpenSans-Regular.ttf";
