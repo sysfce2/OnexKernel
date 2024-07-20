@@ -785,20 +785,46 @@ static void find_queue_families() {
     queue_family_index = graphicsQueueFamilyIndex;
 }
 
-static VkSurfaceFormatKHR pick_surface_format(const VkSurfaceFormatKHR *surface_formats, uint32_t count) {
-    // Prefer non-SRGB formats...
+static VkSurfaceFormatKHR pick_surface_format(const VkSurfaceFormatKHR *surface_formats,
+                                              uint32_t count) {
+
     for (uint32_t i = 0; i < count; i++) {
         VkFormat f = surface_formats[i].format;
-        if (f == VK_FORMAT_R8G8B8A8_UNORM ||
-            f == VK_FORMAT_B8G8R8A8_UNORM ||
-            f == VK_FORMAT_A2B10G10R10_UNORM_PACK32 ||
-            f == VK_FORMAT_A2R10G10B10_UNORM_PACK32 ||
-            f == VK_FORMAT_R16G16B16A16_SFLOAT         ) {
+        if (f == VK_FORMAT_R8G8B8A8_SRGB) {
 
+            log_write("found VK_FORMAT_R8G8B8A8_SRGB\n");
             return surface_formats[i];
         }
     }
-    log_write("Can't find our preferred formats... Falling back to first exposed format. Rendering may be incorrect.\n");
+    log_write("failed to find SRGB format\n");
+    for (uint32_t i = 0; i < count; i++) {
+        VkFormat f = surface_formats[i].format;
+        if (f == VK_FORMAT_R8G8B8A8_UNORM ||
+            f == VK_FORMAT_B8G8R8A8_UNORM      ) {
+
+            log_write("found VK_FORMAT_R8G8B8A8_UNORM\n");
+            return surface_formats[i];
+        }
+    }
+    for (uint32_t i = 0; i < count; i++) {
+        VkFormat f = surface_formats[i].format;
+        if (f == VK_FORMAT_A2R10G10B10_UNORM_PACK32 ||
+            f == VK_FORMAT_A2B10G10R10_UNORM_PACK32    ) {
+
+            log_write("found VK_FORMAT_A2R10G10B10_UNORM_PACK32\n");
+            return surface_formats[i];
+        }
+    }
+    for (uint32_t i = 0; i < count; i++) {
+        VkFormat f = surface_formats[i].format;
+        if (f == VK_FORMAT_R16G16B16A16_SFLOAT) {
+
+            log_write("found VK_FORMAT_R16G16B16A16_SFLOAT\n");
+            return surface_formats[i];
+        }
+    }
+    log_write("Can't find our preferred formats.\n");
+    log_write("Falling back to first exposed format. Rendering may be incorrect.\n");
 
     assert(count >= 1);
     return surface_formats[0];
