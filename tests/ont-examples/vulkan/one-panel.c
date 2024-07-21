@@ -35,7 +35,7 @@ typedef struct panel {
 
 panel welcome_banner ={
  .dimensions = { 1.0f, 0.4f, 0.03f },
- .position   = { 3.0f, 2.0f, -2.0f },
+ .position   = { 0.0f, 2.0f, -2.0f },
  .rotation   = { 0.0f, 0.0f, 0.0f },
 };
 
@@ -224,7 +224,11 @@ void set_mvp_uniforms() {
 
     float swap_aspect_ratio = 1.0f * io.swap_width / io.swap_height;
 
-    Mat4x4_perspective(proj_matrix, (float)degreesToRadians(VIEWPORT_FOV), swap_aspect_ratio, VIEWPORT_NEAR, VIEWPORT_FAR);
+    Mat4x4_perspective(proj_matrix,
+                       (float)degreesToRadians(VIEWPORT_FOV),
+                       swap_aspect_ratio,
+                       VIEWPORT_NEAR, VIEWPORT_FAR);
+
     proj_matrix[1][1] *= -1;
     if(io.rotation_angle){
       mat4x4 pm;

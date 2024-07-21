@@ -70,6 +70,7 @@ static uniform_mem_t *uniform_mem;
 
 typedef struct {
     VkFramebuffer   framebuffer;
+    VkImage         image;
     VkImageView     image_view;
     VkCommandBuffer command_buffer;
     VkFence         command_buffer_fence;
@@ -134,11 +135,13 @@ static void build_render_pass_and_cmdbufs(uint32_t ii) {
   struct push_constants pc;
 
   pc.phase = 0, // ground plane
-  vkCmdPushConstants(cmd_buf, pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(struct push_constants), &pc);
+  vkCmdPushConstants(cmd_buf, pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                     sizeof(struct push_constants), &pc);
   vkCmdDraw(cmd_buf, 6, 1, 0, 0);
 
   pc.phase = 1, // panels
-  vkCmdPushConstants(cmd_buf, pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(struct push_constants), &pc);
+  vkCmdPushConstants(cmd_buf, pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                     sizeof(struct push_constants), &pc);
   vkCmdDraw(cmd_buf, 6*6, 1, 0, 0);
 
   // --------------------------------------------
@@ -808,6 +811,7 @@ void onx_vk_prepare_swapchain_images(bool restart) {
             .flags = 0,
         };
 
+        swapchain_image_resources[i].image = swapchainImages[i];
         VK_CHECK(vkCreateImageView(device, &image_view_ci, NULL,
                                    &swapchain_image_resources[i].image_view));
     }
@@ -1023,7 +1027,6 @@ void onx_vk_prepare_descriptor_set(bool restart) {
 
 void onx_vk_prepare_render_pass(bool restart) {
     const VkAttachmentDescription attachments[2] = {
-        [0] =
             {
                 .format = surface_format,
                 .flags = 0,
@@ -1035,7 +1038,6 @@ void onx_vk_prepare_render_pass(bool restart) {
                 .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
                 .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
             },
-        [1] =
             {
                 .format = depth.format,
                 .flags = 0,
@@ -1049,11 +1051,11 @@ void onx_vk_prepare_render_pass(bool restart) {
             },
     };
     const VkAttachmentReference color_reference = {
-        .attachment = 0,
+        .attachment = 0, // this refers to the color attachment
         .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
     };
     const VkAttachmentReference depth_reference = {
-        .attachment = 1,
+        .attachment = 1, // this refers to the depth attachment
         .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
     };
     const VkSubpassDescription subpass = {
@@ -1070,17 +1072,6 @@ void onx_vk_prepare_render_pass(bool restart) {
     };
 
     VkSubpassDependency attachmentDependencies[2] = {
-        [0] =
-            {
-                .srcSubpass = VK_SUBPASS_EXTERNAL,
-                .dstSubpass = 0,
-                .srcStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-                .dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-                .srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-                .dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-                .dependencyFlags = 0,
-            },
-        [1] =
             {
                 .srcSubpass = VK_SUBPASS_EXTERNAL,
                 .dstSubpass = 0,
@@ -1088,6 +1079,15 @@ void onx_vk_prepare_render_pass(bool restart) {
                 .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 .srcAccessMask = 0,
                 .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+                .dependencyFlags = 0,
+            },
+            {
+                .srcSubpass = VK_SUBPASS_EXTERNAL,
+                .dstSubpass = 0,
+                .srcStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+                .dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+                .srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
                 .dependencyFlags = 0,
             },
     };
