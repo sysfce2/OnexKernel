@@ -323,7 +323,7 @@ static void prepare_swapchain() {
                 .width = swapchain_extent.width,
                 .height = swapchain_extent.height,
             },
-        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
         .preTransform = preTransform,
         .compositeAlpha = compositeAlpha,
         .imageArrayLayers = 1,
