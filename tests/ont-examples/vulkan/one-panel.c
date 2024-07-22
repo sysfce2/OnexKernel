@@ -33,9 +33,9 @@ typedef struct panel {
 
 } panel;
 
-panel welcome_banner ={
- .dimensions = { 1.0f, 0.4f, 0.03f },
- .position   = { 0.0f, 2.0f, -2.0f },
+panel the_cube ={
+ .dimensions = { 0.4f, 0.4f, 0.4f },
+ .position   = { 0.0f, 0.4f, 0.0f },
  .rotation   = { 0.0f, 0.0f, 0.0f },
 };
 
@@ -49,7 +49,7 @@ static void make_box(vec3 dimensions){
 
   float w=dimensions[0];
   float h=dimensions[1];
-  float d=dimensions[2];
+  float d=dimensions[2]*2;
 
   float verts[6*6*3] = {
 
@@ -162,7 +162,7 @@ static void make_box(vec3 dimensions){
   uv_buffer_end += sizeof(uvs);
 }
 
-static void add_panel(panel* panel, int p){
+static void add_cube(panel* panel, int p){
 
     make_box(panel->dimensions);
 
@@ -193,7 +193,7 @@ void one_panel_render() {
   uv_buffer_end = 0;
 
   num_panels = 0;
-  add_panel(&welcome_banner, num_panels++);
+  add_cube(&the_cube, num_panels++);
 
   for(unsigned int i = 0; i < num_panels * 6*6; i++) {
     *(vertices+i*5+0) = vertex_buffer_data[i*3+0];
@@ -208,8 +208,8 @@ void one_panel_render() {
 // -----------------------------------------------------------
 
 // 1.75m height
-// standing back 4m from origin
-static vec3  eye = { 0.0, 1.75, -4.0 };
+// standing back 5m from origin
+static vec3  eye = { 0.0, 1.75, -5.0 };
 static vec3  up = { 0.0f, -1.0, 0.0 };
 
 static float eye_dir=0;

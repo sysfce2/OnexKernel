@@ -45,24 +45,25 @@ vec3 unproject(float x, float y, float z, mat4 view, mat4 proj) {
 
 void main() {
 
-  if(push_constants.phase == 0){ // ground plane
+  view = uniforms.view;
+  proj = uniforms.proj;
+  phase = push_constants.phase;
+
+  if(phase == 0){ // ground plane
 
     near = 0.004;
     far = 0.17;
     vec3 p = grid_plane[gl_VertexIndex].xyz;
-    near_point = unproject(p.x, p.y, 0.0, uniforms.view, uniforms.proj).xyz;
-    far_point = unproject(p.x, p.y, 1.0, uniforms.view, uniforms.proj).xyz;
-    view = uniforms.view;
-    proj = uniforms.proj;
+    near_point = unproject(p.x, p.y, 0.0, view, proj).xyz;
+    far_point  = unproject(p.x, p.y, 1.0, view, proj).xyz;
     gl_Position = vec4(p, 1.0);
   }
   else
-  if(push_constants.phase == 1){ // panels
+  if(phase == 1){ // panels
 
     texture_coord = vec4(uv, 0, 0);
 
-    gl_Position = uniforms.proj *
-                  uniforms.view *
+    gl_Position = proj * view *
                   uniforms.model[gl_InstanceIndex] *
                   vec4(vertex, 1.0);
 
@@ -71,5 +72,4 @@ void main() {
   }
 
   proj_pos = gl_Position;
-  phase = push_constants.phase;
 }
