@@ -1,6 +1,7 @@
 
 /* Platform-independent Vulkan common code */
 
+#include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 
 #include "onx-vk.h"
@@ -13,6 +14,7 @@ bool validate = true;
 
 VkSurfaceKHR surface;
 bool prepared;
+uint16_t frames = 0;
 int32_t gpu_number = -1;
 VkInstance inst;
 VkPhysicalDevice gpu;
@@ -28,7 +30,7 @@ VkColorSpaceKHR color_space;
 
 VkSwapchainKHR swapchain;
 VkExtent2D swapchain_extent;
-VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
+VkPresentModeKHR presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 VkCommandPool command_pool;
 VkCommandBuffer initcmd;
 uint32_t queue_family_count;
@@ -232,36 +234,7 @@ static void prepare_swapchain() {
         io.swap_height = surfCapabilities.currentExtent.height;
     }
 
-    // The FIFO present mode is guaranteed by the spec to be supported
-    // and to have no tearing.  It's a great default present mode to use.
     VkPresentModeKHR swapchainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
-
-    //  There are times when you may wish to use another present mode.  The
-    //  following code shows how to select them, and the comments provide some
-    //  reasons you may wish to use them.
-    //
-    // It should be noted that Vulkan 1.0 doesn't provide a method for
-    // synchronizing rendering with the presentation engine's display.  There
-    // is a method provided for throttling rendering with the display, but
-    // there are some presentation engines for which this method will not work.
-    // If an application doesn't throttle its rendering, and if it renders much
-    // faster than the refresh rate of the display, this can waste power on
-    // mobile devices.  That is because power is being spent rendering images
-    // that may never be seen.
-
-    // VK_PRESENT_MODE_IMMEDIATE_KHR is for applications that don't care about
-    // tearing, or have some way of synchronizing their rendering with the
-    // display.
-    // VK_PRESENT_MODE_MAILBOX_KHR may be useful for applications that
-    // generally render a new presentable image every refresh cycle, but are
-    // occasionally early.  In this case, the application wants the new image
-    // to be displayed instead of the previously-queued-for-presentation image
-    // that has not yet been displayed.
-    // VK_PRESENT_MODE_FIFO_RELAXED_KHR is for applications that generally
-    // render a new presentable image every refresh cycle, but are occasionally
-    // late.  In this case (perhaps because of stuttering/latency concerns),
-    // the application wants the late image to be immediately displayed, even
-    // though that may mean some tearing.
 
     if (presentMode != swapchainPresentMode) {
         for (size_t i = 0; i < presentModeCount; ++i) {
@@ -271,21 +244,15 @@ static void prepare_swapchain() {
             }
         }
     }
-    if (swapchainPresentMode != presentMode) {
+    if (presentMode != swapchainPresentMode) {
         ERR_EXIT("Present mode specified is not supported\n");
     }
 
-    // Determine the number of VkImages to use in the swapchain.
-    // Application desires to acquire 3 images at a time for triple
-    // buffering
     uint32_t desiredNumOfSwapchainImages = 3;
     if (desiredNumOfSwapchainImages < surfCapabilities.minImageCount) {
         desiredNumOfSwapchainImages = surfCapabilities.minImageCount;
     }
-    // If maxImageCount is 0, we can ask for as many images as we want;
-    // otherwise we're limited to maxImageCount
     if ((surfCapabilities.maxImageCount > 0) && (desiredNumOfSwapchainImages > surfCapabilities.maxImageCount)) {
-        // Application must settle for fewer images than desired:
         desiredNumOfSwapchainImages = surfCapabilities.maxImageCount;
     }
 
@@ -296,7 +263,6 @@ static void prepare_swapchain() {
         preTransform = surfCapabilities.currentTransform;
     }
 
-    // Find a supported composite alpha mode - one of these is guaranteed to be set
     VkCompositeAlphaFlagBitsKHR compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     VkCompositeAlphaFlagBitsKHR compositeAlphaFlags[4] = {
         VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
@@ -942,6 +908,16 @@ void ont_vk_loop(bool running) {
   if(prepared){
     onx_vk_update_uniforms();
     onx_vk_render_frame();
+    frames++;
+  }
+  static uint64_t lt=0;
+  if(!lt) lt=time_ms();
+  uint64_t ct=time_ms();
+  uint16_t dt=(uint16_t)(ct-lt);
+  if(dt > 1000){
+    printf("fps: %d\n", frames * 1000 / dt);
+    frames=0;
+    lt=ct;
   }
 }
 
