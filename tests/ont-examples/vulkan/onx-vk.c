@@ -82,6 +82,47 @@ struct push_constants {
   uint32_t phase;
 };
 
+void transition_image(
+    VkCommandBuffer cmdBuffer,
+    VkImage image,
+    VkImageLayout oldLayout,
+    VkImageLayout newLayout,
+    VkAccessFlagBits srcAccessMask,
+    VkAccessFlagBits dstAccessMask,
+    VkPipelineStageFlags srcStage,
+    VkPipelineStageFlags dstStage) {
+
+    VkImageMemoryBarrier img_mem_barrier = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        .image = image,
+        .oldLayout = oldLayout,
+        .newLayout = newLayout,
+        .srcAccessMask = srcAccessMask,
+        .dstAccessMask = dstAccessMask,
+        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+        .subresourceRange = {
+            .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel   = 0,
+            .levelCount     = VK_REMAINING_MIP_LEVELS,
+            .baseArrayLayer = 0,
+            .layerCount     = VK_REMAINING_ARRAY_LAYERS,
+        },
+        .pNext = NULL,
+    };
+
+    vkCmdPipelineBarrier(
+        cmdBuffer,
+        srcStage,
+        dstStage,
+        0,
+        0, NULL,
+        0, NULL,
+        1,
+        &img_mem_barrier
+    );
+}
+
 static void build_render_pass_and_cmdbufs(uint32_t ii) {
 
   vkWaitForFences(device, 1, &swapchain_image_resources[ii].command_buffer_fence, VK_TRUE, UINT64_MAX);
@@ -551,65 +592,6 @@ static void prepare_texture_buffer(const char *filename, struct texture_object *
     vkUnmapMemory(device, texture_obj->device_memory);
 }
 
-static void set_image_layout(VkImage image, VkImageLayout old_image_layout,
-                             VkImageLayout new_image_layout, VkAccessFlagBits srcAccessMask, VkPipelineStageFlags src_stages,
-                             VkPipelineStageFlags dest_stages) {
-
-    VkImageMemoryBarrier image_memory_barrier = {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-        .pNext = NULL,
-        .srcAccessMask = srcAccessMask,
-        .dstAccessMask = 0,
-        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .oldLayout = old_image_layout,
-        .newLayout = new_image_layout,
-        .image = image,
-        .subresourceRange = {
-            .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
-            .baseMipLevel   = 0,
-            .levelCount     = 1,
-            .baseArrayLayer = 0,
-            .layerCount     = 1,
-        }
-    };
-
-    switch (new_image_layout) {
-        case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
-            /* Make sure anything that was copying from this image has completed */
-            image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            break;
-
-        case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-            image_memory_barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-            break;
-
-        case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
-            image_memory_barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-            break;
-
-        case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-            image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
-            break;
-
-        case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
-            image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-            break;
-
-        case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
-            image_memory_barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-            break;
-
-        default:
-            image_memory_barrier.dstAccessMask = 0;
-            break;
-    }
-
-    VkImageMemoryBarrier *pmemory_barrier = &image_memory_barrier;
-
-    vkCmdPipelineBarrier(initcmd, src_stages, dest_stages, 0, 0, NULL, 0, NULL, 1, pmemory_barrier);
-}
-
 static void prepare_depth() {
 
     const VkFormat depth_format = VK_FORMAT_D16_UNORM;
@@ -669,9 +651,14 @@ static void prepare_textures(){
             prepare_texture_image(texture_files[i], &textures[i], VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT,
                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-            set_image_layout(textures[i].image, VK_IMAGE_LAYOUT_PREINITIALIZED,
-                             textures[i].image_layout, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            transition_image(initcmd, textures[i].image,
+                               VK_IMAGE_LAYOUT_PREINITIALIZED,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                               0,
+                               VK_ACCESS_SHADER_READ_BIT |
+                               VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
+                               VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                               VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
             staging_texture.image = 0;
         } else
@@ -685,9 +672,12 @@ static void prepare_textures(){
                                        (VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT),
                                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-            set_image_layout(textures[i].image, VK_IMAGE_LAYOUT_PREINITIALIZED,
-                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 0, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                                  VK_PIPELINE_STAGE_TRANSFER_BIT);
+            transition_image(initcmd, textures[i].image,
+                               VK_IMAGE_LAYOUT_PREINITIALIZED,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                               0, VK_ACCESS_TRANSFER_WRITE_BIT,
+                               VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                               VK_PIPELINE_STAGE_TRANSFER_BIT);
 
             VkBufferImageCopy copy_region = {
                 .bufferOffset = 0,
@@ -701,9 +691,14 @@ static void prepare_textures(){
             vkCmdCopyBufferToImage(initcmd, staging_texture.buffer, textures[i].image,
                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_region);
 
-            set_image_layout(textures[i].image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                  textures[i].image_layout, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                                  VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            transition_image(initcmd, textures[i].image,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                               VK_ACCESS_TRANSFER_WRITE_BIT,
+                               VK_ACCESS_SHADER_READ_BIT |
+                               VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
+                               VK_PIPELINE_STAGE_TRANSFER_BIT,
+                               VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
         } else {
             assert(!"No support for R8G8B8A8_UNORM as texture image format");
         }
