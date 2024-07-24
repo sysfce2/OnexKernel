@@ -196,7 +196,7 @@ void copy_colour_to_swap(uint32_t ii) {
   );
 }
 
-void onx_vk_rg_render_frame() {
+void onl_vk_rg_render_frame() {
 
   vkWaitForFences(device, 1, &swapchain_bits[cur_img].cmd_buf_fence, VK_TRUE, UINT64_MAX);
 
@@ -457,7 +457,7 @@ static void prepare_depth() {
 
 // -------------------------------------------------------------------------------------
 
-void onx_vk_rg_prepare_swapchain_images(bool restart) {
+void onl_vk_rg_prepare_swapchain_images(bool restart) {
 
     aspect_ratio = (float)io.swap_width / (float)io.swap_height;
     sbs_render   = aspect_ratio > 2.0f;
@@ -508,7 +508,7 @@ void onx_vk_rg_prepare_swapchain_images(bool restart) {
     }
 }
 
-void onx_vk_rg_prepare_semaphores_and_fences(bool restart) {
+void onl_vk_rg_prepare_semaphores_and_fences(bool restart) {
 
   VkFenceCreateInfo fence_ci = {
       .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
@@ -529,7 +529,7 @@ void onx_vk_rg_prepare_semaphores_and_fences(bool restart) {
   VK_CHECK(vkCreateSemaphore(device, &semaphore_ci, 0, &render_complete_semaphore));
 }
 
-void onx_vk_rg_prepare_command_buffers(bool restart){
+void onl_vk_rg_prepare_command_buffers(bool restart){
 
   VkCommandBufferAllocateInfo cmd_buf_ai = {
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -548,13 +548,13 @@ void onx_vk_rg_prepare_command_buffers(bool restart){
   }
 }
 
-void onx_vk_rg_prepare_rendering(bool restart) {
+void onl_vk_rg_prepare_rendering(bool restart) {
   vkGetPhysicalDeviceMemoryProperties(gpu, &memory_properties);
   if(sbs_render) prepare_color();
   prepare_depth();
 }
 
-void onx_vk_rg_prepare_pipeline_layout(bool restart) {
+void onl_vk_rg_prepare_pipeline_layout(bool restart) {
 
   VkPushConstantRange push_constant_range = {
     .offset = 0,
@@ -577,7 +577,7 @@ void onx_vk_rg_prepare_pipeline_layout(bool restart) {
                                   &pipeline_layout));
 }
 
-void onx_vk_rg_prepare_render_pass(bool restart) {
+void onl_vk_rg_prepare_render_pass(bool restart) {
     const VkAttachmentDescription attachments[2] = {
             {
                 .format = sbs_render? color.format: surface_format,
@@ -681,7 +681,7 @@ void onx_vk_rg_prepare_render_pass(bool restart) {
     assert(!err);
 }
 
-void onx_vk_rg_prepare_pipeline(bool restart) {
+void onl_vk_rg_prepare_pipeline(bool restart) {
 
   VkShaderModule vert_shader_module = load_c_shader(false);
   VkShaderModule frag_shader_module = load_c_shader(true);
@@ -851,7 +851,7 @@ void onx_vk_rg_prepare_pipeline(bool restart) {
   vkDestroyShaderModule(device, vert_shader_module, NULL);
 }
 
-void onx_vk_rg_prepare_framebuffers(bool restart) {
+void onl_vk_rg_prepare_framebuffers(bool restart) {
 
     VkFramebufferCreateInfo fb_ci = {
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -925,7 +925,7 @@ void end_cmd_buf_and_render_pass(uint32_t ii, VkCommandBuffer cmd_buf){
   VK_CHECK(vkEndCommandBuffer(cmd_buf));
 }
 
-void onx_vk_rg_finish_rendering() {
+void onl_vk_rg_finish_rendering() {
 
   for (uint32_t i = 0; i < max_img; i++) {
     vkWaitForFences(device, 1, &swapchain_bits[i].cmd_buf_fence, VK_TRUE, UINT64_MAX);
