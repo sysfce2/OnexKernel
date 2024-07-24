@@ -996,45 +996,6 @@ typedef struct {
 
 static uniform_mem_t *uniform_mem;
 
-static void create_uniform_buffer_with_memory(VkBufferCreateInfo* buffer_ci,
-                                              VkMemoryPropertyFlags prop_flags,
-                                              uint32_t ii){
-    VK_CHECK(vkCreateBuffer(device,
-                            buffer_ci,
-                            0,
-                            &uniform_mem[ii].uniform_buffer
-    ));
-
-    VkMemoryRequirements mem_reqs;
-    vkGetBufferMemoryRequirements(
-                            device,
-                            uniform_mem[ii].uniform_buffer,
-                            &mem_reqs);
-
-    VkMemoryAllocateInfo memory_ai = {
-      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-      .allocationSize = mem_reqs.size,
-    };
-    assert(memory_type_from_properties(mem_reqs.memoryTypeBits,
-                                       prop_flags,
-                                       &memory_ai.memoryTypeIndex));
-
-    VK_CHECK(vkAllocateMemory(device,
-                             &memory_ai,
-                              0,
-                             &uniform_mem[ii].uniform_memory));
-
-    VK_CHECK(vkMapMemory(device,
-                         uniform_mem[ii].uniform_memory,
-                         0, sizeof(struct uniforms), 0,
-                        &uniform_mem[ii].uniform_memory_ptr));
-
-    VK_CHECK(vkBindBufferMemory(device,
-                                uniform_mem[ii].uniform_buffer,
-                                uniform_mem[ii].uniform_memory,
-                                0));
-}
-
 static void prepare_vertex_buffers(){
 
   VkBufferCreateInfo buffer_ci = {
@@ -1063,12 +1024,18 @@ void onx_vk_prepare_uniform_buffers(bool restart) {
      .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
      .size = sizeof(struct uniforms),
   };
-  for (uint32_t i = 0; i < max_img; i++) {
+  for (uint32_t ii = 0; ii < max_img; ii++) {
 
-    create_uniform_buffer_with_memory(&buffer_ci,
-                                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT  |
-                                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                      i);
+    create_buffer_with_memory(&buffer_ci,
+                              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                              VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                              &uniform_mem[ii].uniform_buffer,
+                              &uniform_mem[ii].uniform_memory);
+
+    VK_CHECK(vkMapMemory(device,
+                         uniform_mem[ii].uniform_memory,
+                         0, sizeof(struct uniforms), 0,
+                        &uniform_mem[ii].uniform_memory_ptr));
   }
 }
 
@@ -1296,13 +1263,13 @@ static void prepare_texture_buffer(char *filename, struct texture_object *textur
                                               prop_flags,
                                               &texture_obj->buffer,
                                               &texture_obj->device_memory);
-    VkSubresourceLayout layout;
-    memset(&layout, 0, sizeof(layout));
-    layout.rowPitch = texture_width * 4;
-
     void *data;
     err = vkMapMemory(device, texture_obj->device_memory, 0, size, 0, &data);
     assert(!err);
+
+    VkSubresourceLayout layout;
+    memset(&layout, 0, sizeof(layout));
+    layout.rowPitch = texture_width * 4;
 
     if (!load_texture(filename, data, layout.rowPitch, &texture_width, &texture_height)) {
         log_write("Error loading texture: %s\n", filename);
@@ -1439,10 +1406,6 @@ void onx_vk_prepare_render_data(bool restart) {
   prepare_textures();
 }
 
-// ----------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------
