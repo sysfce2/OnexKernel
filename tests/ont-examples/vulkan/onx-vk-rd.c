@@ -23,9 +23,13 @@ typedef struct {
     VkDescriptorSet descriptor_set;
 } uniform_mem_t;
 
+static uniform_mem_t *uniform_mem;
+
+static VkDescriptorPool descriptor_pool;
+
 VkDescriptorSetLayout descriptor_layout;
 
-static uniform_mem_t *uniform_mem;
+static VkFormatProperties format_properties;
 
 static void prepare_vertex_buffers(){
 
@@ -70,7 +74,7 @@ void onx_vk_rd_prepare_uniform_buffers(bool restart) {
   }
 }
 
-void do_cmd_buf_draw(uint32_t ii, VkCommandBuffer cmd_buf){
+static void do_cmd_buf_draw(uint32_t ii, VkCommandBuffer cmd_buf){
 
   VkBuffer vertex_buffers[] = { vertex_buffer, };
   VkDeviceSize offsets[] = { 0 };
@@ -142,8 +146,6 @@ void onx_vk_rd_update_uniforms() {
          (const void*)&model_matrix, sizeof(model_matrix));
 }
 
-static VkFormatProperties format_properties;
-
 struct texture_object {
     int32_t texture_width;
     int32_t texture_height;
@@ -163,9 +165,6 @@ static char* texture_files[] = { "ivory.ppm" }; // not used
 
 struct texture_object textures[TEXTURE_COUNT];
 struct texture_object staging_texture;
-
-
-// ---------------------------------
 
 static VkFormat texture_format = VK_FORMAT_R8G8B8A8_UNORM;
 
@@ -438,10 +437,6 @@ void onx_vk_rd_prepare_render_data(bool restart) {
 }
 
 // ----------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------
-
-static VkDescriptorPool descriptor_pool;
 
 void onx_vk_rd_prepare_descriptor_pool(bool restart) {
 
