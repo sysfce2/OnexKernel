@@ -860,19 +860,19 @@ static void prepare(bool restart) {
 
   begin_command_buffer();
   {
-    onx_vk_prepare_swapchain_images(restart);
-    onx_vk_prepare_semaphores_and_fences(restart);
-    onx_vk_prepare_command_buffers(restart);
-    onx_vk_prepare_rendering(restart);
-    onx_vk_prepare_render_data(restart);
-    onx_vk_prepare_uniform_buffers(restart);
-    onx_vk_prepare_descriptor_layout(restart);
-    onx_vk_prepare_pipeline_layout(restart);
-    onx_vk_prepare_descriptor_pool(restart);
-    onx_vk_prepare_descriptor_set(restart);
-    onx_vk_prepare_render_pass(restart);
-    onx_vk_prepare_pipeline(restart);
-    onx_vk_prepare_framebuffers(restart);
+    onx_vk_rg_prepare_swapchain_images(restart);
+    onx_vk_rg_prepare_semaphores_and_fences(restart);
+    onx_vk_rg_prepare_command_buffers(restart);
+    onx_vk_rg_prepare_rendering(restart);
+    onx_vk_rd_prepare_render_data(restart);
+    onx_vk_rd_prepare_uniform_buffers(restart);
+    onx_vk_rd_prepare_descriptor_layout(restart);
+    onx_vk_rg_prepare_pipeline_layout(restart);
+    onx_vk_rd_prepare_descriptor_pool(restart);
+    onx_vk_rd_prepare_descriptor_set(restart);
+    onx_vk_rg_prepare_render_pass(restart);
+    onx_vk_rg_prepare_pipeline(restart);
+    onx_vk_rg_prepare_framebuffers(restart);
   }
   end_command_buffer();
 
@@ -885,8 +885,8 @@ static void finish(bool restart) {
 
   vkDeviceWaitIdle(device);
 
-  onx_vk_finish_rendering();
-  onx_vk_finish_render_data();
+  onx_vk_rg_finish_rendering();
+  onx_vk_rd_finish_render_data();
 
   if(!restart){
 
@@ -910,8 +910,8 @@ void ont_vk_loop(bool running) {
     finish(false);
   }
   if(prepared){
-    onx_vk_update_uniforms();
-    onx_vk_render_frame();
+    onx_vk_rd_update_uniforms();
+    onx_vk_rg_render_frame();
     frames++;
   }
   static uint64_t lt=0;

@@ -221,17 +221,15 @@ static float eye_dir=0;
 static float head_hor_dir=0;
 static float head_ver_dir=0;
 
-void set_mvp_uniforms() {
+void set_proj_view() {
 
     #define VIEWPORT_FOV   43.0f
     #define VIEWPORT_NEAR   0.1f
     #define VIEWPORT_FAR  100.0f
 
-    float ar = aspect_ratio / (sbs_render? 2.0f: 1.0f);
-
     Mat4x4_perspective(proj_matrix,
                        (float)degreesToRadians(VIEWPORT_FOV),
-                       ar,
+                       aspect_ratio_proj,
                        VIEWPORT_NEAR, VIEWPORT_FAR);
 
     proj_matrix[1][1] *= -1;
