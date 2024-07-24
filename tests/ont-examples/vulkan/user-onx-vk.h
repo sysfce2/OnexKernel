@@ -4,7 +4,7 @@
 #define MAX_PANELS 32 // TODO set src/ont/unix/onx.vert
 
 extern float aspect_ratio;
-extern bool  multiview;
+extern bool  sbs_render;
 
 extern mat4x4 proj_matrix;
 extern mat4x4 view_l_matrix;

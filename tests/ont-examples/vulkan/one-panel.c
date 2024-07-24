@@ -227,7 +227,7 @@ void set_mvp_uniforms() {
     #define VIEWPORT_NEAR   0.1f
     #define VIEWPORT_FAR  100.0f
 
-    float ar = aspect_ratio / (multiview? 2.0f: 1.0f);
+    float ar = aspect_ratio / (sbs_render? 2.0f: 1.0f);
 
     Mat4x4_perspective(proj_matrix,
                        (float)degreesToRadians(VIEWPORT_FOV),
