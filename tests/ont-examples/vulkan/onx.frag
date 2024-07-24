@@ -54,7 +54,7 @@ void main() {
 
     const vec3 light_dir= vec3(1.0,  1.0, -1.0);
     float light = max(0.8, dot(light_dir, normalize(cross(dFdx(model_pos.xyz),dFdy(model_pos.xyz)))));
-    color = light * 0.5 * texture(tex, texture_coord.xy) + vec4(0.5, 0.5, 0.5, 1.0);
+    color = light * texture(tex, texture_coord.xy) + vec4(0.0, 0.0, 0.0, 1.0);
     gl_FragDepth = proj_pos.z / proj_pos.w;
   }
 }

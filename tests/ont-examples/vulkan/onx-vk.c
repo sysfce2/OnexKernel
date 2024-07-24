@@ -311,7 +311,7 @@ void onx_vk_render_frame() {
 
 // ---------------------------------------------------------------------------------------
 
-#if defined(VK_USE_PLATFORM_XCB_KHR) // Ubuntu Desktop; Pi4
+#if defined(VK_USE_PLATFORM_XCB_KHR)
 //static char* font_face = "/usr/share/fonts/truetype/open-sans/OpenSans-Regular.ttf";
 static char* font_face = "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf";
 #endif
@@ -857,9 +857,6 @@ void onx_vk_prepare_command_buffers(bool restart){
 }
 
 void onx_vk_prepare_render_data(bool restart) {
-
-  VkPhysicalDeviceProperties gpu_props;
-  vkGetPhysicalDeviceProperties(gpu, &gpu_props);
 
   vkGetPhysicalDeviceFormatProperties(gpu, texture_format, &format_properties);
   vkGetPhysicalDeviceMemoryProperties(gpu, &memory_properties);
