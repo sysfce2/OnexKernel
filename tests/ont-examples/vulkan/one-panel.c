@@ -230,11 +230,6 @@ void set_mvp_uniforms() {
                        VIEWPORT_NEAR, VIEWPORT_FAR);
 
     proj_matrix[1][1] *= -1;
-    if(io.rotation_angle){
-      mat4x4 pm;
-      mat4x4_dup(pm, proj_matrix);
-      mat4x4_rotate_Z(proj_matrix, pm, (float)degreesToRadians(-io.rotation_angle));
-    }
 
     vec3 looking_at;
 
@@ -257,14 +252,13 @@ static float dwell(float delta, float width){
 
 void onx_iostate_changed() {
   /*
-  log_write("onx_iostate_changed %d' [%d,%d][%d,%d] @(%d %d) buttons=(%d %d %d) key=%d\n",
-           io.rotation_angle,
-           io.view_width, io.view_height, io.swap_width, io.swap_height,
+  log_write("onx_iostate_changed [%d,%d] @(%d %d) buttons=(%d %d %d) key=%d\n",
+           io.swap_width, io.swap_height,
            io.mouse_x, io.mouse_y,
            io.left_pressed, io.middle_pressed, io.right_pressed,
            io.key);
   */
-  bool bottom_left = io.mouse_x < io.view_width / 3 && io.mouse_y > io.view_height / 2;
+  bool bottom_left = io.mouse_x < io.swap_width / 3 && io.mouse_y > io.swap_height / 2;
 
   if(io.left_pressed && !body_moving && bottom_left){
     body_moving=true;

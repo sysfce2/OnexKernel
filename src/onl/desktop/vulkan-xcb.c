@@ -23,6 +23,12 @@ xcb_window_t      window;
 
 xcb_intern_atom_reply_t *atom_wm_delete_window;
 
+static inline xcb_intern_atom_reply_t* intern_atom_helper(xcb_connection_t *conn, bool only_if_exists, const char *str)
+{
+  xcb_intern_atom_cookie_t cookie = xcb_intern_atom(conn, only_if_exists, strlen(str), str);
+  return xcb_intern_atom_reply(conn, cookie, NULL);
+}
+
 static void sigint_handler(int signal, siginfo_t *siginfo, void *userdata) {
   log_write("\nEnd\n");
   quit = true;
@@ -66,10 +72,8 @@ void onl_init() {
 
 void onl_create_window()
 {
-  io.swap_width =1920;
-  io.swap_height=1024;
-
-  set_io_rotation(0);
+  io.swap_width =screen->width_in_pixels;
+  io.swap_height=screen->height_in_pixels;
 
   uint32_t value_mask, value_list[32];
 
@@ -105,6 +109,18 @@ void onl_create_window()
     &(*atom_wm_delete_window).atom);
 
   free(reply);
+
+  xcb_intern_atom_reply_t *atom_wm_state      = intern_atom_helper(connection, false, "_NET_WM_STATE");
+  xcb_intern_atom_reply_t *atom_wm_fullscreen = intern_atom_helper(connection, false, "_NET_WM_STATE_FULLSCREEN");
+
+  xcb_change_property(connection,
+                      XCB_PROP_MODE_REPLACE,
+                      window, atom_wm_state->atom,
+                      XCB_ATOM_ATOM, 32, 1,
+                      &(atom_wm_fullscreen->atom));
+
+  free(atom_wm_fullscreen);
+  free(atom_wm_state);
 
   xcb_map_window(connection, window);
 }
@@ -178,12 +194,10 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
             const xcb_configure_notify_event_t *cfg = (const xcb_configure_notify_event_t *)event;
             uint32_t w=cfg->width;
             uint32_t h=cfg->height;
-            if ((io.view_width != w) || (io.view_height != h)) {
+            if ((io.swap_width != w) || (io.swap_height != h)) {
 
                 io.swap_width = w;
                 io.swap_height = h;
-
-                set_io_rotation(io.rotation_angle);
 
                 ont_vk_iostate_changed();
             }
