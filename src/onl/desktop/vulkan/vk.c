@@ -94,7 +94,9 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_messenger_callback(
         }
     }
 
-    if(!strcmp(pCallbackData->pMessageIdName, "Loader Message")){
+    if(!strcmp(pCallbackData->pMessageIdName, "Loader Message") ||
+       !strcmp(pCallbackData->pMessageIdName, "WARNING-CreateInstance-status-message")){
+
       free(message);
       return false;
     }
@@ -604,7 +606,7 @@ static void pick_physical_device(){
     {
         VkPhysicalDeviceProperties physicalDeviceProperties;
         vkGetPhysicalDeviceProperties(gpu, &physicalDeviceProperties);
-        log_write("Selected GPU %d: %s, type: %s\n", gpu_number, physicalDeviceProperties.deviceName,
+        log_write("selected GPU %d: %s, type: %s\n", gpu_number, physicalDeviceProperties.deviceName,
                   gpu_type_to_string(physicalDeviceProperties.deviceType));
     }
     free(physical_devices);
