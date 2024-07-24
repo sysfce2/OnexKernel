@@ -38,19 +38,6 @@ static VkPhysicalDeviceMemoryProperties memory_properties;
 
 // ---------------------------------
 
-static VkFormat texture_format = VK_FORMAT_R8G8B8A8_UNORM;
-
-struct texture_object {
-    int32_t texture_width;
-    int32_t texture_height;
-    VkSampler sampler;
-    VkBuffer buffer;
-    VkImageLayout image_layout;
-    VkDeviceMemory device_memory;
-    VkImage image;
-    VkImageView image_view;
-};
-
 struct {
     VkFormat format;
     VkDeviceMemory device_memory;
@@ -423,22 +410,6 @@ void onx_vk_render_frame() {
   }
 }
 
-// ---------------------------------------------------------------------------------------
-
-#if defined(VK_USE_PLATFORM_XCB_KHR)
-//static char* font_face = "/usr/share/fonts/truetype/open-sans/OpenSans-Regular.ttf";
-static char* font_face = "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf";
-#endif
-
-static char *texture_files[] = {"ivory.ppm"};
-
-#include "ivory.ppm.h"
-
-#define TEXTURE_COUNT 1
-
-struct texture_object textures[TEXTURE_COUNT];
-struct texture_object staging_texture;
-
 // ---------------------------------
 
 static bool memory_type_from_properties(uint32_t typeBits, VkFlags requirements_mask, uint32_t *typeIndex) {
@@ -543,40 +514,6 @@ static void create_uniform_buffer_with_memory(VkBufferCreateInfo* buffer_ci,
                                 0));
 }
 
-// ---------------------------------
-
-static bool load_texture(const char *filename, uint8_t *rgba_data, uint64_t row_pitch, int32_t *w, int32_t *h) {
-    (void)filename;
-    char *cPtr;
-    cPtr = (char *)texture_array;
-    if ((unsigned char *)cPtr >= (texture_array + texture_len) || strncmp(cPtr, "P6\n", 3)) {
-        return false;
-    }
-    while (strncmp(cPtr++, "\n", 1)) ;
-    sscanf(cPtr, "%u %u", w, h);
-
-    if(!rgba_data) return true;
-
-    while (strncmp(cPtr++, "\n", 1))
-        ;
-    if ((unsigned char *)cPtr >= (texture_array + texture_len) || strncmp(cPtr, "255\n", 4)) {
-        return false;
-    }
-    while (strncmp(cPtr++, "\n", 1))
-        ;
-    for (int y = 0; y < *h; y++) {
-        uint8_t *rowPtr = rgba_data;
-        for (int x = 0; x < *w; x++) {
-            memcpy(rowPtr, cPtr, 3);
-            rowPtr[3] = 255; /* Alpha of 1 */
-            rowPtr += 4;
-            cPtr += 3;
-        }
-        rgba_data += row_pitch;
-    }
-    return true;
-}
-
 extern unsigned char tests_ont_examples_vulkan_onx_frag_spv[];
 extern unsigned int  tests_ont_examples_vulkan_onx_frag_spv_len;
 extern unsigned char tests_ont_examples_vulkan_onx_vert_spv[];
@@ -602,109 +539,6 @@ static VkShaderModule load_c_shader(bool load_frag) {
     return module;
 }
 
-// ---------------------------------
-
-static void prepare_texture_image(const char *filename,
-                                  struct texture_object *texture_obj,
-                                  VkImageTiling tiling,
-                                  VkImageUsageFlags usage,
-                                  VkFlags prop_flags) {
-    int32_t texture_width;
-    int32_t texture_height;
-    VkResult err;
-
-    if (!load_texture(filename, NULL, 0, &texture_width, &texture_height)) {
-        ERR_EXIT("Failed to load textures");
-    }
-
-    texture_obj->texture_width = texture_width;
-    texture_obj->texture_height = texture_height;
-
-    VkImageCreateInfo image_ci = {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-        .pNext = NULL,
-        .imageType = VK_IMAGE_TYPE_2D,
-        .format = texture_format,
-        .extent = {texture_width, texture_height, 1},
-        .mipLevels = 1,
-        .arrayLayers = 1,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .tiling = tiling,
-        .usage = usage,
-        .flags = 0,
-        .initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED,
-    };
-
-    uint32_t size = create_image_with_memory(&image_ci,
-                                             prop_flags,
-                                             &texture_obj->image,
-                                             &texture_obj->device_memory);
-
-    if (prop_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
-        const VkImageSubresource subres = {
-            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .mipLevel = 0,
-            .arrayLayer = 0,
-        };
-        VkSubresourceLayout layout;
-
-        vkGetImageSubresourceLayout(device, texture_obj->image, &subres, &layout);
-
-        void *data;
-        VK_CHECK(vkMapMemory(device, texture_obj->device_memory, 0, size, 0, &data));
-
-        if (!load_texture(filename, data, layout.rowPitch, &texture_width, &texture_height)) {
-            log_write("Error loading texture: %s\n", filename);
-        }
-        vkUnmapMemory(device, texture_obj->device_memory);
-    }
-    texture_obj->image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-}
-
-static void prepare_texture_buffer(const char *filename, struct texture_object *texture_obj) {
-
-    int32_t texture_width;
-    int32_t texture_height;
-    VkResult err;
-
-    if (!load_texture(filename, 0, 0, &texture_width, &texture_height)) {
-        ERR_EXIT("Failed to load textures");
-    }
-
-    texture_obj->texture_width = texture_width;
-    texture_obj->texture_height = texture_height;
-
-    VkBufferCreateInfo buffer_ci = {
-      .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-      .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-      .flags = 0,
-      .size = texture_width * texture_height * 4,
-      .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-      .queueFamilyIndexCount = 0,
-      .pQueueFamilyIndices = NULL,
-      .pNext = 0,
-    };
-
-    VkFlags prop_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-    uint32_t size = create_buffer_with_memory(&buffer_ci,
-                                              prop_flags,
-                                              &texture_obj->buffer,
-                                              &texture_obj->device_memory);
-    VkSubresourceLayout layout;
-    memset(&layout, 0, sizeof(layout));
-    layout.rowPitch = texture_width * 4;
-
-    void *data;
-    err = vkMapMemory(device, texture_obj->device_memory, 0, size, 0, &data);
-    assert(!err);
-
-    if (!load_texture(filename, data, layout.rowPitch, &texture_width, &texture_height)) {
-        log_write("Error loading texture: %s\n", filename);
-    }
-
-    vkUnmapMemory(device, texture_obj->device_memory);
-}
 
 static void prepare_color() {
 
@@ -793,120 +627,6 @@ static void prepare_depth() {
     };
 
     VK_CHECK(vkCreateImageView(device, &image_view_ci, NULL, &depth.image_view));
-}
-
-static void prepare_textures(){
-
-    uint32_t i;
-
-    for (i = 0; i < TEXTURE_COUNT; i++) {
-        VkResult err;
-
-#if defined(LIMIT_TO_LINEAR_AND_NO_STAGING_BUFFER)
-        if ((format_properties.linearTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT)) {
-
-            prepare_texture_image(texture_files[i], &textures[i], VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT,
-                                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-            transition_image(initcmd, textures[i].image,
-                               VK_IMAGE_LAYOUT_PREINITIALIZED,
-                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                               0,
-                               VK_ACCESS_SHADER_READ_BIT |
-                               VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
-                               VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                               VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-
-            staging_texture.image = 0;
-        } else
-#endif
-        if (format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) {
-
-            memset(&staging_texture, 0, sizeof(staging_texture));
-            prepare_texture_buffer(texture_files[i], &staging_texture);
-
-            prepare_texture_image(texture_files[i], &textures[i], VK_IMAGE_TILING_OPTIMAL,
-                                       (VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT),
-                                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-            transition_image(initcmd, textures[i].image,
-                               VK_IMAGE_LAYOUT_PREINITIALIZED,
-                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                               0, VK_ACCESS_TRANSFER_WRITE_BIT,
-                               VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                               VK_PIPELINE_STAGE_TRANSFER_BIT);
-
-            VkBufferImageCopy copy_region = {
-                .bufferOffset = 0,
-                .bufferRowLength = staging_texture.texture_width,
-                .bufferImageHeight = staging_texture.texture_height,
-                .imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
-                .imageOffset = {0, 0, 0},
-                .imageExtent = {staging_texture.texture_width, staging_texture.texture_height, 1},
-            };
-
-            vkCmdCopyBufferToImage(initcmd, staging_texture.buffer, textures[i].image,
-                                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_region);
-
-            transition_image(initcmd, textures[i].image,
-                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                               VK_ACCESS_TRANSFER_WRITE_BIT,
-                               VK_ACCESS_SHADER_READ_BIT |
-                               VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
-                               VK_PIPELINE_STAGE_TRANSFER_BIT,
-                               VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
-        } else {
-            assert(!"No support for R8G8B8A8_UNORM as texture image format");
-        }
-
-        VkSamplerCreateInfo sampler_ci = {
-            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-            .pNext = NULL,
-            .magFilter = VK_FILTER_NEAREST,
-            .minFilter = VK_FILTER_NEAREST,
-            .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
-            .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-            .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-            .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
-            .mipLodBias = 0.0f,
-            .anisotropyEnable = VK_FALSE,
-            .maxAnisotropy = 1,
-            .compareOp = VK_COMPARE_OP_NEVER,
-            .minLod = 0.0f,
-            .maxLod = 0.0f,
-            .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
-            .unnormalizedCoordinates = VK_FALSE,
-        };
-
-        VkImageViewCreateInfo image_view_ci = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .pNext = NULL,
-            .image = VK_NULL_HANDLE,
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = texture_format,
-            .components = {
-                    .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-                    .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-                    .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-                    .a = VK_COMPONENT_SWIZZLE_IDENTITY,
-                },
-            .subresourceRange = {
-                .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel   = 0,
-                .levelCount     = 1,
-                .baseArrayLayer = 0,
-                .layerCount     = 1,
-            },
-            .flags = 0,
-        };
-
-        err = vkCreateSampler(device, &sampler_ci, NULL, &textures[i].sampler);
-        assert(!err);
-
-        image_view_ci.image = textures[i].image;
-        VK_CHECK(vkCreateImageView(device, &image_view_ci, NULL, &textures[i].image_view));
-    }
 }
 
 static void prepare_vertex_buffers(){
@@ -1018,16 +738,6 @@ void onx_vk_prepare_command_buffers(bool restart){
   }
 }
 
-void onx_vk_prepare_render_data(bool restart) {
-
-  vkGetPhysicalDeviceFormatProperties(gpu, texture_format, &format_properties);
-  vkGetPhysicalDeviceMemoryProperties(gpu, &memory_properties);
-
-  if(multiview) prepare_color();
-  prepare_depth();
-  prepare_textures();
-}
-
 void onx_vk_prepare_uniform_buffers(bool restart) {
 
   prepare_vertex_buffers();
@@ -1046,37 +756,6 @@ void onx_vk_prepare_uniform_buffers(bool restart) {
                                       VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                                       i);
   }
-}
-
-void onx_vk_prepare_descriptor_layout(bool restart) {
-
-  VkDescriptorSetLayoutBinding bindings[] = {
-      {
-          .binding = 0,
-          .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-          .descriptorCount = 1,
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-          .pImmutableSamplers = NULL,
-      },
-      {
-          .binding = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-          .descriptorCount = TEXTURE_COUNT,
-          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-          .pImmutableSamplers = NULL,
-      },
-  };
-
-  VkDescriptorSetLayoutCreateInfo descriptor_set_layout_ci = {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-      .bindingCount = 2,
-      .pBindings = bindings,
-  };
-
-  VK_CHECK(vkCreateDescriptorSetLayout(device,
-                                       &descriptor_set_layout_ci,
-                                       0,
-                                       &descriptor_layout));
 }
 
 void onx_vk_prepare_pipeline_layout(bool restart) {
@@ -1100,84 +779,6 @@ void onx_vk_prepare_pipeline_layout(bool restart) {
                                   &pipeline_layout_ci,
                                   0,
                                   &pipeline_layout));
-}
-
-void onx_vk_prepare_descriptor_pool(bool restart) {
-
-  VkDescriptorPoolSize pool_sizes[] = {
-      { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        image_count                 },
-      { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        image_count * 3             },
-      { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-        image_count * TEXTURE_COUNT },
-  };
-
-  VkDescriptorPoolCreateInfo descriptor_pool_ci = {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .maxSets = (image_count * 3) + image_count + (image_count * TEXTURE_COUNT) + 23, //// ??
-      .poolSizeCount = 3,
-      .pPoolSizes = pool_sizes,
-      .pNext = 0,
-  };
-
-  VK_CHECK(vkCreateDescriptorPool(device, &descriptor_pool_ci, NULL, &descriptor_pool));
-}
-
-void onx_vk_prepare_descriptor_set(bool restart) {
-
-  VkDescriptorSetAllocateInfo descriptor_set_ai = {
-    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-    .descriptorPool = descriptor_pool,
-    .descriptorSetCount = 1,
-    .pSetLayouts = &descriptor_layout,
-    .pNext = 0,
-  };
-
-  VkDescriptorBufferInfo uniform_info = {
-    .offset = 0,
-    .range = sizeof(struct uniforms),
-  };
-
-  VkDescriptorImageInfo texture_descs[TEXTURE_COUNT];
-  memset(&texture_descs, 0, sizeof(texture_descs));
-
-  for (unsigned int i = 0; i < TEXTURE_COUNT; i++) {
-    texture_descs[i].sampler = textures[i].sampler;
-    texture_descs[i].imageView = textures[i].image_view;
-    texture_descs[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-  }
-
-  VkWriteDescriptorSet writes[] = {
-    {
-      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-      .dstBinding = 0,
-      .pBufferInfo = &uniform_info,
-      .descriptorCount = 1,
-    },
-    {
-      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-      .dstBinding = 1,
-      .pImageInfo = texture_descs,
-      .descriptorCount = TEXTURE_COUNT,
-    },
-  };
-
-  for (uint32_t i = 0; i < image_count; i++) {
-
-    VK_CHECK(vkAllocateDescriptorSets(
-                              device,
-                             &descriptor_set_ai,
-                             &uniform_mem[i].descriptor_set));
-
-    uniform_info.buffer = uniform_mem[i].uniform_buffer;
-    writes[0].dstSet = uniform_mem[i].descriptor_set;
-    writes[1].dstSet = uniform_mem[i].descriptor_set;
-
-    vkUpdateDescriptorSets(device, 2, writes, 0, 0);
-  }
 }
 
 void onx_vk_prepare_render_pass(bool restart) {
@@ -1477,8 +1078,421 @@ void onx_vk_prepare_framebuffers(bool restart) {
     }
 }
 
+// ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------
+
+struct texture_object {
+    int32_t texture_width;
+    int32_t texture_height;
+    VkSampler sampler;
+    VkBuffer buffer;
+    VkImageLayout image_layout;
+    VkDeviceMemory device_memory;
+    VkImage image;
+    VkImageView image_view;
+};
+
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+//static char* font_face = "/usr/share/fonts/truetype/open-sans/OpenSans-Regular.ttf";
+static char* font_face = "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf";
+#endif
+
+static char *texture_files[] = {"ivory.ppm"};
+
+#include "ivory.ppm.h"
+
+#define TEXTURE_COUNT 1
+
+struct texture_object textures[TEXTURE_COUNT];
+struct texture_object staging_texture;
+
+
+// ---------------------------------
+
+static VkFormat texture_format = VK_FORMAT_R8G8B8A8_UNORM;
+
+static bool load_texture(const char *filename, uint8_t *rgba_data, uint64_t row_pitch, int32_t *w, int32_t *h) {
+    (void)filename;
+    char *cPtr;
+    cPtr = (char *)texture_array;
+    if ((unsigned char *)cPtr >= (texture_array + texture_len) || strncmp(cPtr, "P6\n", 3)) {
+        return false;
+    }
+    while (strncmp(cPtr++, "\n", 1)) ;
+    sscanf(cPtr, "%u %u", w, h);
+
+    if(!rgba_data) return true;
+
+    while (strncmp(cPtr++, "\n", 1))
+        ;
+    if ((unsigned char *)cPtr >= (texture_array + texture_len) || strncmp(cPtr, "255\n", 4)) {
+        return false;
+    }
+    while (strncmp(cPtr++, "\n", 1))
+        ;
+    for (int y = 0; y < *h; y++) {
+        uint8_t *rowPtr = rgba_data;
+        for (int x = 0; x < *w; x++) {
+            memcpy(rowPtr, cPtr, 3);
+            rowPtr[3] = 255; /* Alpha of 1 */
+            rowPtr += 4;
+            cPtr += 3;
+        }
+        rgba_data += row_pitch;
+    }
+    return true;
+}
+
+// ---------------------------------
+
+static void prepare_texture_image(const char *filename,
+                                  struct texture_object *texture_obj,
+                                  VkImageTiling tiling,
+                                  VkImageUsageFlags usage,
+                                  VkFlags prop_flags) {
+    int32_t texture_width;
+    int32_t texture_height;
+    VkResult err;
+
+    if (!load_texture(filename, NULL, 0, &texture_width, &texture_height)) {
+        ERR_EXIT("Failed to load textures");
+    }
+
+    texture_obj->texture_width = texture_width;
+    texture_obj->texture_height = texture_height;
+
+    VkImageCreateInfo image_ci = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        .pNext = NULL,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .format = texture_format,
+        .extent = {texture_width, texture_height, 1},
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .tiling = tiling,
+        .usage = usage,
+        .flags = 0,
+        .initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED,
+    };
+
+    uint32_t size = create_image_with_memory(&image_ci,
+                                             prop_flags,
+                                             &texture_obj->image,
+                                             &texture_obj->device_memory);
+
+    if (prop_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
+        const VkImageSubresource subres = {
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .mipLevel = 0,
+            .arrayLayer = 0,
+        };
+        VkSubresourceLayout layout;
+
+        vkGetImageSubresourceLayout(device, texture_obj->image, &subres, &layout);
+
+        void *data;
+        VK_CHECK(vkMapMemory(device, texture_obj->device_memory, 0, size, 0, &data));
+
+        if (!load_texture(filename, data, layout.rowPitch, &texture_width, &texture_height)) {
+            log_write("Error loading texture: %s\n", filename);
+        }
+        vkUnmapMemory(device, texture_obj->device_memory);
+    }
+    texture_obj->image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+}
+
+static void prepare_texture_buffer(const char *filename, struct texture_object *texture_obj) {
+
+    int32_t texture_width;
+    int32_t texture_height;
+    VkResult err;
+
+    if (!load_texture(filename, 0, 0, &texture_width, &texture_height)) {
+        ERR_EXIT("Failed to load textures");
+    }
+
+    texture_obj->texture_width = texture_width;
+    texture_obj->texture_height = texture_height;
+
+    VkBufferCreateInfo buffer_ci = {
+      .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+      .usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+      .flags = 0,
+      .size = texture_width * texture_height * 4,
+      .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+      .queueFamilyIndexCount = 0,
+      .pQueueFamilyIndices = NULL,
+      .pNext = 0,
+    };
+
+    VkFlags prop_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+    uint32_t size = create_buffer_with_memory(&buffer_ci,
+                                              prop_flags,
+                                              &texture_obj->buffer,
+                                              &texture_obj->device_memory);
+    VkSubresourceLayout layout;
+    memset(&layout, 0, sizeof(layout));
+    layout.rowPitch = texture_width * 4;
+
+    void *data;
+    err = vkMapMemory(device, texture_obj->device_memory, 0, size, 0, &data);
+    assert(!err);
+
+    if (!load_texture(filename, data, layout.rowPitch, &texture_width, &texture_height)) {
+        log_write("Error loading texture: %s\n", filename);
+    }
+
+    vkUnmapMemory(device, texture_obj->device_memory);
+}
+
+static void prepare_textures(){
+
+    uint32_t i;
+
+    for (i = 0; i < TEXTURE_COUNT; i++) {
+        VkResult err;
+
+#if defined(LIMIT_TO_LINEAR_AND_NO_STAGING_BUFFER)
+        if ((format_properties.linearTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT)) {
+
+            prepare_texture_image(texture_files[i], &textures[i], VK_IMAGE_TILING_LINEAR, VK_IMAGE_USAGE_SAMPLED_BIT,
+                                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+            transition_image(initcmd, textures[i].image,
+                               VK_IMAGE_LAYOUT_PREINITIALIZED,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                               0,
+                               VK_ACCESS_SHADER_READ_BIT |
+                               VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
+                               VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                               VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+
+            staging_texture.image = 0;
+        } else
+#endif
+        if (format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT) {
+
+            memset(&staging_texture, 0, sizeof(staging_texture));
+            prepare_texture_buffer(texture_files[i], &staging_texture);
+
+            prepare_texture_image(texture_files[i], &textures[i], VK_IMAGE_TILING_OPTIMAL,
+                                       (VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT),
+                                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+            transition_image(initcmd, textures[i].image,
+                               VK_IMAGE_LAYOUT_PREINITIALIZED,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                               0, VK_ACCESS_TRANSFER_WRITE_BIT,
+                               VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                               VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+            VkBufferImageCopy copy_region = {
+                .bufferOffset = 0,
+                .bufferRowLength = staging_texture.texture_width,
+                .bufferImageHeight = staging_texture.texture_height,
+                .imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
+                .imageOffset = {0, 0, 0},
+                .imageExtent = {staging_texture.texture_width, staging_texture.texture_height, 1},
+            };
+
+            vkCmdCopyBufferToImage(initcmd, staging_texture.buffer, textures[i].image,
+                                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_region);
+
+            transition_image(initcmd, textures[i].image,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                               VK_ACCESS_TRANSFER_WRITE_BIT,
+                               VK_ACCESS_SHADER_READ_BIT |
+                               VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
+                               VK_PIPELINE_STAGE_TRANSFER_BIT,
+                               VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+        } else {
+            assert(!"No support for R8G8B8A8_UNORM as texture image format");
+        }
+
+        VkSamplerCreateInfo sampler_ci = {
+            .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+            .pNext = NULL,
+            .magFilter = VK_FILTER_NEAREST,
+            .minFilter = VK_FILTER_NEAREST,
+            .mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+            .addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+            .addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+            .addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+            .mipLodBias = 0.0f,
+            .anisotropyEnable = VK_FALSE,
+            .maxAnisotropy = 1,
+            .compareOp = VK_COMPARE_OP_NEVER,
+            .minLod = 0.0f,
+            .maxLod = 0.0f,
+            .borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE,
+            .unnormalizedCoordinates = VK_FALSE,
+        };
+
+        VkImageViewCreateInfo image_view_ci = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .pNext = NULL,
+            .image = VK_NULL_HANDLE,
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = texture_format,
+            .components = {
+                    .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+                },
+            .subresourceRange = {
+                .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel   = 0,
+                .levelCount     = 1,
+                .baseArrayLayer = 0,
+                .layerCount     = 1,
+            },
+            .flags = 0,
+        };
+
+        err = vkCreateSampler(device, &sampler_ci, NULL, &textures[i].sampler);
+        assert(!err);
+
+        image_view_ci.image = textures[i].image;
+        VK_CHECK(vkCreateImageView(device, &image_view_ci, NULL, &textures[i].image_view));
+    }
+}
+
 // ----------------------------------------------------------------------------------------
 
+void onx_vk_prepare_descriptor_pool(bool restart) {
+
+  VkDescriptorPoolSize pool_sizes[] = {
+      { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        image_count                 },
+      { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        image_count * 3             },
+      { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        image_count * TEXTURE_COUNT },
+  };
+
+  VkDescriptorPoolCreateInfo descriptor_pool_ci = {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+      .maxSets = (image_count * 3) + image_count + (image_count * TEXTURE_COUNT) + 23, //// ??
+      .poolSizeCount = 3,
+      .pPoolSizes = pool_sizes,
+      .pNext = 0,
+  };
+
+  VK_CHECK(vkCreateDescriptorPool(device, &descriptor_pool_ci, NULL, &descriptor_pool));
+}
+
+void onx_vk_prepare_descriptor_set(bool restart) {
+
+  VkDescriptorSetAllocateInfo descriptor_set_ai = {
+    .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+    .descriptorPool = descriptor_pool,
+    .descriptorSetCount = 1,
+    .pSetLayouts = &descriptor_layout,
+    .pNext = 0,
+  };
+
+  VkDescriptorBufferInfo uniform_info = {
+    .offset = 0,
+    .range = sizeof(struct uniforms),
+  };
+
+  VkDescriptorImageInfo texture_descs[TEXTURE_COUNT];
+  memset(&texture_descs, 0, sizeof(texture_descs));
+
+  for (unsigned int i = 0; i < TEXTURE_COUNT; i++) {
+    texture_descs[i].sampler = textures[i].sampler;
+    texture_descs[i].imageView = textures[i].image_view;
+    texture_descs[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  }
+
+  VkWriteDescriptorSet writes[] = {
+    {
+      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+      .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+      .dstBinding = 0,
+      .pBufferInfo = &uniform_info,
+      .descriptorCount = 1,
+    },
+    {
+      .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+      .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+      .dstBinding = 1,
+      .pImageInfo = texture_descs,
+      .descriptorCount = TEXTURE_COUNT,
+    },
+  };
+
+  for (uint32_t i = 0; i < image_count; i++) {
+
+    VK_CHECK(vkAllocateDescriptorSets(
+                              device,
+                             &descriptor_set_ai,
+                             &uniform_mem[i].descriptor_set));
+
+    uniform_info.buffer = uniform_mem[i].uniform_buffer;
+    writes[0].dstSet = uniform_mem[i].descriptor_set;
+    writes[1].dstSet = uniform_mem[i].descriptor_set;
+
+    vkUpdateDescriptorSets(device, 2, writes, 0, 0);
+  }
+}
+
+
+void onx_vk_prepare_descriptor_layout(bool restart) {
+
+  VkDescriptorSetLayoutBinding bindings[] = {
+      {
+          .binding = 0,
+          .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+          .descriptorCount = 1,
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+          .pImmutableSamplers = NULL,
+      },
+      {
+          .binding = 1,
+          .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+          .descriptorCount = TEXTURE_COUNT,
+          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+          .pImmutableSamplers = NULL,
+      },
+  };
+
+  VkDescriptorSetLayoutCreateInfo descriptor_set_layout_ci = {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+      .bindingCount = 2,
+      .pBindings = bindings,
+  };
+
+  VK_CHECK(vkCreateDescriptorSetLayout(device,
+                                       &descriptor_set_layout_ci,
+                                       0,
+                                       &descriptor_layout));
+}
+
+
+// ---------------------------------
+
+// this needs splitting
+void onx_vk_prepare_render_data(bool restart) {
+
+  vkGetPhysicalDeviceFormatProperties(gpu, texture_format, &format_properties);
+  vkGetPhysicalDeviceMemoryProperties(gpu, &memory_properties);
+
+  if(multiview) prepare_color();
+  prepare_depth();
+  prepare_textures();
+}
+
+// this needs splitting
 void onx_vk_finish() {
 
   scene_ready = false;
@@ -1558,6 +1572,4 @@ void onx_vk_finish() {
 
   vkDestroyRenderPass(device, render_pass, NULL);
 }
-
-// ---------------------------------
 
