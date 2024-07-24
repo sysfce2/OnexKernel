@@ -861,6 +861,7 @@ static void prepare(bool restart) {
     onx_vk_prepare_swapchain_images(restart);
     onx_vk_prepare_semaphores_and_fences(restart);
     onx_vk_prepare_command_buffers(restart);
+    onx_vk_prepare_rendering(restart);
     onx_vk_prepare_render_data(restart);
     onx_vk_prepare_uniform_buffers(restart);
     onx_vk_prepare_descriptor_layout(restart);
@@ -882,7 +883,8 @@ static void finish(bool restart) {
 
   vkDeviceWaitIdle(device);
 
-  onx_vk_finish();
+  onx_vk_finish_rendering();
+  onx_vk_finish_render_data();
 
   if(!restart){
 

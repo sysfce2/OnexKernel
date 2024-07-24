@@ -738,6 +738,12 @@ void onx_vk_prepare_command_buffers(bool restart){
   }
 }
 
+void onx_vk_prepare_rendering(bool restart) {
+  vkGetPhysicalDeviceMemoryProperties(gpu, &memory_properties);
+  if(multiview) prepare_color();
+  prepare_depth();
+}
+
 void onx_vk_prepare_uniform_buffers(bool restart) {
 
   prepare_vertex_buffers();
@@ -1076,6 +1082,47 @@ void onx_vk_prepare_framebuffers(bool restart) {
                                            &swapchain_image_resources[i].framebuffer);
         assert(!err);
     }
+}
+
+void onx_vk_finish_rendering() {
+
+  for (uint32_t i = 0; i < image_count; i++) {
+    vkWaitForFences(device, 1, &swapchain_image_resources[i].command_buffer_fence, VK_TRUE, UINT64_MAX);
+    vkDestroyFence(device, swapchain_image_resources[i].command_buffer_fence, NULL);
+  }
+
+  vkDestroyPipeline(device, pipeline, NULL);
+  vkDestroyPipelineCache(device, pipeline_cache, NULL);
+  vkDestroyPipelineLayout(device, pipeline_layout, NULL);
+
+  // ---------------------------------
+
+  vkDestroyImageView(device, depth.image_view, NULL);
+  vkDestroyImage(device, depth.image, NULL);
+  vkFreeMemory(device, depth.device_memory, NULL);
+
+  if(multiview){
+    vkDestroyImageView(device, color.image_view, NULL);
+    vkDestroyImage(device, color.image, NULL);
+    vkFreeMemory(device, color.device_memory, NULL);
+  }
+
+  uint32_t i;
+  if (swapchain_image_resources) {
+     for (i = 0; i < image_count; i++) {
+         vkFreeCommandBuffers(device, command_pool, 1, &swapchain_image_resources[i].command_buffer);
+         vkDestroyFramebuffer(device, swapchain_image_resources[i].framebuffer, NULL);
+         vkDestroyImageView(device, swapchain_image_resources[i].image_view, NULL);
+     }
+     free(swapchain_image_resources);
+  }
+
+  // ---------------------------------
+
+  VK_DESTROY(vkDestroySemaphore, device, image_acquired_semaphore);
+  VK_DESTROY(vkDestroySemaphore, device, render_complete_semaphore);
+
+  vkDestroyRenderPass(device, render_pass, NULL);
 }
 
 // ---------------------------------------------------------------------------------------
@@ -1481,29 +1528,14 @@ void onx_vk_prepare_descriptor_layout(bool restart) {
 
 // ---------------------------------
 
-// this needs splitting
 void onx_vk_prepare_render_data(bool restart) {
-
   vkGetPhysicalDeviceFormatProperties(gpu, texture_format, &format_properties);
-  vkGetPhysicalDeviceMemoryProperties(gpu, &memory_properties);
-
-  if(multiview) prepare_color();
-  prepare_depth();
   prepare_textures();
 }
 
-// this needs splitting
-void onx_vk_finish() {
+void onx_vk_finish_render_data() {
 
   scene_ready = false;
-
-  for (uint32_t i = 0; i < image_count; i++) {
-    vkWaitForFences(device, 1, &swapchain_image_resources[i].command_buffer_fence, VK_TRUE, UINT64_MAX);
-    vkDestroyFence(device, swapchain_image_resources[i].command_buffer_fence, NULL);
-  }
-
-  vkDestroyPipeline(device, pipeline, NULL);
-  vkDestroyPipelineCache(device, pipeline_cache, NULL);
 
   // ---------------------------------
 
@@ -1516,10 +1548,6 @@ void onx_vk_finish() {
   // ---------------------------------
 
   vkDestroyDescriptorPool(device, descriptor_pool, NULL);
-
-  // ---------------------------------
-
-  vkDestroyPipelineLayout(device, pipeline_layout, NULL);
   vkDestroyDescriptorSetLayout(device, descriptor_layout, NULL);
 
   // ---------------------------------
@@ -1545,31 +1573,6 @@ void onx_vk_finish() {
      vkDestroyBuffer(device, staging_texture.buffer, NULL);
   }
 
-  vkDestroyImageView(device, depth.image_view, NULL);
-  vkDestroyImage(device, depth.image, NULL);
-  vkFreeMemory(device, depth.device_memory, NULL);
-
-  if(multiview){
-    vkDestroyImageView(device, color.image_view, NULL);
-    vkDestroyImage(device, color.image, NULL);
-    vkFreeMemory(device, color.device_memory, NULL);
-  }
-
-  uint32_t i;
-  if (swapchain_image_resources) {
-     for (i = 0; i < image_count; i++) {
-         vkFreeCommandBuffers(device, command_pool, 1, &swapchain_image_resources[i].command_buffer);
-         vkDestroyFramebuffer(device, swapchain_image_resources[i].framebuffer, NULL);
-         vkDestroyImageView(device, swapchain_image_resources[i].image_view, NULL);
-     }
-     free(swapchain_image_resources);
-  }
-
   // ---------------------------------
-
-  VK_DESTROY(vkDestroySemaphore, device, image_acquired_semaphore);
-  VK_DESTROY(vkDestroySemaphore, device, render_complete_semaphore);
-
-  vkDestroyRenderPass(device, render_pass, NULL);
 }
 
