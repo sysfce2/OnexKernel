@@ -552,6 +552,39 @@ void onx_vk_rd_prepare_descriptor_layout(bool restart) {
                                        &descriptor_layout));
 }
 
+extern unsigned char tests_ont_examples_vulkan_onx_frag_spv[];
+extern unsigned int  tests_ont_examples_vulkan_onx_frag_spv_len;
+extern unsigned char tests_ont_examples_vulkan_onx_vert_spv[];
+extern unsigned int  tests_ont_examples_vulkan_onx_vert_spv_len;
+
+VkShaderModule vert_shader_module;
+VkShaderModule frag_shader_module;
+
+static VkShaderModule load_c_shader(bool load_frag) {
+
+    VkShaderModuleCreateInfo module_ci = {
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .codeSize = load_frag? tests_ont_examples_vulkan_onx_frag_spv_len:
+                               tests_ont_examples_vulkan_onx_vert_spv_len,
+        .pCode = load_frag? tests_ont_examples_vulkan_onx_frag_spv:
+                            tests_ont_examples_vulkan_onx_vert_spv,
+        .flags = 0,
+        .pNext = 0,
+    };
+
+    VkShaderModule module;
+    VK_CHECK(vkCreateShaderModule(device,
+                                  &module_ci,
+                                  0,
+                                  &module));
+    return module;
+}
+
+void onx_vk_rd_prepare_shaders(bool restart){
+  vert_shader_module = load_c_shader(false);
+  frag_shader_module = load_c_shader(true);
+}
+
 // ---------------------------------
 
 void onx_vk_rd_finish_render_data() {

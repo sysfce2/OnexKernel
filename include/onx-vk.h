@@ -40,6 +40,8 @@ extern VkQueue queue;
 extern VkCommandPool command_pool;
 extern VkSwapchainKHR swapchain;
 extern VkExtent2D swapchain_extent;
+extern VkShaderModule vert_shader_module;
+extern VkShaderModule frag_shader_module;
 
 extern bool prepared;
 
@@ -54,6 +56,7 @@ void onl_vk_rg_prepare_pipeline_layout(bool restart);
 void onx_vk_rd_prepare_descriptor_pool(bool restart);
 void onx_vk_rd_prepare_descriptor_set(bool restart);
 void onl_vk_rg_prepare_render_pass(bool restart);
+void onx_vk_rd_prepare_shaders(bool restart);
 void onl_vk_rg_prepare_pipeline(bool restart);
 void onl_vk_rg_prepare_framebuffers(bool restart);
 void onx_vk_rd_update_uniforms();

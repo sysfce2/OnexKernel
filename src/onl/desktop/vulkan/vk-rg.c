@@ -340,32 +340,6 @@ uint32_t create_image_with_memory(VkImageCreateInfo*    image_ci,
   return memory_ai.allocationSize;
 }
 
-extern unsigned char tests_ont_examples_vulkan_onx_frag_spv[];
-extern unsigned int  tests_ont_examples_vulkan_onx_frag_spv_len;
-extern unsigned char tests_ont_examples_vulkan_onx_vert_spv[];
-extern unsigned int  tests_ont_examples_vulkan_onx_vert_spv_len;
-
-static VkShaderModule load_c_shader(bool load_frag) {
-
-    VkShaderModuleCreateInfo module_ci = {
-        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .codeSize = load_frag? tests_ont_examples_vulkan_onx_frag_spv_len:
-                               tests_ont_examples_vulkan_onx_vert_spv_len,
-        .pCode = load_frag? tests_ont_examples_vulkan_onx_frag_spv:
-                            tests_ont_examples_vulkan_onx_vert_spv,
-        .flags = 0,
-        .pNext = 0,
-    };
-
-    VkShaderModule module;
-    VK_CHECK(vkCreateShaderModule(device,
-                                  &module_ci,
-                                  0,
-                                  &module));
-    return module;
-}
-
-
 static void prepare_color() {
 
   VkImageCreateInfo image_ci = {
@@ -682,9 +656,6 @@ void onl_vk_rg_prepare_render_pass(bool restart) {
 }
 
 void onl_vk_rg_prepare_pipeline(bool restart) {
-
-  VkShaderModule vert_shader_module = load_c_shader(false);
-  VkShaderModule frag_shader_module = load_c_shader(true);
 
   VkPipelineShaderStageCreateInfo shader_stages_ci[] = {
     {

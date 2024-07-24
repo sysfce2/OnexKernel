@@ -871,6 +871,7 @@ static void prepare(bool restart) {
     onx_vk_rd_prepare_descriptor_pool(restart);
     onx_vk_rd_prepare_descriptor_set(restart);
     onl_vk_rg_prepare_render_pass(restart);
+    onx_vk_rd_prepare_shaders(restart);
     onl_vk_rg_prepare_pipeline(restart);
     onl_vk_rg_prepare_framebuffers(restart);
   }
