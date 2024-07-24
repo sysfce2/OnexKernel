@@ -179,12 +179,12 @@ static void prepare_swapchain() {
     VkPhysicalDeviceMultiviewFeaturesKHR extFeatures = {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR,
     };
-
+/*
     VkPhysicalDeviceFeatures deviceFeatures;
     vkGetPhysicalDeviceFeatures(gpu, &deviceFeatures);
 
-    printf("multiViewport = %d\n", deviceFeatures.multiViewport);
-
+    log_write("multiViewport = %d\n", deviceFeatures.multiViewport);
+*/
     VkPhysicalDeviceFeatures2KHR deviceFeatures2 = {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR,
       .pNext = &extFeatures,
@@ -199,15 +199,15 @@ static void prepare_swapchain() {
       .pNext = &extProps,
     };
     vkGetPhysicalDeviceProperties2(gpu, &deviceProps2);
-
-    printf("Multiview features:\n");
-    printf("  multiview = %d\n", extFeatures.multiview);
-    printf("  multiviewGeometryShader =  %d\n", extFeatures.multiviewGeometryShader);
-    printf("  multiviewTessellationShader =  %d\n", extFeatures.multiviewTessellationShader);
-    printf("Multiview properties:\n");
-    printf("  maxMultiviewViewCount = %d\n", extProps.maxMultiviewViewCount);
-    printf("  maxMultiviewInstanceIndex = %d\n", extProps.maxMultiviewInstanceIndex);
-
+/*
+    log_write("Multiview features:\n");
+    log_write("  multiview = %d\n", extFeatures.multiview);
+    log_write("  multiviewGeometryShader =  %d\n", extFeatures.multiviewGeometryShader);
+    log_write("  multiviewTessellationShader =  %d\n", extFeatures.multiviewTessellationShader);
+    log_write("Multiview properties:\n");
+    log_write("  maxMultiviewViewCount = %d\n", extProps.maxMultiviewViewCount);
+    log_write("  maxMultiviewInstanceIndex = %d\n", extProps.maxMultiviewInstanceIndex);
+*/
     // width and height are either both 0xFFFFFFFF, or both not 0xFFFFFFFF.
     if (surfCapabilities.currentExtent.width == 0xFFFFFFFF) {
         // If the surface size is undefined, the size is set to the size
@@ -915,7 +915,7 @@ void ont_vk_loop(bool running) {
   uint64_t ct=time_ms();
   uint16_t dt=(uint16_t)(ct-lt);
   if(dt > 1000){
-    printf("fps: %d\n", frames * 1000 / dt);
+    log_write("fps: %d\n", frames * 1000 / dt);
     frames=0;
     lt=ct;
   }

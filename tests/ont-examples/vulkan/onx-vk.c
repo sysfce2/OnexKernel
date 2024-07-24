@@ -601,7 +601,7 @@ static void prepare_depth() {
         .pNext = NULL,
         .imageType = VK_IMAGE_TYPE_2D,
         .format = depth_format,
-        .extent = { io.swap_width, io.swap_height, 1},
+        .extent = { io.swap_width, io.swap_height, 1 },
         .mipLevels = 1,
         .arrayLayers = 1,
         .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -1152,14 +1152,11 @@ void onx_vk_prepare_pipeline(bool restart) {
       .primitiveRestartEnable = VK_FALSE,
   };
 
-  float width  = io.swap_width;
-  float height = io.swap_height;
-
   VkViewport viewport = {
       .x = 0.0f,
       .y = 0.0f,
-      .width  = width,
-      .height = height,
+      .width  = io.swap_width,
+      .height = io.swap_height,
       .minDepth = 0.0f,
       .maxDepth = 1.0f,
   };
@@ -1170,8 +1167,8 @@ void onx_vk_prepare_pipeline(bool restart) {
          0
       },
       .extent = {
-         width,
-         height,
+         io.swap_width,
+         io.swap_height,
       },
   };
 
