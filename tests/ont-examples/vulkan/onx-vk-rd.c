@@ -112,7 +112,8 @@ void set_up_scene_end() {
   vkUnmapMemory(device, vertex_buffer_memory);
 
   for (uint32_t ii = 0; ii < max_img; ii++) {
-      VkCommandBuffer cmd_buf = begin_cmd_buf_and_render_pass(ii);
+      VkCommandBuffer cmd_buf = begin_cmd_buf(ii);
+      begin_render_pass(ii, cmd_buf);
       do_cmd_buf_draw(ii, cmd_buf);
       end_cmd_buf_and_render_pass(ii, cmd_buf);
   }

@@ -849,7 +849,7 @@ void onl_vk_rg_prepare_framebuffers(bool restart) {
     }
 }
 
-VkCommandBuffer begin_cmd_buf_and_render_pass(uint32_t ii) {
+VkCommandBuffer begin_cmd_buf(uint32_t ii) {
 
   vkWaitForFences(device, 1, &swapchain_bits[ii].cmd_buf_fence, VK_TRUE, UINT64_MAX);
 
@@ -863,6 +863,11 @@ VkCommandBuffer begin_cmd_buf_and_render_pass(uint32_t ii) {
   };
 
   VK_CHECK(vkBeginCommandBuffer(cmd_buf, &cmd_buf_bi));
+
+  return cmd_buf;
+}
+
+void begin_render_pass(uint32_t ii, VkCommandBuffer cmd_buf) {
 
   const VkClearValue clear_values[] = {
     { .color.float32 = { 0.2f, 0.8f, 1.0f, 0.0f } },
@@ -883,8 +888,6 @@ VkCommandBuffer begin_cmd_buf_and_render_pass(uint32_t ii) {
   vkCmdBeginRenderPass(cmd_buf, &render_pass_bi, VK_SUBPASS_CONTENTS_INLINE);
 
   vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-  return cmd_buf;
 }
 
 void end_cmd_buf_and_render_pass(uint32_t ii, VkCommandBuffer cmd_buf){

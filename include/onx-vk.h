@@ -61,8 +61,9 @@ extern pthread_mutex_t scene_lock;
 
 void set_proj_view();
 
-VkCommandBuffer begin_cmd_buf_and_render_pass(uint32_t ii);
-void            end_cmd_buf_and_render_pass(  uint32_t ii, VkCommandBuffer cmd_buf);
+VkCommandBuffer begin_cmd_buf(uint32_t ii);
+void            begin_render_pass(uint32_t ii, VkCommandBuffer cmd_buf);
+void            end_cmd_buf_and_render_pass(uint32_t ii, VkCommandBuffer cmd_buf);
 
 void transition_image(
     VkCommandBuffer cmdBuffer,
