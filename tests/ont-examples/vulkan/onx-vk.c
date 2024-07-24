@@ -9,17 +9,12 @@ extern void ont_vk_restart(); //!! FIXME
 
 float aspect_ratio;
 bool  sbs_render = false;
-#define TWO_EYES 2
+
 #define ONE_EYE  1
+#define TWO_EYES 2
 
 static uint32_t max_img;
 static uint32_t cur_img;
-
-static VkBuffer vertex_buffer;
-static VkBuffer staging_buffer;
-
-static VkDeviceMemory vertex_buffer_memory;
-static VkDeviceMemory staging_buffer_memory;
 
 static VkRenderPass render_pass;
 
@@ -30,11 +25,12 @@ static VkPipeline       pipeline;
 static VkPipelineLayout pipeline_layout;
 static VkPipelineCache  pipeline_cache;
 
-static VkDescriptorSetLayout descriptor_layout;
-static VkDescriptorPool      descriptor_pool;
-
-static VkFormatProperties               format_properties;
 static VkPhysicalDeviceMemoryProperties memory_properties;
+
+static bool            scene_ready = false;
+static pthread_mutex_t scene_lock;
+
+static VkDescriptorSetLayout descriptor_layout;
 
 // ---------------------------------
 
@@ -51,22 +47,6 @@ struct {
     VkImage image;
     VkImageView image_view;
 } depth;
-
-struct uniforms {
-    float proj[4][4];
-    float view_l[4][4];
-    float view_r[4][4];
-    float model[MAX_PANELS][4][4];
-};
-
-typedef struct {
-    VkBuffer        uniform_buffer;
-    VkDeviceMemory  uniform_memory;
-    void*           uniform_memory_ptr;
-    VkDescriptorSet descriptor_set;
-} uniform_mem_t;
-
-static uniform_mem_t *uniform_mem;
 
 typedef struct {
     VkFramebuffer   framebuffer;
@@ -217,124 +197,6 @@ void copy_colour_to_swap(uint32_t ii) {
   );
 }
 
-static void build_render_pass_and_cmdbufs(uint32_t ii) {
-
-  vkWaitForFences(device, 1, &swapchain_bits[ii].cmd_buf_fence, VK_TRUE, UINT64_MAX);
-
-  VkCommandBuffer cmd_buf = swapchain_bits[ii].cmd_buf;
-
-  const VkCommandBufferBeginInfo cmd_buf_bi = {
-    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-    .flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT,
-    .pInheritanceInfo = NULL,
-    .pNext = 0,
-  };
-
-  VK_CHECK(vkBeginCommandBuffer(cmd_buf, &cmd_buf_bi));
-
-  // --------------------------------------------
-
-  const VkClearValue clear_values[] = {
-    { .color.float32 = { 0.2f, 0.8f, 1.0f, 0.0f } },
-    { .depthStencil = { 1.0f, 0 }},
-  };
-
-  const VkRenderPassBeginInfo render_pass_bi = {
-      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-      .renderPass = render_pass,
-      .framebuffer = swapchain_bits[ii].framebuffer,
-      .renderArea.offset = { 0, 0 },
-      .renderArea.extent = swapchain_extent,
-      .clearValueCount = 2,
-      .pClearValues = clear_values,
-      .pNext = 0,
-  };
-
-  vkCmdBeginRenderPass(cmd_buf, &render_pass_bi, VK_SUBPASS_CONTENTS_INLINE);
-
-  VkBuffer vertex_buffers[] = { vertex_buffer, };
-  VkDeviceSize offsets[] = { 0 };
-  vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertex_buffers, offsets);
-
-  vkCmdBindDescriptorSets(cmd_buf,
-                          VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          pipeline_layout,
-                          0, 1,
-                          &uniform_mem[ii].descriptor_set,
-                          0, NULL);
-
-  vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-  // --------------------------------------------
-
-  struct push_constants pc;
-
-  pc.phase = 0, // ground plane
-  vkCmdPushConstants(cmd_buf, pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                     sizeof(struct push_constants), &pc);
-  vkCmdDraw(cmd_buf, 6, 1, 0, 0);
-
-  pc.phase = 1, // panels
-  vkCmdPushConstants(cmd_buf, pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                     sizeof(struct push_constants), &pc);
-  vkCmdDraw(cmd_buf, 6*6, 1, 0, 0);
-
-  // --------------------------------------------
-
-  vkCmdEndRenderPass(cmd_buf);
-
-  if(sbs_render) copy_colour_to_swap(ii);
-
-  VK_CHECK(vkEndCommandBuffer(cmd_buf));
-}
-
-static bool            scene_ready = false;
-static pthread_mutex_t scene_lock;
-
-void set_up_scene_begin(float** vertices) {
-
-  pthread_mutex_lock(&scene_lock);
-  scene_ready = false;
-
-  size_t vertex_size = MAX_PANELS * 6*6 * (3 * sizeof(float) +
-                                           2 * sizeof(float)  );
-
-  VK_CHECK(vkMapMemory(device, vertex_buffer_memory, 0, vertex_size, 0, (void**)vertices));
-}
-
-void set_up_scene_end() {
-
-  vkUnmapMemory(device, vertex_buffer_memory);
-
-  for (uint32_t ii = 0; ii < max_img; ii++) {
-      build_render_pass_and_cmdbufs(ii);
-  }
-  cur_img = 0;
-
-  scene_ready = true;
-  pthread_mutex_unlock(&scene_lock);
-}
-
-void onx_vk_update_uniforms() {
-
-  set_mvp_uniforms();
-
-  memcpy(uniform_mem[cur_img].uniform_memory_ptr,
-         (const void*)&proj_matrix,    sizeof(proj_matrix));
-
-  memcpy(uniform_mem[cur_img].uniform_memory_ptr +
-                sizeof(proj_matrix),
-         (const void*)&view_l_matrix,  sizeof(view_l_matrix));
-
-  memcpy(uniform_mem[cur_img].uniform_memory_ptr +
-                sizeof(proj_matrix)+sizeof(view_l_matrix),
-         (const void*)&view_r_matrix,  sizeof(view_r_matrix));
-
-  memcpy(uniform_mem[cur_img].uniform_memory_ptr +
-                sizeof(proj_matrix)+sizeof(view_l_matrix)+sizeof(view_r_matrix),
-         (const void*)&model_matrix, sizeof(model_matrix));
-}
-
 void onx_vk_render_frame() {
 
   vkWaitForFences(device, 1, &swapchain_bits[cur_img].cmd_buf_fence, VK_TRUE, UINT64_MAX);
@@ -479,45 +341,6 @@ static uint32_t create_image_with_memory(VkImageCreateInfo*    image_ci,
   return memory_ai.allocationSize;
 }
 
-static void create_uniform_buffer_with_memory(VkBufferCreateInfo* buffer_ci,
-                                              VkMemoryPropertyFlags prop_flags,
-                                              uint32_t ii){
-    VK_CHECK(vkCreateBuffer(device,
-                            buffer_ci,
-                            0,
-                            &uniform_mem[ii].uniform_buffer
-    ));
-
-    VkMemoryRequirements mem_reqs;
-    vkGetBufferMemoryRequirements(
-                            device,
-                            uniform_mem[ii].uniform_buffer,
-                            &mem_reqs);
-
-    VkMemoryAllocateInfo memory_ai = {
-      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-      .allocationSize = mem_reqs.size,
-    };
-    assert(memory_type_from_properties(mem_reqs.memoryTypeBits,
-                                       prop_flags,
-                                       &memory_ai.memoryTypeIndex));
-
-    VK_CHECK(vkAllocateMemory(device,
-                             &memory_ai,
-                              0,
-                             &uniform_mem[ii].uniform_memory));
-
-    VK_CHECK(vkMapMemory(device,
-                         uniform_mem[ii].uniform_memory,
-                         0, sizeof(struct uniforms), 0,
-                        &uniform_mem[ii].uniform_memory_ptr));
-
-    VK_CHECK(vkBindBufferMemory(device,
-                                uniform_mem[ii].uniform_buffer,
-                                uniform_mem[ii].uniform_memory,
-                                0));
-}
-
 extern unsigned char tests_ont_examples_vulkan_onx_frag_spv[];
 extern unsigned int  tests_ont_examples_vulkan_onx_frag_spv_len;
 extern unsigned char tests_ont_examples_vulkan_onx_vert_spv[];
@@ -633,23 +456,6 @@ static void prepare_depth() {
     VK_CHECK(vkCreateImageView(device, &image_view_ci, NULL, &depth.image_view));
 }
 
-static void prepare_vertex_buffers(){
-
-  VkBufferCreateInfo buffer_ci = {
-    .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-    .size = MAX_PANELS * 6*6 * (3 * sizeof(float) +
-                                2 * sizeof(float)  ),
-    .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-  };
-
-  create_buffer_with_memory(&buffer_ci,
-                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                            &vertex_buffer,
-                            &vertex_buffer_memory);
-}
-
 // -------------------------------------------------------------------------------------
 
 void onx_vk_prepare_swapchain_images(bool restart) {
@@ -746,26 +552,6 @@ void onx_vk_prepare_rendering(bool restart) {
   vkGetPhysicalDeviceMemoryProperties(gpu, &memory_properties);
   if(sbs_render) prepare_color();
   prepare_depth();
-}
-
-void onx_vk_prepare_uniform_buffers(bool restart) {
-
-  prepare_vertex_buffers();
-
-  uniform_mem = (uniform_mem_t*)malloc(sizeof(uniform_mem_t) * max_img);
-
-  VkBufferCreateInfo buffer_ci = {
-     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-     .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-     .size = sizeof(struct uniforms),
-  };
-  for (uint32_t i = 0; i < max_img; i++) {
-
-    create_uniform_buffer_with_memory(&buffer_ci,
-                                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT  |
-                                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                      i);
-  }
 }
 
 void onx_vk_prepare_pipeline_layout(bool restart) {
@@ -1092,6 +878,53 @@ void onx_vk_prepare_framebuffers(bool restart) {
     }
 }
 
+static VkCommandBuffer begin_cmd_buf_and_render_pass(uint32_t ii) {
+
+  vkWaitForFences(device, 1, &swapchain_bits[ii].cmd_buf_fence, VK_TRUE, UINT64_MAX);
+
+  VkCommandBuffer cmd_buf = swapchain_bits[ii].cmd_buf;
+
+  const VkCommandBufferBeginInfo cmd_buf_bi = {
+    .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+    .flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT,
+    .pInheritanceInfo = NULL,
+    .pNext = 0,
+  };
+
+  VK_CHECK(vkBeginCommandBuffer(cmd_buf, &cmd_buf_bi));
+
+  const VkClearValue clear_values[] = {
+    { .color.float32 = { 0.2f, 0.8f, 1.0f, 0.0f } },
+    { .depthStencil = { 1.0f, 0 }},
+  };
+
+  const VkRenderPassBeginInfo render_pass_bi = {
+      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+      .renderPass = render_pass,
+      .framebuffer = swapchain_bits[ii].framebuffer,
+      .renderArea.offset = { 0, 0 },
+      .renderArea.extent = swapchain_extent,
+      .clearValueCount = 2,
+      .pClearValues = clear_values,
+      .pNext = 0,
+  };
+
+  vkCmdBeginRenderPass(cmd_buf, &render_pass_bi, VK_SUBPASS_CONTENTS_INLINE);
+
+  vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+  return cmd_buf;
+}
+
+void end_cmd_buf_and_render_pass(uint32_t ii, VkCommandBuffer cmd_buf){
+
+  vkCmdEndRenderPass(cmd_buf);
+
+  if(sbs_render) copy_colour_to_swap(ii);
+
+  VK_CHECK(vkEndCommandBuffer(cmd_buf));
+}
+
 void onx_vk_finish_rendering() {
 
   for (uint32_t i = 0; i < max_img; i++) {
@@ -1141,6 +974,178 @@ void onx_vk_finish_rendering() {
 // ---------------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------------
 
+static VkBuffer vertex_buffer;
+static VkBuffer staging_buffer;
+
+static VkDeviceMemory vertex_buffer_memory;
+static VkDeviceMemory staging_buffer_memory;
+
+struct uniforms {
+    float proj[4][4];
+    float view_l[4][4];
+    float view_r[4][4];
+    float model[MAX_PANELS][4][4];
+};
+
+typedef struct {
+    VkBuffer        uniform_buffer;
+    VkDeviceMemory  uniform_memory;
+    void*           uniform_memory_ptr;
+    VkDescriptorSet descriptor_set;
+} uniform_mem_t;
+
+static uniform_mem_t *uniform_mem;
+
+static void create_uniform_buffer_with_memory(VkBufferCreateInfo* buffer_ci,
+                                              VkMemoryPropertyFlags prop_flags,
+                                              uint32_t ii){
+    VK_CHECK(vkCreateBuffer(device,
+                            buffer_ci,
+                            0,
+                            &uniform_mem[ii].uniform_buffer
+    ));
+
+    VkMemoryRequirements mem_reqs;
+    vkGetBufferMemoryRequirements(
+                            device,
+                            uniform_mem[ii].uniform_buffer,
+                            &mem_reqs);
+
+    VkMemoryAllocateInfo memory_ai = {
+      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+      .allocationSize = mem_reqs.size,
+    };
+    assert(memory_type_from_properties(mem_reqs.memoryTypeBits,
+                                       prop_flags,
+                                       &memory_ai.memoryTypeIndex));
+
+    VK_CHECK(vkAllocateMemory(device,
+                             &memory_ai,
+                              0,
+                             &uniform_mem[ii].uniform_memory));
+
+    VK_CHECK(vkMapMemory(device,
+                         uniform_mem[ii].uniform_memory,
+                         0, sizeof(struct uniforms), 0,
+                        &uniform_mem[ii].uniform_memory_ptr));
+
+    VK_CHECK(vkBindBufferMemory(device,
+                                uniform_mem[ii].uniform_buffer,
+                                uniform_mem[ii].uniform_memory,
+                                0));
+}
+
+static void prepare_vertex_buffers(){
+
+  VkBufferCreateInfo buffer_ci = {
+    .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+    .size = MAX_PANELS * 6*6 * (3 * sizeof(float) +
+                                2 * sizeof(float)  ),
+    .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+  };
+
+  create_buffer_with_memory(&buffer_ci,
+                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                            &vertex_buffer,
+                            &vertex_buffer_memory);
+}
+
+void onx_vk_prepare_uniform_buffers(bool restart) {
+
+  prepare_vertex_buffers();
+
+  uniform_mem = (uniform_mem_t*)malloc(sizeof(uniform_mem_t) * max_img);
+
+  VkBufferCreateInfo buffer_ci = {
+     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+     .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+     .size = sizeof(struct uniforms),
+  };
+  for (uint32_t i = 0; i < max_img; i++) {
+
+    create_uniform_buffer_with_memory(&buffer_ci,
+                                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT  |
+                                      VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                      i);
+  }
+}
+
+void do_cmd_buf_draw(uint32_t ii, VkCommandBuffer cmd_buf){
+
+  VkBuffer vertex_buffers[] = { vertex_buffer, };
+  VkDeviceSize offsets[] = { 0 };
+  vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertex_buffers, offsets);
+
+  vkCmdBindDescriptorSets(cmd_buf,
+                          VK_PIPELINE_BIND_POINT_GRAPHICS,
+                          pipeline_layout,
+                          0, 1,
+                          &uniform_mem[ii].descriptor_set,
+                          0, NULL);
+
+  struct push_constants pc;
+
+  pc.phase = 0, // ground plane
+  vkCmdPushConstants(cmd_buf, pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                     sizeof(struct push_constants), &pc);
+  vkCmdDraw(cmd_buf, 6, 1, 0, 0);
+
+  pc.phase = 1, // panels
+  vkCmdPushConstants(cmd_buf, pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                     sizeof(struct push_constants), &pc);
+  vkCmdDraw(cmd_buf, 6*6, 1, 0, 0);
+}
+
+void set_up_scene_begin(float** vertices) {
+
+  pthread_mutex_lock(&scene_lock);
+  scene_ready = false;
+
+  size_t vertex_size = MAX_PANELS * 6*6 * (3 * sizeof(float) +
+                                           2 * sizeof(float)  );
+
+  VK_CHECK(vkMapMemory(device, vertex_buffer_memory, 0, vertex_size, 0, (void**)vertices));
+}
+
+void set_up_scene_end() {
+
+  vkUnmapMemory(device, vertex_buffer_memory);
+
+  for (uint32_t ii = 0; ii < max_img; ii++) {
+      VkCommandBuffer cmd_buf = begin_cmd_buf_and_render_pass(ii);
+      do_cmd_buf_draw(ii, cmd_buf);
+      end_cmd_buf_and_render_pass(ii, cmd_buf);
+  }
+  cur_img = 0;
+
+  scene_ready = true;
+  pthread_mutex_unlock(&scene_lock);
+}
+
+void onx_vk_update_uniforms() {
+
+  set_mvp_uniforms();
+
+  memcpy(uniform_mem[cur_img].uniform_memory_ptr,
+         (const void*)&proj_matrix,    sizeof(proj_matrix));
+
+  memcpy(uniform_mem[cur_img].uniform_memory_ptr +
+                sizeof(proj_matrix),
+         (const void*)&view_l_matrix,  sizeof(view_l_matrix));
+
+  memcpy(uniform_mem[cur_img].uniform_memory_ptr +
+                sizeof(proj_matrix)+sizeof(view_l_matrix),
+         (const void*)&view_r_matrix,  sizeof(view_r_matrix));
+
+  memcpy(uniform_mem[cur_img].uniform_memory_ptr +
+                sizeof(proj_matrix)+sizeof(view_l_matrix)+sizeof(view_r_matrix),
+         (const void*)&model_matrix, sizeof(model_matrix));
+}
+
+static VkFormatProperties format_properties;
+
 struct texture_object {
     int32_t texture_width;
     int32_t texture_height;
@@ -1151,11 +1156,6 @@ struct texture_object {
     VkImage image;
     VkImageView image_view;
 };
-
-#if defined(VK_USE_PLATFORM_XCB_KHR)
-//static char* font_face = "/usr/share/fonts/truetype/open-sans/OpenSans-Regular.ttf";
-static char* font_face = "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf";
-#endif
 
 static char* texture_files[] = { "ivory.ppm" }; // not used
 
@@ -1432,7 +1432,22 @@ static void prepare_textures(){
     }
 }
 
+// ---------------------------------
+
+void onx_vk_prepare_render_data(bool restart) {
+  vkGetPhysicalDeviceFormatProperties(gpu, texture_format, &format_properties);
+  prepare_textures();
+}
+
 // ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------
+
+static VkDescriptorPool descriptor_pool;
 
 void onx_vk_prepare_descriptor_pool(bool restart) {
 
@@ -1544,13 +1559,7 @@ void onx_vk_prepare_descriptor_layout(bool restart) {
                                        &descriptor_layout));
 }
 
-
 // ---------------------------------
-
-void onx_vk_prepare_render_data(bool restart) {
-  vkGetPhysicalDeviceFormatProperties(gpu, texture_format, &format_properties);
-  prepare_textures();
-}
 
 void onx_vk_finish_render_data() {
 
