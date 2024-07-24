@@ -7,6 +7,11 @@
 
 extern void ont_vk_restart(); //!! FIXME
 
+float aspect_ratio;
+bool  multiview = false;
+#define TWO_EYES 2
+#define ONE_EYE  1
+
 static uint32_t image_count;
 static uint32_t image_index;
 
@@ -51,11 +56,19 @@ struct {
     VkDeviceMemory device_memory;
     VkImage image;
     VkImageView image_view;
+} color;
+
+struct {
+    VkFormat format;
+    VkDeviceMemory device_memory;
+    VkImage image;
+    VkImageView image_view;
 } depth;
 
 struct uniforms {
     float proj[4][4];
-    float view[4][4];
+    float view_l[4][4];
+    float view_r[4][4];
     float model[MAX_PANELS][4][4];
 };
 
@@ -123,6 +136,100 @@ void transition_image(
     );
 }
 
+void copy_colour_to_swap(uint32_t ii) {
+
+  VkCommandBuffer cmd_buf = swapchain_image_resources[ii].command_buffer;
+
+  transition_image(
+      cmd_buf,
+      color.image,
+      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+      VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+      VK_ACCESS_TRANSFER_READ_BIT,
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+      VK_PIPELINE_STAGE_TRANSFER_BIT
+  );
+
+  transition_image(
+      cmd_buf,
+      swapchain_image_resources[ii].image,
+      VK_IMAGE_LAYOUT_UNDEFINED,  // known layout???
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      0,
+      VK_ACCESS_TRANSFER_READ_BIT,
+      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+      VK_PIPELINE_STAGE_TRANSFER_BIT
+  );
+
+  VkImageCopy copy_spec = {
+    .srcSubresource = {
+      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+      .mipLevel = 0,
+      .baseArrayLayer = 0,
+      .layerCount = 1,
+    },
+    .dstSubresource = {
+      .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+      .mipLevel = 0,
+      .baseArrayLayer = 0,
+      .layerCount = 1,
+    },
+    .srcOffset = {0, 0, 0},
+    .dstOffset = {0, 0, 0},
+    .extent = {
+      .width = swapchain_extent.width / 2,
+      .height = swapchain_extent.height,
+      .depth = 1,
+    }
+  };
+
+  vkCmdCopyImage(
+      cmd_buf,
+      color.image,
+      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+      swapchain_image_resources[ii].image,
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      1,
+      &copy_spec
+  );
+
+  copy_spec.srcSubresource.baseArrayLayer = 1;
+  copy_spec.dstOffset.x = swapchain_extent.width / 2,
+
+  vkCmdCopyImage(
+      cmd_buf,
+      color.image,
+      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+      swapchain_image_resources[ii].image,
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      1,
+      &copy_spec
+  );
+
+  transition_image(
+      cmd_buf,
+      swapchain_image_resources[ii].image,
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+      VK_ACCESS_TRANSFER_WRITE_BIT,
+      VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+      VK_PIPELINE_STAGE_TRANSFER_BIT,
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+  );
+
+  transition_image(
+      cmd_buf,
+      color.image,
+      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+      0,
+      VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+      VK_PIPELINE_STAGE_TRANSFER_BIT,
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+  );
+}
+
 static void build_render_pass_and_cmdbufs(uint32_t ii) {
 
   vkWaitForFences(device, 1, &swapchain_image_resources[ii].command_buffer_fence, VK_TRUE, UINT64_MAX);
@@ -188,6 +295,9 @@ static void build_render_pass_and_cmdbufs(uint32_t ii) {
   // --------------------------------------------
 
   vkCmdEndRenderPass(cmd_buf);
+
+  if(multiview) copy_colour_to_swap(ii);
+
   VK_CHECK(vkEndCommandBuffer(cmd_buf));
 }
 
@@ -223,14 +333,18 @@ void onx_vk_update_uniforms() {
   set_mvp_uniforms();
 
   memcpy(uniform_mem[image_index].uniform_memory_ptr,
-         (const void*)&proj_matrix,  sizeof(proj_matrix));
+         (const void*)&proj_matrix,    sizeof(proj_matrix));
 
   memcpy(uniform_mem[image_index].uniform_memory_ptr +
-                                     sizeof(proj_matrix),
-         (const void*)&view_matrix,  sizeof(view_matrix));
+                sizeof(proj_matrix),
+         (const void*)&view_l_matrix,  sizeof(view_l_matrix));
 
   memcpy(uniform_mem[image_index].uniform_memory_ptr +
-                                     sizeof(proj_matrix)+sizeof(view_matrix),
+                sizeof(proj_matrix)+sizeof(view_l_matrix),
+         (const void*)&view_r_matrix,  sizeof(view_r_matrix));
+
+  memcpy(uniform_mem[image_index].uniform_memory_ptr +
+                sizeof(proj_matrix)+sizeof(view_l_matrix)+sizeof(view_r_matrix),
          (const void*)&model_matrix, sizeof(model_matrix));
 }
 
@@ -592,6 +706,48 @@ static void prepare_texture_buffer(const char *filename, struct texture_object *
     vkUnmapMemory(device, texture_obj->device_memory);
 }
 
+static void prepare_color() {
+
+  VkImageCreateInfo image_ci = {
+    .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+    .imageType = VK_IMAGE_TYPE_2D,
+    .format = surface_format,
+    .extent = { io.swap_width, io.swap_height, 1 },
+    .mipLevels = 1,
+    .arrayLayers = TWO_EYES,
+    .samples = VK_SAMPLE_COUNT_1_BIT,
+    .tiling = VK_IMAGE_TILING_OPTIMAL,
+    .usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+             VK_IMAGE_USAGE_SAMPLED_BIT |
+             VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+  };
+
+  color.format = surface_format;
+
+  create_image_with_memory(&image_ci,
+                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                           &color.image,
+                           &color.device_memory);
+
+  VkImageViewCreateInfo image_view_ci = {
+      .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+      .pNext = NULL,
+      .image = color.image,
+      .format = surface_format,
+      .subresourceRange = {
+         .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+         .baseMipLevel   = 0,
+         .levelCount     = 1,
+         .baseArrayLayer = 0,
+         .layerCount     = TWO_EYES,
+      },
+      .flags = 0,
+      .viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY,
+  };
+
+  VK_CHECK(vkCreateImageView(device, &image_view_ci, NULL, &color.image_view));
+}
+
 static void prepare_depth() {
 
     const VkFormat depth_format = VK_FORMAT_D16_UNORM;
@@ -603,7 +759,7 @@ static void prepare_depth() {
         .format = depth_format,
         .extent = { io.swap_width, io.swap_height, 1 },
         .mipLevels = 1,
-        .arrayLayers = 1,
+        .arrayLayers = multiview? TWO_EYES: ONE_EYE,
         .samples = VK_SAMPLE_COUNT_1_BIT,
         .tiling = VK_IMAGE_TILING_OPTIMAL,
         .usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -629,10 +785,11 @@ static void prepare_depth() {
            .baseMipLevel   = 0,
            .levelCount     = 1,
            .baseArrayLayer = 0,
-           .layerCount     = 1,
+           .layerCount     = multiview? TWO_EYES: ONE_EYE,
         },
         .flags = 0,
-        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .viewType = multiview? VK_IMAGE_VIEW_TYPE_2D_ARRAY:
+                               VK_IMAGE_VIEW_TYPE_2D,
     };
 
     VK_CHECK(vkCreateImageView(device, &image_view_ci, NULL, &depth.image_view));
@@ -772,6 +929,11 @@ static void prepare_vertex_buffers(){
 // -------------------------------------------------------------------------------------
 
 void onx_vk_prepare_swapchain_images(bool restart) {
+
+    aspect_ratio = (float)io.swap_width / (float)io.swap_height;
+    multiview    = aspect_ratio > 2.0f;
+    log_write("aspect_ratio %f SBS %s\n", aspect_ratio, multiview? "on": "off");
+
     VkResult err;
     err = vkGetSwapchainImagesKHR(device, swapchain, &image_count, NULL);
     assert(!err);
@@ -861,6 +1023,7 @@ void onx_vk_prepare_render_data(bool restart) {
   vkGetPhysicalDeviceFormatProperties(gpu, texture_format, &format_properties);
   vkGetPhysicalDeviceMemoryProperties(gpu, &memory_properties);
 
+  if(multiview) prepare_color();
   prepare_depth();
   prepare_textures();
 }
@@ -1020,7 +1183,7 @@ void onx_vk_prepare_descriptor_set(bool restart) {
 void onx_vk_prepare_render_pass(bool restart) {
     const VkAttachmentDescription attachments[2] = {
             {
-                .format = surface_format,
+                .format = multiview? color.format: surface_format,
                 .flags = 0,
                 .samples = VK_SAMPLE_COUNT_1_BIT,
                 .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
@@ -1028,7 +1191,8 @@ void onx_vk_prepare_render_pass(bool restart) {
                 .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                 .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                 .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-                .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                .finalLayout = multiview? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+                                          VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
             },
             {
                 .format = depth.format,
@@ -1065,13 +1229,14 @@ void onx_vk_prepare_render_pass(bool restart) {
 
     VkSubpassDependency attachmentDependencies[2] = {
             {
-                .srcSubpass = VK_SUBPASS_EXTERNAL,
+                .srcSubpass = multiview? 0: VK_SUBPASS_EXTERNAL,
                 .dstSubpass = 0,
                 .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                 .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                .srcAccessMask = 0,
+                .srcAccessMask = multiview? VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT: 0,
                 .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
-                .dependencyFlags = 0,
+                .dependencyFlags = multiview? VK_DEPENDENCY_BY_REGION_BIT |
+                                              VK_DEPENDENCY_VIEW_LOCAL_BIT: 0,
             },
             {
                 .srcSubpass = VK_SUBPASS_EXTERNAL,
@@ -1096,7 +1261,20 @@ void onx_vk_prepare_render_pass(bool restart) {
         .pDependencies = attachmentDependencies,
     };
 
+    const uint32_t viewMask        = 0b00000011;
+    const uint32_t correlationMask = 0b00000011;
 
+    VkRenderPassMultiviewCreateInfo rpmv_info = {
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO,
+        .subpassCount = 1,
+        .pViewMasks = &viewMask,
+        .correlationMaskCount = 1,
+        .pCorrelationMasks = &correlationMask,
+    };
+
+    if(multiview){
+      rp_ci.pNext = &rpmv_info;
+    }
     VkResult err;
     err = vkCreateRenderPass(device, &rp_ci, NULL, &render_pass);
     assert(!err);
@@ -1155,7 +1333,7 @@ void onx_vk_prepare_pipeline(bool restart) {
   VkViewport viewport = {
       .x = 0.0f,
       .y = 0.0f,
-      .width  = io.swap_width,
+      .width  = io.swap_width / (multiview? 2: 1),
       .height = io.swap_height,
       .minDepth = 0.0f,
       .maxDepth = 1.0f,
@@ -1167,7 +1345,7 @@ void onx_vk_prepare_pipeline(bool restart) {
          0
       },
       .extent = {
-         io.swap_width,
+         io.swap_width / (multiview? 2: 1),
          io.swap_height,
       },
   };
@@ -1287,7 +1465,8 @@ void onx_vk_prepare_framebuffers(bool restart) {
     for (uint32_t i = 0; i < image_count; i++) {
 
         VkImageView attachments[] = {
-          swapchain_image_resources[i].image_view,
+          multiview? color.image_view:
+                     swapchain_image_resources[i].image_view,
           depth.image_view,
         };
         fb_ci.pAttachments = attachments;
@@ -1355,6 +1534,12 @@ void onx_vk_finish() {
   vkDestroyImageView(device, depth.image_view, NULL);
   vkDestroyImage(device, depth.image, NULL);
   vkFreeMemory(device, depth.device_memory, NULL);
+
+  if(multiview){
+    vkDestroyImageView(device, color.image_view, NULL);
+    vkDestroyImage(device, color.image, NULL);
+    vkFreeMemory(device, color.device_memory, NULL);
+  }
 
   uint32_t i;
   if (swapchain_image_resources) {

@@ -1,6 +1,7 @@
 #version 450
 #extension GL_ARB_shading_language_420pack : enable
 #extension GL_EXT_scalar_block_layout : enable
+#extension GL_EXT_multiview : enable
 
 layout(push_constant) uniform constants {
   uint phase;
@@ -9,7 +10,8 @@ layout(push_constant) uniform constants {
 // TODO model[MAX_PANELS]
 layout(std430, binding = 0) uniform buf0 {
   mat4 proj;
-  mat4 view;
+  mat4 view_l;
+  mat4 view_r;
   mat4 model[32];
 } uniforms;
 
@@ -45,7 +47,7 @@ vec3 unproject(float x, float y, float z, mat4 view, mat4 proj) {
 
 void main() {
 
-  view = uniforms.view;
+  view = gl_ViewIndex==0? uniforms.view_l: uniforms.view_r;
   proj = uniforms.proj;
   phase = push_constants.phase;
 
