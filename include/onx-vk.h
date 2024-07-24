@@ -43,7 +43,46 @@ extern VkExtent2D swapchain_extent;
 extern VkShaderModule vert_shader_module;
 extern VkShaderModule frag_shader_module;
 
+extern float aspect_ratio;
+
+extern uint32_t max_img;
+extern uint32_t cur_img;
+
+extern VkPipelineLayout pipeline_layout;
+
+struct push_constants {
+  uint32_t phase;
+};
+
 extern bool prepared;
+
+extern bool            scene_ready;
+extern pthread_mutex_t scene_lock;
+
+void set_proj_view();
+
+VkCommandBuffer begin_cmd_buf_and_render_pass(uint32_t ii);
+void            end_cmd_buf_and_render_pass(  uint32_t ii, VkCommandBuffer cmd_buf);
+
+void transition_image(
+    VkCommandBuffer cmdBuffer,
+    VkImage image,
+    VkImageLayout oldLayout,
+    VkImageLayout newLayout,
+    VkAccessFlagBits srcAccessMask,
+    VkAccessFlagBits dstAccessMask,
+    VkPipelineStageFlags srcStage,
+    VkPipelineStageFlags dstStage);
+
+uint32_t create_buffer_with_memory(VkBufferCreateInfo*   buffer_ci,
+                                   VkMemoryPropertyFlags prop_flags,
+                                   VkBuffer*             buffer,
+                                   VkDeviceMemory*       memory);
+
+uint32_t create_image_with_memory(VkImageCreateInfo*    image_ci,
+                                  VkMemoryPropertyFlags prop_flags,
+                                  VkImage*              image,
+                                  VkDeviceMemory*       memory);
 
 void onl_vk_rg_prepare_swapchain_images(bool restart);
 void onl_vk_rg_prepare_semaphores_and_fences(bool restart);
