@@ -50,6 +50,8 @@ extern uint32_t cur_img;
 
 extern VkPipelineLayout pipeline_layout;
 
+extern VkPipelineVertexInputStateCreateInfo vertex_input_state_ci;
+
 struct push_constants {
   uint32_t phase;
 };

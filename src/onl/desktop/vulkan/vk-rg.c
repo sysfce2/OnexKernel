@@ -18,6 +18,10 @@ uint32_t cur_img;
 
 VkPipelineLayout pipeline_layout;
 
+VkPipelineVertexInputStateCreateInfo vertex_input_state_ci = {
+  .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+};
+
 bool            scene_ready = false;
 pthread_mutex_t scene_lock;
 
@@ -670,30 +674,6 @@ void onl_vk_rg_prepare_pipeline(bool restart) {
       .module = frag_shader_module,
       .pName = "main",
     }
-  };
-
-  VkVertexInputBindingDescription vertices_input_binding = {
-    .binding = 0,
-    .stride = 3 * sizeof(float) +
-              2 * sizeof(float),
-    .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
-  };
-
-  VkVertexInputAttributeDescription vertex_input_attributes[] = {
-    { 0, 0, VK_FORMAT_R32G32B32_SFLOAT,  0 },  // vertex
-    { 1, 0, VK_FORMAT_R32G32_SFLOAT,    12 },  // uv
-  };
-
-  VkVertexInputBindingDescription vibds[] = {
-    vertices_input_binding,
-  };
-
-  VkPipelineVertexInputStateCreateInfo vertex_input_state_ci = {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-      .vertexBindingDescriptionCount = 1,
-      .pVertexBindingDescriptions = vibds,
-      .vertexAttributeDescriptionCount = 2,
-      .pVertexAttributeDescriptions = vertex_input_attributes,
   };
 
   VkPipelineInputAssemblyStateCreateInfo input_assembly_state_ci = {

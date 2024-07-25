@@ -431,9 +431,32 @@ static void prepare_textures(){
 
 // ---------------------------------
 
+VkVertexInputBindingDescription vibds[] = {
+  {
+    .binding = 0,
+    .stride = 3 * sizeof(float) +
+              2 * sizeof(float),
+    .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+  }
+};
+
+VkVertexInputAttributeDescription vertex_input_attributes[] = {
+  { 0, 0, VK_FORMAT_R32G32B32_SFLOAT,    0 }, // vertex
+  { 1, 0, VK_FORMAT_R32G32_SFLOAT,      12 }, // uv
+};
+
 void onx_vk_rd_prepare_render_data(bool restart) {
+
   vkGetPhysicalDeviceFormatProperties(gpu, texture_format, &format_properties);
+
   prepare_textures();
+
+  // ----------
+
+  vertex_input_state_ci.vertexBindingDescriptionCount = 1;
+  vertex_input_state_ci.pVertexBindingDescriptions = vibds;
+  vertex_input_state_ci.vertexAttributeDescriptionCount = 2;
+  vertex_input_state_ci.pVertexAttributeDescriptions = vertex_input_attributes;
 }
 
 // ----------------------------------------------------------------------------------------
@@ -625,5 +648,7 @@ void onx_vk_rd_finish_render_data() {
 
   // ---------------------------------
 }
+
+
 
 
