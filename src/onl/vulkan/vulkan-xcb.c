@@ -12,8 +12,8 @@
 
 #include <onex-kernel/log.h>
 
-#include "onl/vulkan/vk.h"
 #include <onl-vk.h>
+#include "onl/vulkan/vk.h"
 
 // -----------------------------------------
 
@@ -147,8 +147,8 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
 
         case XCB_MOTION_NOTIFY: {
           xcb_motion_notify_event_t *motion = (xcb_motion_notify_event_t *)event;
-          ont_vk_set_io_mouse((int32_t)motion->event_x, (int32_t)motion->event_y);
-          ont_vk_iostate_changed();
+          onl_vk_set_io_mouse((int32_t)motion->event_x, (int32_t)motion->event_y);
+          onl_vk_iostate_changed();
           break;
         }
         case XCB_BUTTON_PRESS: {
@@ -156,7 +156,7 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
           if(press->detail == XCB_BUTTON_INDEX_1) io.left_pressed=true;
           if(press->detail == XCB_BUTTON_INDEX_2) io.middle_pressed=true;
           if(press->detail == XCB_BUTTON_INDEX_3) io.right_pressed=true;
-          ont_vk_iostate_changed();
+          onl_vk_iostate_changed();
           break;
         }
         case XCB_BUTTON_RELEASE: {
@@ -164,7 +164,7 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
           if(press->detail == XCB_BUTTON_INDEX_1) io.left_pressed=false;
           if(press->detail == XCB_BUTTON_INDEX_2) io.middle_pressed=false;
           if(press->detail == XCB_BUTTON_INDEX_3) io.right_pressed=false;
-          ont_vk_iostate_changed();
+          onl_vk_iostate_changed();
           break;
         }
         case XCB_KEY_PRESS: {
@@ -174,7 +174,7 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
                     break;
                 default:
                     io.key=key->detail;
-                    ont_vk_iostate_changed();
+                    onl_vk_iostate_changed();
                     break;
             }
             break;
@@ -187,7 +187,7 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
                     break;
                 default:
                     io.key=0;
-                    ont_vk_iostate_changed();
+                    onl_vk_iostate_changed();
                     break;
             }
             break;
@@ -201,7 +201,7 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
                 io.swap_width = w;
                 io.swap_height = h;
 
-                ont_vk_iostate_changed();
+                onl_vk_iostate_changed();
             }
             break;
         }
@@ -224,7 +224,7 @@ static void event_loop() {
 
     while (!quit){
 
-        ont_vk_loop(true);
+        onl_vk_loop(true);
 
         xcb_generic_event_t *event;
 
@@ -235,7 +235,7 @@ static void event_loop() {
             free(event);
         }
     }
-    ont_vk_loop(false);
+    onl_vk_loop(false);
 }
 
 void onl_vk_finish() {

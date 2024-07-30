@@ -1,5 +1,5 @@
-#ifndef ONX_VK
-#define ONX_VK
+#ifndef ONL_VK
+#define ONL_VK
 
 #define _GNU_SOURCE
 
@@ -14,8 +14,6 @@
 #include <onex-kernel/log.h>
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
-
-#define VK_DESTROY(func, dev, obj) func(dev, obj, NULL), obj = NULL
 
 #define ERR_EXIT(msg) \
   do {                             \
@@ -105,14 +103,16 @@ uint32_t create_image_with_memory(VkImageCreateInfo*    image_ci,
 
 void onl_vk_exit();
 
-// calls from onl_vk up to ont
-void onl_vk_prepare_render_data(bool restart);
-void onl_vk_prepare_uniform_buffers(bool restart);
-void onl_vk_prepare_descriptor_layout(bool restart);
-void onl_vk_prepare_descriptor_pool(bool restart);
-void onl_vk_prepare_descriptor_set(bool restart);
-void onl_vk_prepare_shaders(bool restart);
-void onl_vk_update_uniforms();
-void onl_vk_finish_render_data();
+// calls from ONL VK up to ONT
+void ont_init();
+void ont_iostate_changed();
+void ont_prepare_render_data(bool restart);
+void ont_prepare_uniform_buffers(bool restart);
+void ont_prepare_descriptor_layout(bool restart);
+void ont_prepare_descriptor_pool(bool restart);
+void ont_prepare_descriptor_set(bool restart);
+void ont_prepare_shaders(bool restart);
+void ont_update_uniforms();
+void ont_finish_render_data();
 
 #endif

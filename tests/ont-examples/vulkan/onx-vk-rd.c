@@ -45,7 +45,7 @@ static void prepare_vertex_buffers(){
                             &vertex_buffer_memory);
 }
 
-void onl_vk_prepare_uniform_buffers(bool restart) {
+void ont_prepare_uniform_buffers(bool restart) {
 
   prepare_vertex_buffers();
 
@@ -123,7 +123,7 @@ void set_up_scene_end() {
   pthread_mutex_unlock(&scene_lock);
 }
 
-void onl_vk_update_uniforms() {
+void ont_update_uniforms() {
 
   set_proj_view();
 
@@ -442,7 +442,7 @@ VkVertexInputAttributeDescription vertex_input_attributes[] = {
   { 1, 0, VK_FORMAT_R32G32_SFLOAT,      12 }, // uv
 };
 
-void onl_vk_prepare_render_data(bool restart) {
+void ont_prepare_render_data(bool restart) {
 
   vkGetPhysicalDeviceFormatProperties(gpu, texture_format, &format_properties);
 
@@ -458,7 +458,7 @@ void onl_vk_prepare_render_data(bool restart) {
 
 // ----------------------------------------------------------------------------------------
 
-void onl_vk_prepare_descriptor_pool(bool restart) {
+void ont_prepare_descriptor_pool(bool restart) {
 
   VkDescriptorPoolSize pool_sizes[] = {
       { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -480,7 +480,7 @@ void onl_vk_prepare_descriptor_pool(bool restart) {
   VK_CHECK(vkCreateDescriptorPool(device, &descriptor_pool_ci, NULL, &descriptor_pool));
 }
 
-void onl_vk_prepare_descriptor_set(bool restart) {
+void ont_prepare_descriptor_set(bool restart) {
 
   VkDescriptorSetAllocateInfo descriptor_set_ai = {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -537,7 +537,7 @@ void onl_vk_prepare_descriptor_set(bool restart) {
 }
 
 
-void onl_vk_prepare_descriptor_layout(bool restart) {
+void ont_prepare_descriptor_layout(bool restart) {
 
   VkDescriptorSetLayoutBinding bindings[] = {
       {
@@ -596,14 +596,14 @@ static VkShaderModule load_c_shader(bool load_frag) {
     return module;
 }
 
-void onl_vk_prepare_shaders(bool restart){
+void ont_prepare_shaders(bool restart){
   vert_shader_module = load_c_shader(false);
   frag_shader_module = load_c_shader(true);
 }
 
 // ---------------------------------
 
-void onl_vk_finish_render_data() {
+void ont_finish_render_data() {
 
   scene_ready = false;
 

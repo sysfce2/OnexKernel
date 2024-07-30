@@ -1,9 +1,11 @@
 // ---------------------------------------------------------------------------------------
 
 #include <onex-kernel/log.h>
-#include <onl-vk.h>
 
-extern void ont_vk_restart(); //!! FIXME
+#include <onl-vk.h>
+#include "onl/vulkan/vk.h"
+
+#define VK_DESTROY(func, dev, obj) func(dev, obj, NULL), obj = NULL
 
 float aspect_ratio;
 float aspect_ratio_proj;
@@ -225,7 +227,7 @@ void onl_vk_render_frame() {
       else
       if (err == VK_ERROR_OUT_OF_DATE_KHR) {
         pthread_mutex_unlock(&scene_lock); // ??
-        ont_vk_restart();
+        onl_vk_restart();
       }
       else {
         pthread_mutex_unlock(&scene_lock);
@@ -270,7 +272,7 @@ void onl_vk_render_frame() {
 
   pthread_mutex_unlock(&scene_lock); // ??
   if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR) {
-    ont_vk_restart();
+    onl_vk_restart();
   }
 }
 

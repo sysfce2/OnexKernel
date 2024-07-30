@@ -4,7 +4,7 @@
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 
-#include "onl-vk.h"
+#include <onl-vk.h>
 #include "onl/vulkan/object_type_string_helper.h"
 #include "onl/vulkan/vk.h"
 
@@ -500,9 +500,9 @@ static void create_instance() {
     const VkApplicationInfo app = {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pNext = NULL,
-        .pApplicationName = "onx",
+        .pApplicationName = "ONT",
         .applicationVersion = 0,
-        .pEngineName = "onx",
+        .pEngineName = "ONL",
         .engineVersion = 0,
         .apiVersion = VK_API_VERSION_1_0,
     };
@@ -864,14 +864,14 @@ static void prepare(bool restart) {
     onl_vk_prepare_semaphores_and_fences(restart);
     onl_vk_prepare_command_buffers(restart);
     onl_vk_prepare_rendering(restart);
-    onl_vk_prepare_render_data(restart);
-    onl_vk_prepare_uniform_buffers(restart);
-    onl_vk_prepare_descriptor_layout(restart);
+    ont_prepare_render_data(restart);
+    ont_prepare_uniform_buffers(restart);
+    ont_prepare_descriptor_layout(restart);
     onl_vk_prepare_pipeline_layout(restart);
-    onl_vk_prepare_descriptor_pool(restart);
-    onl_vk_prepare_descriptor_set(restart);
+    ont_prepare_descriptor_pool(restart);
+    ont_prepare_descriptor_set(restart);
     onl_vk_prepare_render_pass(restart);
-    onl_vk_prepare_shaders(restart);
+    ont_prepare_shaders(restart);
     onl_vk_prepare_pipeline(restart);
     onl_vk_prepare_framebuffers(restart);
   }
@@ -887,7 +887,7 @@ static void finish(bool restart) {
   vkDeviceWaitIdle(device);
 
   onl_vk_finish_rendering();
-  onl_vk_finish_render_data();
+  ont_finish_render_data();
 
   if(!restart){
 
@@ -897,21 +897,18 @@ static void finish(bool restart) {
   }
 }
 
-extern void onx_init();
-extern void onx_iostate_changed();
-
-void ont_vk_loop(bool running) {
+void onl_vk_loop(bool running) {
 
   if(running && !prepared){
     prepare(false);
-    onx_init();
+    ont_init();
   }
   else
   if(!running && prepared){
     finish(false);
   }
   if(prepared){
-    onl_vk_update_uniforms();
+    ont_update_uniforms();
     onl_vk_render_frame();
     frames++;
   }
@@ -926,7 +923,7 @@ void ont_vk_loop(bool running) {
   }
 }
 
-void ont_vk_restart(){
+void onl_vk_restart(){
   finish(true);
   prepare(true);
 }
@@ -934,14 +931,14 @@ void ont_vk_restart(){
 
 iostate io;
 
-void ont_vk_set_io_mouse(int32_t x, int32_t y){
+void onl_vk_set_io_mouse(int32_t x, int32_t y){
 
   io.mouse_x = x;
   io.mouse_y = y;
 }
 
-void ont_vk_iostate_changed() {
+void onl_vk_iostate_changed() {
 
-  onx_iostate_changed();
+  ont_iostate_changed();
 }
 
