@@ -43,8 +43,12 @@ typedef struct onl_vk_iostate {
 
 extern onl_vk_iostate io;
 
-extern VkFormat surface_format;
-extern VkDevice device;
+// -----------------------------------
+
+extern VkDevice onl_vk_device;
+
+// -----------------------------------
+
 extern VkPhysicalDevice gpu;
 extern VkCommandBuffer initcmd;
 extern VkQueue queue;
@@ -76,6 +80,8 @@ extern bool            scene_ready;
 extern pthread_mutex_t scene_lock;
 
 void set_proj_view();
+
+// -----------------------------------
 
 VkCommandBuffer onl_vk_begin_cmd_buf(uint32_t ii);
 void            onl_vk_begin_render_pass(uint32_t ii, VkCommandBuffer cmd_buf);

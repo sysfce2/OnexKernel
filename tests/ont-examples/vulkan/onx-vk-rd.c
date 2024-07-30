@@ -64,7 +64,7 @@ void ont_prepare_uniform_buffers(bool restart) {
                                      &uniform_mem[ii].uniform_buffer,
                                      &uniform_mem[ii].uniform_memory);
 
-    VK_CHECK(vkMapMemory(device,
+    VK_CHECK(vkMapMemory(onl_vk_device,
                          uniform_mem[ii].uniform_memory,
                          0, sizeof(struct uniforms), 0,
                         &uniform_mem[ii].uniform_memory_ptr));
@@ -105,12 +105,15 @@ void set_up_scene_begin(float** vertices) {
   size_t vertex_size = MAX_PANELS * 6*6 * (3 * sizeof(float) +
                                            2 * sizeof(float)  );
 
-  VK_CHECK(vkMapMemory(device, vertex_buffer_memory, 0, vertex_size, 0, (void**)vertices));
+  VK_CHECK(vkMapMemory(onl_vk_device,
+                       vertex_buffer_memory,
+                       0, vertex_size, 0,
+                       (void**)vertices));
 }
 
 void set_up_scene_end() {
 
-  vkUnmapMemory(device, vertex_buffer_memory);
+  vkUnmapMemory(onl_vk_device, vertex_buffer_memory);
 
   for (uint32_t ii = 0; ii < max_img; ii++) {
       VkCommandBuffer cmd_buf = onl_vk_begin_cmd_buf(ii);
@@ -246,15 +249,15 @@ static void prepare_texture_image(const char *filename,
         };
         VkSubresourceLayout layout;
 
-        vkGetImageSubresourceLayout(device, texture_obj->image, &subres, &layout);
+        vkGetImageSubresourceLayout(onl_vk_device, texture_obj->image, &subres, &layout);
 
         void *data;
-        VK_CHECK(vkMapMemory(device, texture_obj->device_memory, 0, size, 0, &data));
+        VK_CHECK(vkMapMemory(onl_vk_device, texture_obj->device_memory, 0, size, 0, &data));
 
         if(!load_texture(filename, data, layout.rowPitch, &texture_width, &texture_height)){
             log_write("Error loading texture: %s\n", filename);
         }
-        vkUnmapMemory(device, texture_obj->device_memory);
+        vkUnmapMemory(onl_vk_device, texture_obj->device_memory);
     }
     texture_obj->image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 }
@@ -291,7 +294,7 @@ static void prepare_texture_buffer(char *filename, struct texture_object *textur
                                                      &texture_obj->buffer,
                                                      &texture_obj->device_memory);
     void *data;
-    err = vkMapMemory(device, texture_obj->device_memory, 0, size, 0, &data);
+    err = vkMapMemory(onl_vk_device, texture_obj->device_memory, 0, size, 0, &data);
     assert(!err);
 
     VkSubresourceLayout layout;
@@ -302,7 +305,7 @@ static void prepare_texture_buffer(char *filename, struct texture_object *textur
         log_write("Error loading texture: %s\n", filename);
     }
 
-    vkUnmapMemory(device, texture_obj->device_memory);
+    vkUnmapMemory(onl_vk_device, texture_obj->device_memory);
 }
 
 static void prepare_textures(){
@@ -418,11 +421,11 @@ static void prepare_textures(){
             .flags = 0,
         };
 
-        err = vkCreateSampler(device, &sampler_ci, NULL, &textures[i].sampler);
+        err = vkCreateSampler(onl_vk_device, &sampler_ci, NULL, &textures[i].sampler);
         assert(!err);
 
         image_view_ci.image = textures[i].image;
-        VK_CHECK(vkCreateImageView(device, &image_view_ci, NULL, &textures[i].image_view));
+        VK_CHECK(vkCreateImageView(onl_vk_device, &image_view_ci, NULL, &textures[i].image_view));
     }
 }
 
@@ -477,7 +480,7 @@ void ont_prepare_descriptor_pool(bool restart) {
       .pNext = 0,
   };
 
-  VK_CHECK(vkCreateDescriptorPool(device, &descriptor_pool_ci, NULL, &descriptor_pool));
+  VK_CHECK(vkCreateDescriptorPool(onl_vk_device, &descriptor_pool_ci, NULL, &descriptor_pool));
 }
 
 void ont_prepare_descriptor_set(bool restart) {
@@ -524,7 +527,7 @@ void ont_prepare_descriptor_set(bool restart) {
   for (uint32_t i = 0; i < max_img; i++) {
 
     VK_CHECK(vkAllocateDescriptorSets(
-                              device,
+                              onl_vk_device,
                              &descriptor_set_ai,
                              &uniform_mem[i].descriptor_set));
 
@@ -532,7 +535,7 @@ void ont_prepare_descriptor_set(bool restart) {
     writes[0].dstSet = uniform_mem[i].descriptor_set;
     writes[1].dstSet = uniform_mem[i].descriptor_set;
 
-    vkUpdateDescriptorSets(device, 2, writes, 0, 0);
+    vkUpdateDescriptorSets(onl_vk_device, 2, writes, 0, 0);
   }
 }
 
@@ -562,7 +565,7 @@ void ont_prepare_descriptor_layout(bool restart) {
       .pBindings = bindings,
   };
 
-  VK_CHECK(vkCreateDescriptorSetLayout(device,
+  VK_CHECK(vkCreateDescriptorSetLayout(onl_vk_device,
                                        &descriptor_set_layout_ci,
                                        0,
                                        &descriptor_layout));
@@ -589,7 +592,7 @@ static VkShaderModule load_c_shader(bool load_frag) {
     };
 
     VkShaderModule module;
-    VK_CHECK(vkCreateShaderModule(device,
+    VK_CHECK(vkCreateShaderModule(onl_vk_device,
                                   &module_ci,
                                   0,
                                   &module));
@@ -609,38 +612,38 @@ void ont_finish_render_data() {
 
   // ---------------------------------
 
-  vkFreeMemory(device, vertex_buffer_memory, NULL);
-  vkFreeMemory(device, staging_buffer_memory, NULL);
+  vkFreeMemory(onl_vk_device, vertex_buffer_memory, NULL);
+  vkFreeMemory(onl_vk_device, staging_buffer_memory, NULL);
 
-  vkDestroyBuffer(device, vertex_buffer, NULL);
-  vkDestroyBuffer(device, staging_buffer, NULL);
+  vkDestroyBuffer(onl_vk_device, vertex_buffer, NULL);
+  vkDestroyBuffer(onl_vk_device, staging_buffer, NULL);
 
   // ---------------------------------
 
-  vkDestroyDescriptorPool(device, descriptor_pool, NULL);
-  vkDestroyDescriptorSetLayout(device, descriptor_layout, NULL);
+  vkDestroyDescriptorPool(onl_vk_device, descriptor_pool, NULL);
+  vkDestroyDescriptorSetLayout(onl_vk_device, descriptor_layout, NULL);
 
   // ---------------------------------
 
   for (uint32_t i = 0; i < max_img; i++) {
-      vkDestroyBuffer(device, uniform_mem[i].uniform_buffer, NULL);
-      vkUnmapMemory(device, uniform_mem[i].uniform_memory);
-      vkFreeMemory(device, uniform_mem[i].uniform_memory, NULL);
+      vkDestroyBuffer(onl_vk_device, uniform_mem[i].uniform_buffer, NULL);
+      vkUnmapMemory(onl_vk_device, uniform_mem[i].uniform_memory);
+      vkFreeMemory(onl_vk_device, uniform_mem[i].uniform_memory, NULL);
   }
   free(uniform_mem);
 
   // ---------------------------------
 
   for (uint32_t i = 0; i < TEXTURE_COUNT; i++) {
-    vkDestroyImageView(device, textures[i].image_view, NULL);
-    vkDestroyImage(device, textures[i].image, NULL);
-    vkFreeMemory(device, textures[i].device_memory, NULL);
-    vkDestroySampler(device, textures[i].sampler, NULL);
+    vkDestroyImageView(onl_vk_device, textures[i].image_view, NULL);
+    vkDestroyImage(onl_vk_device, textures[i].image, NULL);
+    vkFreeMemory(onl_vk_device, textures[i].device_memory, NULL);
+    vkDestroySampler(onl_vk_device, textures[i].sampler, NULL);
   }
   if(staging_texture.buffer) {
-     vkFreeMemory(device, staging_texture.device_memory, NULL);
-     if(staging_texture.image) vkDestroyImage(device, staging_texture.image, NULL);
-     vkDestroyBuffer(device, staging_texture.buffer, NULL);
+     vkFreeMemory(onl_vk_device, staging_texture.device_memory, NULL);
+     if(staging_texture.image) vkDestroyImage(onl_vk_device, staging_texture.image, NULL);
+     vkDestroyBuffer(onl_vk_device, staging_texture.buffer, NULL);
   }
 
   // ---------------------------------

@@ -3,6 +3,8 @@
 
 #include <vulkan/vulkan.h>
 
+extern VkFormat surface_format;
+
 // calls from vk.c down to vulkan-xcb.c etc
 void onl_vk_init();
 void onl_vk_create_window();

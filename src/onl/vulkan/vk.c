@@ -12,13 +12,16 @@
 
 bool validate = true;
 
+VkDevice onl_vk_device;
+
+// -----
+
 VkSurfaceKHR surface;
 bool prepared;
 uint16_t frames = 0;
 int32_t gpu_number = -1;
 VkInstance inst;
 VkPhysicalDevice gpu;
-VkDevice device;
 VkQueue queue;
 uint32_t queue_family_index;
 VkQueueFamilyProperties *queue_props;
@@ -302,14 +305,14 @@ static void prepare_swapchain() {
         .oldSwapchain = oldSwapchain,
         .clipped = true,
     };
-    VK_CHECK(vkCreateSwapchainKHR(device, &swapchain_ci, NULL, &swapchain));
+    VK_CHECK(vkCreateSwapchainKHR(onl_vk_device, &swapchain_ci, NULL, &swapchain));
 
     // If we just re-created an existing swapchain, we should destroy the old
     // swapchain at this point.
     // Note: destroying the swapchain also cleans up all its associated
     // presentable images once the platform is done with them.
     if (oldSwapchain != VK_NULL_HANDLE) {
-        vkDestroySwapchainKHR(device, oldSwapchain, NULL);
+        vkDestroySwapchainKHR(onl_vk_device, oldSwapchain, NULL);
     }
 
     if (NULL != presentModes) {
@@ -327,7 +330,7 @@ static void prepare_command_pools()
             .queueFamilyIndex = queue_family_index,
             .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
         };
-        err = vkCreateCommandPool(device, &cmd_pool_ci, NULL, &command_pool);
+        err = vkCreateCommandPool(onl_vk_device, &cmd_pool_ci, NULL, &command_pool);
         assert(!err);
     }
 }
@@ -342,7 +345,7 @@ static void begin_command_buffer() {
         .commandBufferCount = 1,
     };
     VkResult err;
-    err = vkAllocateCommandBuffers(device, &cb_ai, &initcmd);
+    err = vkAllocateCommandBuffers(onl_vk_device, &cb_ai, &initcmd);
     assert(!err);
 
     VkCommandBufferBeginInfo cmd_buf_bi = {
@@ -367,7 +370,7 @@ static void end_command_buffer() {
 
     VkFence fence;
     VkFenceCreateInfo fence_ci = {.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, .pNext = NULL, .flags = 0};
-    err = vkCreateFence(device, &fence_ci, NULL, &fence);
+    err = vkCreateFence(onl_vk_device, &fence_ci, NULL, &fence);
     assert(!err);
 
     const VkCommandBuffer cmd_bufs[] = {initcmd};
@@ -384,11 +387,11 @@ static void end_command_buffer() {
     err = vkQueueSubmit(queue, 1, &submit_info, fence);
     assert(!err);
 
-    err = vkWaitForFences(device, 1, &fence, VK_TRUE, UINT64_MAX);
+    err = vkWaitForFences(onl_vk_device, 1, &fence, VK_TRUE, UINT64_MAX);
     assert(!err);
 
-    vkFreeCommandBuffers(device, command_pool, 1, cmd_bufs);
-    vkDestroyFence(device, fence, NULL);
+    vkFreeCommandBuffers(onl_vk_device, command_pool, 1, cmd_bufs);
+    vkDestroyFence(onl_vk_device, fence, NULL);
     initcmd = VK_NULL_HANDLE;
 }
 
@@ -706,9 +709,9 @@ static void create_device() {
         .ppEnabledExtensionNames = (const char *const *)extension_names,
         .pEnabledFeatures = 0,
     };
-    err = vkCreateDevice(gpu, &dev_ci, NULL, &device);
+    err = vkCreateDevice(gpu, &dev_ci, NULL, &onl_vk_device);
     assert(!err);
-    vkGetDeviceQueue(device, queue_family_index, 0, &queue);
+    vkGetDeviceQueue(onl_vk_device, queue_family_index, 0, &queue);
 }
 
 static void find_queue_families() {
@@ -816,16 +819,16 @@ static void choose_surface_format(){
 
 static void cleanup_swapchain_surface_instance(){
 
-  vkDestroySwapchainKHR(device, swapchain, NULL);
+  vkDestroySwapchainKHR(onl_vk_device, swapchain, NULL);
   swapchain=0;
 
   free(queue_props);
-  vkDestroyCommandPool(device, command_pool, NULL);
+  vkDestroyCommandPool(onl_vk_device, command_pool, NULL);
   command_pool=0;
 
-  vkDeviceWaitIdle(device);
-  vkDestroyDevice(device, NULL);
-  device=0;
+  vkDeviceWaitIdle(onl_vk_device);
+  vkDestroyDevice(onl_vk_device, NULL);
+  onl_vk_device=0;
 
   if(validate) {
       vxDestroyDebugUtilsMessengerEXT(inst, dbg_messenger, NULL);
@@ -884,7 +887,7 @@ static void finish(bool restart) {
 
   prepared = false;
 
-  vkDeviceWaitIdle(device);
+  vkDeviceWaitIdle(onl_vk_device);
 
   onl_vk_finish_rendering();
   ont_finish_render_data();
