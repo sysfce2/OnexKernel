@@ -26,8 +26,6 @@ static uniform_mem_t *uniform_mem;
 
 static VkDescriptorPool descriptor_pool;
 
-static VkFormatProperties format_properties;
-
 static void prepare_vertex_buffers(){
 
   VkBufferCreateInfo buffer_ci = {
@@ -166,8 +164,6 @@ static char* texture_files[] = { "ivory.ppm" }; // not used
 struct texture_object textures[TEXTURE_COUNT];
 struct texture_object staging_texture;
 
-static VkFormat texture_format = VK_FORMAT_R8G8B8A8_UNORM;
-
 static bool load_texture(const char *filename,
                          uint8_t *rgba_data,
                          uint64_t row_pitch,
@@ -225,7 +221,7 @@ static void prepare_texture_image(const char *filename,
         .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
         .pNext = NULL,
         .imageType = VK_IMAGE_TYPE_2D,
-        .format = texture_format,
+        .format = onl_vk_texture_format,
         .extent = {texture_width, texture_height, 1},
         .mipLevels = 1,
         .arrayLayers = 1,
@@ -316,7 +312,8 @@ static void prepare_textures(){
         VkResult err;
 
 #if defined(LIMIT_TO_LINEAR_AND_NO_STAGING_BUFFER)
-        if((format_properties.linearTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT)){
+        if((onl_vk_texture_format_properties.linearTilingFeatures &
+            VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT)){
 
             prepare_texture_image(texture_files[i], &textures[i],
                                   VK_IMAGE_TILING_LINEAR,
@@ -337,7 +334,8 @@ static void prepare_textures(){
 
         } else
 #endif
-        if(format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT){
+        if(onl_vk_texture_format_properties.optimalTilingFeatures &
+           VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT){
 
             memset(&staging_texture, 0, sizeof(staging_texture));
             prepare_texture_buffer(texture_files[i], &staging_texture);
@@ -404,7 +402,7 @@ static void prepare_textures(){
             .pNext = NULL,
             .image = VK_NULL_HANDLE,
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = texture_format,
+            .format = onl_vk_texture_format,
             .components = {
                     .r = VK_COMPONENT_SWIZZLE_IDENTITY,
                     .g = VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -446,8 +444,6 @@ VkVertexInputAttributeDescription vertex_input_attributes[] = {
 };
 
 void ont_prepare_render_data(bool restart) {
-
-  vkGetPhysicalDeviceFormatProperties(gpu, texture_format, &format_properties);
 
   prepare_textures();
 

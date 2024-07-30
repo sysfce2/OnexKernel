@@ -27,6 +27,9 @@ pthread_mutex_t scene_lock;
 
 VkDescriptorSetLayout descriptor_layout;
 
+VkFormat            onl_vk_texture_format = VK_FORMAT_R8G8B8A8_UNORM;
+VkFormatProperties  onl_vk_texture_format_properties;
+
 // --------------
 
 static bool sbs_render = false;
@@ -529,6 +532,8 @@ void onl_vk_prepare_command_buffers(bool restart){
 
 void onl_vk_prepare_rendering(bool restart) {
   vkGetPhysicalDeviceMemoryProperties(gpu, &memory_properties);
+  vkGetPhysicalDeviceFormatProperties(gpu, onl_vk_texture_format,
+                                           &onl_vk_texture_format_properties);
   if(sbs_render) prepare_color();
   prepare_depth();
 }

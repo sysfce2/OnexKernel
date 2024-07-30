@@ -3,7 +3,8 @@
 
 #include <vulkan/vulkan.h>
 
-extern VkFormat surface_format;
+extern VkFormat         surface_format;
+extern VkPhysicalDevice gpu;
 
 // calls from vk.c down to vulkan-xcb.c etc
 void onl_vk_init();

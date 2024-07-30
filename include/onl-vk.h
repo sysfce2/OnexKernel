@@ -45,11 +45,12 @@ extern onl_vk_iostate io;
 
 // -----------------------------------
 
-extern VkDevice onl_vk_device;
+extern VkDevice            onl_vk_device;
+extern VkFormat            onl_vk_texture_format;
+extern VkFormatProperties  onl_vk_texture_format_properties;
 
 // -----------------------------------
 
-extern VkPhysicalDevice gpu;
 extern VkCommandBuffer initcmd;
 extern VkQueue queue;
 extern VkCommandPool command_pool;
