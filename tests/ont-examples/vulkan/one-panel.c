@@ -12,10 +12,9 @@
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 
-#include <onx-vk.h>
-#include <onn.h>
+#include "user-onl-vk.h"
 
-#include "user-onx-vk.h"
+#include <onn.h>
 
 extern bool prepared; // FIXME
 

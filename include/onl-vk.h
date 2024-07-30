@@ -57,11 +57,14 @@ extern VkShaderModule vert_shader_module;
 extern VkShaderModule frag_shader_module;
 
 extern float aspect_ratio;
+extern float aspect_ratio_proj;
 
 extern uint32_t max_img;
 extern uint32_t cur_img;
 
 extern VkPipelineLayout pipeline_layout;
+
+extern VkDescriptorSetLayout descriptor_layout;
 
 extern VkPipelineVertexInputStateCreateInfo vertex_input_state_ci;
 

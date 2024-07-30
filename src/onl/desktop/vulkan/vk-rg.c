@@ -1,9 +1,7 @@
 // ---------------------------------------------------------------------------------------
 
 #include <onex-kernel/log.h>
-#include <onx-vk.h>
-
-#include "user-onx-vk.h"
+#include <onl-vk.h>
 
 extern void ont_vk_restart(); //!! FIXME
 
@@ -24,6 +22,8 @@ VkPipelineVertexInputStateCreateInfo vertex_input_state_ci = {
 
 bool            scene_ready = false;
 pthread_mutex_t scene_lock;
+
+VkDescriptorSetLayout descriptor_layout;
 
 // --------------
 

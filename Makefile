@@ -17,8 +17,6 @@ INCLUDES = \
 -I./src/onl/desktop/vulkan \
 -I./src/onn/ \
 -I./src/onp/ \
--I./tests \
--I./tests/ont-examples/vulkan \
 
 #-------------------------------------------------------------------------------
 

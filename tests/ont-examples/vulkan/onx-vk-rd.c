@@ -1,7 +1,6 @@
 #include <onex-kernel/log.h>
-#include <onx-vk.h>
 
-#include "user-onx-vk.h"
+#include "user-onl-vk.h"
 
 static VkBuffer vertex_buffer;
 static VkBuffer staging_buffer;
@@ -26,8 +25,6 @@ typedef struct {
 static uniform_mem_t *uniform_mem;
 
 static VkDescriptorPool descriptor_pool;
-
-VkDescriptorSetLayout descriptor_layout;
 
 static VkFormatProperties format_properties;
 
