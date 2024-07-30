@@ -321,7 +321,7 @@ static void prepare_textures(){
                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-            onl_vk_transition_image(initcmd, textures[i].image,
+            onl_vk_transition_image(onl_vk_init_cmdbuf, textures[i].image,
                                     VK_IMAGE_LAYOUT_PREINITIALIZED,
                                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                     0,
@@ -346,7 +346,7 @@ static void prepare_textures(){
                                   VK_IMAGE_USAGE_SAMPLED_BIT,
                                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-            onl_vk_transition_image(initcmd, textures[i].image,
+            onl_vk_transition_image(onl_vk_init_cmdbuf, textures[i].image,
                                     VK_IMAGE_LAYOUT_PREINITIALIZED,
                                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                     0, VK_ACCESS_TRANSFER_WRITE_BIT,
@@ -363,10 +363,10 @@ static void prepare_textures(){
                                  staging_texture.texture_height, 1 },
             };
 
-            vkCmdCopyBufferToImage(initcmd, staging_texture.buffer, textures[i].image,
+            vkCmdCopyBufferToImage(onl_vk_init_cmdbuf, staging_texture.buffer, textures[i].image,
                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_region);
 
-            onl_vk_transition_image(initcmd, textures[i].image,
+            onl_vk_transition_image(onl_vk_init_cmdbuf, textures[i].image,
                                     VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
                                     VK_ACCESS_TRANSFER_WRITE_BIT,
@@ -445,7 +445,11 @@ VkVertexInputAttributeDescription vertex_input_attributes[] = {
 
 void ont_prepare_render_data(bool restart) {
 
+  onl_vk_begin_init_command_buffer();
+
   prepare_textures();
+
+  onl_vk_end_init_command_buffer();
 
   // ----------
 

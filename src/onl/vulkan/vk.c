@@ -12,7 +12,11 @@
 
 bool validate = true;
 
-VkDevice onl_vk_device;
+// -----
+
+VkDevice        onl_vk_device;
+uint32_t        onl_vk_min_storage_buffer_offset_alignment;
+VkCommandBuffer onl_vk_init_cmdbuf;
 
 // -----
 
@@ -35,7 +39,6 @@ VkSwapchainKHR swapchain;
 VkExtent2D swapchain_extent;
 VkPresentModeKHR presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 VkCommandPool command_pool;
-VkCommandBuffer initcmd;
 uint32_t queue_family_count;
 
 PFN_vkCreateDebugUtilsMessengerEXT  vxCreateDebugUtilsMessengerEXT;
@@ -335,7 +338,7 @@ static void prepare_command_pools()
     }
 }
 
-static void begin_command_buffer() {
+void onl_vk_begin_init_command_buffer() {
 
     const VkCommandBufferAllocateInfo cb_ai = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -345,7 +348,7 @@ static void begin_command_buffer() {
         .commandBufferCount = 1,
     };
     VkResult err;
-    err = vkAllocateCommandBuffers(onl_vk_device, &cb_ai, &initcmd);
+    err = vkAllocateCommandBuffers(onl_vk_device, &cb_ai, &onl_vk_init_cmdbuf);
     assert(!err);
 
     VkCommandBufferBeginInfo cmd_buf_bi = {
@@ -354,18 +357,18 @@ static void begin_command_buffer() {
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
         .pInheritanceInfo = NULL,
     };
-    err = vkBeginCommandBuffer(initcmd, &cmd_buf_bi);
+    err = vkBeginCommandBuffer(onl_vk_init_cmdbuf, &cmd_buf_bi);
     assert(!err);
 }
 
-static void end_command_buffer() {
+void onl_vk_end_init_command_buffer() {
     VkResult err;
 
     // This function could get called twice if the texture uses a staging buffer
     // In that case the second call should be ignored
-    if (initcmd == VK_NULL_HANDLE) return;
+    if (onl_vk_init_cmdbuf == VK_NULL_HANDLE) return;
 
-    err = vkEndCommandBuffer(initcmd);
+    err = vkEndCommandBuffer(onl_vk_init_cmdbuf);
     assert(!err);
 
     VkFence fence;
@@ -373,7 +376,7 @@ static void end_command_buffer() {
     err = vkCreateFence(onl_vk_device, &fence_ci, NULL, &fence);
     assert(!err);
 
-    const VkCommandBuffer cmd_bufs[] = {initcmd};
+    const VkCommandBuffer cmd_bufs[] = {onl_vk_init_cmdbuf};
     VkSubmitInfo submit_info = {.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
                                 .pNext = NULL,
                                 .waitSemaphoreCount = 0,
@@ -392,7 +395,7 @@ static void end_command_buffer() {
 
     vkFreeCommandBuffers(onl_vk_device, command_pool, 1, cmd_bufs);
     vkDestroyFence(onl_vk_device, fence, NULL);
-    initcmd = VK_NULL_HANDLE;
+    onl_vk_init_cmdbuf = VK_NULL_HANDLE;
 }
 
 /*
@@ -603,16 +606,22 @@ static void pick_physical_device(){
             }
         }
     }
-
     assert(gpu_number >= 0);
+
     gpu = physical_devices[gpu_number];
-    {
-        VkPhysicalDeviceProperties physicalDeviceProperties;
-        vkGetPhysicalDeviceProperties(gpu, &physicalDeviceProperties);
-        log_write("selected GPU %d: %s, type: %s\n", gpu_number, physicalDeviceProperties.deviceName,
-                  gpu_type_to_string(physicalDeviceProperties.deviceType));
-    }
+
     free(physical_devices);
+
+    VkPhysicalDeviceProperties gpu_props;
+    vkGetPhysicalDeviceProperties(gpu, &gpu_props);
+
+    log_write("selected GPU %d: %s, type: %s\n",
+                            gpu_number,
+                            gpu_props.deviceName,
+                            gpu_type_to_string(gpu_props.deviceType));
+
+    onl_vk_min_storage_buffer_offset_alignment = gpu_props.limits
+                                                          .minStorageBufferOffsetAlignment;
 
     uint32_t device_extension_count = 0;
     VkBool32 swapchainExtFound = 0;
@@ -861,24 +870,20 @@ static void prepare(bool restart) {
 
   prepare_swapchain();
 
-  begin_command_buffer();
-  {
-    onl_vk_prepare_swapchain_images(restart);
-    onl_vk_prepare_semaphores_and_fences(restart);
-    onl_vk_prepare_command_buffers(restart);
-    onl_vk_prepare_rendering(restart);
-    ont_prepare_render_data(restart);
-    ont_prepare_uniform_buffers(restart);
-    ont_prepare_descriptor_layout(restart);
-    onl_vk_prepare_pipeline_layout(restart);
-    ont_prepare_descriptor_pool(restart);
-    ont_prepare_descriptor_set(restart);
-    onl_vk_prepare_render_pass(restart);
-    ont_prepare_shaders(restart);
-    onl_vk_prepare_pipeline(restart);
-    onl_vk_prepare_framebuffers(restart);
-  }
-  end_command_buffer();
+  onl_vk_prepare_swapchain_images(restart);
+  onl_vk_prepare_semaphores_and_fences(restart);
+  onl_vk_prepare_command_buffers(restart);
+  onl_vk_prepare_rendering(restart);
+  ont_prepare_render_data(restart);
+  ont_prepare_uniform_buffers(restart);
+  ont_prepare_descriptor_layout(restart);
+  onl_vk_prepare_pipeline_layout(restart);
+  ont_prepare_descriptor_pool(restart);
+  ont_prepare_descriptor_set(restart);
+  onl_vk_prepare_render_pass(restart);
+  ont_prepare_shaders(restart);
+  onl_vk_prepare_pipeline(restart);
+  onl_vk_prepare_framebuffers(restart);
 
   prepared = true;
 }

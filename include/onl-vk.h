@@ -48,10 +48,11 @@ extern onl_vk_iostate io;
 extern VkDevice            onl_vk_device;
 extern VkFormat            onl_vk_texture_format;
 extern VkFormatProperties  onl_vk_texture_format_properties;
+extern VkCommandBuffer     onl_vk_init_cmdbuf;
+extern uint32_t            onl_vk_min_storage_buffer_offset_alignment;
 
 // -----------------------------------
 
-extern VkCommandBuffer initcmd;
 extern VkQueue queue;
 extern VkCommandPool command_pool;
 extern VkSwapchainKHR swapchain;
@@ -83,6 +84,9 @@ extern pthread_mutex_t scene_lock;
 void set_proj_view();
 
 // -----------------------------------
+
+void onl_vk_begin_init_command_buffer();
+void onl_vk_end_init_command_buffer();
 
 VkCommandBuffer onl_vk_begin_cmd_buf(uint32_t ii);
 void            onl_vk_begin_render_pass(uint32_t ii, VkCommandBuffer cmd_buf);
