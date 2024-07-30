@@ -21,7 +21,6 @@ VkCommandBuffer onl_vk_init_cmdbuf;
 // -----
 
 VkSurfaceKHR surface;
-bool prepared;
 uint16_t frames = 0;
 int32_t gpu_number = -1;
 VkInstance inst;
@@ -47,6 +46,9 @@ PFN_vkDestroyDebugUtilsMessengerEXT vxDestroyDebugUtilsMessengerEXT;
 VkDebugUtilsMessengerCreateInfoEXT dbg_messenger_ci;
 VkDebugUtilsMessengerEXT           dbg_messenger;
 
+// -----------------
+
+static bool prepared=false;
 static int validation_error = 0;
 
 static char const *gpu_type_to_string(VkPhysicalDeviceType const type) {
@@ -253,7 +255,7 @@ static void prepare_swapchain() {
         }
     }
     if (presentMode != swapchainPresentMode) {
-        ERR_EXIT("Present mode specified is not supported\n");
+        ONL_VK_ERR_EXIT("Present mode specified is not supported\n");
     }
 
     uint32_t desiredNumOfSwapchainImages = 3;
@@ -452,7 +454,7 @@ static void create_instance() {
         }
 
         if (!validation_found) {
-            ERR_EXIT("vkEnumerateInstanceLayerProperties failed to find required validation layer.\n\n");
+            ONL_VK_ERR_EXIT("vkEnumerateInstanceLayerProperties failed to find required validation layer.\n\n");
         }
     }
 
@@ -498,10 +500,10 @@ static void create_instance() {
     }
 
     if (!surfaceExtFound) {
-        ERR_EXIT("vkEnumerateInstanceExtensionProperties failed to find the " VK_KHR_SURFACE_EXTENSION_NAME " extension.\n\n");
+        ONL_VK_ERR_EXIT("vkEnumerateInstanceExtensionProperties failed to find the " VK_KHR_SURFACE_EXTENSION_NAME " extension.\n\n");
     }
     if (!platformSurfaceExtFound) {
-        ERR_EXIT("vkEnumerateInstanceExtensionProperties failed to find the platform surface extension.\n\n");
+        ONL_VK_ERR_EXIT("vkEnumerateInstanceExtensionProperties failed to find the platform surface extension.\n\n");
     }
     const VkApplicationInfo app = {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -548,11 +550,11 @@ static void create_instance() {
 
     err = vkCreateInstance(&inst_ci, NULL, &inst);
     if (err == VK_ERROR_INCOMPATIBLE_DRIVER) {
-        ERR_EXIT("Cannot find a compatible Vulkan installable client driver (ICD).\n\n");
+        ONL_VK_ERR_EXIT("Cannot find a compatible Vulkan installable client driver (ICD).\n\n");
     } else if (err == VK_ERROR_EXTENSION_NOT_PRESENT) {
-        ERR_EXIT("Cannot find a specified extension library.\n");
+        ONL_VK_ERR_EXIT("Cannot find a specified extension library.\n");
     } else if (err) {
-        ERR_EXIT("vkCreateInstance failed.\n\n");
+        ONL_VK_ERR_EXIT("vkCreateInstance failed.\n\n");
     }
 }
 
@@ -563,7 +565,7 @@ static void pick_physical_device(){
     assert(!err);
 
     if (gpu_count <= 0) {
-        ERR_EXIT("vkEnumeratePhysicalDevices reported zero accessible devices.\n\n");
+        ONL_VK_ERR_EXIT("vkEnumeratePhysicalDevices reported zero accessible devices.\n\n");
     }
 
     VkPhysicalDevice *physical_devices = malloc(sizeof(VkPhysicalDevice) * gpu_count);
@@ -571,7 +573,7 @@ static void pick_physical_device(){
     assert(!err);
     if (gpu_number >= 0 && !((uint32_t)gpu_number < gpu_count)) {
         log_write("GPU %d specified is not present, GPU count = %u\n", gpu_number, gpu_count);
-        ERR_EXIT("Specified GPU number is not present");
+        ONL_VK_ERR_EXIT("Specified GPU number is not present");
     }
 
     if (gpu_number == -1) {
@@ -654,7 +656,7 @@ static void pick_physical_device(){
     }
 
     if (!swapchainExtFound) {
-        ERR_EXIT("vkEnumerateDeviceExtensionProperties failed to find the " VK_KHR_SWAPCHAIN_EXTENSION_NAME " extension.\n\n");
+        ONL_VK_ERR_EXIT("vkEnumerateDeviceExtensionProperties failed to find the " VK_KHR_SWAPCHAIN_EXTENSION_NAME " extension.\n\n");
     }
 
     if (validate) {
@@ -667,7 +669,7 @@ static void pick_physical_device(){
 
         if (!vxCreateDebugUtilsMessengerEXT || !vxDestroyDebugUtilsMessengerEXT) {
 
-            ERR_EXIT("GetProcAddr: Failed to init VK_EXT_debug_utils\n");
+            ONL_VK_ERR_EXIT("GetProcAddr: Failed to init VK_EXT_debug_utils\n");
         }
 
         err = vxCreateDebugUtilsMessengerEXT(inst, &dbg_messenger_ci, NULL, &dbg_messenger);
@@ -675,10 +677,10 @@ static void pick_physical_device(){
             case VK_SUCCESS:
                 break;
             case VK_ERROR_OUT_OF_HOST_MEMORY:
-                ERR_EXIT("vkCreateDebugUtilsMessengerEXT: out of host memory\n");
+                ONL_VK_ERR_EXIT("vkCreateDebugUtilsMessengerEXT: out of host memory\n");
                 break;
             default:
-                ERR_EXIT("vkCreateDebugUtilsMessengerEXT: unknown failure\n");
+                ONL_VK_ERR_EXIT("vkCreateDebugUtilsMessengerEXT: unknown failure\n");
                 break;
         }
     }
@@ -754,11 +756,11 @@ static void find_queue_families() {
 
     if (graphicsQueueFamilyIndex == UINT32_MAX || presentQueueFamilyIndex == UINT32_MAX) {
         log_write("Could not find either/both graphics or present queues g=%d p=%d\n", graphicsQueueFamilyIndex, presentQueueFamilyIndex);
-        ERR_EXIT("");
+        ONL_VK_ERR_EXIT("");
     }
 
     if(graphicsQueueFamilyIndex != presentQueueFamilyIndex){
-      ERR_EXIT("Wow! the graphics and present queues are actually different!");
+      ONL_VK_ERR_EXIT("Wow! the graphics and present queues are actually different!");
     }
     free(supportsPresent);
 

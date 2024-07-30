@@ -15,12 +15,6 @@
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
-#define ERR_EXIT(msg) \
-  do {                             \
-    log_write("%s\n", msg);     \
-    onl_vk_exit();             \
-  } while (0)
-
 #define VK_CHECK(r) \
   do {  \
     VkResult res = (r); \
@@ -28,6 +22,12 @@
        log_write("r=%d %s:%d\n", r, __FILE__, __LINE__); \
        onl_vk_exit();  \
     }  \
+  } while (0)
+
+#define ONL_VK_ERR_EXIT(msg) \
+  do {                             \
+    log_write("%s\n", msg);     \
+    onl_vk_exit();             \
   } while (0)
 
 typedef struct onl_vk_iostate {
@@ -45,43 +45,21 @@ extern onl_vk_iostate io;
 
 // -----------------------------------
 
-extern VkDevice            onl_vk_device;
-extern VkFormat            onl_vk_texture_format;
-extern VkFormatProperties  onl_vk_texture_format_properties;
-extern VkCommandBuffer     onl_vk_init_cmdbuf;
-extern uint32_t            onl_vk_min_storage_buffer_offset_alignment;
-
-// -----------------------------------
-
-extern VkQueue queue;
-extern VkCommandPool command_pool;
-extern VkSwapchainKHR swapchain;
-extern VkExtent2D swapchain_extent;
-extern VkShaderModule vert_shader_module;
-extern VkShaderModule frag_shader_module;
-
-extern float aspect_ratio;
-extern float aspect_ratio_proj;
-
-extern uint32_t max_img;
-extern uint32_t cur_img;
-
-extern VkPipelineLayout pipeline_layout;
-
-extern VkDescriptorSetLayout descriptor_layout;
-
-extern VkPipelineVertexInputStateCreateInfo vertex_input_state_ci;
-
-struct push_constants { //!!
-  uint32_t phase;
-};
-
-extern bool prepared;
-
-extern bool            scene_ready;
-extern pthread_mutex_t scene_lock;
-
-void set_proj_view();
+extern VkDevice                             onl_vk_device;
+extern VkFormat                             onl_vk_texture_format;
+extern VkFormatProperties                   onl_vk_texture_format_properties;
+extern VkCommandBuffer                      onl_vk_init_cmdbuf;
+extern uint32_t                             onl_vk_min_storage_buffer_offset_alignment;
+extern bool                                 onl_vk_scene_ready;
+extern pthread_mutex_t                      onl_vk_scene_lock;
+extern VkPipelineLayout                     onl_vk_pipeline_layout;
+extern float                                onl_vk_aspect_ratio;
+extern float                                onl_vk_aspect_ratio_proj;
+extern VkPipelineVertexInputStateCreateInfo onl_vk_vertex_input_state_ci;
+extern uint32_t                             onl_vk_max_img;
+extern uint32_t                             onl_vk_cur_img;
+extern VkShaderModule                       onl_vk_vert_shader_module;
+extern VkShaderModule                       onl_vk_frag_shader_module;
 
 // -----------------------------------
 

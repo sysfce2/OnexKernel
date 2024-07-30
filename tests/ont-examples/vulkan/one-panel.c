@@ -16,8 +16,6 @@
 
 #include <onn.h>
 
-extern bool prepared; // FIXME
-
 mat4x4 proj_matrix;
 mat4x4 view_l_matrix;
 mat4x4 view_r_matrix;
@@ -182,11 +180,6 @@ static float* vertices;
 
 void one_panel_render() {
 
-  if(!prepared){
-    log_write("one_panel_render() called when not prepared!\n");
-    return;
-  }
-
   set_up_scene_begin(&vertices);
 
   vertex_buffer_end = 0;
@@ -228,7 +221,7 @@ void set_proj_view() {
 
     Mat4x4_perspective(proj_matrix,
                        (float)degreesToRadians(VIEWPORT_FOV),
-                       aspect_ratio_proj,
+                       onl_vk_aspect_ratio_proj,
                        VIEWPORT_NEAR, VIEWPORT_FAR);
 
     proj_matrix[1][1] *= -1;

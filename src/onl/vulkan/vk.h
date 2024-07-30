@@ -5,6 +5,10 @@
 
 extern VkFormat         surface_format;
 extern VkPhysicalDevice gpu;
+extern VkQueue          queue;
+extern VkCommandPool    command_pool;
+extern VkSwapchainKHR   swapchain;
+extern VkExtent2D       swapchain_extent;
 
 // calls from vk.c down to vulkan-xcb.c etc
 void onl_vk_init();

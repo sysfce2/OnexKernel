@@ -7,25 +7,24 @@
 
 #define VK_DESTROY(func, dev, obj) func(dev, obj, NULL), obj = NULL
 
-float aspect_ratio;
-float aspect_ratio_proj;
+float onl_vk_aspect_ratio;
+float onl_vk_aspect_ratio_proj;
+
+VkShaderModule onl_vk_vert_shader_module;
+VkShaderModule onl_vk_frag_shader_module;
 
 #define ONE_EYE  1
 #define TWO_EYES 2
 
-uint32_t max_img;
-uint32_t cur_img;
+uint32_t onl_vk_max_img;
+uint32_t onl_vk_cur_img;
 
-VkPipelineLayout pipeline_layout;
-
-VkPipelineVertexInputStateCreateInfo vertex_input_state_ci = {
+VkPipelineVertexInputStateCreateInfo onl_vk_vertex_input_state_ci = {
   .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
 };
 
-bool            scene_ready = false;
-pthread_mutex_t scene_lock;
-
-VkDescriptorSetLayout descriptor_layout;
+bool            onl_vk_scene_ready = false;
+pthread_mutex_t onl_vk_scene_lock;
 
 VkFormat            onl_vk_texture_format = VK_FORMAT_R8G8B8A8_UNORM;
 VkFormatProperties  onl_vk_texture_format_properties;
@@ -206,11 +205,11 @@ void copy_colour_to_swap(uint32_t ii) {
 
 void onl_vk_render_frame() {
 
-  vkWaitForFences(onl_vk_device, 1, &swapchain_bits[cur_img].cmd_buf_fence, VK_TRUE, UINT64_MAX);
+  vkWaitForFences(onl_vk_device, 1, &swapchain_bits[onl_vk_cur_img].cmd_buf_fence, VK_TRUE, UINT64_MAX);
 
-  pthread_mutex_lock(&scene_lock);
-  if(!scene_ready){
-    pthread_mutex_unlock(&scene_lock);
+  pthread_mutex_lock(&onl_vk_scene_lock);
+  if(!onl_vk_scene_ready){
+    pthread_mutex_unlock(&onl_vk_scene_lock);
     return;
   }
 
@@ -221,18 +220,18 @@ void onl_vk_render_frame() {
                                   UINT64_MAX,
                                   image_acquired_semaphore,
                                   VK_NULL_HANDLE,
-                                  &cur_img);
+                                  &onl_vk_cur_img);
 
       if (err == VK_SUCCESS || err == VK_SUBOPTIMAL_KHR){
         break;
       }
       else
       if (err == VK_ERROR_OUT_OF_DATE_KHR) {
-        pthread_mutex_unlock(&scene_lock); // ??
+        pthread_mutex_unlock(&onl_vk_scene_lock); // ??
         onl_vk_restart();
       }
       else {
-        pthread_mutex_unlock(&scene_lock);
+        pthread_mutex_unlock(&onl_vk_scene_lock);
         return;
       }
   } while(true);
@@ -253,12 +252,12 @@ void onl_vk_render_frame() {
 
   submit_info.pWaitSemaphores   = img_acq_semaphore;
   submit_info.pSignalSemaphores = ren_com_semaphore;
-  submit_info.pCommandBuffers = &swapchain_bits[cur_img].cmd_buf,
+  submit_info.pCommandBuffers = &swapchain_bits[onl_vk_cur_img].cmd_buf,
 
-  vkResetFences(onl_vk_device, 1, &swapchain_bits[cur_img].cmd_buf_fence);
+  vkResetFences(onl_vk_device, 1, &swapchain_bits[onl_vk_cur_img].cmd_buf_fence);
 
   err = vkQueueSubmit(queue, 1, &submit_info,
-                      swapchain_bits[cur_img].cmd_buf_fence);
+                      swapchain_bits[onl_vk_cur_img].cmd_buf_fence);
 
   VkPresentInfoKHR present_info = {
     .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -266,13 +265,13 @@ void onl_vk_render_frame() {
     .pWaitSemaphores = ren_com_semaphore,
     .swapchainCount = 1,
     .pSwapchains = &swapchain,
-    .pImageIndices = &cur_img,
+    .pImageIndices = &onl_vk_cur_img,
     .pNext = NULL,
   };
 
   err = vkQueuePresentKHR(queue, &present_info);
 
-  pthread_mutex_unlock(&scene_lock); // ??
+  pthread_mutex_unlock(&onl_vk_scene_lock); // ??
   if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR) {
     onl_vk_restart();
   }
@@ -441,23 +440,26 @@ static void prepare_depth() {
 
 void onl_vk_prepare_swapchain_images(bool restart) {
 
-    aspect_ratio = (float)io.swap_width / (float)io.swap_height;
-    sbs_render   = aspect_ratio < 2.0f;
-    aspect_ratio_proj = aspect_ratio / (sbs_render? 2.0f: 1.0f);
-    log_write("aspect_ratio %f SBS=%s\n", aspect_ratio, sbs_render? "ON": "OFF");
+    onl_vk_aspect_ratio = (float)io.swap_width / (float)io.swap_height;
+    sbs_render = onl_vk_aspect_ratio > 2.0f;
+    onl_vk_aspect_ratio_proj = onl_vk_aspect_ratio / (sbs_render? 2.0f: 1.0f);
+    log_write("onl_vk_aspect_ratio %.3f/%.3f SBS=%s\n",
+                                   onl_vk_aspect_ratio,
+                                   onl_vk_aspect_ratio_proj,
+                                   sbs_render? "ON": "OFF");
 
     VkResult err;
-    err = vkGetSwapchainImagesKHR(onl_vk_device, swapchain, &max_img, NULL);
+    err = vkGetSwapchainImagesKHR(onl_vk_device, swapchain, &onl_vk_max_img, NULL);
     assert(!err);
 
-    VkImage *swapchainImages = (VkImage *)malloc(max_img * sizeof(VkImage));
+    VkImage *swapchainImages = (VkImage *)malloc(onl_vk_max_img * sizeof(VkImage));
     assert(swapchainImages);
-    err = vkGetSwapchainImagesKHR(onl_vk_device, swapchain, &max_img, swapchainImages);
+    err = vkGetSwapchainImagesKHR(onl_vk_device, swapchain, &onl_vk_max_img, swapchainImages);
     assert(!err);
 
-    swapchain_bits = (SwapchainBits*)malloc(sizeof(SwapchainBits) * max_img);
+    swapchain_bits = (SwapchainBits*)malloc(sizeof(SwapchainBits) * onl_vk_max_img);
 
-    for (uint32_t i = 0; i < max_img; i++) {
+    for (uint32_t i = 0; i < onl_vk_max_img; i++) {
         VkImageViewCreateInfo image_view_ci = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .image = swapchainImages[i],
@@ -498,7 +500,7 @@ void onl_vk_prepare_semaphores_and_fences(bool restart) {
       .pNext = 0,
   };
 
-  for (uint32_t i = 0; i < max_img; i++) {
+  for (uint32_t i = 0; i < onl_vk_max_img; i++) {
       VK_CHECK(vkCreateFence(onl_vk_device, &fence_ci, 0, &swapchain_bits[i].cmd_buf_fence));
   }
 
@@ -521,7 +523,7 @@ void onl_vk_prepare_command_buffers(bool restart){
       .pNext = 0,
   };
 
-  for (uint32_t i = 0; i < max_img; i++) {
+  for (uint32_t i = 0; i < onl_vk_max_img; i++) {
       VK_CHECK(vkAllocateCommandBuffers(
                        onl_vk_device,
                        &cmd_buf_ai,
@@ -536,29 +538,6 @@ void onl_vk_prepare_rendering(bool restart) {
                                            &onl_vk_texture_format_properties);
   if(sbs_render) prepare_color();
   prepare_depth();
-}
-
-void onl_vk_prepare_pipeline_layout(bool restart) {
-
-  VkPushConstantRange push_constant_range = {
-    .offset = 0,
-    .size = sizeof(struct push_constants),
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-  };
-
-  VkPipelineLayoutCreateInfo pipeline_layout_ci = {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-      .setLayoutCount = 1,
-      .pSetLayouts = &descriptor_layout,
-      .pPushConstantRanges = &push_constant_range,
-      .pushConstantRangeCount = 1,
-      .pNext = 0,
-  };
-
-  VK_CHECK(vkCreatePipelineLayout(onl_vk_device,
-                                  &pipeline_layout_ci,
-                                  0,
-                                  &pipeline_layout));
 }
 
 void onl_vk_prepare_render_pass(bool restart) {
@@ -671,13 +650,13 @@ void onl_vk_prepare_pipeline(bool restart) {
     {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
       .stage = VK_SHADER_STAGE_VERTEX_BIT,
-      .module = vert_shader_module,
+      .module = onl_vk_vert_shader_module,
       .pName = "main",
     },
     {
       .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
       .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-      .module = frag_shader_module,
+      .module = onl_vk_frag_shader_module,
       .pName = "main",
     }
   };
@@ -790,9 +769,9 @@ void onl_vk_prepare_pipeline(bool restart) {
     .pDepthStencilState = &depth_stencil_ci,
     .stageCount = 2,
     .pStages = shader_stages_ci,
-    .pVertexInputState = &vertex_input_state_ci,
+    .pVertexInputState = &onl_vk_vertex_input_state_ci,
     .pInputAssemblyState = &input_assembly_state_ci,
-    .layout = pipeline_layout,
+    .layout = onl_vk_pipeline_layout,
     .renderPass = render_pass,
     .subpass = 0,
   };
@@ -804,8 +783,8 @@ void onl_vk_prepare_pipeline(bool restart) {
                                      0,
                                      &pipeline));
 
-  vkDestroyShaderModule(onl_vk_device, frag_shader_module, NULL);
-  vkDestroyShaderModule(onl_vk_device, vert_shader_module, NULL);
+  vkDestroyShaderModule(onl_vk_device, onl_vk_frag_shader_module, NULL);
+  vkDestroyShaderModule(onl_vk_device, onl_vk_vert_shader_module, NULL);
 }
 
 void onl_vk_prepare_framebuffers(bool restart) {
@@ -820,7 +799,7 @@ void onl_vk_prepare_framebuffers(bool restart) {
         .layers = 1,
     };
 
-    for (uint32_t i = 0; i < max_img; i++) {
+    for (uint32_t i = 0; i < onl_vk_max_img; i++) {
 
         VkImageView attachments[] = {
           sbs_render? color.image_view:
@@ -887,14 +866,13 @@ void onl_vk_end_cmd_buf_and_render_pass(uint32_t ii, VkCommandBuffer cmd_buf){
 
 void onl_vk_finish_rendering() {
 
-  for (uint32_t i = 0; i < max_img; i++) {
+  for (uint32_t i = 0; i < onl_vk_max_img; i++) {
     vkWaitForFences(onl_vk_device, 1, &swapchain_bits[i].cmd_buf_fence, VK_TRUE, UINT64_MAX);
     vkDestroyFence(onl_vk_device, swapchain_bits[i].cmd_buf_fence, NULL);
   }
 
   vkDestroyPipeline(onl_vk_device, pipeline, NULL);
   vkDestroyPipelineCache(onl_vk_device, pipeline_cache, NULL);
-  vkDestroyPipelineLayout(onl_vk_device, pipeline_layout, NULL);
 
   // ---------------------------------
 
@@ -910,7 +888,7 @@ void onl_vk_finish_rendering() {
 
   uint32_t i;
   if (swapchain_bits) {
-     for (i = 0; i < max_img; i++) {
+     for (i = 0; i < onl_vk_max_img; i++) {
          vkFreeCommandBuffers(onl_vk_device, command_pool, 1, &swapchain_bits[i].cmd_buf);
          vkDestroyFramebuffer(onl_vk_device, swapchain_bits[i].framebuffer, NULL);
          vkDestroyImageView(onl_vk_device, swapchain_bits[i].image_view, NULL);

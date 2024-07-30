@@ -2,6 +2,8 @@
 
 #include "user-onl-vk.h"
 
+VkPipelineLayout onl_vk_pipeline_layout;
+
 static VkBuffer vertex_buffer;
 static VkBuffer staging_buffer;
 
@@ -24,7 +26,35 @@ typedef struct {
 
 static uniform_mem_t *uniform_mem;
 
-static VkDescriptorPool descriptor_pool;
+struct push_constants {
+  uint32_t phase;
+};
+
+static VkDescriptorPool      descriptor_pool;
+static VkDescriptorSetLayout descriptor_layout;
+
+void onl_vk_prepare_pipeline_layout(bool restart) {
+
+  VkPushConstantRange push_constant_range = {
+    .offset = 0,
+    .size = sizeof(struct push_constants),
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+  };
+
+  VkPipelineLayoutCreateInfo pipeline_layout_ci = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+      .setLayoutCount = 1,
+      .pSetLayouts = &descriptor_layout,
+      .pPushConstantRanges = &push_constant_range,
+      .pushConstantRangeCount = 1,
+      .pNext = 0,
+  };
+
+  VK_CHECK(vkCreatePipelineLayout(onl_vk_device,
+                                  &pipeline_layout_ci,
+                                  0,
+                                  &onl_vk_pipeline_layout));
+}
 
 static void prepare_vertex_buffers(){
 
@@ -47,14 +77,14 @@ void ont_prepare_uniform_buffers(bool restart) {
 
   prepare_vertex_buffers();
 
-  uniform_mem = (uniform_mem_t*)malloc(sizeof(uniform_mem_t) * max_img);
+  uniform_mem = (uniform_mem_t*)malloc(sizeof(uniform_mem_t) * onl_vk_max_img);
 
   VkBufferCreateInfo buffer_ci = {
      .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
      .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
      .size = sizeof(struct uniforms),
   };
-  for (uint32_t ii = 0; ii < max_img; ii++) {
+  for (uint32_t ii = 0; ii < onl_vk_max_img; ii++) {
 
     onl_vk_create_buffer_with_memory(&buffer_ci,
                                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
@@ -77,7 +107,7 @@ static void do_cmd_buf_draw(uint32_t ii, VkCommandBuffer cmd_buf){
 
   vkCmdBindDescriptorSets(cmd_buf,
                           VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          pipeline_layout,
+                          onl_vk_pipeline_layout,
                           0, 1,
                           &uniform_mem[ii].descriptor_set,
                           0, NULL);
@@ -85,20 +115,20 @@ static void do_cmd_buf_draw(uint32_t ii, VkCommandBuffer cmd_buf){
   struct push_constants pc;
 
   pc.phase = 0, // ground plane
-  vkCmdPushConstants(cmd_buf, pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+  vkCmdPushConstants(cmd_buf, onl_vk_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                      sizeof(struct push_constants), &pc);
   vkCmdDraw(cmd_buf, 6, 1, 0, 0);
 
   pc.phase = 1, // panels
-  vkCmdPushConstants(cmd_buf, pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+  vkCmdPushConstants(cmd_buf, onl_vk_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                      sizeof(struct push_constants), &pc);
   vkCmdDraw(cmd_buf, 6*6, 1, 0, 0);
 }
 
 void set_up_scene_begin(float** vertices) {
 
-  pthread_mutex_lock(&scene_lock);
-  scene_ready = false;
+  pthread_mutex_lock(&onl_vk_scene_lock);
+  onl_vk_scene_ready = false;
 
   size_t vertex_size = MAX_PANELS * 6*6 * (3 * sizeof(float) +
                                            2 * sizeof(float)  );
@@ -113,33 +143,33 @@ void set_up_scene_end() {
 
   vkUnmapMemory(onl_vk_device, vertex_buffer_memory);
 
-  for (uint32_t ii = 0; ii < max_img; ii++) {
+  for (uint32_t ii = 0; ii < onl_vk_max_img; ii++) {
       VkCommandBuffer cmd_buf = onl_vk_begin_cmd_buf(ii);
       onl_vk_begin_render_pass(ii, cmd_buf);
       do_cmd_buf_draw(ii, cmd_buf);
       onl_vk_end_cmd_buf_and_render_pass(ii, cmd_buf);
   }
 
-  scene_ready = true;
-  pthread_mutex_unlock(&scene_lock);
+  onl_vk_scene_ready = true;
+  pthread_mutex_unlock(&onl_vk_scene_lock);
 }
 
 void ont_update_uniforms() {
 
   set_proj_view();
 
-  memcpy(uniform_mem[cur_img].uniform_memory_ptr,
+  memcpy(uniform_mem[onl_vk_cur_img].uniform_memory_ptr,
          (const void*)&proj_matrix,    sizeof(proj_matrix));
 
-  memcpy(uniform_mem[cur_img].uniform_memory_ptr +
+  memcpy(uniform_mem[onl_vk_cur_img].uniform_memory_ptr +
                 sizeof(proj_matrix),
          (const void*)&view_l_matrix,  sizeof(view_l_matrix));
 
-  memcpy(uniform_mem[cur_img].uniform_memory_ptr +
+  memcpy(uniform_mem[onl_vk_cur_img].uniform_memory_ptr +
                 sizeof(proj_matrix)+sizeof(view_l_matrix),
          (const void*)&view_r_matrix,  sizeof(view_r_matrix));
 
-  memcpy(uniform_mem[cur_img].uniform_memory_ptr +
+  memcpy(uniform_mem[onl_vk_cur_img].uniform_memory_ptr +
                 sizeof(proj_matrix)+sizeof(view_l_matrix)+sizeof(view_r_matrix),
          (const void*)&model_matrix, sizeof(model_matrix));
 }
@@ -211,7 +241,7 @@ static void prepare_texture_image(const char *filename,
     VkResult err;
 
     if (!load_texture(filename, NULL, 0, &texture_width, &texture_height)) {
-        ERR_EXIT("Failed to load textures");
+        ONL_VK_ERR_EXIT("Failed to load textures");
     }
 
     texture_obj->texture_width = texture_width;
@@ -265,7 +295,7 @@ static void prepare_texture_buffer(char *filename, struct texture_object *textur
     VkResult err;
 
     if (!load_texture(filename, 0, 0, &texture_width, &texture_height)) {
-        ERR_EXIT("Failed to load textures");
+        ONL_VK_ERR_EXIT("Failed to load textures");
     }
 
     texture_obj->texture_width = texture_width;
@@ -453,10 +483,10 @@ void ont_prepare_render_data(bool restart) {
 
   // ----------
 
-  vertex_input_state_ci.vertexBindingDescriptionCount = 1;
-  vertex_input_state_ci.pVertexBindingDescriptions = vibds;
-  vertex_input_state_ci.vertexAttributeDescriptionCount = 2;
-  vertex_input_state_ci.pVertexAttributeDescriptions = vertex_input_attributes;
+  onl_vk_vertex_input_state_ci.vertexBindingDescriptionCount = 1;
+  onl_vk_vertex_input_state_ci.pVertexBindingDescriptions = vibds;
+  onl_vk_vertex_input_state_ci.vertexAttributeDescriptionCount = 2;
+  onl_vk_vertex_input_state_ci.pVertexAttributeDescriptions = vertex_input_attributes;
 }
 
 // ----------------------------------------------------------------------------------------
@@ -465,16 +495,16 @@ void ont_prepare_descriptor_pool(bool restart) {
 
   VkDescriptorPoolSize pool_sizes[] = {
       { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        max_img                 },
+        onl_vk_max_img                 },
       { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        max_img * 3             },
+        onl_vk_max_img * 3             },
       { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-        max_img * TEXTURE_COUNT },
+        onl_vk_max_img * TEXTURE_COUNT },
   };
 
   VkDescriptorPoolCreateInfo descriptor_pool_ci = {
       .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-      .maxSets = (max_img * 3) + max_img + (max_img * TEXTURE_COUNT) + 23, //// ??
+      .maxSets = (onl_vk_max_img * 3) + onl_vk_max_img + (onl_vk_max_img * TEXTURE_COUNT) + 23, //// ??
       .poolSizeCount = 3,
       .pPoolSizes = pool_sizes,
       .pNext = 0,
@@ -524,7 +554,7 @@ void ont_prepare_descriptor_set(bool restart) {
     },
   };
 
-  for (uint32_t i = 0; i < max_img; i++) {
+  for (uint32_t i = 0; i < onl_vk_max_img; i++) {
 
     VK_CHECK(vkAllocateDescriptorSets(
                               onl_vk_device,
@@ -576,9 +606,6 @@ extern unsigned int  tests_ont_examples_vulkan_onx_frag_spv_len;
 extern unsigned char tests_ont_examples_vulkan_onx_vert_spv[];
 extern unsigned int  tests_ont_examples_vulkan_onx_vert_spv_len;
 
-VkShaderModule vert_shader_module;
-VkShaderModule frag_shader_module;
-
 static VkShaderModule load_c_shader(bool load_frag) {
 
     VkShaderModuleCreateInfo module_ci = {
@@ -600,15 +627,15 @@ static VkShaderModule load_c_shader(bool load_frag) {
 }
 
 void ont_prepare_shaders(bool restart){
-  vert_shader_module = load_c_shader(false);
-  frag_shader_module = load_c_shader(true);
+  onl_vk_vert_shader_module = load_c_shader(false);
+  onl_vk_frag_shader_module = load_c_shader(true);
 }
 
 // ---------------------------------
 
 void ont_finish_render_data() {
 
-  scene_ready = false;
+  onl_vk_scene_ready = false;
 
   // ---------------------------------
 
@@ -622,10 +649,11 @@ void ont_finish_render_data() {
 
   vkDestroyDescriptorPool(onl_vk_device, descriptor_pool, NULL);
   vkDestroyDescriptorSetLayout(onl_vk_device, descriptor_layout, NULL);
+  vkDestroyPipelineLayout(onl_vk_device, onl_vk_pipeline_layout, NULL);
 
   // ---------------------------------
 
-  for (uint32_t i = 0; i < max_img; i++) {
+  for (uint32_t i = 0; i < onl_vk_max_img; i++) {
       vkDestroyBuffer(onl_vk_device, uniform_mem[i].uniform_buffer, NULL);
       vkUnmapMemory(onl_vk_device, uniform_mem[i].uniform_memory);
       vkFreeMemory(onl_vk_device, uniform_mem[i].uniform_memory, NULL);
