@@ -12,7 +12,7 @@
 
 #include <onex-kernel/log.h>
 
-#include "onl/vulkan/vulkan/vk.h"
+#include "onl/vulkan/vk.h"
 #include <onl-vk.h>
 
 // -----------------------------------------

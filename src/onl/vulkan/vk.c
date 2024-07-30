@@ -5,8 +5,8 @@
 #include <onex-kernel/log.h>
 
 #include "onl-vk.h"
-#include "onl/vulkan/vulkan/object_type_string_helper.h"
-#include "onl/vulkan/vulkan/vk.h"
+#include "onl/vulkan/object_type_string_helper.h"
+#include "onl/vulkan/vk.h"
 
 #include "inttypes.h"
 
