@@ -14,7 +14,7 @@ INCLUDES = \
 -I./src/ \
 -I./src/lib \
 -I./src/onl \
--I./src/onl/desktop/vulkan \
+-I./src/onl/vulkan/vulkan \
 -I./src/onn/ \
 -I./src/onp/ \
 
@@ -46,9 +46,9 @@ LIB_SOURCES = \
 ./src/lib/value.c \
 ./src/lib/tests.c \
 ./src/lib/properties.c \
-./src/onl/desktop/vulkan-xcb.c \
-./src/onl/desktop/vulkan/vk.c \
-./src/onl/desktop/vulkan/vk-rg.c \
+./src/onl/vulkan/vulkan-xcb.c \
+./src/onl/vulkan/vulkan/vk.c \
+./src/onl/vulkan/vulkan/vk-rg.c \
 ./src/onn/onn.c \
 ./src/onp/onp.c \
 
