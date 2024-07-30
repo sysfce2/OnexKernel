@@ -91,16 +91,17 @@ uint32_t onl_vk_create_image_with_memory(VkImageCreateInfo*    image_ci,
 
 void onl_vk_exit();
 
-// calls from ONL VK up to ONT
-void ont_init();
-void ont_iostate_changed();
-void ont_prepare_render_data(bool restart);
-void ont_prepare_uniform_buffers(bool restart);
-void ont_prepare_descriptor_layout(bool restart);
-void ont_prepare_descriptor_pool(bool restart);
-void ont_prepare_descriptor_set(bool restart);
-void ont_prepare_shaders(bool restart);
-void ont_update_uniforms();
-void ont_finish_render_data();
+// calls from ONL VK up to ONT VK
+void ont_vk_init();
+void ont_vk_iostate_changed();
+void ont_vk_prepare_render_data(bool restart);
+void ont_vk_prepare_uniform_buffers(bool restart);
+void ont_vk_prepare_descriptor_layout(bool restart);
+void ont_vk_prepare_pipeline_layout(bool restart);
+void ont_vk_prepare_descriptor_pool(bool restart);
+void ont_vk_prepare_descriptor_set(bool restart);
+void ont_vk_prepare_shaders(bool restart);
+void ont_vk_update_uniforms();
+void ont_vk_finish_render_data();
 
 #endif

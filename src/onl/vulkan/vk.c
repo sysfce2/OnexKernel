@@ -876,14 +876,14 @@ static void prepare(bool restart) {
   onl_vk_prepare_semaphores_and_fences(restart);
   onl_vk_prepare_command_buffers(restart);
   onl_vk_prepare_rendering(restart);
-  ont_prepare_render_data(restart);
-  ont_prepare_uniform_buffers(restart);
-  ont_prepare_descriptor_layout(restart);
-  onl_vk_prepare_pipeline_layout(restart);
-  ont_prepare_descriptor_pool(restart);
-  ont_prepare_descriptor_set(restart);
+  ont_vk_prepare_render_data(restart);
+  ont_vk_prepare_uniform_buffers(restart);
+  ont_vk_prepare_descriptor_layout(restart);
+  ont_vk_prepare_pipeline_layout(restart);
+  ont_vk_prepare_descriptor_pool(restart);
+  ont_vk_prepare_descriptor_set(restart);
   onl_vk_prepare_render_pass(restart);
-  ont_prepare_shaders(restart);
+  ont_vk_prepare_shaders(restart);
   onl_vk_prepare_pipeline(restart);
   onl_vk_prepare_framebuffers(restart);
 
@@ -897,7 +897,7 @@ static void finish(bool restart) {
   vkDeviceWaitIdle(onl_vk_device);
 
   onl_vk_finish_rendering();
-  ont_finish_render_data();
+  ont_vk_finish_render_data();
 
   if(!restart){
 
@@ -911,14 +911,14 @@ void onl_vk_loop(bool running) {
 
   if(running && !prepared){
     prepare(false);
-    ont_init();
+    ont_vk_init();
   }
   else
   if(!running && prepared){
     finish(false);
   }
   if(prepared){
-    ont_update_uniforms();
+    ont_vk_update_uniforms();
     onl_vk_render_frame();
     frames++;
   }
@@ -949,6 +949,6 @@ void onl_vk_set_io_mouse(int32_t x, int32_t y){
 
 void onl_vk_iostate_changed() {
 
-  ont_iostate_changed();
+  ont_vk_iostate_changed();
 }
 

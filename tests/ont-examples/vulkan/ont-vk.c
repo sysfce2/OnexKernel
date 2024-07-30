@@ -33,7 +33,7 @@ struct push_constants {
 static VkDescriptorPool      descriptor_pool;
 static VkDescriptorSetLayout descriptor_layout;
 
-void onl_vk_prepare_pipeline_layout(bool restart) {
+void ont_vk_prepare_pipeline_layout(bool restart) {
 
   VkPushConstantRange push_constant_range = {
     .offset = 0,
@@ -73,7 +73,7 @@ static void prepare_vertex_buffers(){
                                    &vertex_buffer_memory);
 }
 
-void ont_prepare_uniform_buffers(bool restart) {
+void ont_vk_prepare_uniform_buffers(bool restart) {
 
   prepare_vertex_buffers();
 
@@ -154,7 +154,7 @@ void set_up_scene_end() {
   pthread_mutex_unlock(&onl_vk_scene_lock);
 }
 
-void ont_update_uniforms() {
+void ont_vk_update_uniforms() {
 
   set_proj_view();
 
@@ -459,7 +459,7 @@ static void prepare_textures(){
 
 // ---------------------------------
 
-VkVertexInputBindingDescription vibds[] = {
+static VkVertexInputBindingDescription vibds[] = {
   {
     .binding = 0,
     .stride = 3 * sizeof(float) +
@@ -468,12 +468,12 @@ VkVertexInputBindingDescription vibds[] = {
   }
 };
 
-VkVertexInputAttributeDescription vertex_input_attributes[] = {
+static VkVertexInputAttributeDescription vertex_input_attributes[] = {
   { 0, 0, VK_FORMAT_R32G32B32_SFLOAT,    0 }, // vertex
   { 1, 0, VK_FORMAT_R32G32_SFLOAT,      12 }, // uv
 };
 
-void ont_prepare_render_data(bool restart) {
+void ont_vk_prepare_render_data(bool restart) {
 
   onl_vk_begin_init_command_buffer();
 
@@ -491,7 +491,7 @@ void ont_prepare_render_data(bool restart) {
 
 // ----------------------------------------------------------------------------------------
 
-void ont_prepare_descriptor_pool(bool restart) {
+void ont_vk_prepare_descriptor_pool(bool restart) {
 
   VkDescriptorPoolSize pool_sizes[] = {
       { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -513,7 +513,7 @@ void ont_prepare_descriptor_pool(bool restart) {
   VK_CHECK(vkCreateDescriptorPool(onl_vk_device, &descriptor_pool_ci, NULL, &descriptor_pool));
 }
 
-void ont_prepare_descriptor_set(bool restart) {
+void ont_vk_prepare_descriptor_set(bool restart) {
 
   VkDescriptorSetAllocateInfo descriptor_set_ai = {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -570,7 +570,7 @@ void ont_prepare_descriptor_set(bool restart) {
 }
 
 
-void ont_prepare_descriptor_layout(bool restart) {
+void ont_vk_prepare_descriptor_layout(bool restart) {
 
   VkDescriptorSetLayoutBinding bindings[] = {
       {
@@ -626,14 +626,14 @@ static VkShaderModule load_c_shader(bool load_frag) {
     return module;
 }
 
-void ont_prepare_shaders(bool restart){
+void ont_vk_prepare_shaders(bool restart){
   onl_vk_vert_shader_module = load_c_shader(false);
   onl_vk_frag_shader_module = load_c_shader(true);
 }
 
 // ---------------------------------
 
-void ont_finish_render_data() {
+void ont_vk_finish_render_data() {
 
   onl_vk_scene_ready = false;
 

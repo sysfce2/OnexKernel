@@ -251,9 +251,9 @@ static float dwell(float delta, float width){
                     min(delta + width, 0.0f);
 }
 
-void ont_iostate_changed() {
+void ont_vk_iostate_changed() {
   /*
-  log_write("ont_iostate_changed [%d,%d] @(%d %d) buttons=(%d %d %d) key=%d\n",
+  log_write("ont_vk_iostate_changed [%d,%d] @(%d %d) buttons=(%d %d %d) key=%d\n",
            io.swap_width, io.swap_height,
            io.mouse_x, io.mouse_y,
            io.left_pressed, io.middle_pressed, io.right_pressed,
@@ -316,7 +316,7 @@ void ont_iostate_changed() {
 
 // ---------------------------------
 
-void ont_init(){
+void ont_vk_init(){
   one_panel_render(); // static scene! this can be done per frame
 }
 
