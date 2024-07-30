@@ -38,11 +38,11 @@ static void prepare_vertex_buffers(){
     .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
   };
 
-  create_buffer_with_memory(&buffer_ci,
-                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                            &vertex_buffer,
-                            &vertex_buffer_memory);
+  onl_vk_create_buffer_with_memory(&buffer_ci,
+                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                   &vertex_buffer,
+                                   &vertex_buffer_memory);
 }
 
 void ont_prepare_uniform_buffers(bool restart) {
@@ -58,11 +58,11 @@ void ont_prepare_uniform_buffers(bool restart) {
   };
   for (uint32_t ii = 0; ii < max_img; ii++) {
 
-    create_buffer_with_memory(&buffer_ci,
-                              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                              VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                              &uniform_mem[ii].uniform_buffer,
-                              &uniform_mem[ii].uniform_memory);
+    onl_vk_create_buffer_with_memory(&buffer_ci,
+                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                     &uniform_mem[ii].uniform_buffer,
+                                     &uniform_mem[ii].uniform_memory);
 
     VK_CHECK(vkMapMemory(device,
                          uniform_mem[ii].uniform_memory,
@@ -113,10 +113,10 @@ void set_up_scene_end() {
   vkUnmapMemory(device, vertex_buffer_memory);
 
   for (uint32_t ii = 0; ii < max_img; ii++) {
-      VkCommandBuffer cmd_buf = begin_cmd_buf(ii);
-      begin_render_pass(ii, cmd_buf);
+      VkCommandBuffer cmd_buf = onl_vk_begin_cmd_buf(ii);
+      onl_vk_begin_render_pass(ii, cmd_buf);
       do_cmd_buf_draw(ii, cmd_buf);
-      end_cmd_buf_and_render_pass(ii, cmd_buf);
+      onl_vk_end_cmd_buf_and_render_pass(ii, cmd_buf);
   }
 
   scene_ready = true;
@@ -233,10 +233,10 @@ static void prepare_texture_image(const char *filename,
         .initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED,
     };
 
-    uint32_t size = create_image_with_memory(&image_ci,
-                                             prop_flags,
-                                             &texture_obj->image,
-                                             &texture_obj->device_memory);
+    uint32_t size = onl_vk_create_image_with_memory(&image_ci,
+                                                    prop_flags,
+                                                    &texture_obj->image,
+                                                    &texture_obj->device_memory);
 
     if (prop_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
         const VkImageSubresource subres = {
@@ -286,10 +286,10 @@ static void prepare_texture_buffer(char *filename, struct texture_object *textur
     VkFlags prop_flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                          VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-    uint32_t size = create_buffer_with_memory(&buffer_ci,
-                                              prop_flags,
-                                              &texture_obj->buffer,
-                                              &texture_obj->device_memory);
+    uint32_t size = onl_vk_create_buffer_with_memory(&buffer_ci,
+                                                     prop_flags,
+                                                     &texture_obj->buffer,
+                                                     &texture_obj->device_memory);
     void *data;
     err = vkMapMemory(device, texture_obj->device_memory, 0, size, 0, &data);
     assert(!err);
@@ -321,14 +321,14 @@ static void prepare_textures(){
                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-            transition_image(initcmd, textures[i].image,
-                               VK_IMAGE_LAYOUT_PREINITIALIZED,
-                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                               0,
-                               VK_ACCESS_SHADER_READ_BIT |
-                               VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
-                               VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                               VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            onl_vk_transition_image(initcmd, textures[i].image,
+                                    VK_IMAGE_LAYOUT_PREINITIALIZED,
+                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                    0,
+                                    VK_ACCESS_SHADER_READ_BIT |
+                                    VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
+                                    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
             staging_texture.image = 0;
 
@@ -345,12 +345,12 @@ static void prepare_textures(){
                                   VK_IMAGE_USAGE_SAMPLED_BIT,
                                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-            transition_image(initcmd, textures[i].image,
-                               VK_IMAGE_LAYOUT_PREINITIALIZED,
-                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                               0, VK_ACCESS_TRANSFER_WRITE_BIT,
-                               VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                               VK_PIPELINE_STAGE_TRANSFER_BIT);
+            onl_vk_transition_image(initcmd, textures[i].image,
+                                    VK_IMAGE_LAYOUT_PREINITIALIZED,
+                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                    0, VK_ACCESS_TRANSFER_WRITE_BIT,
+                                    VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                    VK_PIPELINE_STAGE_TRANSFER_BIT);
 
             VkBufferImageCopy copy_region = {
                 .bufferOffset = 0,
@@ -365,14 +365,14 @@ static void prepare_textures(){
             vkCmdCopyBufferToImage(initcmd, staging_texture.buffer, textures[i].image,
                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_region);
 
-            transition_image(initcmd, textures[i].image,
-                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                               VK_ACCESS_TRANSFER_WRITE_BIT,
-                               VK_ACCESS_SHADER_READ_BIT |
-                               VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
-                               VK_PIPELINE_STAGE_TRANSFER_BIT,
-                               VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+            onl_vk_transition_image(initcmd, textures[i].image,
+                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                                    VK_ACCESS_TRANSFER_WRITE_BIT,
+                                    VK_ACCESS_SHADER_READ_BIT |
+                                    VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
+                                    VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
         } else {
             assert(!"No support for R8G8B8A8_UNORM as texture image format");
         }

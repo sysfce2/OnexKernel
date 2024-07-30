@@ -929,7 +929,7 @@ void onl_vk_restart(){
 }
 
 
-iostate io;
+onl_vk_iostate io;
 
 void onl_vk_set_io_mouse(int32_t x, int32_t y){
 

@@ -67,15 +67,14 @@ typedef struct {
 
 static SwapchainBits* swapchain_bits;
 
-void transition_image(
-    VkCommandBuffer cmdBuffer,
-    VkImage image,
-    VkImageLayout oldLayout,
-    VkImageLayout newLayout,
-    VkAccessFlagBits srcAccessMask,
-    VkAccessFlagBits dstAccessMask,
-    VkPipelineStageFlags srcStage,
-    VkPipelineStageFlags dstStage) {
+void onl_vk_transition_image(VkCommandBuffer cmdBuffer,
+                             VkImage image,
+                             VkImageLayout oldLayout,
+                             VkImageLayout newLayout,
+                             VkAccessFlagBits srcAccessMask,
+                             VkAccessFlagBits dstAccessMask,
+                             VkPipelineStageFlags srcStage,
+                             VkPipelineStageFlags dstStage) {
 
     VkImageMemoryBarrier img_mem_barrier = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -112,7 +111,7 @@ void copy_colour_to_swap(uint32_t ii) {
 
   VkCommandBuffer cmd_buf = swapchain_bits[ii].cmd_buf;
 
-  transition_image(
+  onl_vk_transition_image(
       cmd_buf,
       color.image,
       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
@@ -123,7 +122,7 @@ void copy_colour_to_swap(uint32_t ii) {
       VK_PIPELINE_STAGE_TRANSFER_BIT
   );
 
-  transition_image(
+  onl_vk_transition_image(
       cmd_buf,
       swapchain_bits[ii].image,
       VK_IMAGE_LAYOUT_UNDEFINED,  // known layout???
@@ -179,7 +178,7 @@ void copy_colour_to_swap(uint32_t ii) {
       &copy_spec
   );
 
-  transition_image(
+  onl_vk_transition_image(
       cmd_buf,
       swapchain_bits[ii].image,
       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -190,7 +189,7 @@ void copy_colour_to_swap(uint32_t ii) {
       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
   );
 
-  transition_image(
+  onl_vk_transition_image(
       cmd_buf,
       color.image,
       VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
@@ -296,10 +295,10 @@ static bool memory_type_from_properties(uint32_t typeBits,
     return false;
 }
 
-uint32_t create_buffer_with_memory(VkBufferCreateInfo*   buffer_ci,
-                                   VkMemoryPropertyFlags prop_flags,
-                                   VkBuffer*             buffer,
-                                   VkDeviceMemory*       memory){
+uint32_t onl_vk_create_buffer_with_memory(VkBufferCreateInfo*   buffer_ci,
+                                          VkMemoryPropertyFlags prop_flags,
+                                          VkBuffer*             buffer,
+                                          VkDeviceMemory*       memory){
 
   VK_CHECK(vkCreateBuffer(device, buffer_ci, 0, buffer));
 
@@ -321,10 +320,10 @@ uint32_t create_buffer_with_memory(VkBufferCreateInfo*   buffer_ci,
   return memory_ai.allocationSize;
 }
 
-uint32_t create_image_with_memory(VkImageCreateInfo*    image_ci,
-                                  VkMemoryPropertyFlags prop_flags,
-                                  VkImage*              image,
-                                  VkDeviceMemory*       memory) {
+uint32_t onl_vk_create_image_with_memory(VkImageCreateInfo*    image_ci,
+                                         VkMemoryPropertyFlags prop_flags,
+                                         VkImage*              image,
+                                         VkDeviceMemory*       memory) {
 
   VK_CHECK(vkCreateImage(device, image_ci, 0, image));
 
@@ -364,10 +363,10 @@ static void prepare_color() {
 
   color.format = surface_format;
 
-  create_image_with_memory(&image_ci,
-                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                           &color.image,
-                           &color.device_memory);
+  onl_vk_create_image_with_memory(&image_ci,
+                                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                                  &color.image,
+                                  &color.device_memory);
 
   VkImageViewCreateInfo image_view_ci = {
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -410,10 +409,10 @@ static void prepare_depth() {
 
     VkMemoryPropertyFlags prop_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-    create_image_with_memory(&image_ci,
-                             prop_flags,
-                             &depth.image,
-                             &depth.device_memory);
+    onl_vk_create_image_with_memory(&image_ci,
+                                    prop_flags,
+                                    &depth.image,
+                                    &depth.device_memory);
 
     VkImageViewCreateInfo image_view_ci = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
@@ -831,7 +830,7 @@ void onl_vk_prepare_framebuffers(bool restart) {
     }
 }
 
-VkCommandBuffer begin_cmd_buf(uint32_t ii) {
+VkCommandBuffer onl_vk_begin_cmd_buf(uint32_t ii) {
 
   vkWaitForFences(device, 1, &swapchain_bits[ii].cmd_buf_fence, VK_TRUE, UINT64_MAX);
 
@@ -849,7 +848,7 @@ VkCommandBuffer begin_cmd_buf(uint32_t ii) {
   return cmd_buf;
 }
 
-void begin_render_pass(uint32_t ii, VkCommandBuffer cmd_buf) {
+void onl_vk_begin_render_pass(uint32_t ii, VkCommandBuffer cmd_buf) {
 
   const VkClearValue clear_values[] = {
     { .color.float32 = { 0.2f, 0.8f, 1.0f, 0.0f } },
@@ -872,7 +871,7 @@ void begin_render_pass(uint32_t ii, VkCommandBuffer cmd_buf) {
   vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 }
 
-void end_cmd_buf_and_render_pass(uint32_t ii, VkCommandBuffer cmd_buf){
+void onl_vk_end_cmd_buf_and_render_pass(uint32_t ii, VkCommandBuffer cmd_buf){
 
   vkCmdEndRenderPass(cmd_buf);
 

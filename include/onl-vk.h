@@ -30,7 +30,7 @@
     }  \
   } while (0)
 
-typedef struct iostate {
+typedef struct onl_vk_iostate {
   uint32_t swap_width;
   uint32_t swap_height;
   uint32_t mouse_x;
@@ -39,9 +39,9 @@ typedef struct iostate {
   bool     middle_pressed;
   bool     right_pressed;
   char     key;
-} iostate;
+} onl_vk_iostate;
 
-extern iostate io;
+extern onl_vk_iostate io;
 
 extern VkFormat surface_format;
 extern VkDevice device;
@@ -77,29 +77,28 @@ extern pthread_mutex_t scene_lock;
 
 void set_proj_view();
 
-VkCommandBuffer begin_cmd_buf(uint32_t ii);
-void            begin_render_pass(uint32_t ii, VkCommandBuffer cmd_buf);
-void            end_cmd_buf_and_render_pass(uint32_t ii, VkCommandBuffer cmd_buf);
+VkCommandBuffer onl_vk_begin_cmd_buf(uint32_t ii);
+void            onl_vk_begin_render_pass(uint32_t ii, VkCommandBuffer cmd_buf);
+void            onl_vk_end_cmd_buf_and_render_pass(uint32_t ii, VkCommandBuffer cmd_buf);
 
-void transition_image(
-    VkCommandBuffer cmdBuffer,
-    VkImage image,
-    VkImageLayout oldLayout,
-    VkImageLayout newLayout,
-    VkAccessFlagBits srcAccessMask,
-    VkAccessFlagBits dstAccessMask,
-    VkPipelineStageFlags srcStage,
-    VkPipelineStageFlags dstStage);
+void onl_vk_transition_image(VkCommandBuffer cmdBuffer,
+                             VkImage image,
+                             VkImageLayout oldLayout,
+                             VkImageLayout newLayout,
+                             VkAccessFlagBits srcAccessMask,
+                             VkAccessFlagBits dstAccessMask,
+                             VkPipelineStageFlags srcStage,
+                             VkPipelineStageFlags dstStage);
 
-uint32_t create_buffer_with_memory(VkBufferCreateInfo*   buffer_ci,
-                                   VkMemoryPropertyFlags prop_flags,
-                                   VkBuffer*             buffer,
-                                   VkDeviceMemory*       memory);
+uint32_t onl_vk_create_buffer_with_memory(VkBufferCreateInfo*   buffer_ci,
+                                          VkMemoryPropertyFlags prop_flags,
+                                          VkBuffer*             buffer,
+                                          VkDeviceMemory*       memory);
 
-uint32_t create_image_with_memory(VkImageCreateInfo*    image_ci,
-                                  VkMemoryPropertyFlags prop_flags,
-                                  VkImage*              image,
-                                  VkDeviceMemory*       memory);
+uint32_t onl_vk_create_image_with_memory(VkImageCreateInfo*    image_ci,
+                                         VkMemoryPropertyFlags prop_flags,
+                                         VkImage*              image,
+                                         VkDeviceMemory*       memory);
 
 void onl_vk_exit();
 
