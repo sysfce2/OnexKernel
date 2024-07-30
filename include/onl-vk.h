@@ -68,7 +68,7 @@ extern VkDescriptorSetLayout descriptor_layout;
 
 extern VkPipelineVertexInputStateCreateInfo vertex_input_state_ci;
 
-struct push_constants {
+struct push_constants { //!!
   uint32_t phase;
 };
 
@@ -105,23 +105,13 @@ uint32_t create_image_with_memory(VkImageCreateInfo*    image_ci,
 
 void onl_exit();
 
-void onl_vk_rg_prepare_swapchain_images(bool restart);
-void onl_vk_rg_prepare_semaphores_and_fences(bool restart);
-void onl_vk_rg_prepare_command_buffers(bool restart);
-void onl_vk_rg_prepare_rendering(bool restart);
 void onx_vk_rd_prepare_render_data(bool restart);
 void onx_vk_rd_prepare_uniform_buffers(bool restart);
 void onx_vk_rd_prepare_descriptor_layout(bool restart);
-void onl_vk_rg_prepare_pipeline_layout(bool restart);
 void onx_vk_rd_prepare_descriptor_pool(bool restart);
 void onx_vk_rd_prepare_descriptor_set(bool restart);
-void onl_vk_rg_prepare_render_pass(bool restart);
 void onx_vk_rd_prepare_shaders(bool restart);
-void onl_vk_rg_prepare_pipeline(bool restart);
-void onl_vk_rg_prepare_framebuffers(bool restart);
 void onx_vk_rd_update_uniforms();
-void onl_vk_rg_render_frame();
-void onl_vk_rg_finish_rendering();
 void onx_vk_rd_finish_render_data();
 
 #endif
