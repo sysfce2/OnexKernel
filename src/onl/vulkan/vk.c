@@ -864,14 +864,14 @@ static void prepare(bool restart) {
     onl_vk_rg_prepare_semaphores_and_fences(restart);
     onl_vk_rg_prepare_command_buffers(restart);
     onl_vk_rg_prepare_rendering(restart);
-    onx_vk_rd_prepare_render_data(restart);
-    onx_vk_rd_prepare_uniform_buffers(restart);
-    onx_vk_rd_prepare_descriptor_layout(restart);
+    onl_vk_prepare_render_data(restart);
+    onl_vk_prepare_uniform_buffers(restart);
+    onl_vk_prepare_descriptor_layout(restart);
     onl_vk_rg_prepare_pipeline_layout(restart);
-    onx_vk_rd_prepare_descriptor_pool(restart);
-    onx_vk_rd_prepare_descriptor_set(restart);
+    onl_vk_prepare_descriptor_pool(restart);
+    onl_vk_prepare_descriptor_set(restart);
     onl_vk_rg_prepare_render_pass(restart);
-    onx_vk_rd_prepare_shaders(restart);
+    onl_vk_prepare_shaders(restart);
     onl_vk_rg_prepare_pipeline(restart);
     onl_vk_rg_prepare_framebuffers(restart);
   }
@@ -887,7 +887,7 @@ static void finish(bool restart) {
   vkDeviceWaitIdle(device);
 
   onl_vk_rg_finish_rendering();
-  onx_vk_rd_finish_render_data();
+  onl_vk_finish_render_data();
 
   if(!restart){
 
@@ -911,7 +911,7 @@ void ont_vk_loop(bool running) {
     finish(false);
   }
   if(prepared){
-    onx_vk_rd_update_uniforms();
+    onl_vk_update_uniforms();
     onl_vk_rg_render_frame();
     frames++;
   }

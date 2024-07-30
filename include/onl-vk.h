@@ -20,7 +20,7 @@
 #define ERR_EXIT(msg) \
   do {                             \
     log_write("%s\n", msg);     \
-    onl_exit();             \
+    onl_vk_exit();             \
   } while (0)
 
 #define VK_CHECK(r) \
@@ -28,7 +28,7 @@
     VkResult res = (r); \
     if(res != VK_SUCCESS){  \
        log_write("r=%d %s:%d\n", r, __FILE__, __LINE__); \
-       onl_exit();  \
+       onl_vk_exit();  \
     }  \
   } while (0)
 
@@ -103,15 +103,16 @@ uint32_t create_image_with_memory(VkImageCreateInfo*    image_ci,
                                   VkImage*              image,
                                   VkDeviceMemory*       memory);
 
-void onl_exit();
+void onl_vk_exit();
 
-void onx_vk_rd_prepare_render_data(bool restart);
-void onx_vk_rd_prepare_uniform_buffers(bool restart);
-void onx_vk_rd_prepare_descriptor_layout(bool restart);
-void onx_vk_rd_prepare_descriptor_pool(bool restart);
-void onx_vk_rd_prepare_descriptor_set(bool restart);
-void onx_vk_rd_prepare_shaders(bool restart);
-void onx_vk_rd_update_uniforms();
-void onx_vk_rd_finish_render_data();
+// calls from onl_vk up to ont
+void onl_vk_prepare_render_data(bool restart);
+void onl_vk_prepare_uniform_buffers(bool restart);
+void onl_vk_prepare_descriptor_layout(bool restart);
+void onl_vk_prepare_descriptor_pool(bool restart);
+void onl_vk_prepare_descriptor_set(bool restart);
+void onl_vk_prepare_shaders(bool restart);
+void onl_vk_update_uniforms();
+void onl_vk_finish_render_data();
 
 #endif

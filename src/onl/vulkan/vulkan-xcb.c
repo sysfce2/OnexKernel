@@ -252,7 +252,7 @@ int main() {
   event_loop();
 }
 
-void onl_exit(){
+void onl_vk_exit(){
   quit=true;
 }
 
