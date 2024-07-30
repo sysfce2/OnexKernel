@@ -13,9 +13,11 @@
 #include <onex-kernel/log.h>
 
 #include "onl/desktop/vulkan/vk.h"
-#include <onl.h>
+#include <onx-vk.h>
 
 // -----------------------------------------
+
+bool quit=false;
 
 xcb_connection_t *connection;
 xcb_screen_t *    screen;
@@ -53,7 +55,7 @@ static void xcb_init(){
   if(xcb_connection_has_error(connection)){
       log_write("Cannot connect to XCB\n");
       fflush(stdout);
-      onl_exit(1);
+      exit(1);
   }
   setup = xcb_get_setup(connection);
   iter = xcb_setup_roots_iterator(setup);
@@ -145,7 +147,7 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
 
         case XCB_MOTION_NOTIFY: {
           xcb_motion_notify_event_t *motion = (xcb_motion_notify_event_t *)event;
-          set_io_mouse((int32_t)motion->event_x, (int32_t)motion->event_y);
+          ont_vk_set_io_mouse((int32_t)motion->event_x, (int32_t)motion->event_y);
           ont_vk_iostate_changed();
           break;
         }
@@ -250,7 +252,7 @@ int main() {
   event_loop();
 }
 
-void onl_exit(int n){
-  exit(n);
+void onl_exit(){
+  quit=true;
 }
 

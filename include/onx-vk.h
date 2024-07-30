@@ -2,6 +2,7 @@
 #define ONX_VK
 
 #define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -11,7 +12,6 @@
 #include <vulkan/vulkan.h>
 
 #include <onex-kernel/log.h>
-#include <onl.h>
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
@@ -20,7 +20,7 @@
 #define ERR_EXIT(msg) \
   do {                             \
     log_write("%s\n", msg);     \
-    onl_exit(1);             \
+    onl_exit();             \
   } while (0)
 
 #define VK_CHECK(r) \
@@ -28,9 +28,22 @@
     VkResult res = (r); \
     if(res != VK_SUCCESS){  \
        log_write("r=%d %s:%d\n", r, __FILE__, __LINE__); \
-       onl_exit(1);  \
+       onl_exit();  \
     }  \
   } while (0)
+
+typedef struct iostate {
+  uint32_t swap_width;
+  uint32_t swap_height;
+  uint32_t mouse_x;
+  uint32_t mouse_y;
+  bool     left_pressed;
+  bool     middle_pressed;
+  bool     right_pressed;
+  char     key;
+} iostate;
+
+extern iostate io;
 
 extern VkFormat surface_format;
 extern VkDevice device;
@@ -86,6 +99,8 @@ uint32_t create_image_with_memory(VkImageCreateInfo*    image_ci,
                                   VkMemoryPropertyFlags prop_flags,
                                   VkImage*              image,
                                   VkDeviceMemory*       memory);
+
+void onl_exit();
 
 void onl_vk_rg_prepare_swapchain_images(bool restart);
 void onl_vk_rg_prepare_semaphores_and_fences(bool restart);

@@ -12,7 +12,7 @@
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 
-#include <onl.h>
+#include <onx-vk.h>
 #include <onn.h>
 
 #include "user-onx-vk.h"
