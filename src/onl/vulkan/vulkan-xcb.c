@@ -65,14 +65,14 @@ static void xcb_init(){
   xcb_flush(connection);
 }
 
-void onl_init() {
+void onl_vk_init() {
 
   set_signal(SIGINT, sigint_handler);
 
   xcb_init();
 }
 
-void onl_create_window()
+void onl_vk_create_window()
 {
   io.swap_width =screen->width_in_pixels;
   io.swap_height=screen->height_in_pixels;
@@ -127,7 +127,7 @@ void onl_create_window()
   xcb_map_window(connection, window);
 }
 
-void onl_create_surface(VkInstance inst, VkSurfaceKHR* surface) {
+void onl_vk_create_surface(VkInstance inst, VkSurfaceKHR* surface) {
     VkResult err;
 
     VkXcbSurfaceCreateInfoKHR xcb_surface_ci = {
@@ -238,7 +238,7 @@ static void event_loop() {
     ont_vk_loop(false);
 }
 
-void onl_finish() {
+void onl_vk_finish() {
 
   xcb_destroy_window(connection, window);
   xcb_disconnect(connection);
