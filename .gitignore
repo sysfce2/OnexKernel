@@ -8,7 +8,8 @@
 *.map
 *.o
 *.out
-*.x86
+*.xcb
+*.drm
 ,*
 .*.sw*
 .gitattributes

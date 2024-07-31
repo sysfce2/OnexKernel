@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 #include <vulkan/vulkan.h>
 

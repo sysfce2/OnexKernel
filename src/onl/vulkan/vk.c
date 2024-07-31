@@ -23,7 +23,7 @@ VkSurfaceKHR surface;
 uint16_t frames = 0;
 int32_t gpu_number = -1;
 VkInstance inst;
-VkPhysicalDevice gpu;
+VkPhysicalDevice gpu = 0;
 VkQueue queue;
 uint32_t queue_family_index;
 VkQueueFamilyProperties *queue_props;
@@ -482,6 +482,11 @@ static void create_instance() {
                 platformSurfaceExtFound = 1;
                 extension_names[enabled_extension_count++] = VK_KHR_XCB_SURFACE_EXTENSION_NAME;
             }
+#elif defined(VK_USE_PLATFORM_DISPLAY_KHR)
+            if (!strcmp(VK_KHR_DISPLAY_EXTENSION_NAME, instance_extensions[i].extensionName)) {
+                platformSurfaceExtFound = 1;
+                extension_names[enabled_extension_count++] = VK_KHR_DISPLAY_EXTENSION_NAME;
+            }
 #endif
             if (!strcmp(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, instance_extensions[i].extensionName)) {
                 extension_names[enabled_extension_count++] = VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME;
@@ -862,10 +867,10 @@ static void prepare(bool restart) {
     onl_vk_create_window();
 
     create_instance();
+    pick_physical_device();
 
     onl_vk_create_surface(inst, &surface);
 
-    pick_physical_device();
     find_queue_families();
     create_device();
 

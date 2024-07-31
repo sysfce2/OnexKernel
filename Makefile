@@ -91,7 +91,7 @@ ONT_VULKAN_SHADERS = \
 
 #-------------------------------------------------------------------------------
 
-libonex-kernel-xcb.a: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
+libonex-kernel-xcb.a: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(XCB_CC_SYMBOLS) $(INCLUDES)
 libonex-kernel-xcb.a: CC=/usr/bin/gcc
 libonex-kernel-xcb.a: LD=/usr/bin/gcc
 libonex-kernel-xcb.a: AR=/usr/bin/ar
@@ -100,7 +100,7 @@ libonex-kernel-xcb.a: CHANNELS=-DONP_CHANNEL_SERIAL -DONP_DEBUG -DONP_OVER_SERIA
 libonex-kernel-xcb.a: $(LIBONEX_XCB_SOURCES:.c=.o)
 	$(AR) rcs $@ $^
 
-libonex-kernel-drm.a: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
+libonex-kernel-drm.a: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(DRM_CC_SYMBOLS) $(INCLUDES)
 libonex-kernel-drm.a: CC=/usr/bin/gcc
 libonex-kernel-drm.a: LD=/usr/bin/gcc
 libonex-kernel-drm.a: AR=/usr/bin/ar
@@ -111,7 +111,7 @@ libonex-kernel-drm.a: $(LIBONEX_DRM_SOURCES:.c=.o)
 
 #-------------------------------------------------------------------------------
 
-test-ok: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
+test-ok: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(XCB_CC_SYMBOLS) $(INCLUDES)
 test-ok: CC=/usr/bin/gcc
 test-ok: LD=/usr/bin/gcc
 test-ok: TARGET=TARGET_X86
@@ -127,7 +127,7 @@ run.valgrind: test-ok
 
 #-------------------------------------------------------------------------------
 
-vulkan.xcb: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
+vulkan.xcb: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(XCB_CC_SYMBOLS) $(INCLUDES)
 vulkan.xcb: CC=/usr/bin/gcc
 vulkan.xcb: LD=/usr/bin/gcc
 vulkan.xcb: TARGET=TARGET_X86
@@ -137,7 +137,7 @@ vulkan.xcb: libonex-kernel-xcb.a $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADER
 	@echo -----
 	$(LD) $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o} -pthread -L. -lonex-kernel-xcb -lvulkan -lxcb -lfreetype -lm -o $@
 
-vulkan.drm: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
+vulkan.drm: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(DRM_CC_SYMBOLS) $(INCLUDES)
 vulkan.drm: CC=/usr/bin/gcc
 vulkan.drm: LD=/usr/bin/gcc
 vulkan.drm: TARGET=TARGET_X86
@@ -150,7 +150,8 @@ vulkan.drm: libonex-kernel-drm.a $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADER
 #-------------------------------------------------------------------------------
 
 X86_FLAGS=-ggdb3 -O2
-X86_CC_SYMBOLS = -D$(TARGET) $(CHANNELS) -DVK_USE_PLATFORM_XCB_KHR
+XCB_CC_SYMBOLS = -D$(TARGET) $(CHANNELS) -DVK_USE_PLATFORM_XCB_KHR
+DRM_CC_SYMBOLS = -D$(TARGET) $(CHANNELS) -DVK_USE_PLATFORM_DISPLAY_KHR
 
 CC_FLAGS = -std=gnu17 -Wall -Werror -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -fno-strict-aliasing -fno-builtin-memcmp -Wimplicit-fallthrough=0 -fvisibility=hidden -Wno-unused-function -Wno-incompatible-pointer-types -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-result -Wno-switch
 
