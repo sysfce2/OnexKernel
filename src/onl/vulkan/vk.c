@@ -5,10 +5,9 @@
 #include <onex-kernel/log.h>
 
 #include <onl-vk.h>
+
 #include "onl/vulkan/object_type_string_helper.h"
 #include "onl/vulkan/vk.h"
-
-#include "inttypes.h"
 
 bool validate = true;
 
@@ -33,12 +32,13 @@ uint32_t enabled_layer_count;
 char *extension_names[64];
 VkFormat surface_format;
 VkColorSpaceKHR color_space;
-
 VkSwapchainKHR swapchain;
 VkExtent2D swapchain_extent;
 VkPresentModeKHR presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 VkCommandPool command_pool;
 uint32_t queue_family_count;
+
+// -----------------
 
 PFN_vkCreateDebugUtilsMessengerEXT  vxCreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT vxDestroyDebugUtilsMessengerEXT;
@@ -49,6 +49,7 @@ VkDebugUtilsMessengerEXT           dbg_messenger;
 // -----------------
 
 static bool prepared=false;
+
 static int validation_error = 0;
 
 static char const *gpu_type_to_string(VkPhysicalDeviceType const type) {
@@ -56,13 +57,13 @@ static char const *gpu_type_to_string(VkPhysicalDeviceType const type) {
         case VK_PHYSICAL_DEVICE_TYPE_OTHER:
             return "Other";
         case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-            return "IntegratedGpu";
+            return "Integrated GPU";
         case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-            return "DiscreteGpu";
+            return "Discrete GPU";
         case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-            return "VirtualGpu";
+            return "Virtual GPU";
         case VK_PHYSICAL_DEVICE_TYPE_CPU:
-            return "Cpu";
+            return "CPU";
         default:
             return "Unknown";
     }
@@ -78,13 +79,13 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_messenger_callback(
     assert(message);
 
     if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
-        strcat(prefix, "VERBOSE : ");
+        strcat(prefix, "VERBOSE: ");
     } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
-        strcat(prefix, "INFO : ");
+        strcat(prefix, "INFO: ");
     } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-        strcat(prefix, "WARNING : ");
+        strcat(prefix, "WARNING: ");
     } else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-        strcat(prefix, "ERROR : ");
+        strcat(prefix, "ERROR: ");
     }
 
     if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT) {
@@ -175,6 +176,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_messenger_callback(
 }
 
 static void prepare_swapchain() {
+
     VkSwapchainKHR oldSwapchain = swapchain;
 
     VkSurfaceCapabilitiesKHR surfCapabilities;
@@ -422,9 +424,12 @@ static VkBool32 check_layers(uint32_t check_count, char **check_names, uint32_t 
 }
 
 static void create_instance() {
+
     VkResult err;
+
     uint32_t instance_extension_count = 0;
     uint32_t instance_layer_count = 0;
+
     char *instance_validation_layers[] = {
       "VK_LAYER_KHRONOS_validation",
     //"VK_LAYER_LUNARG_api_dump",
@@ -559,8 +564,10 @@ static void create_instance() {
 }
 
 static void pick_physical_device(){
-    uint32_t gpu_count = 0;
+
     VkResult err;
+
+    uint32_t gpu_count = 0;
     err = vkEnumeratePhysicalDevices(inst, &gpu_count, NULL);
     assert(!err);
 
@@ -571,6 +578,7 @@ static void pick_physical_device(){
     VkPhysicalDevice *physical_devices = malloc(sizeof(VkPhysicalDevice) * gpu_count);
     err = vkEnumeratePhysicalDevices(inst, &gpu_count, physical_devices);
     assert(!err);
+
     if (gpu_number >= 0 && !((uint32_t)gpu_number < gpu_count)) {
         log_write("GPU %d specified is not present, GPU count = %u\n", gpu_number, gpu_count);
         ONL_VK_ERR_EXIT("Specified GPU number is not present");
@@ -687,7 +695,9 @@ static void pick_physical_device(){
 }
 
 static void create_device() {
+
     VkResult err;
+
     float queue_priorities[1] = {0.0};
     VkDeviceQueueCreateInfo queues_ci = {
       .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,

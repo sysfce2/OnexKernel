@@ -10,7 +10,7 @@ static VkBuffer staging_buffer;
 static VkDeviceMemory vertex_buffer_memory;
 static VkDeviceMemory staging_buffer_memory;
 
-struct uniforms {
+struct uniforms_size_template {
     float proj[4][4];
     float view_l[4][4];
     float view_r[4][4];
@@ -33,146 +33,7 @@ struct push_constants {
 static VkDescriptorPool      descriptor_pool;
 static VkDescriptorSetLayout descriptor_layout;
 
-void ont_vk_prepare_pipeline_layout(bool restart) {
-
-  VkPushConstantRange push_constant_range = {
-    .offset = 0,
-    .size = sizeof(struct push_constants),
-    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-  };
-
-  VkPipelineLayoutCreateInfo pipeline_layout_ci = {
-      .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-      .setLayoutCount = 1,
-      .pSetLayouts = &descriptor_layout,
-      .pPushConstantRanges = &push_constant_range,
-      .pushConstantRangeCount = 1,
-      .pNext = 0,
-  };
-
-  VK_CHECK(vkCreatePipelineLayout(onl_vk_device,
-                                  &pipeline_layout_ci,
-                                  0,
-                                  &onl_vk_pipeline_layout));
-}
-
-static void prepare_vertex_buffers(){
-
-  VkBufferCreateInfo buffer_ci = {
-    .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-    .size = MAX_PANELS * 6*6 * (3 * sizeof(float) +
-                                2 * sizeof(float)  ),
-    .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-  };
-
-  onl_vk_create_buffer_with_memory(&buffer_ci,
-                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                   &vertex_buffer,
-                                   &vertex_buffer_memory);
-}
-
-void ont_vk_prepare_uniform_buffers(bool restart) {
-
-  prepare_vertex_buffers();
-
-  uniform_mem = (uniform_mem_t*)malloc(sizeof(uniform_mem_t) * onl_vk_max_img);
-
-  VkBufferCreateInfo buffer_ci = {
-     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-     .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-     .size = sizeof(struct uniforms),
-  };
-  for (uint32_t ii = 0; ii < onl_vk_max_img; ii++) {
-
-    onl_vk_create_buffer_with_memory(&buffer_ci,
-                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                     &uniform_mem[ii].uniform_buffer,
-                                     &uniform_mem[ii].uniform_memory);
-
-    VK_CHECK(vkMapMemory(onl_vk_device,
-                         uniform_mem[ii].uniform_memory,
-                         0, sizeof(struct uniforms), 0,
-                        &uniform_mem[ii].uniform_memory_ptr));
-  }
-}
-
-static void do_cmd_buf_draw(uint32_t ii, VkCommandBuffer cmd_buf){
-
-  VkBuffer vertex_buffers[] = { vertex_buffer, };
-  VkDeviceSize offsets[] = { 0 };
-  vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertex_buffers, offsets);
-
-  vkCmdBindDescriptorSets(cmd_buf,
-                          VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          onl_vk_pipeline_layout,
-                          0, 1,
-                          &uniform_mem[ii].descriptor_set,
-                          0, NULL);
-
-  struct push_constants pc;
-
-  pc.phase = 0, // ground plane
-  vkCmdPushConstants(cmd_buf, onl_vk_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                     sizeof(struct push_constants), &pc);
-  vkCmdDraw(cmd_buf, 6, 1, 0, 0);
-
-  pc.phase = 1, // panels
-  vkCmdPushConstants(cmd_buf, onl_vk_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                     sizeof(struct push_constants), &pc);
-  vkCmdDraw(cmd_buf, 6*6, 1, 0, 0);
-}
-
-void set_up_scene_begin(float** vertices) {
-
-  pthread_mutex_lock(&onl_vk_scene_lock);
-  onl_vk_scene_ready = false;
-
-  size_t vertex_size = MAX_PANELS * 6*6 * (3 * sizeof(float) +
-                                           2 * sizeof(float)  );
-
-  VK_CHECK(vkMapMemory(onl_vk_device,
-                       vertex_buffer_memory,
-                       0, vertex_size, 0,
-                       (void**)vertices));
-}
-
-void set_up_scene_end() {
-
-  vkUnmapMemory(onl_vk_device, vertex_buffer_memory);
-
-  for (uint32_t ii = 0; ii < onl_vk_max_img; ii++) {
-      VkCommandBuffer cmd_buf = onl_vk_begin_cmd_buf(ii);
-      onl_vk_begin_render_pass(ii, cmd_buf);
-      do_cmd_buf_draw(ii, cmd_buf);
-      onl_vk_end_cmd_buf_and_render_pass(ii, cmd_buf);
-  }
-
-  onl_vk_scene_ready = true;
-  pthread_mutex_unlock(&onl_vk_scene_lock);
-}
-
-void ont_vk_update_uniforms() {
-
-  set_proj_view();
-
-  memcpy(uniform_mem[onl_vk_cur_img].uniform_memory_ptr,
-         (const void*)&proj_matrix,    sizeof(proj_matrix));
-
-  memcpy(uniform_mem[onl_vk_cur_img].uniform_memory_ptr +
-                sizeof(proj_matrix),
-         (const void*)&view_l_matrix,  sizeof(view_l_matrix));
-
-  memcpy(uniform_mem[onl_vk_cur_img].uniform_memory_ptr +
-                sizeof(proj_matrix)+sizeof(view_l_matrix),
-         (const void*)&view_r_matrix,  sizeof(view_r_matrix));
-
-  memcpy(uniform_mem[onl_vk_cur_img].uniform_memory_ptr +
-                sizeof(proj_matrix)+sizeof(view_l_matrix)+sizeof(view_r_matrix),
-         (const void*)&model_matrix, sizeof(model_matrix));
-}
+#define TEXTURE_COUNT 1
 
 struct texture_object {
     int32_t texture_width;
@@ -185,14 +46,12 @@ struct texture_object {
     VkImageView image_view;
 };
 
+struct texture_object textures[TEXTURE_COUNT];
+struct texture_object staging_texture;
+
 static char* texture_files[] = { "ivory.ppm" }; // not used
 
 #include "ivory.ppm.h"  // is used
-
-#define TEXTURE_COUNT 1
-
-struct texture_object textures[TEXTURE_COUNT];
-struct texture_object staging_texture;
 
 static bool load_texture(const char *filename,
                          uint8_t *rgba_data,
@@ -204,7 +63,7 @@ static bool load_texture(const char *filename,
     if((unsigned char*)cPtr >= (texture_array + texture_len) || strncmp(cPtr, "P6\n", 3)) {
         return false;
     }
-    while (strncmp(cPtr++, "\n", 1)) ;
+    while (strncmp(cPtr++, "\n", 1)){ }
     sscanf(cPtr, "%u %u", w, h);
 
     if(!rgba_data) return true;
@@ -228,8 +87,6 @@ static bool load_texture(const char *filename,
     }
     return true;
 }
-
-// ---------------------------------
 
 static void prepare_texture_image(const char *filename,
                                   struct texture_object *texture_obj,
@@ -334,6 +191,8 @@ static void prepare_texture_buffer(char *filename, struct texture_object *textur
     vkUnmapMemory(onl_vk_device, texture_obj->device_memory);
 }
 
+// ---------------------------------
+
 static void prepare_textures(){
 
     uint32_t i;
@@ -393,7 +252,8 @@ static void prepare_textures(){
                                  staging_texture.texture_height, 1 },
             };
 
-            vkCmdCopyBufferToImage(onl_vk_init_cmdbuf, staging_texture.buffer, textures[i].image,
+            vkCmdCopyBufferToImage(onl_vk_init_cmdbuf, staging_texture.buffer,
+                                   textures[i].image,
                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copy_region);
 
             onl_vk_transition_image(onl_vk_init_cmdbuf, textures[i].image,
@@ -489,7 +349,156 @@ void ont_vk_prepare_render_data(bool restart) {
   onl_vk_vertex_input_state_ci.pVertexAttributeDescriptions = vertex_input_attributes;
 }
 
-// ----------------------------------------------------------------------------------------
+static void prepare_vertex_buffers(){
+
+  VkBufferCreateInfo buffer_ci = {
+    .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+    .size = MAX_PANELS * 6*6 * (3 * sizeof(float) +
+                                2 * sizeof(float)  ),
+    .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+    .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+  };
+
+  onl_vk_create_buffer_with_memory(&buffer_ci,
+                                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                   &vertex_buffer,
+                                   &vertex_buffer_memory);
+}
+
+void ont_vk_prepare_uniform_buffers(bool restart) {
+
+  prepare_vertex_buffers();
+
+  uniform_mem = (uniform_mem_t*)malloc(sizeof(uniform_mem_t) * onl_vk_max_img);
+
+  VkBufferCreateInfo buffer_ci = {
+     .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+     .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+     .size = sizeof(struct uniforms_size_template),
+  };
+  for (uint32_t ii = 0; ii < onl_vk_max_img; ii++) {
+
+    onl_vk_create_buffer_with_memory(&buffer_ci,
+                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                     VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                     &uniform_mem[ii].uniform_buffer,
+                                     &uniform_mem[ii].uniform_memory);
+
+    VK_CHECK(vkMapMemory(onl_vk_device,
+                         uniform_mem[ii].uniform_memory,
+                         0, sizeof(struct uniforms_size_template), 0,
+                        &uniform_mem[ii].uniform_memory_ptr));
+  }
+}
+
+void ont_vk_prepare_descriptor_layout(bool restart) {
+
+  VkDescriptorSetLayoutBinding bindings[] = {
+      {
+          .binding = 0,
+          .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+          .descriptorCount = 1,
+          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+          .pImmutableSamplers = NULL,
+      },
+      {
+          .binding = 1,
+          .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+          .descriptorCount = TEXTURE_COUNT,
+          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+          .pImmutableSamplers = NULL,
+      },
+  };
+
+  VkDescriptorSetLayoutCreateInfo descriptor_set_layout_ci = {
+      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+      .bindingCount = 2,
+      .pBindings = bindings,
+  };
+
+  VK_CHECK(vkCreateDescriptorSetLayout(onl_vk_device,
+                                       &descriptor_set_layout_ci,
+                                       0,
+                                       &descriptor_layout));
+}
+
+void ont_vk_prepare_pipeline_layout(bool restart) {
+
+  VkPushConstantRange push_constant_range = {
+    .offset = 0,
+    .size = sizeof(struct push_constants),
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+  };
+
+  VkPipelineLayoutCreateInfo pipeline_layout_ci = {
+      .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+      .setLayoutCount = 1,
+      .pSetLayouts = &descriptor_layout,
+      .pPushConstantRanges = &push_constant_range,
+      .pushConstantRangeCount = 1,
+      .pNext = 0,
+  };
+
+  VK_CHECK(vkCreatePipelineLayout(onl_vk_device,
+                                  &pipeline_layout_ci,
+                                  0,
+                                  &onl_vk_pipeline_layout));
+}
+
+static void do_cmd_buf_draw(uint32_t ii, VkCommandBuffer cmd_buf){
+
+  VkBuffer vertex_buffers[] = { vertex_buffer, };
+  VkDeviceSize offsets[] = { 0 };
+  vkCmdBindVertexBuffers(cmd_buf, 0, 1, vertex_buffers, offsets);
+
+  vkCmdBindDescriptorSets(cmd_buf,
+                          VK_PIPELINE_BIND_POINT_GRAPHICS,
+                          onl_vk_pipeline_layout,
+                          0, 1,
+                          &uniform_mem[ii].descriptor_set,
+                          0, NULL);
+
+  struct push_constants pc;
+
+  pc.phase = 0, // ground plane
+  vkCmdPushConstants(cmd_buf, onl_vk_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                     sizeof(struct push_constants), &pc);
+  vkCmdDraw(cmd_buf, 6, 1, 0, 0);
+
+  pc.phase = 1, // panels
+  vkCmdPushConstants(cmd_buf, onl_vk_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                     sizeof(struct push_constants), &pc);
+  vkCmdDraw(cmd_buf, 6*6, 1, 0, 0);
+}
+
+void set_up_scene_begin(float** vertices) {
+
+  pthread_mutex_lock(&onl_vk_scene_lock);
+  onl_vk_scene_ready = false;
+
+  size_t vertex_size = MAX_PANELS * 6*6 * (3 * sizeof(float) +
+                                           2 * sizeof(float)  );
+
+  VK_CHECK(vkMapMemory(onl_vk_device,
+                       vertex_buffer_memory,
+                       0, vertex_size, 0, vertices));
+}
+
+void set_up_scene_end() {
+
+  vkUnmapMemory(onl_vk_device, vertex_buffer_memory);
+
+  for (uint32_t ii = 0; ii < onl_vk_max_img; ii++) {
+      VkCommandBuffer cmd_buf = onl_vk_begin_cmd_buf(ii);
+      onl_vk_begin_render_pass(ii, cmd_buf);
+      do_cmd_buf_draw(ii, cmd_buf);
+      onl_vk_end_cmd_buf_and_render_pass(ii, cmd_buf);
+  }
+
+  onl_vk_scene_ready = true;
+  pthread_mutex_unlock(&onl_vk_scene_lock);
+}
 
 void ont_vk_prepare_descriptor_pool(bool restart) {
 
@@ -525,7 +534,7 @@ void ont_vk_prepare_descriptor_set(bool restart) {
 
   VkDescriptorBufferInfo uniform_info = {
     .offset = 0,
-    .range = sizeof(struct uniforms),
+    .range = sizeof(struct uniforms_size_template),
   };
 
   VkDescriptorImageInfo texture_descs[TEXTURE_COUNT];
@@ -569,37 +578,7 @@ void ont_vk_prepare_descriptor_set(bool restart) {
   }
 }
 
-
-void ont_vk_prepare_descriptor_layout(bool restart) {
-
-  VkDescriptorSetLayoutBinding bindings[] = {
-      {
-          .binding = 0,
-          .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-          .descriptorCount = 1,
-          .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-          .pImmutableSamplers = NULL,
-      },
-      {
-          .binding = 1,
-          .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-          .descriptorCount = TEXTURE_COUNT,
-          .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-          .pImmutableSamplers = NULL,
-      },
-  };
-
-  VkDescriptorSetLayoutCreateInfo descriptor_set_layout_ci = {
-      .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-      .bindingCount = 2,
-      .pBindings = bindings,
-  };
-
-  VK_CHECK(vkCreateDescriptorSetLayout(onl_vk_device,
-                                       &descriptor_set_layout_ci,
-                                       0,
-                                       &descriptor_layout));
-}
+// ----------------------------------------------------------------------------------------
 
 extern unsigned char tests_ont_examples_vulkan_onx_frag_spv[];
 extern unsigned int  tests_ont_examples_vulkan_onx_frag_spv_len;
@@ -629,6 +608,29 @@ static VkShaderModule load_c_shader(bool load_frag) {
 void ont_vk_prepare_shaders(bool restart){
   onl_vk_vert_shader_module = load_c_shader(false);
   onl_vk_frag_shader_module = load_c_shader(true);
+}
+
+void ont_vk_update_uniforms() {
+
+  set_proj_view();
+
+  memcpy(uniform_mem[onl_vk_cur_img].uniform_memory_ptr,
+         (const void*)&proj_matrix, sizeof(proj_matrix));
+
+  memcpy(uniform_mem[onl_vk_cur_img].uniform_memory_ptr +
+                sizeof(proj_matrix),
+         (const void*)&view_l_matrix, sizeof(view_l_matrix));
+
+  memcpy(uniform_mem[onl_vk_cur_img].uniform_memory_ptr +
+                sizeof(proj_matrix) +
+                sizeof(view_l_matrix),
+         (const void*)&view_r_matrix, sizeof(view_r_matrix));
+
+  memcpy(uniform_mem[onl_vk_cur_img].uniform_memory_ptr +
+                sizeof(proj_matrix) +
+                sizeof(view_l_matrix) +
+                sizeof(view_r_matrix),
+         (const void*)&model_matrix, sizeof(model_matrix));
 }
 
 // ---------------------------------
@@ -673,10 +675,9 @@ void ont_vk_finish_render_data() {
      if(staging_texture.image) vkDestroyImage(onl_vk_device, staging_texture.image, NULL);
      vkDestroyBuffer(onl_vk_device, staging_texture.buffer, NULL);
   }
-
-  // ---------------------------------
 }
 
+// ---------------------------------
 
 
 

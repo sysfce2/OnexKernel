@@ -1,3 +1,4 @@
+// ------- common/shared between user and vk code -------------
 
 #include <linmath-plus.h>
 
