@@ -471,6 +471,7 @@ static void create_instance() {
         ONL_VK_CHECK_EXIT(vkEnumerateInstanceExtensionProperties(NULL, &instance_extension_count, instance_extensions));
 
         for (uint32_t i = 0; i < instance_extension_count; i++) {
+            // log_write("extension %s\n", instance_extensions[i].extensionName);
             if (!strcmp(VK_KHR_SURFACE_EXTENSION_NAME, instance_extensions[i].extensionName)) {
                 surfaceExtFound = 1;
                 extension_names[enabled_extension_count++] = VK_KHR_SURFACE_EXTENSION_NAME;
