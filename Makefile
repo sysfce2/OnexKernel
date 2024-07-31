@@ -48,7 +48,7 @@ LIB_SOURCES = \
 ./src/lib/properties.c \
 ./src/onl/vulkan/vulkan-xcb.c \
 ./src/onl/vulkan/vk.c \
-./src/onl/vulkan/vk-rg.c \
+./src/onl/vulkan/vk-rendering.c \
 ./src/onn/onn.c \
 ./src/onp/onp.c \
 
