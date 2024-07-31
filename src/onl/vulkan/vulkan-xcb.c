@@ -72,8 +72,8 @@ void onl_vk_init() {
   xcb_init();
 }
 
-void onl_vk_create_window()
-{
+void onl_vk_create_window() {
+
   io.swap_width =screen->width_in_pixels;
   io.swap_height=screen->height_in_pixels;
 
@@ -128,6 +128,7 @@ void onl_vk_create_window()
 }
 
 void onl_vk_create_surface(VkInstance inst, VkSurfaceKHR* surface) {
+
     VkResult err;
 
     VkXcbSurfaceCreateInfoKHR xcb_surface_ci = {

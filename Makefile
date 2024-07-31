@@ -20,6 +20,56 @@ INCLUDES = \
 
 #-------------------------------------------------------------------------------
 
+LIB_SOURCES = \
+./src/lib/lib.c \
+./src/lib/list.c \
+./src/lib/value.c \
+./src/lib/tests.c \
+./src/lib/properties.c \
+
+
+ONL_UNIX_SOURCES = \
+./src/onl/unix/serial.c \
+./src/onl/unix/channel-serial.c \
+./src/onl/unix/log.c \
+./src/onl/unix/mem.c \
+./src/onl/unix/time.c \
+./src/onl/unix/random.c \
+./src/onl/unix/persistence.c \
+
+
+ONL_VULKAN_XCB_SOURCES = \
+./src/onl/vulkan/vulkan-xcb.c \
+./src/onl/vulkan/vk.c \
+./src/onl/vulkan/vk-rendering.c \
+
+
+ONL_VULKAN_DRM_SOURCES = \
+./src/onl/vulkan/vulkan-drm.c \
+./src/onl/vulkan/vk.c \
+./src/onl/vulkan/vk-rendering.c \
+
+
+ONN_ONP_SOURCES = \
+./src/onn/onn.c \
+./src/onp/onp.c \
+
+
+LIBONEX_XCB_SOURCES = \
+ $(LIB_SOURCES) \
+ $(ONL_UNIX_SOURCES) \
+ $(ONL_VULKAN_XCB_SOURCES) \
+ $(ONN_ONP_SOURCES) \
+
+
+LIBONEX_DRM_SOURCES = \
+ $(LIB_SOURCES) \
+ $(ONL_UNIX_SOURCES) \
+ $(ONL_VULKAN_DRM_SOURCES) \
+ $(ONN_ONP_SOURCES) \
+
+#-------------------------------------------------------------------------------
+
 TESTS_SOURCES = \
 ./tests/test-properties.c \
 ./tests/test-list.c \
@@ -29,104 +79,75 @@ TESTS_SOURCES = \
 
 #-------------------------------------------------------------------------------
 
-SHADERS = \
-  tests/ont-examples/vulkan/onx.vert.spv \
-  tests/ont-examples/vulkan/onx.frag.spv \
-
-#-------------------------------------------------------------------------------
-
-VULKAN_SOURCES = \
+ONT_VULKAN_SOURCES = \
 ./tests/ont-examples/vulkan/ont-vk.c \
 ./tests/ont-examples/vulkan/one-panel.c \
 
 
-LIB_SOURCES = \
-./src/lib/lib.c \
-./src/lib/list.c \
-./src/lib/value.c \
-./src/lib/tests.c \
-./src/lib/properties.c \
-./src/onl/vulkan/vulkan-xcb.c \
-./src/onl/vulkan/vk.c \
-./src/onl/vulkan/vk-rendering.c \
-./src/onn/onn.c \
-./src/onp/onp.c \
+ONT_VULKAN_SHADERS = \
+./tests/ont-examples/vulkan/onx.vert.spv \
+./tests/ont-examples/vulkan/onx.frag.spv \
 
-
-UNIX_SOURCES = \
-./src/onl/unix/serial.c \
-./src/onl/unix/channel-serial.c \
-./src/onl/unix/log.c \
-./src/onl/unix/mem.c \
-./src/onl/unix/time.c \
-./src/onl/unix/random.c \
-./src/onl/unix/persistence.c \
 
 #-------------------------------------------------------------------------------
 
-arm.lib: libonex-kernel-arm.a
-
-x86.lib: libonex-kernel-x86.a
-
-libonex-kernel-arm.a: COMPILE_LINE=$(ARM_FLAGS) $(CC_FLAGS) $(ARM_CC_SYMBOLS) $(INCLUDES)
-libonex-kernel-arm.a: CC=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-gcc
-libonex-kernel-arm.a: LD=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-gcc
-libonex-kernel-arm.a: AR=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-ar
-libonex-kernel-arm.a: TARGET=TARGET_ARM
-libonex-kernel-arm.a: CHANNELS=-DONP_CHANNEL_SERIAL
-libonex-kernel-arm.a: $(UNIX_SOURCES:.c=.o) $(LIB_SOURCES:.c=.o)
+libonex-kernel-xcb.a: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
+libonex-kernel-xcb.a: CC=/usr/bin/gcc
+libonex-kernel-xcb.a: LD=/usr/bin/gcc
+libonex-kernel-xcb.a: AR=/usr/bin/ar
+libonex-kernel-xcb.a: TARGET=TARGET_X86
+libonex-kernel-xcb.a: CHANNELS=-DONP_CHANNEL_SERIAL -DONP_DEBUG -DONP_OVER_SERIAL
+libonex-kernel-xcb.a: $(LIBONEX_XCB_SOURCES:.c=.o)
 	$(AR) rcs $@ $^
 
-libonex-kernel-x86.a: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
-libonex-kernel-x86.a: CC=/usr/bin/gcc
-libonex-kernel-x86.a: LD=/usr/bin/gcc
-libonex-kernel-x86.a: AR=/usr/bin/ar
-libonex-kernel-x86.a: TARGET=TARGET_X86
-libonex-kernel-x86.a: CHANNELS=-DONP_CHANNEL_SERIAL -DONP_DEBUG -DONP_OVER_SERIAL
-libonex-kernel-x86.a: $(UNIX_SOURCES:.c=.o) $(LIB_SOURCES:.c=.o)
+libonex-kernel-drm.a: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
+libonex-kernel-drm.a: CC=/usr/bin/gcc
+libonex-kernel-drm.a: LD=/usr/bin/gcc
+libonex-kernel-drm.a: AR=/usr/bin/ar
+libonex-kernel-drm.a: TARGET=TARGET_X86
+libonex-kernel-drm.a: CHANNELS=-DONP_CHANNEL_SERIAL -DONP_DEBUG -DONP_OVER_SERIAL
+libonex-kernel-drm.a: $(LIBONEX_DRM_SOURCES:.c=.o)
 	$(AR) rcs $@ $^
 
-tests.arm: COMPILE_LINE=$(ARM_FLAGS) $(CC_FLAGS) $(ARM_CC_SYMBOLS) $(INCLUDES)
-tests.arm: CC=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-gcc
-tests.arm: LD=/home/duncan/x-tools/aarch64-unknown-linux-gnu/bin/aarch64-unknown-linux-gnu-gcc
-tests.arm: TARGET=TARGET_ARM
-tests.arm: CHANNELS=-DONP_CHANNEL_SERIAL
-tests.arm: libonex-kernel-arm.a $(TESTS_SOURCES:.c=.o)
-	$(LD) $(TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-arm -o $@
+#-------------------------------------------------------------------------------
 
-tests.x86: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
-tests.x86: CC=/usr/bin/gcc
-tests.x86: LD=/usr/bin/gcc
-tests.x86: TARGET=TARGET_X86
-tests.x86: CHANNELS=-DONP_CHANNEL_SERIAL
-tests.x86: libonex-kernel-x86.a $(TESTS_SOURCES:.c=.o)
-	$(LD) $(TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-x86 -o $@
+test-ok: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
+test-ok: CC=/usr/bin/gcc
+test-ok: LD=/usr/bin/gcc
+test-ok: TARGET=TARGET_X86
+test-ok: CHANNELS=-DONP_CHANNEL_SERIAL
+test-ok: libonex-kernel-xcb.a $(TESTS_SOURCES:.c=.o)
+	$(LD) $(TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-xcb -o $@
 
-vulkan.x86: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
-vulkan.x86: CC=/usr/bin/gcc
-vulkan.x86: LD=/usr/bin/gcc
-vulkan.x86: TARGET=TARGET_X86
-vulkan.x86: libonex-kernel-x86.a $(VULKAN_SOURCES:.c=.o) ${SHADERS:.spv=.o}
+run.tests: test-ok
+	./test-ok
+
+run.valgrind: test-ok
+	valgrind --leak-check=yes --undef-value-errors=no ./test-ok
+
+#-------------------------------------------------------------------------------
+
+vulkan.xcb: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
+vulkan.xcb: CC=/usr/bin/gcc
+vulkan.xcb: LD=/usr/bin/gcc
+vulkan.xcb: TARGET=TARGET_X86
+vulkan.xcb: libonex-kernel-xcb.a $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o}
 	@echo ================
-	@echo $@ '<=' $(VULKAN_SOURCES:.c=.o) ${SHADERS:.spv=.o}
+	@echo $@ '<=' $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o}
 	@echo -----
-	$(LD) $(VULKAN_SOURCES:.c=.o) ${SHADERS:.spv=.o} -pthread -L. -lonex-kernel-x86 -lvulkan -lxcb -lfreetype -lm -o $@
+	$(LD) $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o} -pthread -L. -lonex-kernel-xcb -lvulkan -lxcb -lfreetype -lm -o $@
 
-
-arm.tests: tests.arm
-	mkdir -p ok
-	cp -a ./tests.arm ok
-
-x86.tests: tests.x86
-	./tests.x86
-
-x86.valgrind: tests.x86
-	valgrind --leak-check=yes --undef-value-errors=no ./tests.x86
+vulkan.drm: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(X86_CC_SYMBOLS) $(INCLUDES)
+vulkan.drm: CC=/usr/bin/gcc
+vulkan.drm: LD=/usr/bin/gcc
+vulkan.drm: TARGET=TARGET_X86
+vulkan.drm: libonex-kernel-drm.a $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o}
+	@echo ================
+	@echo $@ '<=' $(ONT_VULKAN_SOURCES:.c=.o) ${SHADERS:.spv=.o}
+	@echo -----
+	$(LD) $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o} -pthread -L. -lonex-kernel-drm -lvulkan -lxcb -lfreetype -lm -o $@
 
 #-------------------------------------------------------------------------------
-
-ARM_FLAGS=-ggdb3 -fPIC
-ARM_CC_SYMBOLS = -D$(TARGET) $(CHANNELS)
 
 X86_FLAGS=-ggdb3 -O2
 X86_CC_SYMBOLS = -D$(TARGET) $(CHANNELS) -DVK_USE_PLATFORM_XCB_KHR
@@ -171,12 +192,12 @@ CC_FLAGS = -std=gnu17 -Wall -Werror -Wextra -Wno-unused-parameter -Wno-missing-f
 	xxd -i $< > $@
 
 copy:
-	rsync -ruav --stats --progress --delete ok/ phablet@dorold:ok
+	rsync -ruav --stats --progress --delete ok/ duncan@arb:ok
 
 clean:
-	find src tests -name '*.o' -o -name '*.d' | xargs rm -f
+	find src tests -name '*.o' -o -name '*.d' | xargs -r rm
 	rm -f core
-	rm -rf *.arm *.x86 ok
+	rm -rf test-ok *.xcb *.drm ok
 	rm -rf ${TARGETS} tests/ont-examples/vulkan/*.{inc,spv,vert.c,frag.c}
 	find . -name onex.ondb | xargs -r rm
 	@echo "------------------------------"
