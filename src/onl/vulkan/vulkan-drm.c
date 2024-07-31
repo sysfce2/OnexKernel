@@ -63,8 +63,7 @@ void onl_create_surface(VkInstance inst, VkSurfaceKHR* surface) {
       .pNext = 0,
     };
 
-    err = vkCreateDisplayPlaneSurfaceKHR(inst, &drm_surface_ci, 0, surface);
-    assert(!err);
+    ONL_VK_CHECK_EXIT(vkCreateDisplayPlaneSurfaceKHR(inst, &drm_surface_ci, 0, surface));
 }
 
 static void handle_in_event() {
@@ -95,7 +94,7 @@ int main() {
   event_loop();
 }
 
-void onl_vk_exit(){
+void onl_vk_quit(){
   quit=true;
 }
 

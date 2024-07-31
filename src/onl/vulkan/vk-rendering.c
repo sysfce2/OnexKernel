@@ -302,7 +302,7 @@ uint32_t onl_vk_create_buffer_with_memory(VkBufferCreateInfo*   buffer_ci,
                                           VkBuffer*             buffer,
                                           VkDeviceMemory*       memory){
 
-  VK_CHECK(vkCreateBuffer(onl_vk_device, buffer_ci, 0, buffer));
+  ONL_VK_CHECK_EXIT(vkCreateBuffer(onl_vk_device, buffer_ci, 0, buffer));
 
   VkMemoryRequirements mem_reqs;
   vkGetBufferMemoryRequirements(onl_vk_device, *buffer, &mem_reqs);
@@ -315,9 +315,9 @@ uint32_t onl_vk_create_buffer_with_memory(VkBufferCreateInfo*   buffer_ci,
                                      prop_flags,
                                      &memory_ai.memoryTypeIndex));
 
-  VK_CHECK(vkAllocateMemory(onl_vk_device, &memory_ai, 0, memory));
+  ONL_VK_CHECK_EXIT(vkAllocateMemory(onl_vk_device, &memory_ai, 0, memory));
 
-  VK_CHECK(vkBindBufferMemory(onl_vk_device, *buffer, *memory, 0));
+  ONL_VK_CHECK_EXIT(vkBindBufferMemory(onl_vk_device, *buffer, *memory, 0));
 
   return memory_ai.allocationSize;
 }
@@ -327,7 +327,7 @@ uint32_t onl_vk_create_image_with_memory(VkImageCreateInfo*    image_ci,
                                          VkImage*              image,
                                          VkDeviceMemory*       memory) {
 
-  VK_CHECK(vkCreateImage(onl_vk_device, image_ci, 0, image));
+  ONL_VK_CHECK_EXIT(vkCreateImage(onl_vk_device, image_ci, 0, image));
 
   VkMemoryRequirements mem_reqs;
   vkGetImageMemoryRequirements(onl_vk_device, *image, &mem_reqs);
@@ -340,9 +340,9 @@ uint32_t onl_vk_create_image_with_memory(VkImageCreateInfo*    image_ci,
                                      prop_flags,
                                      &memory_ai.memoryTypeIndex));
 
-  VK_CHECK(vkAllocateMemory(onl_vk_device, &memory_ai, 0, memory));
+  ONL_VK_CHECK_EXIT(vkAllocateMemory(onl_vk_device, &memory_ai, 0, memory));
 
-  VK_CHECK(vkBindImageMemory(onl_vk_device, *image, *memory, 0));
+  ONL_VK_CHECK_EXIT(vkBindImageMemory(onl_vk_device, *image, *memory, 0));
 
   return memory_ai.allocationSize;
 }
@@ -386,7 +386,8 @@ static void prepare_color() {
       .viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY,
   };
 
-  VK_CHECK(vkCreateImageView(onl_vk_device, &image_view_ci, NULL, &color.image_view));
+  ONL_VK_CHECK_EXIT(vkCreateImageView(onl_vk_device, &image_view_ci,
+                                      0, &color.image_view));
 }
 
 static void prepare_depth() {
@@ -433,7 +434,8 @@ static void prepare_depth() {
                                 VK_IMAGE_VIEW_TYPE_2D,
     };
 
-    VK_CHECK(vkCreateImageView(onl_vk_device, &image_view_ci, NULL, &depth.image_view));
+    ONL_VK_CHECK_EXIT(vkCreateImageView(onl_vk_device, &image_view_ci,
+                                        0, &depth.image_view));
 }
 
 // -------------------------------------------------------------------------------------
@@ -483,8 +485,8 @@ void onl_vk_prepare_swapchain_images(bool restart) {
         };
 
         swapchain_bits[i].image = swapchainImages[i];
-        VK_CHECK(vkCreateImageView(onl_vk_device, &image_view_ci, NULL,
-                                   &swapchain_bits[i].image_view));
+        ONL_VK_CHECK_EXIT(vkCreateImageView(onl_vk_device, &image_view_ci, NULL,
+                                            &swapchain_bits[i].image_view));
     }
 
     if (NULL != swapchainImages) {
@@ -501,7 +503,8 @@ void onl_vk_prepare_semaphores_and_fences(bool restart) {
   };
 
   for (uint32_t i = 0; i < onl_vk_max_img; i++) {
-      VK_CHECK(vkCreateFence(onl_vk_device, &fence_ci, 0, &swapchain_bits[i].cmd_buf_fence));
+      ONL_VK_CHECK_EXIT(vkCreateFence(onl_vk_device, &fence_ci,
+                                      0, &swapchain_bits[i].cmd_buf_fence));
   }
 
   VkSemaphoreCreateInfo semaphore_ci = {
@@ -509,8 +512,10 @@ void onl_vk_prepare_semaphores_and_fences(bool restart) {
       .pNext = 0,
   };
 
-  VK_CHECK(vkCreateSemaphore(onl_vk_device, &semaphore_ci, 0, &image_acquired_semaphore));
-  VK_CHECK(vkCreateSemaphore(onl_vk_device, &semaphore_ci, 0, &render_complete_semaphore));
+  ONL_VK_CHECK_EXIT(vkCreateSemaphore(onl_vk_device, &semaphore_ci,
+                                      0, &image_acquired_semaphore));
+  ONL_VK_CHECK_EXIT(vkCreateSemaphore(onl_vk_device, &semaphore_ci,
+                                      0, &render_complete_semaphore));
 }
 
 void onl_vk_prepare_command_buffers(bool restart){
@@ -524,7 +529,7 @@ void onl_vk_prepare_command_buffers(bool restart){
   };
 
   for (uint32_t i = 0; i < onl_vk_max_img; i++) {
-      VK_CHECK(vkAllocateCommandBuffers(
+      ONL_VK_CHECK_EXIT(vkAllocateCommandBuffers(
                        onl_vk_device,
                        &cmd_buf_ai,
                        &swapchain_bits[i].cmd_buf
@@ -755,10 +760,10 @@ void onl_vk_prepare_pipeline(bool restart) {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,
   };
 
-  VK_CHECK(vkCreatePipelineCache(onl_vk_device,
-                                 &pipeline_cache_ci,
-                                 0,
-                                 &pipeline_cache));
+  ONL_VK_CHECK_EXIT(vkCreatePipelineCache(onl_vk_device,
+                                          &pipeline_cache_ci,
+                                          0,
+                                          &pipeline_cache));
 
   VkGraphicsPipelineCreateInfo graphics_pipeline_ci = {
     .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -776,12 +781,12 @@ void onl_vk_prepare_pipeline(bool restart) {
     .subpass = 0,
   };
 
-  VK_CHECK(vkCreateGraphicsPipelines(onl_vk_device,
-                                     pipeline_cache,
-                                     1,
-                                     &graphics_pipeline_ci,
-                                     0,
-                                     &pipeline));
+  ONL_VK_CHECK_EXIT(vkCreateGraphicsPipelines(onl_vk_device,
+                                              pipeline_cache,
+                                              1,
+                                              &graphics_pipeline_ci,
+                                              0,
+                                              &pipeline));
 
   vkDestroyShaderModule(onl_vk_device, onl_vk_frag_shader_module, NULL);
   vkDestroyShaderModule(onl_vk_device, onl_vk_vert_shader_module, NULL);
@@ -827,7 +832,7 @@ VkCommandBuffer onl_vk_begin_cmd_buf(uint32_t ii) {
     .pNext = 0,
   };
 
-  VK_CHECK(vkBeginCommandBuffer(cmd_buf, &cmd_buf_bi));
+  ONL_VK_CHECK_EXIT(vkBeginCommandBuffer(cmd_buf, &cmd_buf_bi));
 
   return cmd_buf;
 }
@@ -861,7 +866,7 @@ void onl_vk_end_cmd_buf_and_render_pass(uint32_t ii, VkCommandBuffer cmd_buf){
 
   if(sbs_render) copy_colour_to_swap(ii);
 
-  VK_CHECK(vkEndCommandBuffer(cmd_buf));
+  ONL_VK_CHECK_EXIT(vkEndCommandBuffer(cmd_buf));
 }
 
 void onl_vk_finish_rendering() {

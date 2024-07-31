@@ -15,19 +15,34 @@
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
-#define VK_CHECK(r) \
-  do {  \
-    VkResult res = (r); \
-    if(res != VK_SUCCESS){  \
-       log_write("r=%d %s:%d\n", r, __FILE__, __LINE__); \
-       onl_vk_exit();  \
-    }  \
+#define ONL_VK_CHECK_EXIT(vkAPICall) \
+  do {                               \
+    VkResult res = (vkAPICall);      \
+    if(res != VK_SUCCESS){           \
+       log_write("vkAPI() call, result=%d at %s:%d\n", res, __FILE__, __LINE__); \
+       exit(1);                      \
+    }                                \
+  } while (0)
+
+#define ONL_VK_CHECK_QUIT(vkAPICall) \
+  do {                               \
+    VkResult res = (vkAPICall);      \
+    if(res != VK_SUCCESS){           \
+       log_write("vkAPI() call, result=%d at %s:%d\n", res, __FILE__, __LINE__); \
+       onl_vk_quit();                \
+    }                                \
   } while (0)
 
 #define ONL_VK_ERR_EXIT(msg) \
-  do {                             \
-    log_write("%s\n", msg);     \
-    onl_vk_exit();             \
+  do {                       \
+    log_write("%s\n", msg);  \
+    exit(1);                 \
+  } while (0)
+
+#define ONL_VK_ERR_QUIT(msg) \
+  do {                       \
+    log_write("%s\n", msg);  \
+    onl_vk_quit();           \
   } while (0)
 
 typedef struct onl_vk_iostate {
@@ -89,7 +104,7 @@ uint32_t onl_vk_create_image_with_memory(VkImageCreateInfo*    image_ci,
                                          VkImage*              image,
                                          VkDeviceMemory*       memory);
 
-void onl_vk_exit();
+void onl_vk_quit();
 
 // calls from ONL VK up to ONT VK
 void ont_vk_init();

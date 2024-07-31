@@ -180,13 +180,19 @@ static void prepare_swapchain() {
     VkSwapchainKHR oldSwapchain = swapchain;
 
     VkSurfaceCapabilitiesKHR surfCapabilities;
-    VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu, surface, &surfCapabilities));
+    ONL_VK_CHECK_EXIT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu, surface,
+                                                                &surfCapabilities));
 
     uint32_t presentModeCount;
-    VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface, &presentModeCount, NULL));
-    VkPresentModeKHR *presentModes = (VkPresentModeKHR *)malloc(presentModeCount * sizeof(VkPresentModeKHR));
+    ONL_VK_CHECK_EXIT(vkGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface,
+                                                                &presentModeCount, NULL));
+    uint32_t s=presentModeCount * sizeof(VkPresentModeKHR);
+    VkPresentModeKHR *presentModes = (VkPresentModeKHR*)malloc(s);
     assert(presentModes);
-    VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface, &presentModeCount, presentModes));
+
+    ONL_VK_CHECK_EXIT(vkGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface,
+                                                                &presentModeCount,
+                                                                presentModes));
 
     VkPhysicalDeviceMultiviewFeaturesKHR extFeatures = {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR,
@@ -312,7 +318,7 @@ static void prepare_swapchain() {
         .oldSwapchain = oldSwapchain,
         .clipped = true,
     };
-    VK_CHECK(vkCreateSwapchainKHR(onl_vk_device, &swapchain_ci, NULL, &swapchain));
+    ONL_VK_CHECK_EXIT(vkCreateSwapchainKHR(onl_vk_device, &swapchain_ci, NULL, &swapchain));
 
     // If we just re-created an existing swapchain, we should destroy the old
     // swapchain at this point.
@@ -337,8 +343,8 @@ static void prepare_command_pools()
             .queueFamilyIndex = queue_family_index,
             .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
         };
-        err = vkCreateCommandPool(onl_vk_device, &cmd_pool_ci, NULL, &command_pool);
-        assert(!err);
+        ONL_VK_CHECK_EXIT(vkCreateCommandPool(onl_vk_device, &cmd_pool_ci,
+                                              0, &command_pool));
     }
 }
 
@@ -352,8 +358,7 @@ void onl_vk_begin_init_command_buffer() {
         .commandBufferCount = 1,
     };
     VkResult err;
-    err = vkAllocateCommandBuffers(onl_vk_device, &cb_ai, &onl_vk_init_cmdbuf);
-    assert(!err);
+    ONL_VK_CHECK_EXIT(vkAllocateCommandBuffers(onl_vk_device, &cb_ai, &onl_vk_init_cmdbuf));
 
     VkCommandBufferBeginInfo cmd_buf_bi = {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -361,8 +366,7 @@ void onl_vk_begin_init_command_buffer() {
         .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
         .pInheritanceInfo = NULL,
     };
-    err = vkBeginCommandBuffer(onl_vk_init_cmdbuf, &cmd_buf_bi);
-    assert(!err);
+    ONL_VK_CHECK_EXIT(vkBeginCommandBuffer(onl_vk_init_cmdbuf, &cmd_buf_bi));
 }
 
 void onl_vk_end_init_command_buffer() {
@@ -372,13 +376,11 @@ void onl_vk_end_init_command_buffer() {
     // In that case the second call should be ignored
     if (onl_vk_init_cmdbuf == VK_NULL_HANDLE) return;
 
-    err = vkEndCommandBuffer(onl_vk_init_cmdbuf);
-    assert(!err);
+    ONL_VK_CHECK_EXIT(vkEndCommandBuffer(onl_vk_init_cmdbuf));
 
     VkFence fence;
     VkFenceCreateInfo fence_ci = {.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO, .pNext = NULL, .flags = 0};
-    err = vkCreateFence(onl_vk_device, &fence_ci, NULL, &fence);
-    assert(!err);
+    ONL_VK_CHECK_EXIT(vkCreateFence(onl_vk_device, &fence_ci, NULL, &fence));
 
     const VkCommandBuffer cmd_bufs[] = {onl_vk_init_cmdbuf};
     VkSubmitInfo submit_info = {.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -391,11 +393,9 @@ void onl_vk_end_init_command_buffer() {
                                 .signalSemaphoreCount = 0,
                                 .pSignalSemaphores = NULL};
 
-    err = vkQueueSubmit(queue, 1, &submit_info, fence);
-    assert(!err);
+    ONL_VK_CHECK_EXIT(vkQueueSubmit(queue, 1, &submit_info, fence));
 
-    err = vkWaitForFences(onl_vk_device, 1, &fence, VK_TRUE, UINT64_MAX);
-    assert(!err);
+    ONL_VK_CHECK_EXIT(vkWaitForFences(onl_vk_device, 1, &fence, VK_TRUE, UINT64_MAX));
 
     vkFreeCommandBuffers(onl_vk_device, command_pool, 1, cmd_bufs);
     vkDestroyFence(onl_vk_device, fence, NULL);
@@ -440,13 +440,11 @@ static void create_instance() {
 
     VkBool32 validation_found = 0;
     if (validate) {
-        err = vkEnumerateInstanceLayerProperties(&instance_layer_count, NULL);
-        assert(!err);
+        ONL_VK_CHECK_EXIT(vkEnumerateInstanceLayerProperties(&instance_layer_count, NULL));
 
         if (instance_layer_count > 0) {
             VkLayerProperties *instance_layers = malloc(sizeof(VkLayerProperties) * instance_layer_count);
-            err = vkEnumerateInstanceLayerProperties(&instance_layer_count, instance_layers);
-            assert(!err);
+            ONL_VK_CHECK_EXIT(vkEnumerateInstanceLayerProperties(&instance_layer_count, instance_layers));
 
             validation_found = check_layers(ARRAY_SIZE(instance_validation_layers),
                                             instance_validation_layers,
@@ -468,13 +466,12 @@ static void create_instance() {
     bool portabilityEnumerationActive = false;
     memset(extension_names, 0, sizeof(extension_names));
 
-    err = vkEnumerateInstanceExtensionProperties(NULL, &instance_extension_count, NULL);
-    assert(!err);
+    ONL_VK_CHECK_EXIT(vkEnumerateInstanceExtensionProperties(NULL, &instance_extension_count, NULL));
 
     if (instance_extension_count > 0) {
         VkExtensionProperties *instance_extensions = malloc(sizeof(VkExtensionProperties) * instance_extension_count);
-        err = vkEnumerateInstanceExtensionProperties(NULL, &instance_extension_count, instance_extensions);
-        assert(!err);
+        ONL_VK_CHECK_EXIT(vkEnumerateInstanceExtensionProperties(NULL, &instance_extension_count, instance_extensions));
+
         for (uint32_t i = 0; i < instance_extension_count; i++) {
             if (!strcmp(VK_KHR_SURFACE_EXTENSION_NAME, instance_extensions[i].extensionName)) {
                 surfaceExtFound = 1;
@@ -568,16 +565,14 @@ static void pick_physical_device(){
     VkResult err;
 
     uint32_t gpu_count = 0;
-    err = vkEnumeratePhysicalDevices(inst, &gpu_count, NULL);
-    assert(!err);
+    ONL_VK_CHECK_EXIT(vkEnumeratePhysicalDevices(inst, &gpu_count, NULL));
 
     if (gpu_count <= 0) {
         ONL_VK_ERR_EXIT("vkEnumeratePhysicalDevices reported zero accessible devices.\n\n");
     }
 
     VkPhysicalDevice *physical_devices = malloc(sizeof(VkPhysicalDevice) * gpu_count);
-    err = vkEnumeratePhysicalDevices(inst, &gpu_count, physical_devices);
-    assert(!err);
+    ONL_VK_CHECK_EXIT(vkEnumeratePhysicalDevices(inst, &gpu_count, physical_devices));
 
     if (gpu_number >= 0 && !((uint32_t)gpu_number < gpu_count)) {
         log_write("GPU %d specified is not present, GPU count = %u\n", gpu_number, gpu_count);
@@ -638,13 +633,11 @@ static void pick_physical_device(){
     enabled_extension_count = 0;
     memset(extension_names, 0, sizeof(extension_names));
 
-    err = vkEnumerateDeviceExtensionProperties(gpu, NULL, &device_extension_count, NULL);
-    assert(!err);
+    ONL_VK_CHECK_EXIT(vkEnumerateDeviceExtensionProperties(gpu, NULL, &device_extension_count, NULL));
 
     if (device_extension_count > 0) {
         VkExtensionProperties *device_extensions = malloc(sizeof(VkExtensionProperties) * device_extension_count);
-        err = vkEnumerateDeviceExtensionProperties(gpu, NULL, &device_extension_count, device_extensions);
-        assert(!err);
+        ONL_VK_CHECK_EXIT(vkEnumerateDeviceExtensionProperties(gpu, NULL, &device_extension_count, device_extensions));
 
         for (uint32_t i = 0; i < device_extension_count; i++) {
             if (!strcmp(VK_KHR_MULTIVIEW_EXTENSION_NAME, device_extensions[i].extensionName)) {
@@ -730,8 +723,8 @@ static void create_device() {
         .ppEnabledExtensionNames = (const char *const *)extension_names,
         .pEnabledFeatures = 0,
     };
-    err = vkCreateDevice(gpu, &dev_ci, NULL, &onl_vk_device);
-    assert(!err);
+    ONL_VK_CHECK_EXIT(vkCreateDevice(gpu, &dev_ci, NULL, &onl_vk_device));
+
     vkGetDeviceQueue(onl_vk_device, queue_family_index, 0, &queue);
 }
 

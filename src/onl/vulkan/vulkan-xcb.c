@@ -138,8 +138,7 @@ void onl_vk_create_surface(VkInstance inst, VkSurfaceKHR* surface) {
       .window = window,
     };
 
-    err = vkCreateXcbSurfaceKHR(inst, &xcb_surface_ci, 0, surface);
-    assert(!err);
+    ONL_VK_CHECK_EXIT(vkCreateXcbSurfaceKHR(inst, &xcb_surface_ci, 0, surface));
 }
 
 static void handle_xcb_event(const xcb_generic_event_t *event) {
@@ -253,7 +252,7 @@ int main() {
   event_loop();
 }
 
-void onl_vk_exit(){
+void onl_vk_quit(){
   quit=true;
 }
 
