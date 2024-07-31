@@ -34,7 +34,6 @@ VkFormat surface_format;
 VkColorSpaceKHR color_space;
 VkSwapchainKHR swapchain;
 VkExtent2D swapchain_extent;
-VkPresentModeKHR presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 VkCommandPool command_pool;
 uint32_t queue_family_count;
 
@@ -183,17 +182,6 @@ static void prepare_swapchain() {
     ONL_VK_CHECK_EXIT(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu, surface,
                                                                 &surfCapabilities));
 
-    uint32_t presentModeCount;
-    ONL_VK_CHECK_EXIT(vkGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface,
-                                                                &presentModeCount, NULL));
-    uint32_t s=presentModeCount * sizeof(VkPresentModeKHR);
-    VkPresentModeKHR *presentModes = (VkPresentModeKHR*)malloc(s);
-    assert(presentModes);
-
-    ONL_VK_CHECK_EXIT(vkGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface,
-                                                                &presentModeCount,
-                                                                presentModes));
-
     VkPhysicalDeviceMultiviewFeaturesKHR extFeatures = {
       .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR,
     };
@@ -252,19 +240,33 @@ static void prepare_swapchain() {
         io.swap_height = surfCapabilities.currentExtent.height;
     }
 
-    VkPresentModeKHR swapchainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
+    // -------------
 
-    if (presentMode != swapchainPresentMode) {
-        for (size_t i = 0; i < presentModeCount; ++i) {
-            if (presentModes[i] == presentMode) {
-                swapchainPresentMode = presentMode;
-                break;
-            }
-        }
+    uint32_t n_present_modes;
+    ONL_VK_CHECK_EXIT(vkGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface,
+                                                                &n_present_modes, NULL));
+    uint32_t s=n_present_modes * sizeof(VkPresentModeKHR);
+    VkPresentModeKHR *present_modes = (VkPresentModeKHR*)malloc(s);
+
+    ONL_VK_CHECK_EXIT(vkGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface,
+                                                                &n_present_modes,
+                                                                present_modes));
+
+    VkPresentModeKHR preferredPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+
+    log_write("searching for preferred present mode %d\n", preferredPresentMode);
+
+    VkPresentModeKHR swapchainPresentMode = 0;
+    for (size_t i = 0; i < n_present_modes; ++i) {
+        log_write("setting present mode number %d: %d\n", i, present_modes[i]);
+        swapchainPresentMode = present_modes[i];
+        if(swapchainPresentMode == preferredPresentMode) break;
     }
-    if (presentMode != swapchainPresentMode) {
-        ONL_VK_ERR_EXIT("Present mode specified is not supported\n");
+    if (swapchainPresentMode != preferredPresentMode) {
+        log_write("Preferred present mode is not supported, using %d\n", swapchainPresentMode);
     }
+
+    if(present_modes) free(present_modes);
 
     uint32_t desiredNumOfSwapchainImages = 3;
     if (desiredNumOfSwapchainImages < surfCapabilities.minImageCount) {
@@ -326,10 +328,6 @@ static void prepare_swapchain() {
     // presentable images once the platform is done with them.
     if (oldSwapchain != VK_NULL_HANDLE) {
         vkDestroySwapchainKHR(onl_vk_device, oldSwapchain, NULL);
-    }
-
-    if (NULL != presentModes) {
-        free(presentModes);
     }
 }
 
