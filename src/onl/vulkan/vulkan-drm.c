@@ -30,24 +30,15 @@ static void set_signal(int sig, void (*h)(int, siginfo_t*, void*)){
   sigaction(sig, &act, 0);
 }
 
-static void drm_init(){
-
-}
-
 void onl_vk_init() {
-
   set_signal(SIGINT, sigint_handler);
-
-  drm_init();
 }
 
 void onl_vk_create_window() {
-  io.swap_width =3840;
-  io.swap_height=1080;
+  // DRM has no window to create
 }
 
-/* Alpha modes in order of preference */
-static VkDisplayPlaneAlphaFlagBitsKHR alpha_modes[] = {
+static VkDisplayPlaneAlphaFlagBitsKHR alpha_modes_order[] = {
     VK_DISPLAY_PLANE_ALPHA_OPAQUE_BIT_KHR,
     VK_DISPLAY_PLANE_ALPHA_GLOBAL_BIT_KHR,
     VK_DISPLAY_PLANE_ALPHA_PER_PIXEL_BIT_KHR,
@@ -57,93 +48,126 @@ static VkDisplayPlaneAlphaFlagBitsKHR alpha_modes[] = {
 void onl_vk_create_surface(VkInstance inst, VkSurfaceKHR* surface) {
 
   uint32_t n_disp_props = 0;
-  vkGetPhysicalDeviceDisplayPropertiesKHR(gpu, &n_disp_props, NULL);
+  vkGetPhysicalDeviceDisplayPropertiesKHR(gpu, &n_disp_props, 0);
   VkDisplayPropertiesKHR disp_props[n_disp_props];
   vkGetPhysicalDeviceDisplayPropertiesKHR(gpu, &n_disp_props, disp_props);
-  log_write("found %d displays\n", n_disp_props);
+  log_write("found %d display%s\n", n_disp_props, n_disp_props==1?"":"s");
 
   VkDisplayKHR     display = 0;
   VkDisplayModeKHR display_mode = 0;
 
-  for (uint32_t i = 0; i < n_disp_props; i++) {
+  for (uint32_t d = 0; d < n_disp_props; d++) {
 
-		display = disp_props[i].display;
+    VkDisplayKHR disp = disp_props[d].display;
 
     uint32_t n_mode_props = 0;
-    vkGetDisplayModePropertiesKHR(gpu, display, &n_mode_props, NULL);
+    vkGetDisplayModePropertiesKHR(gpu, disp, &n_mode_props, 0);
     VkDisplayModePropertiesKHR mode_props[n_mode_props];
-    vkGetDisplayModePropertiesKHR(gpu, display, &n_mode_props, mode_props);
-    log_write("found %d modes for display %d\n", n_mode_props, i);
+    vkGetDisplayModePropertiesKHR(gpu, disp, &n_mode_props, mode_props);
+    log_write("found %d mode%s for display %d\n", n_mode_props, n_mode_props==1?"":"s", d);
 
-    for (uint32_t j = 0; j < n_mode_props; j++) {
+    for (uint32_t m = 0; m < n_mode_props; m++) {
 
-			VkDisplayModePropertiesKHR* mode = &mode_props[j];
-      log_write("display %d mode %d %d/%d\n", i, j, mode->parameters.visibleRegion.width,
-                                                    mode->parameters.visibleRegion.height);
-			if(mode->parameters.visibleRegion.width  == io.swap_width &&
-         mode->parameters.visibleRegion.height == io.swap_height &&
-         mode->parameters.refreshRate > 20 /* ! */  ){
+			VkDisplayModePropertiesKHR* mode = &mode_props[m];
 
-				display_mode = mode->displayMode;
-				break;
+      log_write("display %d mode %d is %dx%d @%fHz\n", d, m,
+                                  mode->parameters.visibleRegion.width,
+                                  mode->parameters.visibleRegion.height,
+                                  mode->parameters.refreshRate/1000.0f);
+
+			if(mode->parameters.refreshRate > 20 /* or whatever test */ ){
+
+				if(!display_mode){
+
+          log_write("using this display mode\n");
+
+          io.swap_width  = mode->parameters.visibleRegion.width;
+          io.swap_height = mode->parameters.visibleRegion.height;
+
+          display = disp;
+          display_mode = mode->displayMode;
+        }
+        // .. but keep looping to log all the other options we had
 			}
     }
-    if(display_mode) break;
   }
   if(!display_mode){
-    ONL_VK_ERR_EXIT("no mode matches for any display");
+    ONL_VK_ERR_EXIT("Unable to find any mode on any display");
   }
 
   uint32_t n_plane_props = 0;
-  vkGetPhysicalDeviceDisplayPlanePropertiesKHR(gpu, &n_plane_props, NULL);
+  vkGetPhysicalDeviceDisplayPlanePropertiesKHR(gpu, &n_plane_props, 0);
   VkDisplayPlanePropertiesKHR plane_props[n_plane_props];
   vkGetPhysicalDeviceDisplayPlanePropertiesKHR(gpu, &n_plane_props, plane_props);
+  log_write("found %d plane%s\n", n_plane_props, n_plane_props==1?"":"s");
 
-  uint32_t best_plane_index = UINT32_MAX;
+  uint32_t plane_index = UINT32_MAX;
 
-  for (uint32_t i = 0; i < n_plane_props; i++) {
+  for (uint32_t p = 0; p < n_plane_props; p++) {
 
     uint32_t n_displays = 0;
-    vkGetDisplayPlaneSupportedDisplaysKHR(gpu, i, &n_displays, NULL);
+    vkGetDisplayPlaneSupportedDisplaysKHR(gpu, p, &n_displays, 0);
     VkDisplayKHR displays[n_displays];
-    vkGetDisplayPlaneSupportedDisplaysKHR(gpu, i, &n_displays, displays);
+    vkGetDisplayPlaneSupportedDisplaysKHR(gpu, p, &n_displays, displays);
+    log_write("found %d display%s for plane %d\n", n_displays, n_displays==1?"":"s", p);
 
-    best_plane_index = UINT32_MAX;
-    for (uint32_t j = 0; j < n_displays; j++) {
-      if(display == displays[j]) {
-        best_plane_index = i;
-        break;
+    for (uint32_t d = 0; d < n_displays; d++) {
+      if(display == displays[d]) {
+
+        log_write("found chosen display in plane %d display %d\n", p, d);
+
+        if(plane_index == UINT32_MAX){
+          log_write("using this plane\n");
+          plane_index = p;
+        }
+        // .. but keep looping to log all the other options we had
       }
     }
-    if(best_plane_index != UINT32_MAX) break;
   }
-
-  if(best_plane_index == UINT32_MAX) {
-      ONL_VK_ERR_EXIT("no plane found");
+  if(plane_index == UINT32_MAX) {
+      ONL_VK_ERR_EXIT("no plane found for chosen display");
   }
 
   VkDisplayPlaneCapabilitiesKHR plane_capab;
-  vkGetDisplayPlaneCapabilitiesKHR(gpu, display_mode, best_plane_index, &plane_capab);
+  vkGetDisplayPlaneCapabilitiesKHR(gpu, display_mode, plane_index, &plane_capab);
 
   VkDisplayPlaneAlphaFlagBitsKHR alpha_mode=0;
-  for(uint32_t i = 0; i < ARRAY_SIZE(alpha_modes); i++) {
-    if(plane_capab.supportedAlpha & alpha_modes[i]) {
-      alpha_mode = alpha_modes[i];
-      break;
+
+  for(uint32_t a = 0; a < ARRAY_SIZE(alpha_modes_order); a++) {
+
+    log_write("checking alpha mode %b (%d of %d) is in %b\n",
+               alpha_modes_order[a],
+               a+1, ARRAY_SIZE(alpha_modes_order),
+               plane_capab.supportedAlpha);
+
+    if(alpha_modes_order[a] & plane_capab.supportedAlpha) {
+
+      log_write("alpha mode is supported by plane\n");
+
+      if(!alpha_mode){
+
+        log_write("using that alpha mode\n");
+
+        alpha_mode = alpha_modes_order[a];
+      }
+      // .. but keep looping to log all the other options we had
     }
+  }
+  if(!alpha_mode){
+    ONL_VK_ERR_EXIT("no alpha mode found from preferred list");
   }
 
   VkDisplaySurfaceCreateInfoKHR drm_surface_ci = {
       .sType = VK_STRUCTURE_TYPE_DISPLAY_SURFACE_CREATE_INFO_KHR,
       .flags = 0,
       .displayMode = display_mode,
-      .planeIndex = best_plane_index,
-      .planeStackIndex = plane_props[best_plane_index].currentStackIndex,
+      .planeIndex = plane_index,
+      .planeStackIndex = plane_props[plane_index].currentStackIndex,
       .transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
       .alphaMode = alpha_mode,
       .globalAlpha = 1.0f,
       .imageExtent = { io.swap_width, io.swap_height },
-      .pNext = NULL,
+      .pNext = 0,
   };
 
   ONL_VK_CHECK_EXIT(vkCreateDisplayPlaneSurfaceKHR(inst, &drm_surface_ci, 0, surface));
