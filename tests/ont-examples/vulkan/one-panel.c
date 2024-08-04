@@ -200,8 +200,8 @@ void one_panel_render() {
 
 // -----------------------------------------------------------
 
-static const float eye_sep = 0.020; // eyes off-centre dist in m
-static const float eye_con = 0.020; // angle of convergence rads
+static const float eye_sep = 0.030; // eyes off-centre dist in m
+static const float eye_con = 0.000; // angle of convergence rads
 
 // 1.75m height
 // standing back 5m from origin

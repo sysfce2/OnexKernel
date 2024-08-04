@@ -181,29 +181,16 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
           break;
         }
         case XCB_KEY_PRESS: {
-            const xcb_key_press_event_t *key = (const xcb_key_press_event_t *)event;
-            switch (key->detail) {
-                case 0x9:  // ESC
-                    break;
-                default:
-                    io.key=key->detail;
-                    onl_vk_iostate_changed();
-                    break;
-            }
-            break;
+          xcb_key_press_event_t *key = (xcb_key_press_event_t *)event;
+          io.key=key->detail;
+          onl_vk_iostate_changed();
+          break;
         }
         case XCB_KEY_RELEASE: {
-            const xcb_key_release_event_t *key = (const xcb_key_release_event_t *)event;
-            switch (key->detail) {
-                case 0x9:  // ESC
-                    quit = true;
-                    break;
-                default:
-                    io.key=0;
-                    onl_vk_iostate_changed();
-                    break;
-            }
-            break;
+          xcb_key_release_event_t *key = (xcb_key_release_event_t *)event;
+          io.key=0;
+          onl_vk_iostate_changed();
+          break;
         }
         case XCB_CONFIGURE_NOTIFY: {
             const xcb_configure_notify_event_t *cfg = (const xcb_configure_notify_event_t *)event;
