@@ -948,12 +948,6 @@ void onl_vk_restart(){
 
 onl_vk_iostate io;
 
-void onl_vk_set_io_mouse(int32_t x, int32_t y){
-
-  io.mouse_x = x;
-  io.mouse_y = y;
-}
-
 void onl_vk_iostate_changed() {
 
   ont_vk_iostate_changed();

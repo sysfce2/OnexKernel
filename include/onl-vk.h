@@ -47,14 +47,23 @@
   } while (0)
 
 typedef struct onl_vk_iostate {
+
   uint32_t swap_width;
   uint32_t swap_height;
+
   uint32_t mouse_x;
   uint32_t mouse_y;
+
+  float    yaw;
+  float    pitch;
+  float    roll;
+
   bool     left_pressed;
   bool     middle_pressed;
   bool     right_pressed;
+
   char     key;
+
 } onl_vk_iostate;
 
 extern onl_vk_iostate io;

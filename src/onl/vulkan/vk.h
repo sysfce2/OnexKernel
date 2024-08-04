@@ -19,7 +19,6 @@ void onl_vk_finish();
 // calls from vulkan-xcb.c etc up to vk.c
 void onl_vk_loop(bool running);
 void onl_vk_iostate_changed();
-void onl_vk_set_io_mouse(int32_t x, int32_t y);
 
 // calls from vk.c up to vk-rg.c
 void onl_vk_prepare_swapchain_images(bool restart);

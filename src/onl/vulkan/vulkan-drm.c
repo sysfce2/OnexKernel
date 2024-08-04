@@ -12,6 +12,7 @@
 
 #include <onl-vk.h>
 #include "onl/vulkan/vk.h"
+#include "onl/drivers/viture/viture_imu.h"
 
 // -----------------------------------------
 
@@ -30,8 +31,20 @@ static void set_signal(int sig, void (*h)(int, siginfo_t*, void*)){
   sigaction(sig, &act, 0);
 }
 
+void head_rotated(uint32_t ts, float yaw, float pitch, float roll){
+
+  io.yaw   = yaw;
+  io.pitch = pitch;
+  io.roll  = roll;
+
+  onl_vk_iostate_changed();
+}
+
 void onl_vk_init() {
+
   set_signal(SIGINT, sigint_handler);
+
+  viture_init(head_rotated);
 }
 
 void onl_vk_create_window() {
@@ -183,7 +196,7 @@ static void event_loop() {
 
         onl_vk_loop(true);
 
-        while(0/* libinput, head tracking */){
+        while(0/* libinput_get_event */){
             handle_in_event();
         }
     }
@@ -192,6 +205,7 @@ static void event_loop() {
 
 void onl_vk_finish() {
 
+  viture_end();
 }
 
 int main() {

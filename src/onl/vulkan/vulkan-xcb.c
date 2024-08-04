@@ -14,6 +14,7 @@
 
 #include <onl-vk.h>
 #include "onl/vulkan/vk.h"
+#include "onl/drivers/viture/viture_imu.h"
 
 // -----------------------------------------
 
@@ -65,9 +66,20 @@ static void xcb_init(){
   xcb_flush(connection);
 }
 
+void head_rotated(uint32_t ts, float yaw, float pitch, float roll){
+
+  io.yaw   = yaw;
+  io.pitch = pitch;
+  io.roll  = roll;
+
+  onl_vk_iostate_changed();
+}
+
 void onl_vk_init() {
 
   set_signal(SIGINT, sigint_handler);
+
+  viture_init(head_rotated);
 
   xcb_init();
 }
@@ -147,7 +159,8 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
 
         case XCB_MOTION_NOTIFY: {
           xcb_motion_notify_event_t *motion = (xcb_motion_notify_event_t *)event;
-          onl_vk_set_io_mouse((int32_t)motion->event_x, (int32_t)motion->event_y);
+          io.mouse_x = (int32_t)motion->event_x;
+          io.mouse_y = (int32_t)motion->event_y;
           onl_vk_iostate_changed();
           break;
         }
@@ -243,6 +256,8 @@ void onl_vk_finish() {
   xcb_destroy_window(connection, window);
   xcb_disconnect(connection);
   free(atom_wm_delete_window);
+
+  viture_end();
 }
 
 int main() {
