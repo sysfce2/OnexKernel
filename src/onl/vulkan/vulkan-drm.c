@@ -43,6 +43,7 @@ void head_rotated(uint32_t ts, float yaw, float pitch, float roll){
 void onl_vk_init() {
 
   set_signal(SIGINT, sigint_handler);
+  set_signal(SIGTERM, sigint_handler);
 
   viture_init(head_rotated);
 }
