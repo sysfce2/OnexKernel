@@ -166,17 +166,17 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
         }
         case XCB_BUTTON_PRESS: {
           xcb_button_press_event_t *press = (xcb_button_press_event_t *)event;
-          if(press->detail == XCB_BUTTON_INDEX_1) io.left_pressed=true;
-          if(press->detail == XCB_BUTTON_INDEX_2) io.middle_pressed=true;
-          if(press->detail == XCB_BUTTON_INDEX_3) io.right_pressed=true;
+          if(press->detail == XCB_BUTTON_INDEX_1) io.mouse_left=true;
+          if(press->detail == XCB_BUTTON_INDEX_2) io.mouse_middle=true;
+          if(press->detail == XCB_BUTTON_INDEX_3) io.mouse_right=true;
           onl_vk_iostate_changed();
           break;
         }
         case XCB_BUTTON_RELEASE: {
           xcb_button_press_event_t *press = (xcb_button_press_event_t *)event;
-          if(press->detail == XCB_BUTTON_INDEX_1) io.left_pressed=false;
-          if(press->detail == XCB_BUTTON_INDEX_2) io.middle_pressed=false;
-          if(press->detail == XCB_BUTTON_INDEX_3) io.right_pressed=false;
+          if(press->detail == XCB_BUTTON_INDEX_1) io.mouse_left=false;
+          if(press->detail == XCB_BUTTON_INDEX_2) io.mouse_middle=false;
+          if(press->detail == XCB_BUTTON_INDEX_3) io.mouse_right=false;
           onl_vk_iostate_changed();
           break;
         }
@@ -193,9 +193,9 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
           break;
         }
         case XCB_CONFIGURE_NOTIFY: {
-            const xcb_configure_notify_event_t *cfg = (const xcb_configure_notify_event_t *)event;
-            uint32_t w=cfg->width;
-            uint32_t h=cfg->height;
+            xcb_configure_notify_event_t* cne=(xcb_configure_notify_event_t*)event;
+            uint32_t w=cne->width;
+            uint32_t h=cne->height;
             if ((swap_width != w) || (swap_height != h)) {
 
                 swap_width = w;
@@ -206,7 +206,8 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
             break;
         }
         case XCB_CLIENT_MESSAGE:{
-            if ((*(xcb_client_message_event_t *)event).data.data32[0] == (*atom_wm_delete_window).atom) {
+            if ((*(xcb_client_message_event_t *)event).data.data32[0] ==
+                                              (*atom_wm_delete_window).atom) {
                 quit = true;
             }
             break;

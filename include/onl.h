@@ -13,14 +13,13 @@ typedef struct onl_iostate {
 
   uint32_t mouse_x;
   uint32_t mouse_y;
+  bool     mouse_left;
+  bool     mouse_middle;
+  bool     mouse_right;
 
   float    yaw;
   float    pitch;
   float    roll;
-
-  bool     left_pressed;
-  bool     middle_pressed;
-  bool     right_pressed;
 
   char     key;
 

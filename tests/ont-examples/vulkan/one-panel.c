@@ -255,23 +255,23 @@ void ont_vk_iostate_changed() {
 
 #define LOG_IQ
 #ifdef LOG_IO
-  log_write("ont_vk_iostate_changed @(%d %d) @(%f %f %f) buttons=(%d %d %d) key=%d\n",
+  log_write("ont_vk_iostate_changed @(%d %d) buttons=(%d %d %d) @(%f %f %f) key=%d\n",
            io.mouse_x, io.mouse_y,
+           io.mouse_left, io.mouse_middle, io.mouse_right,
            io.yaw, io.pitch, io.roll,
-           io.left_pressed, io.middle_pressed, io.right_pressed,
            io.key);
 #endif
 
   bool bottom_left = io.mouse_x < swap_width / 3 && io.mouse_y > swap_height / 2;
 
-  if(io.left_pressed && !body_moving && bottom_left){
+  if(io.mouse_left && !body_moving && bottom_left){
     body_moving=true;
 
     x_on_press = io.mouse_x;
     y_on_press = io.mouse_y;
   }
   else
-  if(io.left_pressed && body_moving){
+  if(io.mouse_left && body_moving){
 
     float delta_x =  0.00007f * ((int32_t)io.mouse_x - (int32_t)x_on_press);
     float delta_y = -0.00007f * ((int32_t)io.mouse_y - (int32_t)y_on_press);
@@ -287,11 +287,11 @@ void ont_vk_iostate_changed() {
     eye_r[2] += 4.0f * delta_y * cos(eye_dir);
   }
   else
-  if(!io.left_pressed && body_moving){
+  if(!io.mouse_left && body_moving){
     body_moving=false;
   }
   else
-  if(io.left_pressed && !head_moving){
+  if(io.mouse_left && !head_moving){
 
     head_moving=true;
 
@@ -299,7 +299,7 @@ void ont_vk_iostate_changed() {
     y_on_press = io.mouse_y;
   }
   else
-  if(io.left_pressed && head_moving){
+  if(io.mouse_left && head_moving){
 
     float delta_x = 0.00007f * ((int32_t)io.mouse_x - (int32_t)x_on_press);
     float delta_y = 0.00007f * ((int32_t)io.mouse_y - (int32_t)y_on_press);
@@ -308,7 +308,7 @@ void ont_vk_iostate_changed() {
     head_ver_dir = 35.0f*dwell(delta_y, 0.0015f);
   }
   else
-  if(!io.left_pressed && head_moving){
+  if(!io.mouse_left && head_moving){
 
     head_moving=false;
 
