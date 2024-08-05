@@ -15,6 +15,7 @@
 #include <onl-vk.h>
 #include "onl/vulkan/vk.h"
 #include "onl/drivers/viture/viture_imu.h"
+#include "onl/drivers/libinput/libinput.h"
 
 // -----------------------------------------
 
@@ -78,6 +79,9 @@ void head_rotated(uint32_t ts, float yaw, float pitch, float roll){
 void onl_vk_init() {
 
   set_signal(SIGINT, sigint_handler);
+
+  int r=libinput_init(onl_vk_iostate_changed);
+  if(r) log_write("failed to initialise libinput (%d)\n", r);
 
   viture_init(head_rotated);
 
@@ -157,41 +161,6 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
 
     switch(event->response_type & 0x7f) {
 
-        case XCB_MOTION_NOTIFY: {
-          xcb_motion_notify_event_t *motion = (xcb_motion_notify_event_t *)event;
-          io.mouse_x = (int32_t)motion->event_x;
-          io.mouse_y = (int32_t)motion->event_y;
-          onl_vk_iostate_changed();
-          break;
-        }
-        case XCB_BUTTON_PRESS: {
-          xcb_button_press_event_t *press = (xcb_button_press_event_t *)event;
-          if(press->detail == XCB_BUTTON_INDEX_1) io.mouse_left=true;
-          if(press->detail == XCB_BUTTON_INDEX_2) io.mouse_middle=true;
-          if(press->detail == XCB_BUTTON_INDEX_3) io.mouse_right=true;
-          onl_vk_iostate_changed();
-          break;
-        }
-        case XCB_BUTTON_RELEASE: {
-          xcb_button_press_event_t *press = (xcb_button_press_event_t *)event;
-          if(press->detail == XCB_BUTTON_INDEX_1) io.mouse_left=false;
-          if(press->detail == XCB_BUTTON_INDEX_2) io.mouse_middle=false;
-          if(press->detail == XCB_BUTTON_INDEX_3) io.mouse_right=false;
-          onl_vk_iostate_changed();
-          break;
-        }
-        case XCB_KEY_PRESS: {
-          xcb_key_press_event_t *key = (xcb_key_press_event_t *)event;
-          io.key=key->detail;
-          onl_vk_iostate_changed();
-          break;
-        }
-        case XCB_KEY_RELEASE: {
-          xcb_key_release_event_t *key = (xcb_key_release_event_t *)event;
-          io.key=0;
-          onl_vk_iostate_changed();
-          break;
-        }
         case XCB_CONFIGURE_NOTIFY: {
             xcb_configure_notify_event_t* cne=(xcb_configure_notify_event_t*)event;
             uint32_t w=cne->width;
@@ -222,10 +191,17 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
 }
 
 static void event_loop() {
-
-    while (!quit){
+/*
+  struct pollfd fds;
+  fds.fd = libinput_get_fd(libin);
+  fds.events = POLLIN;
+  fds.revents = 0;
+*/
+    while(!quit/* && poll(&fds, 1, -1) > -1*/){
 
         onl_vk_loop(true);
+
+        libinput_process_events();
 
         xcb_generic_event_t *event;
 
@@ -246,6 +222,8 @@ void onl_vk_finish() {
   free(atom_wm_delete_window);
 
   viture_end();
+
+  libinput_end();
 }
 
 int main() {
@@ -258,4 +236,6 @@ int main() {
 void onl_vk_quit(){
   quit=true;
 }
+
+
 

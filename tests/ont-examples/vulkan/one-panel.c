@@ -255,8 +255,8 @@ void ont_vk_iostate_changed() {
 
 #define LOG_IQ
 #ifdef LOG_IO
-  log_write("ont_vk_iostate_changed @(%d %d) buttons=(%d %d %d) @(%f %f %f) key=%d\n",
-           io.mouse_x, io.mouse_y,
+  log_write("ont_vk_iostate_changed @(%d %d %d) buttons=(%d %d %d) @(%f %f %f) key=%d\n",
+           io.mouse_x, io.mouse_y, io.mouse_scroll,
            io.mouse_left, io.mouse_middle, io.mouse_right,
            io.yaw, io.pitch, io.roll,
            io.key);

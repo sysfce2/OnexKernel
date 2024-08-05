@@ -41,6 +41,7 @@ ONL_UNIX_SOURCES = \
 
 ONL_VULKAN_XCB_SOURCES = \
 ./src/onl/drivers/onl.c \
+./src/onl/drivers/libinput/libinput.c \
 ./src/onl/drivers/viture/viture_imu.c \
 ./src/onl/vulkan/vulkan-xcb.c \
 ./src/onl/vulkan/vk.c \
@@ -49,6 +50,7 @@ ONL_VULKAN_XCB_SOURCES = \
 
 ONL_VULKAN_DRM_SOURCES = \
 ./src/onl/drivers/onl.c \
+./src/onl/drivers/libinput/libinput.c \
 ./src/onl/drivers/viture/viture_imu.c \
 ./src/onl/vulkan/vulkan-drm.c \
 ./src/onl/vulkan/vk.c \
@@ -140,7 +142,7 @@ vulkan.xcb: libonex-kernel-xcb.a $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADER
 	@echo ================
 	@echo $@ '<=' $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o}
 	@echo -----
-	$(LD) $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o} -pthread -Wl,-rpath,./libraries -L. -L./libraries -lonex-kernel-xcb -lviture_one_sdk -lvulkan -lxcb -lfreetype -lm -o $@
+	$(LD) $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o} -pthread -Wl,-rpath,./libraries -L. -L./libraries -lonex-kernel-xcb -lviture_one_sdk -lvulkan -lxcb -linput -ludev -lfreetype -lm -o $@
 
 vulkan.drm: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(DRM_CC_SYMBOLS) $(INCLUDES)
 vulkan.drm: CC=/usr/bin/gcc
