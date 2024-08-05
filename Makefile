@@ -142,7 +142,7 @@ vulkan.xcb: libonex-kernel-xcb.a $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADER
 	@echo ================
 	@echo $@ '<=' $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o}
 	@echo -----
-	$(LD) $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o} -pthread -Wl,-rpath,./libraries -L. -L./libraries -lonex-kernel-xcb -lviture_one_sdk -lvulkan -lxcb -linput -ludev -lfreetype -lm -o $@
+	$(LD) $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o} ${XCB_LIBS} -o $@
 
 vulkan.drm: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(DRM_CC_SYMBOLS) $(INCLUDES)
 vulkan.drm: CC=/usr/bin/gcc
@@ -150,11 +150,14 @@ vulkan.drm: LD=/usr/bin/gcc
 vulkan.drm: TARGET=TARGET_X86
 vulkan.drm: libonex-kernel-drm.a $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o}
 	@echo ================
-	@echo $@ '<=' $(ONT_VULKAN_SOURCES:.c=.o) ${SHADERS:.spv=.o}
+	@echo $@ '<=' $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o}
 	@echo -----
-	$(LD) $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o} -pthread -Wl,-rpath,./libraries -L. -L./libraries -lonex-kernel-drm -lviture_one_sdk -lvulkan -lfreetype -lm -o $@
+	$(LD) $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADERS:.spv=.o} ${DRM_LIBS} -o $@
 
 #-------------------------------------------------------------------------------
+
+XCB_LIBS=-pthread -Wl,-rpath,./libraries -L. -L./libraries -lonex-kernel-xcb -lviture_one_sdk -lvulkan -lxcb -linput -ludev -lfreetype -lm
+DRM_LIBS=-pthread -Wl,-rpath,./libraries -L. -L./libraries -lonex-kernel-drm -lviture_one_sdk -lvulkan       -linput -ludev -lfreetype -lm
 
 X86_FLAGS=-ggdb3 -O2
 XCB_CC_SYMBOLS = -D$(TARGET) $(CHANNELS) -DVK_USE_PLATFORM_XCB_KHR

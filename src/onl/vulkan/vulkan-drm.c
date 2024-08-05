@@ -11,8 +11,9 @@
 #include <onex-kernel/log.h>
 
 #include <onl-vk.h>
-#include "onl/vulkan/vk.h"
+#include "onl/drivers/libinput/libinput.h"
 #include "onl/drivers/viture/viture_imu.h"
+#include "onl/vulkan/vk.h"
 
 // -----------------------------------------
 
@@ -44,6 +45,9 @@ void onl_vk_init() {
 
   set_signal(SIGINT, sigint_handler);
   set_signal(SIGTERM, sigint_handler);
+
+  int r=libinput_init(onl_vk_iostate_changed);
+  if(r) log_write("failed to initialise libinput (%d)\n", r);
 
   viture_init(head_rotated);
 }
@@ -187,19 +191,13 @@ void onl_vk_create_surface(VkInstance inst, VkSurfaceKHR* surface) {
   ONL_VK_CHECK_EXIT(vkCreateDisplayPlaneSurfaceKHR(inst, &drm_surface_ci, 0, surface));
 }
 
-static void handle_in_event() {
-
-}
-
 static void event_loop() {
 
     while (!quit){
 
         onl_vk_loop(true);
 
-        while(0/* libinput_get_event */){
-            handle_in_event();
-        }
+        libinput_process_events();
     }
     onl_vk_loop(false);
 }
@@ -207,6 +205,8 @@ static void event_loop() {
 void onl_vk_finish() {
 
   viture_end();
+
+  libinput_end();
 }
 
 int main() {
