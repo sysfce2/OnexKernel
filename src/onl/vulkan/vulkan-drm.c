@@ -95,8 +95,8 @@ void onl_vk_create_surface(VkInstance inst, VkSurfaceKHR* surface) {
 
           log_write("using this display mode\n");
 
-          io.swap_width  = mode->parameters.visibleRegion.width;
-          io.swap_height = mode->parameters.visibleRegion.height;
+          swap_width  = mode->parameters.visibleRegion.width;
+          swap_height = mode->parameters.visibleRegion.height;
 
           display = disp;
           display_mode = mode->displayMode;
@@ -180,7 +180,7 @@ void onl_vk_create_surface(VkInstance inst, VkSurfaceKHR* surface) {
       .transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
       .alphaMode = alpha_mode,
       .globalAlpha = 1.0f,
-      .imageExtent = { io.swap_width, io.swap_height },
+      .imageExtent = { swap_width, swap_height },
       .pNext = 0,
   };
 

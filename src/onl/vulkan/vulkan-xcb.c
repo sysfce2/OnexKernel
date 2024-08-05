@@ -86,8 +86,8 @@ void onl_vk_init() {
 
 void onl_vk_create_window() {
 
-  io.swap_width =screen->width_in_pixels;
-  io.swap_height=screen->height_in_pixels;
+  swap_width =screen->width_in_pixels;
+  swap_height=screen->height_in_pixels;
 
   uint32_t value_mask, value_list[32];
 
@@ -107,7 +107,7 @@ void onl_vk_create_window() {
   xcb_create_window(connection,
     XCB_COPY_FROM_PARENT,
     window, screen->root,
-    0, 0, io.swap_width, io.swap_height, 0,
+    0, 0, swap_width, swap_height, 0,
     XCB_WINDOW_CLASS_INPUT_OUTPUT,
     screen->root_visual,
     value_mask, value_list);
@@ -196,10 +196,10 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
             const xcb_configure_notify_event_t *cfg = (const xcb_configure_notify_event_t *)event;
             uint32_t w=cfg->width;
             uint32_t h=cfg->height;
-            if ((io.swap_width != w) || (io.swap_height != h)) {
+            if ((swap_width != w) || (swap_height != h)) {
 
-                io.swap_width = w;
-                io.swap_height = h;
+                swap_width = w;
+                swap_height = h;
 
                 onl_vk_iostate_changed();
             }

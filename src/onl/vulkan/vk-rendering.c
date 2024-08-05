@@ -353,7 +353,7 @@ static void prepare_color() {
     .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
     .imageType = VK_IMAGE_TYPE_2D,
     .format = surface_format,
-    .extent = { io.swap_width, io.swap_height, 1 },
+    .extent = { swap_width, swap_height, 1 },
     .mipLevels = 1,
     .arrayLayers = TWO_EYES,
     .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -399,7 +399,7 @@ static void prepare_depth() {
         .pNext = NULL,
         .imageType = VK_IMAGE_TYPE_2D,
         .format = depth_format,
-        .extent = { io.swap_width, io.swap_height, 1 },
+        .extent = { swap_width, swap_height, 1 },
         .mipLevels = 1,
         .arrayLayers = sbs_render? TWO_EYES: ONE_EYE,
         .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -442,7 +442,7 @@ static void prepare_depth() {
 
 void onl_vk_prepare_swapchain_images(bool restart) {
 
-    onl_vk_aspect_ratio = (float)io.swap_width / (float)io.swap_height;
+    onl_vk_aspect_ratio = (float)swap_width / (float)swap_height;
     sbs_render = onl_vk_aspect_ratio > 2.0f;
     onl_vk_aspect_ratio_proj = onl_vk_aspect_ratio / (sbs_render? 2.0f: 1.0f);
     log_write("onl_vk_aspect_ratio %.3f/%.3f SBS=%s\n",
@@ -675,8 +675,8 @@ void onl_vk_prepare_pipeline(bool restart) {
   VkViewport viewport = {
       .x = 0.0f,
       .y = 0.0f,
-      .width  = io.swap_width / (sbs_render? 2: 1),
-      .height = io.swap_height,
+      .width  = swap_width / (sbs_render? 2: 1),
+      .height = swap_height,
       .minDepth = 0.0f,
       .maxDepth = 1.0f,
   };
@@ -687,8 +687,8 @@ void onl_vk_prepare_pipeline(bool restart) {
          0
       },
       .extent = {
-         io.swap_width / (sbs_render? 2: 1),
-         io.swap_height,
+         swap_width / (sbs_render? 2: 1),
+         swap_height,
       },
   };
 
@@ -799,8 +799,8 @@ void onl_vk_prepare_framebuffers(bool restart) {
         .pNext = 0,
         .renderPass = render_pass,
         .attachmentCount = 2,
-        .width =  io.swap_width,
-        .height = io.swap_height,
+        .width =  swap_width,
+        .height = swap_height,
         .layers = 1,
     };
 

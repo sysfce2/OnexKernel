@@ -11,6 +11,9 @@
 
 bool validate = true;
 
+uint32_t swap_width  = 1920;
+uint32_t swap_height = 1080;
+
 // -----
 
 VkDevice        onl_vk_device;
@@ -219,8 +222,8 @@ static void prepare_swapchain() {
         // If the surface size is undefined, the size is set to the size
         // of the images requested, which must fit within the minimum and
         // maximum values.
-        swapchain_extent.width  = io.swap_width;
-        swapchain_extent.height = io.swap_height;
+        swapchain_extent.width  = swap_width;
+        swapchain_extent.height = swap_height;
 
         if (swapchain_extent.width < surfCapabilities.minImageExtent.width) {
             swapchain_extent.width = surfCapabilities.minImageExtent.width;
@@ -236,8 +239,8 @@ static void prepare_swapchain() {
     } else {
         // If the surface size is defined, the swapchain size must match
         swapchain_extent = surfCapabilities.currentExtent;
-        io.swap_width = surfCapabilities.currentExtent.width;
-        io.swap_height = surfCapabilities.currentExtent.height;
+        swap_width = surfCapabilities.currentExtent.width;
+        swap_height = surfCapabilities.currentExtent.height;
     }
 
     // -------------
@@ -944,9 +947,6 @@ void onl_vk_restart(){
   finish(true);
   prepare(true);
 }
-
-
-onl_vk_iostate io;
 
 void onl_vk_iostate_changed() {
 

@@ -40,6 +40,7 @@ ONL_UNIX_SOURCES = \
 
 
 ONL_VULKAN_XCB_SOURCES = \
+./src/onl/drivers/onl.c \
 ./src/onl/drivers/viture/viture_imu.c \
 ./src/onl/vulkan/vulkan-xcb.c \
 ./src/onl/vulkan/vk.c \
@@ -47,6 +48,7 @@ ONL_VULKAN_XCB_SOURCES = \
 
 
 ONL_VULKAN_DRM_SOURCES = \
+./src/onl/drivers/onl.c \
 ./src/onl/drivers/viture/viture_imu.c \
 ./src/onl/vulkan/vulkan-drm.c \
 ./src/onl/vulkan/vk.c \

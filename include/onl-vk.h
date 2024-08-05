@@ -1,5 +1,5 @@
-#ifndef ONL_VK
-#define ONL_VK
+#ifndef ONL_VK_H
+#define ONL_VK_H
 
 #define _GNU_SOURCE
 
@@ -13,6 +13,8 @@
 #include <vulkan/vulkan.h>
 
 #include <onex-kernel/log.h>
+
+#include "onl.h"
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 
@@ -46,27 +48,8 @@
     onl_vk_quit();           \
   } while (0)
 
-typedef struct onl_vk_iostate {
-
-  uint32_t swap_width;
-  uint32_t swap_height;
-
-  uint32_t mouse_x;
-  uint32_t mouse_y;
-
-  float    yaw;
-  float    pitch;
-  float    roll;
-
-  bool     left_pressed;
-  bool     middle_pressed;
-  bool     right_pressed;
-
-  char     key;
-
-} onl_vk_iostate;
-
-extern onl_vk_iostate io;
+extern uint32_t swap_width;
+extern uint32_t swap_height;
 
 // -----------------------------------
 

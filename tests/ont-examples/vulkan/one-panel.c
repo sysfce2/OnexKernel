@@ -255,15 +255,14 @@ void ont_vk_iostate_changed() {
 
 #define LOG_IQ
 #ifdef LOG_IO
-  log_write("ont_vk_iostate_changed [%d,%d] @(%d %d) @(%f %f %f) buttons=(%d %d %d) key=%d\n",
-           io.swap_width, io.swap_height,
+  log_write("ont_vk_iostate_changed @(%d %d) @(%f %f %f) buttons=(%d %d %d) key=%d\n",
            io.mouse_x, io.mouse_y,
            io.yaw, io.pitch, io.roll,
            io.left_pressed, io.middle_pressed, io.right_pressed,
            io.key);
 #endif
 
-  bool bottom_left = io.mouse_x < io.swap_width / 3 && io.mouse_y > io.swap_height / 2;
+  bool bottom_left = io.mouse_x < swap_width / 3 && io.mouse_y > swap_height / 2;
 
   if(io.left_pressed && !body_moving && bottom_left){
     body_moving=true;
