@@ -113,66 +113,6 @@ static void handle_libinput_event(struct libinput_event* event) {
   uint32_t evt = libinput_event_get_type(event);
   switch(evt) {
 
-    case LIBINPUT_EVENT_POINTER_BUTTON: {
-
-      struct libinput_event_pointer *m = libinput_event_get_pointer_event(event);
-      uint32_t btn = libinput_event_pointer_get_button(m);
-      uint32_t stt = libinput_event_pointer_get_button_state(m);
-
-      switch(btn){
-        case BTN_LEFT: {
-
-          io.mouse_left = (stt==LIBINPUT_BUTTON_STATE_PRESSED);
-
-          iostate_change_cb();
-
-          break;
-        }
-        case BTN_MIDDLE: {
-
-          io.mouse_middle= (stt==LIBINPUT_BUTTON_STATE_PRESSED);
-
-          iostate_change_cb();
-
-          break;
-        }
-        case BTN_RIGHT: {
-
-          io.mouse_right = (stt==LIBINPUT_BUTTON_STATE_PRESSED);
-
-          iostate_change_cb();
-
-          break;
-        }
-      }
-      break;
-    }
-    case LIBINPUT_EVENT_POINTER_SCROLL_WHEEL: {
-
-      struct libinput_event_pointer *m = libinput_event_get_pointer_event(event);
-      double sv = libinput_event_pointer_get_scroll_value_v120(m,
-                                           LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
-
-      io.mouse_scroll = io.mouse_scroll + (uint32_t)sv;
-
-      iostate_change_cb();
-
-      break;
-    }
-    case LIBINPUT_EVENT_POINTER_MOTION: {
-
-      struct libinput_event_pointer *m = libinput_event_get_pointer_event(event);
-
-      int32_t dx = (int32_t)libinput_event_pointer_get_dx(m);
-      int32_t dy = (int32_t)libinput_event_pointer_get_dy(m);
-
-      io.mouse_x = io.mouse_x + dx;
-      io.mouse_y = io.mouse_y + dy;
-
-      iostate_change_cb();
-
-      break;
-    }
     case LIBINPUT_EVENT_TOUCH_DOWN: {
 
       struct libinput_event_touch *t = libinput_event_get_touch_event(event);
@@ -224,6 +164,67 @@ static void handle_libinput_event(struct libinput_event* event) {
 
       iostate_change_cb();
 
+      break;
+    }
+    case LIBINPUT_EVENT_POINTER_BUTTON: {
+/*
+      struct libinput_event_pointer *m = libinput_event_get_pointer_event(event);
+      uint32_t btn = libinput_event_pointer_get_button(m);
+      uint32_t stt = libinput_event_pointer_get_button_state(m);
+
+      switch(btn){
+        case BTN_LEFT: {
+
+          io.mouse_left = (stt==LIBINPUT_BUTTON_STATE_PRESSED);
+
+          iostate_change_cb();
+
+          break;
+        }
+        case BTN_MIDDLE: {
+
+          io.mouse_middle= (stt==LIBINPUT_BUTTON_STATE_PRESSED);
+
+          iostate_change_cb();
+
+          break;
+        }
+        case BTN_RIGHT: {
+
+          io.mouse_right = (stt==LIBINPUT_BUTTON_STATE_PRESSED);
+
+          iostate_change_cb();
+
+          break;
+        }
+      }
+*/
+      break;
+    }
+    case LIBINPUT_EVENT_POINTER_SCROLL_WHEEL: {
+/*
+      struct libinput_event_pointer *m = libinput_event_get_pointer_event(event);
+      double sv = libinput_event_pointer_get_scroll_value_v120(m,
+                                           LIBINPUT_POINTER_AXIS_SCROLL_VERTICAL);
+
+      io.mouse_scroll = io.mouse_scroll + (uint32_t)sv;
+
+      iostate_change_cb();
+*/
+      break;
+    }
+    case LIBINPUT_EVENT_POINTER_MOTION: {
+/*
+      struct libinput_event_pointer *m = libinput_event_get_pointer_event(event);
+
+      int32_t dx = (int32_t)libinput_event_pointer_get_dx(m);
+      int32_t dy = (int32_t)libinput_event_pointer_get_dy(m);
+
+      io.mouse_x = io.mouse_x + dx;
+      io.mouse_y = io.mouse_y + dy;
+
+      iostate_change_cb();
+*/
       break;
     }
     case LIBINPUT_EVENT_KEYBOARD_KEY: {
