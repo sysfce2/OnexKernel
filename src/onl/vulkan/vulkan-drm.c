@@ -11,7 +11,7 @@
 #include <onex-kernel/log.h>
 
 #include <onl-vk.h>
-#include "onl/drivers/libinput/libinput.h"
+#include "onl/drivers/libevdev/libevdev.h"
 #include "onl/drivers/viture/viture_imu.h"
 #include "onl/vulkan/vk.h"
 
@@ -46,8 +46,8 @@ void onl_vk_init() {
   set_signal(SIGINT, sigint_handler);
   set_signal(SIGTERM, sigint_handler);
 
-  int r=libinput_init(onl_vk_iostate_changed);
-  if(r) log_write("failed to initialise libinput (%d)\n", r);
+  int r=libevdev_init(onl_vk_iostate_changed);
+  if(r) log_write("failed to initialise libevdev (%d)\n", r);
 
   viture_init(head_rotated);
 }
@@ -197,7 +197,7 @@ static void event_loop() {
 
         onl_vk_loop(true);
 
-        libinput_process_events();
+        libevdev_process_events();
     }
     onl_vk_loop(false);
 }
@@ -206,7 +206,7 @@ void onl_vk_finish() {
 
   viture_end();
 
-  libinput_end();
+  libevdev_end();
 }
 
 int main() {

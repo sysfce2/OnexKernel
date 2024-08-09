@@ -13,7 +13,7 @@
 #include <onex-kernel/log.h>
 
 #include <onl-vk.h>
-#include "onl/drivers/libinput/libinput.h"
+#include "onl/drivers/libevdev/libevdev.h"
 #include "onl/drivers/viture/viture_imu.h"
 #include "onl/vulkan/vk.h"
 
@@ -81,8 +81,8 @@ void onl_vk_init() {
   set_signal(SIGINT, sigint_handler);
   set_signal(SIGTERM, sigint_handler);
 
-  int r=libinput_init(onl_vk_iostate_changed);
-  if(r) log_write("failed to initialise libinput (%d)\n", r);
+  int r=libevdev_init(onl_vk_iostate_changed);
+  if(r) log_write("failed to initialise libevdev (%d)\n", r);
 
   viture_init(head_rotated);
 
@@ -193,16 +193,18 @@ static void handle_xcb_event(const xcb_generic_event_t *event) {
 
 static void event_loop() {
 /*
-  struct pollfd fds;
-  fds.fd = libinput_get_fd(libin);
-  fds.events = POLLIN;
-  fds.revents = 0;
+  struct pollfd fds = {
+    .fd = ,
+    .events = POLLIN,
+    .revents = 0,
+  };
+  poll(&fds, 1, -1) > -1
 */
-    while(!quit/* && poll(&fds, 1, -1) > -1*/){
+    while(!quit){
 
         onl_vk_loop(true);
 
-        libinput_process_events();
+        libevdev_process_events();
 
         xcb_generic_event_t *event;
 
@@ -224,7 +226,7 @@ void onl_vk_finish() {
 
   viture_end();
 
-  libinput_end();
+  libevdev_end();
 }
 
 int main() {

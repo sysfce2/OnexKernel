@@ -9,6 +9,7 @@ MAKEFLAGS += --no-builtin-rules
 #-------------------------------------------------------------------------------
 
 INCLUDES = \
+-I/usr/include/libevdev-1.0 \
 -I./include \
 -I./include/vulkan \
 -I./libraries \
@@ -41,7 +42,7 @@ ONL_UNIX_SOURCES = \
 
 ONL_VULKAN_XCB_SOURCES = \
 ./src/onl/drivers/onl.c \
-./src/onl/drivers/libinput/libinput.c \
+./src/onl/drivers/libevdev/libevdev.c \
 ./src/onl/drivers/viture/viture_imu.c \
 ./src/onl/vulkan/vulkan-xcb.c \
 ./src/onl/vulkan/vk.c \
@@ -50,7 +51,7 @@ ONL_VULKAN_XCB_SOURCES = \
 
 ONL_VULKAN_DRM_SOURCES = \
 ./src/onl/drivers/onl.c \
-./src/onl/drivers/libinput/libinput.c \
+./src/onl/drivers/libevdev/libevdev.c \
 ./src/onl/drivers/viture/viture_imu.c \
 ./src/onl/vulkan/vulkan-drm.c \
 ./src/onl/vulkan/vk.c \
@@ -156,8 +157,8 @@ vulkan.drm: libonex-kernel-drm.a $(ONT_VULKAN_SOURCES:.c=.o) ${ONT_VULKAN_SHADER
 
 #-------------------------------------------------------------------------------
 
-XCB_LIBS=-pthread -Wl,-rpath,./libraries -L. -L./libraries -lonex-kernel-xcb -lviture_one_sdk -lvulkan -lxcb -linput -ludev -lfreetype -lm
-DRM_LIBS=-pthread -Wl,-rpath,./libraries -L. -L./libraries -lonex-kernel-drm -lviture_one_sdk -lvulkan       -linput -ludev -lfreetype -lm
+XCB_LIBS=-pthread -Wl,-rpath,./libraries -L. -L./libraries -lonex-kernel-xcb -lviture_one_sdk -lvulkan -lxcb -levdev -lfreetype -lm
+DRM_LIBS=-pthread -Wl,-rpath,./libraries -L. -L./libraries -lonex-kernel-drm -lviture_one_sdk -lvulkan       -levdev -lfreetype -lm
 
 X86_FLAGS=-ggdb3 -O2
 XCB_CC_SYMBOLS = -D$(TARGET) $(CHANNELS) -DVK_USE_PLATFORM_XCB_KHR
