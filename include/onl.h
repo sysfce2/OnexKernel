@@ -16,6 +16,11 @@ typedef struct onl_iostate {
   bool     d_pad_up;
   bool     d_pad_down;
 
+  float    joy_1_lr;
+  float    joy_1_ud;
+  float    joy_2_lr;
+  float    joy_2_ud;
+
   float    yaw;
   float    pitch;
   float    roll;

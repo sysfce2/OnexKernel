@@ -98,6 +98,26 @@ static void handle_libevdev_event(const char* name, struct input_event *ev) {
 
         iostate_change_cb();
       }
+      else
+      if(ev->code == ABS_X){
+        io.joy_1_lr = (ev->value/32768.0f);
+        iostate_change_cb();
+      }
+      else
+      if(ev->code == ABS_Y){
+        io.joy_1_ud = (ev->value/32768.0f);
+        iostate_change_cb();
+      }
+      else
+      if(ev->code == ABS_RX){
+        io.joy_2_lr = (ev->value/32768.0f);
+        iostate_change_cb();
+      }
+      else
+      if(ev->code == ABS_RY){
+        io.joy_2_ud = (ev->value/32768.0f);
+        iostate_change_cb();
+      }
       else {
         printf("touch / joystick: \"%s\" code=%u value=%d\n", name, ev->code, ev->value);
       }
