@@ -213,7 +213,13 @@ static float body_dir=0.6852;
 static float head_hor_dir=0;
 static float head_ver_dir=0;
 
+static float xv = 0.0f;
+static float zv = 0.0f;
+
 void set_proj_view() {
+
+    eye_l[0] += xv; eye_r[0] += xv;
+    eye_l[2] += zv; eye_r[2] += zv;
 
     #define VIEWPORT_FOV   21.5f
     #define VIEWPORT_NEAR   0.1f
@@ -264,6 +270,29 @@ void ont_vk_iostate_changed() {
                    io.mouse_left, io.mouse_middle, io.mouse_right,
                    io.key);
 #endif
+
+  float sd = sin(body_dir);
+  float cd = cos(body_dir);
+  float sp = 0.02f;
+
+  xv = 0.0f; zv = 0.0f;
+
+  if(io.d_pad_up){
+    xv +=  sp * sd;
+    zv +=  sp * cd;
+  }
+  if(io.d_pad_down){
+    xv += -sp * sd;
+    zv += -sp * cd;
+  }
+  if(io.d_pad_right){
+    xv +=  sp * cd;
+    zv += -sp * sd;
+  }
+  if(io.d_pad_left){
+    xv += -sp * cd;
+    zv +=  sp * sd;
+  }
 
 
   head_hor_dir=io.yaw;
