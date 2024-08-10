@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <errno.h>
 #include <linux/input.h>
 #include <libevdev/libevdev.h>
 #include <dirent.h>
@@ -80,15 +81,31 @@ static void handle_libevdev_event(const char* name, struct input_event *ev) {
   if(!iostate_change_cb) return;
 
   switch(ev->type){
+    case EV_ABS: {
+
+      if(ev->code == ABS_HAT0X){
+        if(ev->value == -1){ io.d_pad_left  = true;                          }
+        if(ev->value ==  1){ io.d_pad_right = true;                          }
+        if(ev->value ==  0){ io.d_pad_left  = false; io.d_pad_right = false; }
+
+        iostate_change_cb();
+      }
+      else
+      if(ev->code == ABS_HAT0Y){
+        if(ev->value == -1){ io.d_pad_up    = true;                          }
+        if(ev->value ==  1){ io.d_pad_down  = true;                          }
+        if(ev->value ==  0){ io.d_pad_up    = false; io.d_pad_down  = false; }
+
+        iostate_change_cb();
+      }
+      else {
+        printf("touch / joystick: \"%s\" code=%u value=%d\n", name, ev->code, ev->value);
+      }
+      break;
+    }
     case EV_REL: {
 
       printf("Mouse movement \"%s\" %u value %d\n", name, ev->code, ev->value);
-
-      break;
-    }
-    case EV_ABS: {
-
-      printf("Touch or joystick event \"%s\" %u value %d\n", name, ev->code, ev->value);
 
       break;
     }
@@ -100,10 +117,24 @@ static void handle_libevdev_event(const char* name, struct input_event *ev) {
     }
     default: {
 
-      if(!(ev->type == 0 ||
-           ev->type == 4    )){
+      if(!(ev->type == EV_SYN ||
+           ev->type == EV_MSC    )){
 
         printf("unhandled event from libevdev, device \"%s\": %u\n", name, ev->type);
+                      /*
+                       EV_SYN        0x00
+                       EV_KEY        0x01
+                       EV_REL        0x02
+                       EV_ABS        0x03
+                       EV_MSC        0x04
+                       EV_SW         0x05
+                       EV_LED        0x11
+                       EV_SND        0x12
+                       EV_REP        0x14
+                       EV_FF         0x15
+                       EV_PWR        0x16
+                       EV_FF_STATUS  0x17
+                      */
       }
     }
   }
@@ -118,8 +149,7 @@ void libevdev_process_events(){
     while(1){
 
       int rc = libevdev_next_event(devices[i].dev, LIBEVDEV_READ_FLAG_NORMAL, &ev);
-      #define LIBEVDEV_NO_MORE -11
-      if(rc == LIBEVDEV_NO_MORE){
+      if(rc == -EAGAIN){
         break;
       }
       if(rc){
