@@ -21,6 +21,9 @@ typedef struct onl_iostate {
   float    joy_2_lr;
   float    joy_2_ud;
 
+  uint16_t touch_x;
+  uint16_t touch_y;
+
   float    yaw;
   float    pitch;
   float    roll;

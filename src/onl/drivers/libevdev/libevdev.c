@@ -76,6 +76,8 @@ void libevdev_end(){
   iostate_change_cb = 0;
 }
 
+static int16_t touch_id = -1;
+
 static void handle_libevdev_event(const char* name, struct input_event *ev) {
 
   if(!iostate_change_cb) return;
@@ -100,11 +102,13 @@ static void handle_libevdev_event(const char* name, struct input_event *ev) {
       }
       else
       if(ev->code == ABS_X){
+        if(touch_id != -1) break;
         io.joy_1_lr = (ev->value/32768.0f);
         iostate_change_cb();
       }
       else
       if(ev->code == ABS_Y){
+        if(touch_id != -1) break;
         io.joy_1_ud = (ev->value/32768.0f);
         iostate_change_cb();
       }
@@ -118,20 +122,41 @@ static void handle_libevdev_event(const char* name, struct input_event *ev) {
         io.joy_2_ud = (ev->value/32768.0f);
         iostate_change_cb();
       }
-      else {
-        printf("touch / joystick: \"%s\" code=%u value=%d\n", name, ev->code, ev->value);
+      else
+      if(ev->code == ABS_MT_TRACKING_ID){
+        touch_id=ev->value;
+        printf("touch_id=%d\n", touch_id);
+        if(touch_id == -1){
+          io.touch_x=0;
+          io.touch_y=0;
+          iostate_change_cb();
+        }
+      }
+      else
+      if(ev->code == ABS_MT_POSITION_X){
+        io.touch_x=ev->value;
+        iostate_change_cb();
+      }
+      else
+      if(ev->code == ABS_MT_POSITION_Y){
+        io.touch_y=ev->value;
+        iostate_change_cb();
+      }
+      else
+      {
+        printf("touch / joystick: \"%s\" code=%x value=%d\n", name, ev->code, ev->value);
       }
       break;
     }
     case EV_REL: {
 
-      printf("Mouse movement \"%s\" %u value %d\n", name, ev->code, ev->value);
+      printf("Mouse movement \"%s\" %x value %d\n", name, ev->code, ev->value);
 
       break;
     }
     case EV_KEY: {
 
-      printf("\"%s\" Key %u %s\n", name, ev->code, ev->value ? "pressed" : "released");
+      printf("\"%s\" Key %x %s\n", name, ev->code, ev->value ? "pressed" : "released");
 
       break;
     }
