@@ -82,30 +82,28 @@ void onl_vk_create_surface(VkInstance inst, VkSurfaceKHR* surface) {
     vkGetDisplayModePropertiesKHR(gpu, disp, &n_mode_props, 0);
     VkDisplayModePropertiesKHR mode_props[n_mode_props];
     vkGetDisplayModePropertiesKHR(gpu, disp, &n_mode_props, mode_props);
-    log_write("found %d mode%s for display %d\n", n_mode_props, n_mode_props==1?"":"s", d);
+    log_write("found %d mode%s for display %d\n", n_mode_props, n_mode_props==1?"":"s", disp);
 
     for (uint32_t m = 0; m < n_mode_props; m++) {
 
 			VkDisplayModePropertiesKHR* mode = &mode_props[m];
 
-      log_write("display %d mode %d is %dx%d @%fHz\n", d, m,
+      log_write("display %d mode #%d is %dx%d @%.1fHz\n", disp, m+1,
                                   mode->parameters.visibleRegion.width,
                                   mode->parameters.visibleRegion.height,
                                   mode->parameters.refreshRate/1000.0f);
 
-			if(mode->parameters.refreshRate > 20 /* or whatever test */ ){
+			if(!display_mode || mode->parameters.visibleRegion.width > swap_width){
 
-				if(!display_mode){
+        log_write("using this display mode unless bigger one found\n");
 
-          log_write("using this display mode\n");
-
-          swap_width  = mode->parameters.visibleRegion.width;
-          swap_height = mode->parameters.visibleRegion.height;
-
-          display = disp;
-          display_mode = mode->displayMode;
-        }
         // .. but keep looping to log all the other options we had
+
+        swap_width  = mode->parameters.visibleRegion.width;
+        swap_height = mode->parameters.visibleRegion.height;
+
+        display = disp;
+        display_mode = mode->displayMode;
 			}
     }
   }
@@ -127,12 +125,13 @@ void onl_vk_create_surface(VkInstance inst, VkSurfaceKHR* surface) {
     vkGetDisplayPlaneSupportedDisplaysKHR(gpu, p, &n_displays, 0);
     VkDisplayKHR displays[n_displays];
     vkGetDisplayPlaneSupportedDisplaysKHR(gpu, p, &n_displays, displays);
-    log_write("found %d display%s for plane %d\n", n_displays, n_displays==1?"":"s", p);
+    log_write("found %d display%s for plane #%d\n", n_displays, n_displays==1?"":"s", p+1);
 
     for (uint32_t d = 0; d < n_displays; d++) {
+
       if(display == displays[d]) {
 
-        log_write("found chosen display in plane %d display %d\n", p, d);
+        log_write("found our chosen display %d in this plane\n", display);
 
         if(plane_index == UINT32_MAX){
           log_write("using this plane\n");
