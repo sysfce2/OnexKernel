@@ -11,8 +11,9 @@ layout(location = 4)      in  float near;
 layout(location = 5)      in  float far;
 layout(location = 6)      in  vec3  near_point;
 layout(location = 7)      in  vec3  far_point;
-layout(location = 8)      in  mat4  view;
-layout(location = 12)     in  mat4  proj;
+layout(location = 8)      in  vec2  overlay_uv;
+layout(location = 9)      in  mat4  view;
+layout(location = 13)     in  mat4  proj;
 
 layout(location = 0)      out vec4  color;
 
@@ -56,6 +57,21 @@ void main() {
     float light = max(0.8, dot(light_dir, normalize(cross(dFdx(model_pos.xyz),dFdy(model_pos.xyz)))));
     color = light * texture(tex, texture_coord.xy) + vec4(0.0, 0.0, 0.0, 1.0);
     gl_FragDepth = proj_pos.z / proj_pos.w;
+  }
+  else
+  if(phase == 2){ // overlay
+
+    vec2 move_circle_xy = vec2(0.25, 0.75);
+
+    float r = 0.1;
+    float d = distance(overlay_uv, move_circle_xy);
+
+    if (d <= r) {
+        color = vec4(1.0, 1.0, 1.0, 0.04);
+        gl_FragDepth = -1.0;
+    } else {
+        discard;
+    }
   }
 }
 
