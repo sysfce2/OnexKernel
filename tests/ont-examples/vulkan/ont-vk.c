@@ -461,12 +461,12 @@ static void do_cmd_buf_draw(uint32_t ii, VkCommandBuffer cmd_buf){
 
   struct push_constants pc;
 
-  pc.phase = 0, // ground plane
+  pc.phase = 0; // ground plane
   vkCmdPushConstants(cmd_buf, onl_vk_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                      sizeof(struct push_constants), &pc);
   vkCmdDraw(cmd_buf, 6, 1, 0, 0);
 
-  pc.phase = 1, // panels
+  pc.phase = 1; // box
   vkCmdPushConstants(cmd_buf, onl_vk_pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                      sizeof(struct push_constants), &pc);
   vkCmdDraw(cmd_buf, 6*6, 1, 0, 0);

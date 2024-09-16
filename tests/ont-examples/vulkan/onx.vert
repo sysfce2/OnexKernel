@@ -65,12 +65,10 @@ void main() {
 
     texture_coord = vec4(uv, 0, 0);
 
-    gl_Position = proj * view *
-                  uniforms.model[gl_InstanceIndex] *
-                  vec4(vertex, 1.0);
-
     model_pos = uniforms.model[gl_InstanceIndex] *
                 vec4(vertex, 1.0);
+
+    gl_Position = proj * view * model_pos;
   }
 
   proj_pos = gl_Position;
