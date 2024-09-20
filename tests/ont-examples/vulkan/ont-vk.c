@@ -332,8 +332,8 @@ static VkVertexInputBindingDescription vibds[] = {
 };
 
 static VkVertexInputAttributeDescription vertex_input_attributes[] = {
-  { 0, 0, VK_FORMAT_R32G32B32_SFLOAT,    0 }, // vertex
-  { 1, 0, VK_FORMAT_R32G32_SFLOAT,      12 }, // uv
+  { 0, 0, VK_FORMAT_R32G32B32_SFLOAT,    0 }, // vertex       3*4=12
+  { 1, 0, VK_FORMAT_R32G32_SFLOAT,      12 }, // uv           2*4= 8
 };
 
 void ont_vk_prepare_render_data(bool restart) {
