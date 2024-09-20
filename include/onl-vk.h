@@ -48,10 +48,9 @@
     onl_vk_quit();           \
   } while (0)
 
-extern uint32_t swap_width;
-extern uint32_t swap_height;
-
-// -----------------------------------
+extern uint32_t                             onl_vk_width;
+extern uint32_t                             onl_vk_height;
+extern float                                onl_vk_aspect_ratio;
 
 extern VkDevice                             onl_vk_device;
 extern VkFormat                             onl_vk_texture_format;
@@ -61,8 +60,6 @@ extern uint32_t                             onl_vk_min_storage_buffer_offset_ali
 extern bool                                 onl_vk_scene_ready;
 extern pthread_mutex_t                      onl_vk_scene_lock;
 extern VkPipelineLayout                     onl_vk_pipeline_layout;
-extern float                                onl_vk_aspect_ratio;
-extern float                                onl_vk_aspect_ratio_proj;
 extern VkPipelineVertexInputStateCreateInfo onl_vk_vertex_input_state_ci;
 extern uint32_t                             onl_vk_max_img;
 extern uint32_t                             onl_vk_cur_img;

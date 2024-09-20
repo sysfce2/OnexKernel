@@ -7,8 +7,10 @@
 
 #define VK_DESTROY(func, dev, obj) func(dev, obj, NULL), obj = NULL
 
+uint32_t onl_vk_width;
+uint32_t onl_vk_height;
+
 float onl_vk_aspect_ratio;
-float onl_vk_aspect_ratio_proj;
 
 VkShaderModule onl_vk_vert_shader_module;
 VkShaderModule onl_vk_frag_shader_module;
@@ -442,12 +444,16 @@ static void prepare_depth() {
 
 void onl_vk_prepare_swapchain_images(bool restart) {
 
-    onl_vk_aspect_ratio = (float)swap_width / (float)swap_height;
-    sbs_render = onl_vk_aspect_ratio > 2.0f;
-    onl_vk_aspect_ratio_proj = onl_vk_aspect_ratio / (sbs_render? 2.0f: 1.0f);
-    log_write("onl_vk_aspect_ratio %.3f/%.3f SBS=%s\n",
+    float aspect_ratio = (float)swap_width / (float)swap_height;
+    sbs_render = aspect_ratio > 2.0f;
+    onl_vk_aspect_ratio = aspect_ratio / (sbs_render? 2.0f: 1.0f);
+
+    onl_vk_width  = swap_width / (sbs_render? 2: 1);
+    onl_vk_height = swap_height;
+
+    log_write("aspect_ratio %.3f/%.3f SBS=%s\n",
+                                   aspect_ratio,
                                    onl_vk_aspect_ratio,
-                                   onl_vk_aspect_ratio_proj,
                                    sbs_render? "ON": "OFF");
 
     VkResult err;

@@ -10,6 +10,9 @@ extern VkCommandPool    command_pool;
 extern VkSwapchainKHR   swapchain;
 extern VkExtent2D       swapchain_extent;
 
+extern uint32_t         swap_width;
+extern uint32_t         swap_height;
+
 // calls from vk.c down to vulkan-xcb.c etc
 void onl_vk_init();
 void onl_vk_create_window();

@@ -227,7 +227,7 @@ void set_proj_view() {
 
     Mat4x4_perspective(proj_matrix,
                        (float)degreesToRadians(VIEWPORT_FOV),
-                       onl_vk_aspect_ratio_proj,
+                       onl_vk_aspect_ratio,
                        VIEWPORT_NEAR, VIEWPORT_FAR);
 
     proj_matrix[1][1] *= -1;
@@ -310,7 +310,7 @@ void ont_vk_iostate_changed() {
   float bd = 3.1415926/200 * io.joy_2_lr;
   body_dir += bd;
 
-  bool bottom_left = io.touch_x < swap_width / 3 && io.touch_y > swap_height / 2;
+  bool bottom_left = io.touch_x < onl_vk_width / 3 && io.touch_y > onl_vk_height / 2;
 
   left_touch_vec[0]=0.25;
   left_touch_vec[1]=0.75;
@@ -322,14 +322,14 @@ void ont_vk_iostate_changed() {
   else
   if(bottom_left || body_moving){
 
-    left_touch_vec[0] = (float)io.touch_x / (float)swap_width * onl_vk_aspect_ratio_proj;
-    left_touch_vec[1] = (float)io.touch_y / (float)swap_height;
+    left_touch_vec[0] = (float)io.touch_x / (float)onl_vk_height; // height is 1.0 unit normalised
+    left_touch_vec[1] = (float)io.touch_y / (float)onl_vk_height;
 
     if(!body_moving){
       body_moving = true;
     }
-    float x =  (float)io.touch_x                  / (swap_width  / 3);
-    float y = ((float)io.touch_y-(swap_height/2)) / (swap_height / 2);
+    float x =  (float)io.touch_x                    / (onl_vk_width  / 3);
+    float y = ((float)io.touch_y-(onl_vk_height/2)) / (onl_vk_height / 2);
 
     if(x>0.333 && x< 0.666 && y < 0.333){
       body_xv +=  sp * sd;
@@ -357,8 +357,8 @@ void ont_vk_iostate_changed() {
     }
     float mx=(float)((int16_t)io.touch_x-(int16_t)x_on_press);
     float my=(float)((int16_t)io.touch_y-(int16_t)y_on_press);
-    float dx=mx/swap_width *3.1415926/64;
-    float dy=my/swap_height*3.1415926/64;
+    float dx=mx/onl_vk_width *3.1415926/64;
+    float dy=my/onl_vk_height*3.1415926/64;
     printf("mx=%f my=%f dx=%f dy=%f\n", mx, my, dx, dy);
     head_hor_dir+=dx;
     head_ver_dir+=dy;
@@ -367,7 +367,7 @@ void ont_vk_iostate_changed() {
   head_ver_dir+=io.pitch;
 
 /*
-  bool bottom_left = io.mouse_x < swap_width / 3 && io.mouse_y > swap_height / 2;
+  bool bottom_left = io.mouse_x < onl_vk_width / 3 && io.mouse_y > onl_vk_height / 2;
 
   if(io.mouse_left && !body_moving && bottom_left){
     body_moving=true;
