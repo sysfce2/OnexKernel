@@ -262,9 +262,6 @@ static float dwell(float delta, float width){
                     min(delta + width, 0.0f);
 }
 
-static uint32_t x_on_press;
-static uint32_t y_on_press;
-
 static bool     head_moving=false;
 static bool     body_moving=false;
 
@@ -318,11 +315,13 @@ void ont_vk_iostate_changed() {
   if(io.touch_x==0 && io.touch_y==0) {
     body_moving=false;
     head_moving=false;
+    body_dir += head_hor_dir;
+    head_hor_dir = 0;
   }
   else
   if(bottom_left || body_moving){
 
-    left_touch_vec[0] = (float)io.touch_x / (float)onl_vk_height; // height is 1.0 unit normalised
+    left_touch_vec[0] = (float)io.touch_x / (float)onl_vk_height; // 1.0 unit normalised
     left_touch_vec[1] = (float)io.touch_y / (float)onl_vk_height;
 
     if(!body_moving){
@@ -349,77 +348,45 @@ void ont_vk_iostate_changed() {
     }
   }
   else
-  if(io.touch_x && io.touch_y){
+  if(io.touch_x && io.touch_y){ // fixes spurious touch event bug
+
+    static uint32_t x_on_touch;
+    static uint32_t y_on_touch;
+    static float    hhd_on_touch;
+    static float    hvd_on_touch;
+
     if(!head_moving){
       head_moving=true;
-      x_on_press=io.touch_x;
-      y_on_press=io.touch_y;
+      x_on_touch=io.touch_x;
+      y_on_touch=io.touch_y;
+      hhd_on_touch=head_hor_dir;
+      hvd_on_touch=head_ver_dir;
     }
-    float mx=(float)((int16_t)io.touch_x-(int16_t)x_on_press);
-    float my=(float)((int16_t)io.touch_y-(int16_t)y_on_press);
-    float dx=mx/onl_vk_width *3.1415926/64;
-    float dy=my/onl_vk_height*3.1415926/64;
-    printf("mx=%f my=%f dx=%f dy=%f\n", mx, my, dx, dy);
-    head_hor_dir+=dx;
-    head_ver_dir+=dy;
+    else{
+      float mx=(float)((int16_t)io.touch_x-(int16_t)x_on_touch);
+      float my=(float)((int16_t)io.touch_y-(int16_t)y_on_touch);
+      float dx=mx/onl_vk_width *3.1415926;
+      float dy=my/onl_vk_height*3.1415926;
+      printf("mx=%f my=%f dx=%f dy=%f\n", mx, my, dx, dy);
+      head_hor_dir=hhd_on_touch+dx;
+      head_ver_dir=hvd_on_touch+dy;
+    }
   }
+
   head_hor_dir+=io.yaw;
   head_ver_dir+=io.pitch;
 
 /*
-  bool bottom_left = io.mouse_x < onl_vk_width / 3 && io.mouse_y > onl_vk_height / 2;
-
-  if(io.mouse_left && !body_moving && bottom_left){
-    body_moving=true;
-
-    x_on_press = io.mouse_x;
-    y_on_press = io.mouse_y;
-  }
-  else
-  if(io.mouse_left && body_moving){
-
-    float delta_x =  0.00007f * ((int32_t)io.mouse_x - (int32_t)x_on_press);
-    float delta_y = -0.00007f * ((int32_t)io.mouse_y - (int32_t)y_on_press);
-
     delta_x = dwell(delta_x, 0.0015f);
     delta_y = dwell(delta_y, 0.0015f);
-
-    body_dir += 0.5f* delta_x;
 
     eye_l[0] += 4.0f * delta_y * sin(body_dir);
     eye_l[2] += 4.0f * delta_y * cos(body_dir);
     eye_r[0] += 4.0f * delta_y * sin(body_dir);
     eye_r[2] += 4.0f * delta_y * cos(body_dir);
-  }
-  else
-  if(!io.mouse_left && body_moving){
-    body_moving=false;
-  }
-  else
-  if(io.mouse_left && !head_moving){
-
-    head_moving=true;
-
-    x_on_press = io.mouse_x;
-    y_on_press = io.mouse_y;
-  }
-  else
-  if(io.mouse_left && head_moving){
-
-    float delta_x = 0.00007f * ((int32_t)io.mouse_x - (int32_t)x_on_press);
-    float delta_y = 0.00007f * ((int32_t)io.mouse_y - (int32_t)y_on_press);
 
     head_hor_dir = 35.0f*dwell(delta_x, 0.0015f);
     head_ver_dir = 35.0f*dwell(delta_y, 0.0015f);
-  }
-  else
-  if(!io.mouse_left && head_moving){
-
-    head_moving=false;
-
-    head_hor_dir=0;
-    head_ver_dir=0;
-  }
 */
 }
 
