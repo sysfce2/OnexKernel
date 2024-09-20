@@ -10,6 +10,7 @@ extern mat4x4 proj_matrix;
 extern mat4x4 view_l_matrix;
 extern mat4x4 view_r_matrix;
 extern mat4x4 model_matrix[MAX_PANELS];
+extern float  left_touch_vec[2];
 
 void set_proj_view();
 void set_up_scene_begin(float** vertices);

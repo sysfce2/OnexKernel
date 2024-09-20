@@ -13,6 +13,7 @@ layout(std430, binding = 0) uniform buf0 {
   mat4 view_l;
   mat4 view_r;
   mat4 model[32];
+  vec2 left_touch;
 } uniforms;
 
 layout(location = 0)  in  vec3  vertex;
@@ -26,9 +27,10 @@ layout(location = 4)  out float near;
 layout(location = 5)  out float far;
 layout(location = 6)  out vec3  near_point;
 layout(location = 7)  out vec3  far_point;
-layout(location = 8)  out vec2  overlay_uv;
-layout(location = 9)  out mat4  view;
-layout(location = 13) out mat4  proj;
+layout(location = 8)  out vec2  left_touch;
+layout(location = 9)  out vec2  overlay_uv;
+layout(location = 10) out mat4  view;
+layout(location = 14) out mat4  proj;
 
 out gl_PerVertex {
     vec4 gl_Position;
@@ -63,6 +65,7 @@ void main() {
   view = gl_ViewIndex==0? uniforms.view_l: uniforms.view_r;
   proj = uniforms.proj;
   phase = push_constants.phase;
+  left_touch = uniforms.left_touch;
 
   if(phase == 0){ // ground plane
 

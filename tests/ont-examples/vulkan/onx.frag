@@ -11,9 +11,10 @@ layout(location = 4)      in  float near;
 layout(location = 5)      in  float far;
 layout(location = 6)      in  vec3  near_point;
 layout(location = 7)      in  vec3  far_point;
-layout(location = 8)      in  vec2  overlay_uv;
-layout(location = 9)      in  mat4  view;
-layout(location = 13)     in  mat4  proj;
+layout(location = 8)      in  vec2  left_touch;
+layout(location = 9)      in  vec2  overlay_uv;
+layout(location = 10)     in  mat4  view;
+layout(location = 14)     in  mat4  proj;
 
 layout(location = 0)      out vec4  color;
 
@@ -61,10 +62,8 @@ void main() {
   else
   if(phase == 2){ // overlay
 
-    vec2 move_circle_xy = vec2(0.25, 0.75);
-
     float r = 0.1;
-    float d = distance(overlay_uv, move_circle_xy);
+    float d = distance(overlay_uv, left_touch);
 
     if (d <= r) {
         color = vec4(1.0, 1.0, 1.0, 0.04);

@@ -20,6 +20,7 @@ mat4x4 proj_matrix;
 mat4x4 view_l_matrix;
 mat4x4 view_r_matrix;
 mat4x4 model_matrix[MAX_PANELS];
+float  left_touch_vec[] = { 0.25, 0.75 };
 
 uint32_t num_panels;
 
@@ -311,12 +312,19 @@ void ont_vk_iostate_changed() {
 
   bool bottom_left = io.touch_x < swap_width / 3 && io.touch_y > swap_height / 2;
 
+  left_touch_vec[0]=0.25;
+  left_touch_vec[1]=0.75;
+
   if(io.touch_x==0 && io.touch_y==0) {
     body_moving=false;
     head_moving=false;
   }
   else
   if(bottom_left || body_moving){
+
+    left_touch_vec[0] = (float)io.touch_x / (float)swap_width * onl_vk_aspect_ratio_proj;
+    left_touch_vec[1] = (float)io.touch_y / (float)swap_height;
+
     if(!body_moving){
       body_moving = true;
     }

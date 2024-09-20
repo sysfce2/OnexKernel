@@ -15,6 +15,7 @@ struct uniforms_size_template {
     float view_l[4][4];
     float view_r[4][4];
     float model[MAX_PANELS][4][4];
+    float left_touch[2];
 };
 
 typedef struct {
@@ -635,6 +636,13 @@ void ont_vk_update_uniforms() {
                 sizeof(view_l_matrix) +
                 sizeof(view_r_matrix),
          (const void*)&model_matrix, sizeof(model_matrix));
+
+  memcpy(uniform_mem[onl_vk_cur_img].uniform_memory_ptr +
+                sizeof(proj_matrix) +
+                sizeof(view_l_matrix) +
+                sizeof(view_r_matrix) +
+                sizeof(model_matrix),
+         (const void*)&left_touch_vec, sizeof(left_touch_vec));
 }
 
 // ---------------------------------
