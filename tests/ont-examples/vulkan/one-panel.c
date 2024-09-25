@@ -319,7 +319,7 @@ void ont_vk_iostate_changed() {
     head_hor_dir = 0;
   }
   else
-  if(bottom_left || body_moving){
+  if(!head_moving && (bottom_left || body_moving)){
 
     left_touch_vec[0] = (float)io.touch_x / (float)onl_vk_height; // 1.0 unit normalised
     left_touch_vec[1] = (float)io.touch_y / (float)onl_vk_height;
@@ -347,8 +347,7 @@ void ont_vk_iostate_changed() {
       body_zv +=  sp * sd;
     }
   }
-  else
-  if(io.touch_x && io.touch_y){ // fixes spurious touch event bug
+  else {
 
     static uint32_t x_on_touch;
     static uint32_t y_on_touch;

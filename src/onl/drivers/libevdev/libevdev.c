@@ -135,12 +135,12 @@ static void handle_libevdev_event(const char* name, struct input_event *ev) {
       else
       if(ev->code == ABS_MT_POSITION_X){
         io.touch_x=ev->value;
-        iostate_change_cb();
+        if(io.touch_y) iostate_change_cb();
       }
       else
       if(ev->code == ABS_MT_POSITION_Y){
         io.touch_y=ev->value;
-        iostate_change_cb();
+        if(io.touch_x) iostate_change_cb();
       }
       else
       {
