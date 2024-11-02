@@ -877,6 +877,8 @@ void onl_vk_end_cmd_buf_and_render_pass(uint32_t ii, VkCommandBuffer cmd_buf){
 
 void onl_vk_finish_rendering() {
 
+  vkDeviceWaitIdle(onl_vk_device);
+
   for (uint32_t i = 0; i < onl_vk_max_img; i++) {
     vkWaitForFences(onl_vk_device, 1, &swapchain_bits[i].cmd_buf_fence, VK_TRUE, UINT64_MAX);
     vkDestroyFence(onl_vk_device, swapchain_bits[i].cmd_buf_fence, NULL);

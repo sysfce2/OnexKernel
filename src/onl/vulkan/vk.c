@@ -904,8 +904,6 @@ static void finish(bool restart) {
 
   prepared = false;
 
-  vkDeviceWaitIdle(onl_vk_device);
-
   onl_vk_finish_rendering();
   ont_vk_finish_render_data();
 
