@@ -25,8 +25,8 @@ VkPipelineVertexInputStateCreateInfo onl_vk_vertex_input_state_ci = {
   .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
 };
 
-bool            onl_vk_scene_ready = false;
-pthread_mutex_t onl_vk_scene_lock;
+uint8_t         onl_vk_render_stage = ONL_VK_RENDER_STAGE_PREPARE;
+pthread_mutex_t onl_vk_render_stage_lock;
 
 VkFormat            onl_vk_texture_format = VK_FORMAT_R8G8B8A8_UNORM;
 VkFormatProperties  onl_vk_texture_format_properties;
@@ -209,9 +209,9 @@ void onl_vk_render_frame() {
 
   vkWaitForFences(onl_vk_device, 1, &swapchain_bits[onl_vk_cur_img].cmd_buf_fence, VK_TRUE, UINT64_MAX);
 
-  pthread_mutex_lock(&onl_vk_scene_lock);
-  if(!onl_vk_scene_ready){
-    pthread_mutex_unlock(&onl_vk_scene_lock);
+  pthread_mutex_lock(&onl_vk_render_stage_lock);
+  if(onl_vk_render_stage != ONL_VK_RENDER_STAGE_RUNNING){
+    pthread_mutex_unlock(&onl_vk_render_stage_lock);
     return;
   }
 
@@ -229,11 +229,11 @@ void onl_vk_render_frame() {
       }
       else
       if (err == VK_ERROR_OUT_OF_DATE_KHR) {
-        pthread_mutex_unlock(&onl_vk_scene_lock); // ??
+        pthread_mutex_unlock(&onl_vk_render_stage_lock); // ??
         onl_vk_restart();
       }
       else {
-        pthread_mutex_unlock(&onl_vk_scene_lock);
+        pthread_mutex_unlock(&onl_vk_render_stage_lock);
         return;
       }
   } while(true);
@@ -273,7 +273,7 @@ void onl_vk_render_frame() {
 
   err = vkQueuePresentKHR(queue, &present_info);
 
-  pthread_mutex_unlock(&onl_vk_scene_lock); // ??
+  pthread_mutex_unlock(&onl_vk_render_stage_lock); // ??
   if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR) {
     onl_vk_restart();
   }

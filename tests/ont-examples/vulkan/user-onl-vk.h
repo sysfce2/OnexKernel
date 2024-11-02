@@ -13,6 +13,6 @@ extern mat4x4 model_matrix[MAX_PANELS];
 extern float  left_touch_vec[2];
 
 void set_proj_view();
-void set_up_scene_begin(float** vertices);
+bool set_up_scene_begin(float** vertices);
 void set_up_scene_end();
 

@@ -181,7 +181,7 @@ static float* vertices;
 
 void one_panel_render() {
 
-  set_up_scene_begin(&vertices);
+  if(!set_up_scene_begin(&vertices)) return;
 
   vertex_buffer_end = 0;
   uv_buffer_end = 0;

@@ -904,6 +904,10 @@ static void finish(bool restart) {
 
   prepared = false;
 
+  pthread_mutex_lock(&onl_vk_render_stage_lock);
+  onl_vk_render_stage = ONL_VK_RENDER_STAGE_FINISHING;
+  pthread_mutex_unlock(&onl_vk_render_stage_lock);
+
   onl_vk_finish_rendering();
   ont_vk_finish_render_data();
 

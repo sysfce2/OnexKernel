@@ -57,14 +57,20 @@ extern VkFormat                             onl_vk_texture_format;
 extern VkFormatProperties                   onl_vk_texture_format_properties;
 extern VkCommandBuffer                      onl_vk_init_cmdbuf;
 extern uint32_t                             onl_vk_min_storage_buffer_offset_alignment;
-extern bool                                 onl_vk_scene_ready;
-extern pthread_mutex_t                      onl_vk_scene_lock;
 extern VkPipelineLayout                     onl_vk_pipeline_layout;
 extern VkPipelineVertexInputStateCreateInfo onl_vk_vertex_input_state_ci;
 extern uint32_t                             onl_vk_max_img;
 extern uint32_t                             onl_vk_cur_img;
 extern VkShaderModule                       onl_vk_vert_shader_module;
 extern VkShaderModule                       onl_vk_frag_shader_module;
+
+// ONL waits for running (scene ready) from ONT
+// ONT detects finishing from ONL
+#define ONL_VK_RENDER_STAGE_PREPARE    0
+#define ONL_VK_RENDER_STAGE_RUNNING    1
+#define ONL_VK_RENDER_STAGE_FINISHING  2
+extern uint8_t                              onl_vk_render_stage;
+extern pthread_mutex_t                      onl_vk_render_stage_lock;
 
 // -----------------------------------
 
