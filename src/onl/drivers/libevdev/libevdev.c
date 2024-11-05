@@ -150,13 +150,13 @@ static void handle_libevdev_event(const char* name, struct input_event *ev) {
     }
     case EV_REL: {
 
-      printf("Mouse movement \"%s\" %x value %d\n", name, ev->code, ev->value);
+    //printf("Mouse movement \"%s\" %x value %d\n", name, ev->code, ev->value);
 
       break;
     }
     case EV_KEY: {
 
-      printf("\"%s\" Key %x %s\n", name, ev->code, ev->value ? "pressed" : "released");
+    //printf("\"%s\" Key %x %s\n", name, ev->code, ev->value ? "pressed" : "released");
 
       break;
     }
