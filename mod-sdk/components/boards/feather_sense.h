@@ -16,7 +16,7 @@ extern "C" {
 #define BSP_LED_0      LED_1
 
 #define BUTTONS_NUMBER 1
-#define BUTTON_1       NRF_GPIO_PIN_MAP(1,02)
+#define BUTTON_1       NRF_GPIO_PIN_MAP(1,2)
 #define BUTTON_PULL    NRF_GPIO_PIN_PULLUP
 #define BUTTONS_ACTIVE_STATE 0
 #define BUTTONS_LIST { BUTTON_1 }
@@ -29,6 +29,13 @@ extern "C" {
 #define CTS_PIN_NUMBER 31
 #define RTS_PIN_NUMBER 31
 #define HWFC           true
+
+#define SPIM_SS_PIN    NRF_GPIO_PIN_MAP(0,8)
+#define SPIM_SCK_PIN   NRF_GPIO_PIN_MAP(1,9)
+#define SPIM_MOSI_PIN  NRF_GPIO_PIN_MAP(0,6)
+#define SPIM_MISO_PIN  NRF_GPIO_PIN_MAP(0,15)
+#define SPIM_MODE      NRF_SPIM_MODE_0
+#define SPIM_FREQ      NRF_SPIM_FREQ_32M
 
 #ifdef __cplusplus
 }

@@ -9,6 +9,10 @@
 
 #include <onex-kernel/gpio.h>
 
+#if defined(BOARD_FEATHER_SENSE)
+#include <onex-kernel/led-matrix.h>
+#endif
+
 #if defined(BOARD_MAGIC3)
 #include <onex-kernel/spi-flash.h>
 #endif
@@ -287,6 +291,12 @@ int main(void) {
   serial_init((serial_recv_cb)on_recv,0);
   set_up_gpio();
   time_ticker((void (*)())serial_loop, 1);
+#if defined(BOARD_FEATHER_SENSE)
+  led_matrix_init();
+  led_matrix_show(1);
+  time_delay_ms(500);
+  led_matrix_show(2);
+#endif
   while(1){
     run_tests_maybe();
     if (display_state_prev != display_state){
