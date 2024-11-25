@@ -293,10 +293,13 @@ int main(void) {
   time_ticker((void (*)())serial_loop, 1);
 #if defined(BOARD_FEATHER_SENSE)
   led_matrix_init();
-  led_matrix_fill(0, 32, 0);
+  led_matrix_fill_col("grey1");
   led_matrix_show();
   time_delay_ms(500);
-  led_matrix_fill(0, 0, 32);
+  led_matrix_fill_col("#010");
+  led_matrix_show();
+  time_delay_ms(500);
+  led_matrix_fill_rgb((led_matrix_rgb){ 0, 0, 16 });
   led_matrix_show();
 #endif
   while(1){
