@@ -8,7 +8,15 @@ void led_matrix_init(){
   spi_fast_init();
 }
 
-void led_matrix_show(uint8_t style){
+void led_matrix_fill(uint8_t r, uint8_t g, uint8_t b){
+  for(uint16_t i=0; i<num_leds; i++){
+    led_matrix_array[i][0]=r;
+    led_matrix_array[i][1]=g;
+    led_matrix_array[i][2]=b;
+  }
+}
+
+void led_matrix_show(){
 
   spi_fast_enable(true);
 
@@ -17,24 +25,13 @@ void led_matrix_show(uint8_t style){
 
   d=0x00; for (i = 0; i < 4; i++) spi_fast_write(&d, 1);
 
-  uint16_t n = num_leds;
-  do {
+  // BGR not RGB!
+  for(uint16_t i=0; i<num_leds; i++){
     d=0xFF; spi_fast_write(&d, 1);
-    for (i = 0; i < 3; i++){
-      // BGR
-      d=0;
-      if(style==1){
-        if((n%3)==0 && i==0) d=(num_leds-n)/4;
-        if((n%3)==1 && i==1) d=(num_leds-n)/4;
-        if((n%3)==2 && i==2) d=(num_leds-n)/4;
-      }else{
-        if((n%3)==0 && i==0) d=n/4;
-        if((n%3)==1 && i==1) d=n/4;
-        if((n%3)==2 && i==2) d=n/4;
-      }
-      spi_fast_write(&d, 1);
-    }
-  } while (--n);
+    d=led_matrix_array[i][2]; spi_fast_write(&d, 1);
+    d=led_matrix_array[i][1]; spi_fast_write(&d, 1);
+    d=led_matrix_array[i][0]; spi_fast_write(&d, 1);
+  }
 
   // https://cpldcpu.wordpress.com/2014/11/30/understanding-the-apa102-superled/
   // and see Adafruit_DotStar.cpp
