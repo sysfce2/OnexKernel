@@ -9,6 +9,10 @@
 
 #include <onex-kernel/gpio.h>
 
+#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE)
+#include <onex-kernel/radio.h>
+#endif
+
 #if defined(BOARD_FEATHER_SENSE)
 #include <onex-kernel/led-matrix.h>
 #endif
@@ -275,6 +279,16 @@ void run_tests_maybe() {
 extern volatile char* event_log_buffer;
 #endif
 
+#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE)
+void radio_cb(size_t len, int8_t rssi){
+  static unsigned char buf[256];
+  uint16_t n=radio_recv(buf, 256);
+  buf[n]=0;
+  if(len>0 && n) log_write("%s %d %d %d\n", buf, len, n, rssi);
+  else           log_write("radio_cb failed to get buffer\n");
+}
+#endif
+
 int main(void) {
 
   log_init();
@@ -291,6 +305,13 @@ int main(void) {
   serial_init((serial_recv_cb)on_recv,0);
   set_up_gpio();
   time_ticker((void (*)())serial_loop, 1);
+
+#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE)
+  radio_init(radio_cb);
+  char buf[16]; uint8_t l=snprintf(buf, 16, "Hello radio!");
+  radio_write((unsigned char*)buf,l);
+#endif
+
 #if defined(BOARD_FEATHER_SENSE)
   led_matrix_init();
   led_matrix_fill_col("grey1");
