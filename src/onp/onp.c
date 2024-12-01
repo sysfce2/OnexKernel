@@ -13,11 +13,15 @@
 #include <channel-serial.h>
 #endif
 
+#ifdef ONP_CHANNEL_RADIO
+#include <channel-radio.h>
+#endif
+
 #ifdef ONP_CHANNEL_IPV6
 #include <channel-ipv6.h>
 #endif
 
-#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
+#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
 static void on_connect(char* channel);
 static void do_connect(char* channel);
 static void handle_recv(uint16_t size, char* channel, uint16_t* fromip);
@@ -33,6 +37,9 @@ void onp_init()
 {
 #ifdef ONP_CHANNEL_SERIAL
   channel_serial_init(on_connect);
+#endif
+#ifdef ONP_CHANNEL_RADIO
+  channel_radio_init(on_connect);
 #endif
 #ifdef ONP_CHANNEL_IPV6
   channel_ipv6_init();
@@ -58,12 +65,12 @@ uint16_t single_peer[] = { 0x2002, 0xd417, 0x1f9e, 0x1234, 0x5e51, 0x4fff, 0xfe7
 #define SEND_BUFF_SIZE 4096
 #endif
 
-#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
+#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
 static char recv_buff[RECV_BUFF_SIZE];
 static char send_buff[SEND_BUFF_SIZE];
 #endif
 
-#ifdef ONP_CHANNEL_SERIAL
+#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
 static char*    connect_channel=0;
 static uint32_t connect_time=0;
 #endif
@@ -71,12 +78,21 @@ static uint32_t connect_time=0;
 bool onp_loop()
 {
   bool keep_awake=false;
-#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
+#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
   uint16_t size=0;
 #ifdef ONP_CHANNEL_SERIAL
   keep_awake=!!connect_time;
   size = channel_serial_recv(recv_buff, RECV_BUFF_SIZE-1); // spare for term 0
   if(size){ handle_recv(size,"serial",0); return true; }
+  if(connect_time && time_ms() >= connect_time ){
+    connect_time=0;
+    do_connect(connect_channel);
+  }
+#endif
+#ifdef ONP_CHANNEL_RADIO
+  keep_awake=!!connect_time;
+  size = channel_radio_recv(recv_buff, RECV_BUFF_SIZE-1); // spare for term 0
+  if(size){ handle_recv(size,"radio",0); return true; }
   if(connect_time && time_ms() >= connect_time ){
     connect_time=0;
     do_connect(connect_channel);
@@ -90,7 +106,7 @@ bool onp_loop()
   return keep_awake;
 }
 
-#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
+#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
 
 // TODO: use proper time-delay
 void on_connect(char* channel)
@@ -117,7 +133,7 @@ static void handle_recv(uint16_t size, char* channel, uint16_t* fromip)
 
 void onp_send_observe(char* uid, char* channel)
 {
-#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
+#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
   sprintf(send_buff,"OBS: %s Devices: %s", uid, object_property(onex_device_object, "UID"));
   send(send_buff, channel);
 #endif
@@ -126,19 +142,25 @@ void onp_send_observe(char* uid, char* channel)
 void onp_send_object(object* o, char* channel)
 {
   if(object_is_remote(o)) return;
-#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
+#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
   object_to_text(o,send_buff,SEND_BUFF_SIZE,OBJECT_TO_TEXT_NETWORK);
   send(send_buff, channel);
 #endif
 }
 
-#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_IPV6)
+#if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
 void send(char* buff, char* channel)
 {
   uint16_t size=0;
 #ifdef ONP_CHANNEL_SERIAL
   if(!strcmp(channel, "serial") || !strcmp(channel, "all-channels")){
     size = channel_serial_send(buff, strlen(buff));
+    log_sent(buff,size,channel,0);
+  }
+#endif
+#ifdef ONP_CHANNEL_RADIO
+  if(!strcmp(channel, "radio") || !strcmp(channel, "all-channels")){
+    size = channel_radio_send(buff, strlen(buff));
     log_sent(buff,size,channel,0);
   }
 #endif

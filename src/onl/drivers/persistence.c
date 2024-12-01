@@ -59,7 +59,7 @@ void persistence_put(char* uid, char* text) {
   log_write(res);
 */
 #else
-  log_write("=> %s\n", text);
+//log_write("=> %s\n", text);
 #endif
 }
 

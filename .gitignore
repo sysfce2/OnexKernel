@@ -12,6 +12,7 @@
 *.drm
 ,*
 .*.sw*
+.vimfiles
 .gitattributes
 Onex/
 dfu.zip

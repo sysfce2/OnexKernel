@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "nrf52.h"
 #include "nrf52_bitfields.h"
@@ -17,8 +18,7 @@
 
 #define RADIO_MAX_PACKET_SIZE          252
 
-static          uint8_t rx_buffer[256];
-static volatile uint8_t rx_length = 0;
+static char rx_buffer[256];
 
 static volatile bool initialised=false;
 
@@ -34,6 +34,9 @@ bool radio_init(radio_recv_cb cb){
   NRF_CLOCK->TASKS_HFCLKSTART = 1;
   while(!NRF_CLOCK->EVENTS_HFCLKSTARTED);
 
+  NRF_RADIO->MODECNF0 = (RADIO_MODECNF0_DTX_B0 << RADIO_MODECNF0_DTX_Pos) |
+                        (RADIO_MODECNF0_RU_Fast << RADIO_MODECNF0_RU_Pos);
+
   NRF_RADIO->TXPOWER   = RADIO_TXPOWER;
   NRF_RADIO->FREQUENCY = RADIO_CHANNEL;
 
@@ -41,11 +44,11 @@ bool radio_init(radio_recv_cb cb){
   NRF_RADIO->BASE0 = RADIO_BASE_ADDRESS;
 
   NRF_RADIO->PREFIX0 = RADIO_DEFAULT_GROUP;
-
   NRF_RADIO->TXADDRESS = 0;
   NRF_RADIO->RXADDRESSES = 1;
 
   NRF_RADIO->PCNF0 = (8 << RADIO_PCNF0_LFLEN_Pos) |
+                     (0 << RADIO_PCNF0_S0LEN_Pos) |
                      (0 << RADIO_PCNF0_S1LEN_Pos);
 
   NRF_RADIO->PCNF1 = (RADIO_MAX_PACKET_SIZE       << RADIO_PCNF1_MAXLEN_Pos) |
@@ -53,7 +56,7 @@ bool radio_init(radio_recv_cb cb){
                      (4                           << RADIO_PCNF1_BALEN_Pos) |
                      (RADIO_PCNF1_WHITEEN_Enabled << RADIO_PCNF1_WHITEEN_Pos);
 
-  NRF_RADIO->CRCCNF = RADIO_CRCCNF_LEN_Two;
+  NRF_RADIO->CRCCNF = (RADIO_CRCCNF_LEN_Two << RADIO_CRCCNF_LEN_Pos);
   NRF_RADIO->CRCINIT = 0xFFFF;
   NRF_RADIO->CRCPOLY = 0x11021;
 
@@ -65,11 +68,15 @@ bool radio_init(radio_recv_cb cb){
   NVIC_ClearPendingIRQ(RADIO_IRQn);
   NVIC_EnableIRQ(RADIO_IRQn); // RADIO_IRQHandler()
 
-  NRF_RADIO->SHORTS |= RADIO_SHORTS_ADDRESS_RSSISTART_Msk;
+  NRF_RADIO->SHORTS |=
+      //   (RADIO_SHORTS_READY_START_Enabled       << RADIO_SHORTS_READY_START_Pos      )|
+      //   (RADIO_SHORTS_END_DISABLE_Enabled       << RADIO_SHORTS_END_DISABLE_Pos      )|
+           (RADIO_SHORTS_ADDRESS_RSSISTART_Enabled << RADIO_SHORTS_ADDRESS_RSSISTART_Pos);
 
   NRF_RADIO->EVENTS_READY = 0;
   NRF_RADIO->TASKS_RXEN = 1;
   while(!NRF_RADIO->EVENTS_READY);
+
   NRF_RADIO->EVENTS_END = 0;
   NRF_RADIO->TASKS_START = 1;
 
@@ -78,37 +85,37 @@ bool radio_init(radio_recv_cb cb){
   return true;
 }
 
-bool radio_write(unsigned char* buf, uint8_t len) {
+bool radio_write(char* buf, uint8_t len) {
 
   if(!buf || len > RADIO_MAX_PACKET_SIZE) return false;
 
-  NRF_RADIO->PCNF1 = (len                         << RADIO_PCNF1_MAXLEN_Pos) |
-                     (0                           << RADIO_PCNF1_STATLEN_Pos) |
-                     (4                           << RADIO_PCNF1_BALEN_Pos) |
-                     (RADIO_PCNF1_WHITEEN_Enabled << RADIO_PCNF1_WHITEEN_Pos);
-
   NVIC_DisableIRQ(RADIO_IRQn);
 
+  // turn off the radio
   NRF_RADIO->EVENTS_DISABLED = 0;
   NRF_RADIO->TASKS_DISABLE = 1;
   while(!NRF_RADIO->EVENTS_DISABLED);
 
-  NRF_RADIO->PACKETPTR = (uint32_t)buf;
+  // hijack the rx_buffer for tx!
+  rx_buffer[0]=len;               // bit shite, but first byte is the len
+  memcpy(rx_buffer+1, buf, len);
 
+  // turn on the transmitter, and wait for it ready to use
   NRF_RADIO->EVENTS_READY = 0;
   NRF_RADIO->TASKS_TXEN = 1;
   while(!NRF_RADIO->EVENTS_READY);
 
-  NRF_RADIO->TASKS_START = 1;
+  // start transmission and wait for end of packet
   NRF_RADIO->EVENTS_END = 0;
+  NRF_RADIO->TASKS_START = 1;
   while(!NRF_RADIO->EVENTS_END);
 
-  NRF_RADIO->PACKETPTR = (uint32_t)rx_buffer;
-
+  // turn off the radio
   NRF_RADIO->EVENTS_DISABLED = 0;
   NRF_RADIO->TASKS_DISABLE = 1;
   while(!NRF_RADIO->EVENTS_DISABLED);
 
+  // start listening for the next packet
   NRF_RADIO->EVENTS_READY = 0;
   NRF_RADIO->TASKS_RXEN = 1;
   while(!NRF_RADIO->EVENTS_READY);
@@ -122,13 +129,30 @@ bool radio_write(unsigned char* buf, uint8_t len) {
   return true;
 }
 
-uint16_t radio_recv(unsigned char* buf, size_t maxlen) {
-    uint8_t len = rx_length;
-    if (len > maxlen) len = maxlen;
-    if (len > 0) {
-        memcpy(buf, rx_buffer, len);
-        rx_length = 0;
-    }
+size_t radio_printf(const char* fmt, ...){
+
+  if(!initialised) radio_init(0);
+  va_list args;
+  va_start(args, fmt);
+  size_t r=radio_vprintf(fmt,args);
+  va_end(args);
+  return r;
+}
+
+#define PRINT_BUF_SIZE 255
+static char print_buf[PRINT_BUF_SIZE];
+
+size_t radio_vprintf(const char* fmt, va_list args){
+
+  size_t r=vsnprintf((char*)print_buf, PRINT_BUF_SIZE, fmt, args);
+  if(r>=PRINT_BUF_SIZE) r=PRINT_BUF_SIZE-1;
+  return radio_write(print_buf, r)? r: 0;
+}
+
+uint16_t radio_recv(char* buf) {
+    uint8_t len = rx_buffer[0];
+    if(len > 0) memcpy(buf, rx_buffer+1, len);
+    if(len < 256) buf[len]=0;
     return len;
 }
 
@@ -143,8 +167,7 @@ void RADIO_IRQHandler(void){
 
     if(NRF_RADIO->CRCSTATUS == 1) {
       int8_t rssi = -NRF_RADIO->RSSISAMPLE;
-      rx_length   =  NRF_RADIO->PCNF1 & 0xff;
-      if(recv_cb) recv_cb(rx_length, rssi);
+      if(recv_cb) recv_cb(rssi);
     }
     NRF_RADIO->TASKS_START = 1;
   }

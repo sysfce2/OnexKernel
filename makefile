@@ -98,8 +98,10 @@ $(COMMON_DEFINES_ADAFRUIT_DONGLE) \
 -DLOG_TO_SERIAL \
 -DHAS_SERIAL \
 -DONP_CHANNEL_SERIAL \
+-DONP_CHANNEL_RADIO \
 -DONP_DEBUG \
 -DONP_OVER_SERIAL \
+-DONP_OVER_RADIO \
 # above are baked in but need to be runtime options!
 
 
@@ -108,8 +110,10 @@ $(COMMON_DEFINES_ITSYBITSY) \
 -DLOG_TO_SERIAL \
 -DHAS_SERIAL \
 -DONP_CHANNEL_SERIAL \
+-DONP_CHANNEL_RADIO \
 -DONP_DEBUG \
 -DONP_OVER_SERIAL \
+-DONP_OVER_RADIO \
 # above are baked in but need to be runtime options!
 
 
@@ -118,17 +122,22 @@ $(COMMON_DEFINES_FEATHER_SENSE) \
 -DLOG_TO_SERIAL \
 -DHAS_SERIAL \
 -DONP_CHANNEL_SERIAL \
+-DONP_CHANNEL_RADIO \
 -DONP_DEBUG \
 -DONP_OVER_SERIAL \
+-DONP_OVER_RADIO \
 # above are baked in but need to be runtime options!
 
 
 COMPILER_DEFINES_DONGLE = \
 $(COMMON_DEFINES_DONGLE) \
+-DLOG_TO_SERIAL \
 -DHAS_SERIAL \
 -DONP_CHANNEL_SERIAL \
+-DONP_CHANNEL_RADIO \
 -DONP_DEBUG \
 -DONP_OVER_SERIAL \
+-DONP_OVER_RADIO \
 # above are baked in but need to be runtime options!
 
 
@@ -209,6 +218,7 @@ NRF5_SOURCES = \
 ./src/onl/nRF5/log.c \
 ./src/onl/nRF5/mem.c \
 ./src/onl/drivers/channel-serial.c \
+./src/onl/drivers/channel-radio.c \
 ./src/onl/drivers/persistence.c \
 
 
