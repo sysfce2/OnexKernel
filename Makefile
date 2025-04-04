@@ -33,6 +33,7 @@ LIB_SOURCES = \
 ONL_UNIX_SOURCES = \
 ./src/onl/unix/serial.c \
 ./src/onl/unix/channel-serial.c \
+./src/onl/unix/ipv6.c \
 ./src/onl/unix/log.c \
 ./src/onl/unix/mem.c \
 ./src/onl/unix/time.c \
@@ -85,6 +86,13 @@ TESTS_SOURCES = \
 ./tests/test-onn.c \
 ./tests/main.c \
 
+PCR_TESTS_SOURCES = \
+./tests/test-properties.c \
+./tests/test-list.c \
+./tests/test-value.c \
+./tests/test-onn.c \
+./tests/main-pcr.c \
+
 #-------------------------------------------------------------------------------
 
 ONT_VULKAN_SOURCES = \
@@ -132,6 +140,16 @@ run.tests: test-ok
 
 run.valgrind: test-ok
 	valgrind --leak-check=yes --undef-value-errors=no ./test-ok
+
+#-------------------------------------------------------------------------------
+
+test-pcr: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(XCB_CC_SYMBOLS) $(INCLUDES)
+test-pcr: CC=/usr/bin/gcc
+test-pcr: LD=/usr/bin/gcc
+test-pcr: TARGET=TARGET_X86
+test-pcr: CHANNELS=-DONP_CHANNEL_SERIAL
+test-pcr: libonex-kernel-xcb.a $(PCR_TESTS_SOURCES:.c=.o)
+	$(LD) $(PCR_TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-xcb -o $@
 
 #-------------------------------------------------------------------------------
 
