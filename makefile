@@ -217,9 +217,9 @@ NRF5_SOURCES = \
 ./src/onl/nRF5/gpio.c \
 ./src/onl/nRF5/log.c \
 ./src/onl/nRF5/mem.c \
-./src/onl/drivers/channel-serial.c \
-./src/onl/drivers/channel-radio.c \
-./src/onl/drivers/persistence.c \
+./src/onl/nRF5/channel-serial.c \
+./src/onl/nRF5/channel-radio.c \
+./src/onl/nRF5/persistence.c \
 
 
 MAGIC3_SOURCES = \
