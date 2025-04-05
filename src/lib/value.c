@@ -26,9 +26,6 @@ static properties* all_values=0;
 #if defined(NRF5)
 #define MAX_VALUES 256
 #define MAX_TEXT_LEN 64
-#elif defined(TARGET_TEENSY_4)
-#define MAX_VALUES 256
-#define MAX_TEXT_LEN 64
 #else
 #define MAX_VALUES 4096
 #define MAX_TEXT_LEN 4096
@@ -42,13 +39,6 @@ static properties* all_values=0;
 
 #define RETURN_UNLOCKING(x)                            \
         app_util_critical_region_exit(__CR_NESTED);    \
-        return x
-
-#elif defined(TARGET_TEENSY_4)
-
-#define ENTER_LOCKING
-
-#define RETURN_UNLOCKING(x)  \
         return x
 
 #else

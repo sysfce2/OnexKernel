@@ -1,7 +1,7 @@
 
 // --------------------------------------------------------------------
 
-#if defined(NRF5) || defined(TARGET_TEENSY_4)
+#if defined(NRF5)
 
 #if defined(NRF5)
 #include <boards.h>
@@ -296,11 +296,6 @@ int main(void) {
   log_init();
   time_init();
   random_init();
-#if defined(TARGET_TEENSY_4)
-  serial_init(0,9600);
-  time_delay_ms(2000);
-  serial_printf("tests..\n");
-#endif
 #if defined(NRF5)
   gpio_init();
 #if defined(HAS_SERIAL) // board dongle or dk?
