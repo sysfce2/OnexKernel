@@ -31,14 +31,14 @@ LIB_SOURCES = \
 
 
 ONL_UNIX_SOURCES = \
-./src/onl/unix/serial.c \
-./src/onl/unix/channel-serial.c \
-./src/onl/unix/ipv6.c \
 ./src/onl/unix/log.c \
 ./src/onl/unix/mem.c \
 ./src/onl/unix/time.c \
 ./src/onl/unix/random.c \
 ./src/onl/unix/persistence.c \
+./src/onl/unix/serial.c \
+./src/onl/unix/ipv6.c \
+./src/onl/unix/channel-serial.c \
 
 
 ONL_VULKAN_XCB_SOURCES = \

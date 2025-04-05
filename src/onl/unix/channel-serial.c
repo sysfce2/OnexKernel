@@ -5,7 +5,7 @@
 #include <onex-kernel/log.h>
 #include <channel-serial.h>
 
-static volatile bool initialised=false;
+static bool initialised=false;
 
 static channel_serial_connect_cb connect_cb;
 
@@ -13,9 +13,9 @@ static channel_serial_connect_cb connect_cb;
 
 #define SERIAL_BUFFER_SIZE 2048
 
-static volatile char     buffer[SERIAL_BUFFER_SIZE];
-static volatile uint16_t current_write=0;
-static volatile uint16_t current_read=0;
+static char     buffer[SERIAL_BUFFER_SIZE];
+static uint16_t current_write=0;
+static uint16_t current_read=0;
 
 static uint16_t data_available()
 {
