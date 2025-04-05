@@ -166,10 +166,10 @@ bool ipv6_init(ipv6_recv_cb cb){
   return true;
 }
 
-uint16_t ipv6_recv(char* buf){
+uint16_t ipv6_recv(char* buf, uint16_t l){
   struct sockaddr_in6 addr;
   socklen_t addrLen = sizeof(addr);
-  return recvfrom(sock, buf, 256, 0, (struct sockaddr*)&addr, &addrLen);
+  return recvfrom(sock, buf, l, 0, (struct sockaddr*)&addr, &addrLen);
 }
 
 size_t ipv6_printf(const char* fmt, ...){

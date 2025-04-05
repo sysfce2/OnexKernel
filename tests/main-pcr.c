@@ -20,7 +20,7 @@ int main(void) {
   char inbuf[256];
   while (1) {
     time_delay_ms(400+random_ish_byte());
-    uint16_t n=ipv6_recv(inbuf);
+    uint16_t n=ipv6_recv(inbuf, 256);
     if(n){
       inbuf[n]=0;
       printf("received: %s\n", inbuf);

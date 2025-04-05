@@ -42,7 +42,7 @@ void onp_init()
   channel_radio_init(on_connect);
 #endif
 #ifdef ONP_CHANNEL_IPV6
-  channel_ipv6_init();
+  channel_ipv6_init(on_connect);
 #endif
 }
 
@@ -99,8 +99,13 @@ bool onp_loop()
   }
 #endif
 #ifdef ONP_CHANNEL_IPV6
+  keep_awake=!!connect_time;
   size = channel_ipv6_recv(recv_buff, RECV_BUFF_SIZE-1, single_peer);
   if(size){ handle_recv(size,0,single_peer); return true; }
+  if(connect_time && time_ms() >= connect_time ){
+    connect_time=0;
+    do_connect(connect_channel);
+  }
 #endif
 #endif
   return keep_awake;
@@ -149,8 +154,8 @@ void onp_send_object(object* o, char* channel)
 }
 
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
-void send(char* buff, char* channel)
-{
+void send(char* buff, char* channel){
+
   uint16_t size=0;
 #ifdef ONP_CHANNEL_SERIAL
   if(!strcmp(channel, "serial") || !strcmp(channel, "all-channels")){
@@ -165,8 +170,10 @@ void send(char* buff, char* channel)
   }
 #endif
 #ifdef ONP_CHANNEL_IPV6
-  size = channel_ipv6_send(buff, strlen(buff), single_peer);
-  log_sent(buff,size,0,single_peer);
+  if(!strcmp(channel, "ipv6") || !strcmp(channel, "all-channels")){
+    size = channel_ipv6_send(buff, strlen(buff), single_peer);
+    log_sent(buff,size,0,single_peer);
+  }
 #endif
 }
 
