@@ -1,23 +1,16 @@
 
-#include <onex-kernel/ipv6.h>
 #include <onex-kernel/log.h>
-
+#include <onex-kernel/ipv6.h>
 #include <channel-ipv6.h>
 
 static bool initialised=false;
 
 static channel_ipv6_connect_cb connect_cb;
 
-void channel_ipv6_on_recv(unsigned char* ch, size_t len) {
-  if(!ch){
-    if(connect_cb) connect_cb("ipv6");
-    return;
-  }
-}
-
 void channel_ipv6_init(channel_ipv6_connect_cb cb) {
   connect_cb=cb;
-  initialised=ipv6_init(channel_ipv6_on_recv);
+  initialised=ipv6_init(0);
+  if(connect_cb) connect_cb("ipv6");
 }
 
 uint16_t channel_ipv6_recv(char* b, uint16_t l) {

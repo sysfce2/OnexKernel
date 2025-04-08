@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 
 #define SYS_CLASS_NET "/sys/class/net/"
 
@@ -110,6 +111,7 @@ bool ipv6_init(ipv6_recv_cb cb){
     perror("Socket creation failed");
     return false;
   }
+  fcntl(sock, F_SETFL, O_NONBLOCK);
 
   setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
 
@@ -169,7 +171,8 @@ bool ipv6_init(ipv6_recv_cb cb){
 uint16_t ipv6_recv(char* buf, uint16_t l){
   struct sockaddr_in6 addr;
   socklen_t addrLen = sizeof(addr);
-  return recvfrom(sock, buf, l, 0, (struct sockaddr*)&addr, &addrLen);
+  ssize_t n = recvfrom(sock, buf, l, 0, (struct sockaddr*)&addr, &addrLen);
+  return (n>0)? n: 0;
 }
 
 size_t ipv6_printf(const char* fmt, ...){
