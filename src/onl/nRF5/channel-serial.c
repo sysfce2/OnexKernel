@@ -1,7 +1,5 @@
 
-#if defined(HAS_SERIAL) && defined(ONP_OVER_SERIAL)
 #include <onex-kernel/serial.h>
-#endif
 #include <onex-kernel/log.h>
 #include <channel-serial.h>
 
@@ -15,14 +13,12 @@ static volatile char     buffer[SERIAL_BUFFER_SIZE];
 static volatile uint16_t current_write=0;
 static volatile uint16_t current_read=0;
 
-static uint16_t data_available()
-{
+static uint16_t data_available() {
   int16_t da=(int16_t)current_write-(int16_t)current_read;
   return da >= 0? da: da+SERIAL_BUFFER_SIZE;
 }
 
-void channel_serial_on_recv(unsigned char* ch, size_t len)
-{
+void channel_serial_on_recv(unsigned char* ch, size_t len) {
   if(!ch){
     if(connect_cb) connect_cb("serial");
     return;
@@ -37,17 +33,13 @@ void channel_serial_on_recv(unsigned char* ch, size_t len)
   }
 }
 
-void channel_serial_init(channel_serial_connect_cb cb)
-{
+void channel_serial_init(channel_serial_connect_cb cb) {
   connect_cb=cb;
-  initialised=true;
-#if defined(HAS_SERIAL) && defined(ONP_OVER_SERIAL)
   initialised=serial_init(channel_serial_on_recv, 9600);
-#endif
 }
 
-uint16_t channel_serial_recv(char* b, uint16_t l)
-{
+uint16_t channel_serial_recv(char* b, uint16_t l) {
+
   if(!initialised || !data_available()) return 0;
 
   uint16_t cr=current_read;
@@ -77,13 +69,8 @@ uint16_t channel_serial_recv(char* b, uint16_t l)
   return size;
 }
 
-uint16_t channel_serial_send(char* b, uint16_t n)
-{
+uint16_t channel_serial_send(char* b, uint16_t n) {
   if(!initialised) return 0;
-#if defined(HAS_SERIAL) && defined(ONP_OVER_SERIAL)
   return serial_printf("%s\n", b);
-#else
-  return 0;
-#endif
 }
 

@@ -100,8 +100,6 @@ $(COMMON_DEFINES_ADAFRUIT_DONGLE) \
 -DONP_CHANNEL_SERIAL \
 -DONP_CHANNEL_RADIO \
 -DONP_DEBUG \
--DONP_OVER_SERIAL \
--DONP_OVER_RADIO \
 # above are baked in but need to be runtime options!
 
 
@@ -112,8 +110,6 @@ $(COMMON_DEFINES_ITSYBITSY) \
 -DONP_CHANNEL_SERIAL \
 -DONP_CHANNEL_RADIO \
 -DONP_DEBUG \
--DONP_OVER_SERIAL \
--DONP_OVER_RADIO \
 # above are baked in but need to be runtime options!
 
 
@@ -124,8 +120,6 @@ $(COMMON_DEFINES_FEATHER_SENSE) \
 -DONP_CHANNEL_SERIAL \
 -DONP_CHANNEL_RADIO \
 -DONP_DEBUG \
--DONP_OVER_SERIAL \
--DONP_OVER_RADIO \
 # above are baked in but need to be runtime options!
 
 
@@ -136,8 +130,6 @@ $(COMMON_DEFINES_DONGLE) \
 -DONP_CHANNEL_SERIAL \
 -DONP_CHANNEL_RADIO \
 -DONP_DEBUG \
--DONP_OVER_SERIAL \
--DONP_OVER_RADIO \
 # above are baked in but need to be runtime options!
 
 
@@ -235,6 +227,7 @@ $(NRF5_SOURCES) \
 
 ADAFRUIT_DONGLE_SOURCES = \
 ./src/onl/nRF5/serial.c \
+./src/onl/nRF5/radio.c \
 $(NRF5_SOURCES) \
 
 
@@ -254,6 +247,7 @@ $(NRF5_SOURCES) \
 
 DONGLE_SOURCES = \
 ./src/onl/nRF5/serial.c \
+./src/onl/nRF5/radio.c \
 $(NRF5_SOURCES) \
 
 #-------------------------------------------------------------------------------
@@ -565,11 +559,6 @@ SDK_C_SOURCES = \
 TFT_OBJECTS = \
 ./src/onl/drivers/tft.c \
 ./src/onl/drivers/adafruit_tft28.c \
-
-
-WATCH_OBJECTS = \
-./tests/ont-examples/watch/watch.c \
-
 
 #-------------------------------------------------------------------------------
 # Targets

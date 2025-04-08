@@ -1,7 +1,5 @@
 
-#if defined(ONP_OVER_RADIO)
 #include <onex-kernel/radio.h>
-#endif
 #include <onex-kernel/log.h>
 #include <channel-radio.h>
 
@@ -15,8 +13,7 @@ static volatile char     buffer[RADIO_BUFFER_SIZE];
 static volatile uint16_t current_write=0;
 static volatile uint16_t current_read=0;
 
-static uint16_t data_available()
-{
+static uint16_t data_available() {
   int16_t da=(int16_t)current_write-(int16_t)current_read;
   return da >= 0? da: da+RADIO_BUFFER_SIZE;
 }
@@ -38,18 +35,13 @@ void channel_radio_on_recv(int8_t rssi){
   }
 }
 
-void channel_radio_init(channel_radio_connect_cb cb)
-{
+void channel_radio_init(channel_radio_connect_cb cb) {
   connect_cb=cb;
-  initialised=true;
-#if defined(ONP_OVER_RADIO)
   initialised=radio_init(channel_radio_on_recv);
   if(connect_cb) connect_cb("radio");
-#endif
 }
 
-uint16_t channel_radio_recv(char* b, uint16_t l)
-{
+uint16_t channel_radio_recv(char* b, uint16_t l) {
   if(!initialised || !data_available()) return 0;
 
   uint16_t cr=current_read;
@@ -79,13 +71,8 @@ uint16_t channel_radio_recv(char* b, uint16_t l)
   return size;
 }
 
-uint16_t channel_radio_send(char* b, uint16_t n)
-{
+uint16_t channel_radio_send(char* b, uint16_t n) {
   if(!initialised) return 0;
-#if defined(ONP_OVER_RADIO)
   return radio_printf("%s\n", b);
-#else
-  return 0;
-#endif
 }
 

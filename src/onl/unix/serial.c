@@ -76,8 +76,7 @@ static serial_recv_cb recv_cb;
 static uint32_t baudrate;
 static uint32_t nextupdate=0;
 
-bool serial_init(serial_recv_cb cb, uint32_t br)
-{
+bool serial_init(serial_recv_cb cb, uint32_t br) {
   recv_cb=cb;
   baudrate=br;
   return true;
@@ -87,8 +86,7 @@ bool serial_init(serial_recv_cb cb, uint32_t br)
 char* ttys[] = { "/dev/ttyACM0", "/dev/ttyACM1" , "/dev/ttyACM2" };
 int   fds[]  = {-1,-1,-1};
 
-void update_connected_serials()
-{
+void update_connected_serials() {
   if(time_ms() < nextupdate) return;
   nextupdate=time_ms()+1500;
   for(uint8_t t=0; t< TTYS_RANGE; t++){
