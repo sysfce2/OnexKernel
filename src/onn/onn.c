@@ -54,7 +54,7 @@ static void    show_notifies(object* o);
 static object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size);
 static object* new_object_from(char* text, uint8_t max_size);
 static object* new_shell(value* uid);
-static bool    is_shell(object* o);
+static bool    object_is_shell(object* o);
 static void    run_evaluators(object* o, void* data, value* alerted, bool timedout);
 static bool    run_any_evaluators();
 static void    set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout);
@@ -78,7 +78,7 @@ typedef struct object {
   value*      persist;
   value*      notify[OBJECT_MAX_NOTIFIES]; // REVISIT list!
   value*      alerted;
-  value*      devices;
+  list*       devices;
   value*      timer;
   bool        running_evals;
   uint64_t    last_observe;
@@ -109,36 +109,43 @@ bool is_uid(char* uid){
   return uid && !strncmp(uid,"uid-",4);
 }
 
-bool is_local(char* uid)
-{
+bool object_is_local(object* o){
+
+  return o && !list_size(o->devices);
+}
+
+bool is_local(char* uid){
+
   object* o=onex_get_from_cache(uid);
-  return o && !o->devices;
+  return object_is_local(o);
 }
 
-bool is_shell(object* o)
-{
-  return o->devices && value_is(o->devices, "shell") && !o->properties;
+bool object_is_remote(object* o){
+
+  return o && list_size(o->devices);
 }
 
-bool object_is_remote(object* o)
-{
-  return o && o->devices;
+bool object_is_shell(object* o){
+
+  return object_is_remote(o) && value_is(list_get_n(o->devices,1), "shell") && !o->properties;
 }
 
-bool object_is_device(object* o)
-{
+bool object_is_device(object* o){
+
   return o && object_property_contains(o, "is", "device");
 }
 
-bool object_is_remote_device(object* o)
-{
-  return object_is_device(o) && o->devices;
+bool object_is_local_device(object* o){
+
+  return object_is_local(o) && object_is_device(o);
 }
 
-bool object_is_local_device(object* o)
-{
-  return object_is_device(o) && !o->devices;
+bool object_is_remote_device(object* o){
+
+  return object_is_remote(o) && object_is_device(o);
 }
+
+// ----------------------------------------------------------
 
 object* object_new_from(char* text, uint8_t max_size)
 {
@@ -181,7 +188,7 @@ object* new_object_from(char* text, uint8_t max_size){
   object* n=0;
   value* uid=0;
   value* evaluator=0;
-  value* devices=0;
+  char* devices=0;
   value* cache=0;
   value* persist=0;
   char* notify=0;
@@ -207,7 +214,7 @@ object* new_object_from(char* text, uint8_t max_size){
     else
     if(!strcmp(key,"Eval")) evaluator=value_new(val);
     else
-    if(!strcmp(key,"Devices")) devices=value_new(val);
+    if(!strcmp(key,"Devices")) devices=mem_strdup(val);
     else
     if(!strcmp(key,"Cache")) cache=value_new(val);
     else
@@ -220,10 +227,10 @@ object* new_object_from(char* text, uint8_t max_size){
       if(!n){
         n=new_object(uid, 0, 0, max_size);
         if(evaluator) n->evaluator=evaluator;
-        if(devices) n->devices=devices;
-        if(cache) n->cache=cache;
-        if(persist) n->persist=persist;
-        if(notify){ set_notifies(n, notify); mem_freestr(notify); }
+        if(cache)     n->cache=cache;
+        if(persist)   n->persist=persist;
+        if(devices){  n->devices = list_new_from(devices, OBJECT_MAX_DEVICES); mem_freestr(devices); }
+        if(notify){   set_notifies(n, notify); mem_freestr(notify); }
       }
       if(!property_edit(n, key, val, LIST_EDIT_MODE_SET)) break;
     }
@@ -238,7 +245,7 @@ object* new_shell(value* uid){
   object* n=(object*)mem_alloc(sizeof(object));
   n->uid=uid;
   n->properties=properties_new(MAX_OBJECT_SIZE);
-  n->devices=value_new("shell");
+  n->devices=list_new_from("shell", OBJECT_MAX_DEVICES);
   n->last_observe = 0;
   return n;
 }
@@ -253,7 +260,7 @@ void object_free(object* o)
   value_free(o->persist);
   for(uint8_t i=0; i< OBJECT_MAX_NOTIFIES; i++) value_free(o->notify[i]);
   value_free(o->alerted);
-  value_free(o->devices);
+  list_free(o->devices, true);
   value_free(o->timer);
   mem_free(o);
 }
@@ -482,7 +489,7 @@ object* find_object(char* uid, object* n, bool observe)
   }
   if(observe){
     add_notify(o, value_string(n->uid));
-    if(is_shell(o)){
+    if(object_is_shell(o)){
       obs_or_refresh(uid, o, 1000);
     }
     else
@@ -490,7 +497,7 @@ object* find_object(char* uid, object* n, bool observe)
       obs_or_refresh(uid, o, 10000);
     }
   }
-  return is_shell(o)? 0: o;
+  return object_is_shell(o)? 0: o;
 }
 
 uint16_t object_property_length(object* n, char* path)
@@ -1208,8 +1215,8 @@ char* object_to_text(object* n, char* b, uint16_t s, int target)
     if(ln>=s){ *(b+s-1) = 0; return b; }
   }
 
-  if(n->devices && target!=OBJECT_TO_TEXT_NETWORK){
-    ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(n->devices));
+  if(n->devices && list_size(n->devices) && target!=OBJECT_TO_TEXT_NETWORK){
+    ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(list_get_n(n->devices, 1))); // REVISIT list_to_text()
     if(ln>=s){ *(b+s-1) = 0; return b; }
   }
 
@@ -1535,7 +1542,7 @@ void onn_recv_object(char* text, char* channel)
   }
   else{
     item_free(o->properties);
-    item_free(o->devices);
+    list_free(o->devices, true);
     o->properties = n->properties; n->properties=0;
     o->devices    = n->devices;    n->devices=0;
     // additional notifies: for(i=0; i< OBJECT_MAX_NOTIFIES; i++) n->notify[i];
