@@ -26,7 +26,7 @@
 
 #endif
 
-#define OBJECT_MAX_NOTIFIES 4
+#define OBJECT_MAX_NOTIFIES 4 // REVISIT
 
 /** The actual Object. */
 typedef struct object object;

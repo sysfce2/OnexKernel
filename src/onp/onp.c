@@ -100,9 +100,7 @@ void do_connect() {
 
 static void handle_recv(uint16_t size, char* channel) {
   recv_buff[size]=0;
-
   log_recv(recv_buff, size, channel);
-
   if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) onn_recv_observe(recv_buff, channel);
   if(size>=5 && !strncmp(recv_buff,"UID: ",5)) onn_recv_object(recv_buff, channel);
 }

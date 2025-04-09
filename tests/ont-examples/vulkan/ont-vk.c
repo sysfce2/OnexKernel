@@ -2,8 +2,6 @@
 
 #include "user-onl-vk.h"
 
-VkPipelineLayout onl_vk_pipeline_layout;
-
 static VkBuffer vertex_buffer;
 static VkBuffer staging_buffer;
 

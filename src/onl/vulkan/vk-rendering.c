@@ -40,6 +40,8 @@ static VkRenderPass render_pass;
 static VkSemaphore image_acquired_semaphore;
 static VkSemaphore render_complete_semaphore;
 
+VkPipelineLayout onl_vk_pipeline_layout;
+
 static VkPipeline       pipeline;
 static VkPipelineCache  pipeline_cache;
 

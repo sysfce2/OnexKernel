@@ -41,8 +41,8 @@ bool radio_init(radio_recv_cb cb){
   NRF_RADIO->FREQUENCY = RADIO_CHANNEL;
 
   NRF_RADIO->MODE  = RADIO_MODE_MODE_Nrf_1Mbit;  // 2Mbit?!
-  NRF_RADIO->BASE0 = RADIO_BASE_ADDRESS;
 
+  NRF_RADIO->BASE0 = RADIO_BASE_ADDRESS;      // REVISIT don't need address filter!
   NRF_RADIO->PREFIX0 = RADIO_DEFAULT_GROUP;
   NRF_RADIO->TXADDRESS = 0;
   NRF_RADIO->RXADDRESSES = 1;
@@ -53,7 +53,7 @@ bool radio_init(radio_recv_cb cb){
 
   NRF_RADIO->PCNF1 = (RADIO_MAX_PACKET_SIZE       << RADIO_PCNF1_MAXLEN_Pos) |
                      (0                           << RADIO_PCNF1_STATLEN_Pos) |
-                     (4                           << RADIO_PCNF1_BALEN_Pos) |
+                     (4                           << RADIO_PCNF1_BALEN_Pos) |  // REVISIT no
                      (RADIO_PCNF1_WHITEEN_Enabled << RADIO_PCNF1_WHITEEN_Pos);
 
   NRF_RADIO->CRCCNF = (RADIO_CRCCNF_LEN_Two << RADIO_CRCCNF_LEN_Pos);
@@ -65,6 +65,7 @@ bool radio_init(radio_recv_cb cb){
   NRF_RADIO->PACKETPTR = (uint32_t)rx_buffer;
 
   NRF_RADIO->INTENSET = RADIO_INTENSET_END_Msk;
+  NVIC_SetPriority(RADIO_IRQn, 0); // REVISIT
   NVIC_ClearPendingIRQ(RADIO_IRQn);
   NVIC_EnableIRQ(RADIO_IRQn); // RADIO_IRQHandler()
 
@@ -123,7 +124,7 @@ bool radio_write(char* buf, uint8_t len) {
   NRF_RADIO->EVENTS_END = 0;
   NRF_RADIO->TASKS_START = 1;
 
-  NVIC_ClearPendingIRQ(RADIO_IRQn);
+//NVIC_ClearPendingIRQ(RADIO_IRQn); // REVISIT
   NVIC_EnableIRQ(RADIO_IRQn);
 
   return true;
@@ -154,7 +155,7 @@ uint16_t radio_recv(char* buf) {
     if(len > 0) memcpy(buf, rx_buffer+1, len);
     if(len < 256) buf[len]=0;
     return len;
-}
+} // REVISIT relies on being called in the irq
 
 void RADIO_IRQHandler(void){
 
@@ -167,6 +168,7 @@ void RADIO_IRQHandler(void){
 
     if(NRF_RADIO->CRCSTATUS == 1) {
       int8_t rssi = -NRF_RADIO->RSSISAMPLE;
+      // REVISIT copy quickly to a queue/buffer here!
       if(recv_cb) recv_cb(rssi);
     }
     NRF_RADIO->TASKS_START = 1;

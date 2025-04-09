@@ -76,7 +76,7 @@ typedef struct object {
   properties* properties;
   value*      cache;
   value*      persist;
-  value*      notify[OBJECT_MAX_NOTIFIES];
+  value*      notify[OBJECT_MAX_NOTIFIES]; // REVISIT list!
   value*      alerted;
   value*      devices;
   value*      timer;
@@ -102,8 +102,10 @@ value* generate_uid()
   return value_new(b);
 }
 
-bool is_uid(char* uid)
-{
+// ----------------------------------------------------------
+
+bool is_uid(char* uid){
+
   return uid && !strncmp(uid,"uid-",4);
 }
 
@@ -172,8 +174,8 @@ object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size)
   return n;
 }
 
-object* new_object_from(char* text, uint8_t max_size)
-{
+object* new_object_from(char* text, uint8_t max_size){
+
   size_t m=strlen(text)+1;
   char t[m]; memcpy(t, text, m); // TODO: presumably to allow read-only strings, but seems expensive and risky
   object* n=0;
@@ -231,8 +233,8 @@ object* new_object_from(char* text, uint8_t max_size)
   return n;
 }
 
-object* new_shell(value* uid)
-{
+object* new_shell(value* uid){
+
   object* n=(object*)mem_alloc(sizeof(object));
   n->uid=uid;
   n->properties=properties_new(MAX_OBJECT_SIZE);
@@ -1013,8 +1015,8 @@ void start_timer_for_soonest_timeout_if_in_future()
   }
 }
 
-void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout)
-{
+void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout){
+
 #if defined(NRF5)
   CRITICAL_REGION_ENTER();
 #else
@@ -1098,15 +1100,17 @@ bool run_any_evaluators()
         break;
       }
       case(TO_NOTIFY_DATA): {
+        void* data = to_notify[n].details.data;
         to_notify[n].type=TO_NOTIFY_FREE;
-        run_evaluators(o, to_notify[n].details.data, 0, false);
+        run_evaluators(o, data, 0, false);
         break;
       }
       case(TO_NOTIFY_ALERTED): {
+        value* alerted = to_notify[n].details.alerted;
         to_notify[n].type=TO_NOTIFY_FREE;
         if(o) run_evaluators(o, 0, to_notify[n].details.alerted, false);
         else{
-          object* a=onex_get_from_cache(value_string(to_notify[n].details.alerted));
+          object* a=onex_get_from_cache(value_string(alerted));
           onp_send_object(a, uid_or_channel);
         }
         break;
@@ -1123,7 +1127,7 @@ bool run_any_evaluators()
 }
 
 bool add_notify(object* o, char* notify){
-  // Persist??
+  // Persist?? // REVISIT Yess!!
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
     if(o->notify[i] && value_is(o->notify[i], notify)) return true;
@@ -1136,18 +1140,18 @@ bool add_notify(object* o, char* notify){
   return false;
 }
 
-void set_notifies(object* o, char* notify)
-{
+void set_notifies(object* o, char* notify){
+
   list* li=list_new_from(notify, OBJECT_MAX_NOTIFIES);
   if(!li) return;
-  int i; for(i=0; i < list_size(li); i++){
+  for(int i=0; i < list_size(li); i++){
     o->notify[i]=(value*)list_get_n(li, i+1);
   }
   list_free(li, false);
 }
 
-void save_and_notify(object* o)
-{
+void save_and_notify(object* o){
+
   persist_put(o, false);
 
   for(int i=0; i< OBJECT_MAX_NOTIFIES; i++){
@@ -1165,8 +1169,8 @@ void save_and_notify(object* o)
   }
 }
 
-bool has_notifies(object* o)
-{
+bool has_notifies(object* o){
+
   for(int i=0; i< OBJECT_MAX_NOTIFIES; i++){
     if(o->notify[i]) return true;
   }

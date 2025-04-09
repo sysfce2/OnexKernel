@@ -57,7 +57,7 @@ void persistence_init(char* filename) {
 
   long n=fread(alldbtext, sizeof(char), len, db);
   alldbtext[n] = '\0';
-  char* text=strtok(alldbtext, "\n");
+  char* text=strtok(alldbtext, "\n"); // REVISIT not re-entrant!?
   while(text){
     if(!strncmp(text, "UID: ", 5)){
       char* u=text+5;
