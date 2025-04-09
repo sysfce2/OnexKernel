@@ -12,11 +12,9 @@
 #ifdef ONP_CHANNEL_SERIAL
 #include <channel-serial.h>
 #endif
-
 #ifdef ONP_CHANNEL_RADIO
 #include <channel-radio.h>
 #endif
-
 #ifdef ONP_CHANNEL_IPV6
 #include <channel-ipv6.h>
 #endif
@@ -30,8 +28,8 @@ static void log_sent(char* buff, uint16_t size, char* channel);
 static void log_recv(char* buff, uint16_t size, char* channel);
 #endif
 
-void onn_recv_observe(char* text, char* channel);
-void onn_recv_object(char* text, char* channel);
+void onn_recv_observe(char* text, char* device);
+void onn_recv_object(char* text, char* device);
 
 void onp_init() {
 #ifdef ONP_CHANNEL_SERIAL
@@ -101,23 +99,27 @@ void do_connect() {
 static void handle_recv(uint16_t size, char* channel) {
   recv_buff[size]=0;
   log_recv(recv_buff, size, channel);
-  if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) onn_recv_observe(recv_buff, channel);
-  if(size>=5 && !strncmp(recv_buff,"UID: ",5)) onn_recv_object(recv_buff, channel);
+  if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) onn_recv_observe(recv_buff, "uid-of-device");
+  if(size>=5 && !strncmp(recv_buff,"UID: ",5)) onn_recv_object(recv_buff, "uid-of-device");
 }
 #endif
+
+static char* devices_to_channel(char* devices){
+  return "serial"; //"all-channels";
+}
 
 void onp_send_observe(char* uid, char* devices) {
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
   sprintf(send_buff,"OBS: %s Devices: %s", uid, object_property(onex_device_object, "UID"));
-  send(send_buff, channel);
+  send(send_buff, devices_to_channel(devices));
 #endif
 }
 
 void onp_send_object(object* o, char* devices) {
-  if(object_is_remote(o)) return;
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
+  if(object_is_remote(o)) return; // log_write("======>forwarding remote object %s\n", object_property(o, "UID"));
   object_to_text(o,send_buff,SEND_BUFF_SIZE,OBJECT_TO_TEXT_NETWORK);
-  send(send_buff, channel);
+  send(send_buff, devices_to_channel(devices));
 #endif
 }
 

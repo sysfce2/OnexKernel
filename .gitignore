@@ -12,6 +12,8 @@
 *.drm
 ,*
 .*.sw*
+test-ok
+test-pcr
 .vimfiles
 .gitattributes
 Onex/

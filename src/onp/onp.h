@@ -5,7 +5,7 @@
 
 void onp_init();
 bool onp_loop();
-void onp_send_observe(char* uid, char* channel);
-void onp_send_object(object* o, char* channel);
+void onp_send_observe(char* uid, char* devices);
+void onp_send_object(object* o, char* devices);
 
 #endif

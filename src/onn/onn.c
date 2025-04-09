@@ -463,17 +463,12 @@ item* nested_property_item(object* n, char* path, object* t, bool observe)
   return 0;
 }
 
-char* channel_of(value* device_uid)
-{
-  return "serial";
-}
-
 void obs_or_refresh(char* uid, object* o, uint32_t timeout)
 {
   uint64_t curtime = time_ms();
   if(!o->last_observe || curtime > o->last_observe + timeout){
     o->last_observe = curtime + 1;
-    onp_send_observe(uid, channel_of(o->devices));
+    onp_send_observe(uid, value_string(list_get_n(o->devices, 1)));
   }
 }
 
@@ -1097,8 +1092,8 @@ bool run_any_evaluators()
 
     keep_awake=true;
 
-    char* uid_or_channel=value_string(to_notify[n].uid);
-    object* o=onex_get_from_cache(uid_or_channel);
+    char* uid=value_string(to_notify[n].uid);
+    object* o=onex_get_from_cache(uid);
 
     switch(type){
       case(TO_NOTIFY_NONE): {
@@ -1115,10 +1110,12 @@ bool run_any_evaluators()
       case(TO_NOTIFY_ALERTED): {
         value* alerted = to_notify[n].details.alerted;
         to_notify[n].type=TO_NOTIFY_FREE;
-        if(o) run_evaluators(o, 0, to_notify[n].details.alerted, false);
+        if(object_is_local(o)){
+          run_evaluators(o, 0, alerted, false);
+        }
         else{
           object* a=onex_get_from_cache(value_string(alerted));
-          onp_send_object(a, uid_or_channel);
+          onp_send_object(a, uid);
         }
         break;
       }
@@ -1162,17 +1159,7 @@ void save_and_notify(object* o){
   persist_put(o, false);
 
   for(int i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    value* notifyuid=o->notify[i];
-    if(!notifyuid) continue;
-    object* n=onex_get_from_cache(value_string(notifyuid));
-    value* uid_or_channel=(n && !object_is_remote(n))? notifyuid: value_new(channel_of(notifyuid));
-    set_to_notify(uid_or_channel, 0, o->uid, 0);
-  }
-  if(object_is_remote_device(o)){
-    set_to_notify(onex_device_object->uid, 0, o->uid, 0);
-  }
-  if(o==onex_device_object){
-    set_to_notify(value_new("all-channels"), 0, o->uid, 0);
+    if(o->notify[i]) set_to_notify(o->notify[i], 0, o->uid, 0);
   }
 }
 
@@ -1521,18 +1508,19 @@ void persist_pull_keep_active() {
 
 // -----------------------------------------------------------------------
 
-void onn_recv_observe(char* text, char* channel)
-{
+void onn_recv_observe(char* text, char* device) {
+
   char* uid=strchr(text,':')+2;
   char* u=uid; while(*u > ' ') u++; *u=0;
   object* o=onex_get_from_cache(uid);
   if(!o) return;
-  add_notify(o, "uid-of-device");
-  onp_send_object(o, channel);
+  add_notify(o, device);
+  // save?(and_notify?)(o)
+  onp_send_object(o, device);
 }
 
-void onn_recv_object(char* text, char* channel)
-{
+void onn_recv_object(char* text, char* device) {
+
   object* n=new_object_from(text, MAX_OBJECT_SIZE);
   if(!n) return;
   object* o=onex_get_from_cache(value_string(n->uid));
@@ -1547,6 +1535,10 @@ void onn_recv_object(char* text, char* channel)
     o->devices    = n->devices;    n->devices=0;
     // additional notifies: for(i=0; i< OBJECT_MAX_NOTIFIES; i++) n->notify[i];
     object_free(n);
+  }
+  if(object_is_remote_device(o)){
+    add_notify(o, value_string(onex_device_object->uid));
+    add_notify(onex_device_object, value_string(o->uid));
   }
   save_and_notify(o);
 }
