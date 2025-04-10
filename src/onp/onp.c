@@ -107,7 +107,7 @@ static void handle_recv(uint16_t size, char* channel) {
 #endif
 
 static char* devices_to_channel(char* devices){
-  return "ipv6"; // "serial"; //"all-channels";
+  return "radio"; // "ipv6"; // "serial"; //"all-channels";
 }
 
 void onp_send_observe(char* uid, char* devices) {

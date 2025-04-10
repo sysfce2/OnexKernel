@@ -9,7 +9,7 @@
 
 #include <onex-kernel/gpio.h>
 
-#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE)
+#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
 #include <onex-kernel/radio.h>
 #endif
 
@@ -279,7 +279,7 @@ void run_tests_maybe() {
 extern volatile char* event_log_buffer;
 #endif
 
-#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE)
+#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
 static char   radio_buf[256];
 static size_t radio_available;
 static int8_t radio_rssi;
@@ -303,7 +303,7 @@ int main(void) {
   set_up_gpio();
   time_ticker((void (*)())serial_loop, 1);
 
-#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE)
+#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
   radio_init(radio_cb);
   char buf[256];
   uint8_t l=snprintf(buf, 256, "UID: uid-9bd4-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212c uid-36b0-2102-5ff9-bbf2");
@@ -324,7 +324,7 @@ int main(void) {
   while(1){
     run_tests_maybe();
 
-#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE)
+#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
     if(radio_available){
 
       size_t rn;
