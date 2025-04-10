@@ -1284,11 +1284,11 @@ bool onex_loop()
   oka = onp_loop();
   eka = run_any_evaluators();
 #if defined(LOG_KEEP_AWAKE)
-  if(ska) log_write("keep awake by serial_loop");
-  if(lka) log_write("keep awake by log_loop");
-  if(pka) log_write("keep awake by persist_loop");
-  if(oka) log_write("keep awake by onp_loop");
-  if(eka) log_write("keep awake by run_any_evaluators");
+  if(ska) log_write("keep awake by serial_loop\n");
+  if(lka) log_write("keep awake by log_loop\n");
+  if(pka) log_write("keep awake by persist_loop\n");
+  if(oka) log_write("keep awake by onp_loop\n");
+  if(eka) log_write("keep awake by run_any_evaluators\n");
 #endif
   return ska||lka||pka||oka||eka;
 }
@@ -1387,6 +1387,7 @@ void onex_set_evaluators(char* name, ...)
 void onex_run_evaluators(char* uid, void* data){
   if(!uid) return;
   object* o=onex_get_from_cache(uid);
+  if(!o) return;
   set_to_notify(o->uid, data, 0, 0);
 }
 
@@ -1508,24 +1509,49 @@ void persist_pull_keep_active() {
 
 // -----------------------------------------------------------------------
 
-void onn_recv_observe(char* text, char* device) {
+bool onn_recv_observe(char* text) {
 
-  char* uid=strchr(text,':')+2;
-  char* u=uid; while(*u > ' ') u++; *u=0;
+  char* u=text;
+
+  char* obs=u; while(*u > ' ') u++; if(!*u) return false; *u=0; u++;
+  if(strcmp(obs, "OBS:")) return false;
+
+  char* uid=u; while(*u > ' ') u++; if(!*u) return false; *u=0; u++;
+  if(!strlen(uid)) return false;
+
+  char* dvp=u; while(*u > ' ') u++; if(!*u) return false; *u=0; u++;
+  if(strcmp(dvp, "Devices:")) return false;
+
+  char* dev=u; while(*u > ' ') u++;                       *u=0;
+  if(!strlen(dev)) return false;
+
+  if(value_is(onex_device_object->uid, dev)){
+    // log_write("reject own OBS: %s\n", dev);
+    return false;
+  }
   object* o=onex_get_from_cache(uid);
-  if(!o) return;
-  add_notify(o, device);
-  // save?(and_notify?)(o)
-  onp_send_object(o, device);
+  if(!o) return false;
+  add_notify(o, dev);
+//save?(and_notify?)(o)
+  onp_send_object(o, dev);
+  while(*obs){ obs++; } *obs=' ';
+  while(*uid){ uid++; } *uid=' ';
+  while(*dvp){ dvp++; } *dvp=' ';
+  return true;
 }
 
-void onn_recv_object(char* text, char* device) {
-
+bool onn_recv_object(char* text) {
   object* n=new_object_from(text, MAX_OBJECT_SIZE);
-  if(!n) return;
+  if(!n) return false;
+  char* dev = value_string(list_get_n(n->devices, 1));
+  if(!dev) return false;
+  if(value_is(onex_device_object->uid, dev)){
+    // log_write("reject own UID: %s\n", dev);
+    return false;
+  }
   object* o=onex_get_from_cache(value_string(n->uid));
   if(!o){
-    if(!add_to_cache(n)) return;
+    if(!add_to_cache(n)) return false;
     o=n;
   }
   else{
@@ -1533,6 +1559,8 @@ void onn_recv_object(char* text, char* device) {
     list_free(o->devices, true);
     o->properties = n->properties; n->properties=0;
     o->devices    = n->devices;    n->devices=0;
+    // REVISIT:
+    // list_free!! and append devices if not there list_as_set_add(o->devices, n->devices)
     // additional notifies: for(i=0; i< OBJECT_MAX_NOTIFIES; i++) n->notify[i];
     object_free(n);
   }
@@ -1541,6 +1569,7 @@ void onn_recv_object(char* text, char* device) {
     add_notify(onex_device_object, value_string(o->uid));
   }
   save_and_notify(o);
+  return true;
 }
 
 // -----------------------------------------------------------------------

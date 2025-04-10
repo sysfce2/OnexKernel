@@ -87,12 +87,13 @@ TESTS_SOURCES = \
 ./tests/test-onn.c \
 ./tests/main.c \
 
-PCR_TESTS_SOURCES = \
-./tests/test-properties.c \
-./tests/test-list.c \
-./tests/test-value.c \
-./tests/test-onn.c \
-./tests/main-pcr.c \
+
+PCR_BUTTON_TESTS_SOURCES = \
+./tests/main-pcr-button.c \
+
+
+PCR_LIGHT_TESTS_SOURCES = \
+./tests/main-pcr-light.c \
 
 #-------------------------------------------------------------------------------
 
@@ -144,13 +145,27 @@ run.valgrind: test-ok
 
 #-------------------------------------------------------------------------------
 
-test-pcr: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(XCB_CC_SYMBOLS) $(INCLUDES)
-test-pcr: CC=/usr/bin/gcc
-test-pcr: LD=/usr/bin/gcc
-test-pcr: TARGET=TARGET_X86
-test-pcr: CHANNELS=-DONP_CHANNEL_SERIAL -DONP_CHANNEL_IPV6
-test-pcr: libonex-kernel-xcb.a $(PCR_TESTS_SOURCES:.c=.o)
-	$(LD) $(PCR_TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-xcb -o $@
+test-pcr-button: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(XCB_CC_SYMBOLS) $(INCLUDES)
+test-pcr-button: CC=/usr/bin/gcc
+test-pcr-button: LD=/usr/bin/gcc
+test-pcr-button: TARGET=TARGET_X86
+test-pcr-button: CHANNELS=-DONP_CHANNEL_SERIAL -DONP_CHANNEL_IPV6
+test-pcr-button: libonex-kernel-xcb.a $(PCR_BUTTON_TESTS_SOURCES:.c=.o)
+	$(LD) $(PCR_BUTTON_TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-xcb -o $@
+
+test-pcr-light: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(XCB_CC_SYMBOLS) $(INCLUDES)
+test-pcr-light: CC=/usr/bin/gcc
+test-pcr-light: LD=/usr/bin/gcc
+test-pcr-light: TARGET=TARGET_X86
+test-pcr-light: CHANNELS=-DONP_CHANNEL_SERIAL -DONP_CHANNEL_IPV6
+test-pcr-light: libonex-kernel-xcb.a $(PCR_LIGHT_TESTS_SOURCES:.c=.o)
+	$(LD) $(PCR_LIGHT_TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-xcb -o $@
+
+run.pcr-button: test-pcr-button
+	./test-pcr-button
+
+run.pcr-light: test-pcr-light
+	./test-pcr-light
 
 #-------------------------------------------------------------------------------
 
@@ -227,8 +242,8 @@ copy:
 
 clean:
 	find src tests -name '*.o' -o -name '*.d' | xargs -r rm
-	rm -f core
-	rm -rf test-ok *.xcb *.drm ok
+	rm -f core*
+	rm -rf test-ok test-pcr* *.db *.xcb *.drm ok
 	rm -rf ${TARGETS} tests/ont-examples/vulkan/*.{inc,spv,vert.c,frag.c}
 	find . -name onex.ondb | xargs -r rm
 	@echo "------------------------------"

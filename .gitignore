@@ -12,8 +12,9 @@
 *.drm
 ,*
 .*.sw*
+*.db
 test-ok
-test-pcr
+test-pcr*
 .vimfiles
 .gitattributes
 Onex/

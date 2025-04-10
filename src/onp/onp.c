@@ -28,8 +28,8 @@ static void log_sent(char* buff, uint16_t size, char* channel);
 static void log_recv(char* buff, uint16_t size, char* channel);
 #endif
 
-void onn_recv_observe(char* text, char* device);
-void onn_recv_object(char* text, char* device);
+bool onn_recv_observe(char* text);
+bool onn_recv_object(char* text);
 
 void onp_init() {
 #ifdef ONP_CHANNEL_SERIAL
@@ -97,15 +97,17 @@ void do_connect() {
 }
 
 static void handle_recv(uint16_t size, char* channel) {
-  recv_buff[size]=0;
-  log_recv(recv_buff, size, channel);
-  if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) onn_recv_observe(recv_buff, "uid-of-device");
-  if(size>=5 && !strncmp(recv_buff,"UID: ",5)) onn_recv_object(recv_buff, "uid-of-device");
+  if(recv_buff[size-1]<=' ') recv_buff[size-1]=0;
+  else                       recv_buff[size  ]=0;
+  bool ok=false;
+  if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) ok=onn_recv_observe(recv_buff);
+  if(size>=5 && !strncmp(recv_buff,"UID: ",5)) ok=onn_recv_object(recv_buff);
+  if(ok) log_recv(recv_buff, size, channel);
 }
 #endif
 
 static char* devices_to_channel(char* devices){
-  return "serial"; //"all-channels";
+  return "ipv6"; // "serial"; //"all-channels";
 }
 
 void onp_send_observe(char* uid, char* devices) {
