@@ -99,13 +99,20 @@ char* get_interface_name(char* interface) {
   return name;
 }
 
-int                 sock;
-struct sockaddr_in6 mc_addr;
+
+static properties* group_to_sock_addr=0;
+
+typedef struct {
+  int                 sock;
+  struct sockaddr_in6 mc_addr;
+} sock_addr;
 
 static bool ipv6_init_a_group(char* group){
 
+  int sock;
   struct sockaddr_in6 addr;
   struct ipv6_mreq mc_group;
+  struct sockaddr_in6 mc_addr;
   int reuse = 1, loopback = 0;
 
   if ((sock = socket(AF_INET6, SOCK_DGRAM, 0)) < 0) {
@@ -166,6 +173,12 @@ static bool ipv6_init_a_group(char* group){
     close(sock);
     return false;
   }
+
+  sock_addr* gi = malloc(sizeof(sock_addr));
+  gi->sock=sock;
+  gi->mc_addr=mc_addr;
+  properties_set(group_to_sock_addr, group, gi);
+
   log_write("Listening and broadcasting on multicast group: %s port %d...\n", group, PORT);
 
   return true;
@@ -173,15 +186,20 @@ static bool ipv6_init_a_group(char* group){
 
 bool ipv6_init(list* groups){ // ipv6_recv_cb cb??
   if(initialised) return true;
-  initialised=ipv6_init_a_group(value_string(list_get_n(groups, 1)));
+  initialised = true;
+  group_to_sock_addr=properties_new(MAX_GROUPS);
+  for(int i=1; i<=list_size(groups); i++){
+    char* group = value_string(list_get_n(groups, i));
+    initialised=initialised && ipv6_init_a_group(group);
+  }
   return initialised;
 }
 
 uint16_t ipv6_recv(char* group, char* buf, uint16_t l){
   struct sockaddr_in6 addr;
   socklen_t addrLen = sizeof(addr);
-  // group->sock
-  ssize_t n = recvfrom(sock, buf, l, 0, (struct sockaddr*)&addr, &addrLen);
+  sock_addr* gi = (sock_addr*)properties_get(group_to_sock_addr, group);
+  ssize_t n = recvfrom(gi->sock, buf, l, 0, (struct sockaddr*)&addr, &addrLen);
   return (n>0)? n: 0;
 }
 
@@ -205,8 +223,10 @@ size_t ipv6_vprintf(char* group, const char* fmt, va_list args){
 
 bool ipv6_write(char* group, char* buf, uint16_t len){
   if(!buf || len > 2048) return false;
-  // group->sock/mc_addr
-  if(sendto(sock, buf, len, 0, &mc_addr, sizeof(mc_addr)) >= 0) {
+  sock_addr* gi = (sock_addr*)properties_get(group_to_sock_addr, group);
+  if(!gi){ log_write("no sock/addr for %s\n", group); return false; }
+  const struct sockaddr_in6 mc_addr=gi->mc_addr;
+  if(sendto(gi->sock, buf, len, 0, (const struct sockaddr*)&mc_addr, sizeof(mc_addr)) >= 0) {
     return true;
   }
   perror("sendto failed");
