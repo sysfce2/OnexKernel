@@ -12,9 +12,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#define SYS_CLASS_NET "/sys/class/net/"
-
+#include <onex-kernel/log.h>
 #include <onex-kernel/ipv6.h>
+
+#define SYS_CLASS_NET "/sys/class/net/"
 
 #define PORT 4321
 #define MULTICAST_GROUP "ff12::1234"
