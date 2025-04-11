@@ -22,7 +22,8 @@ int main() {
 
   log_init();
   time_init();
-  onex_init("button.db");
+
+  onex_init_ipv6("button.db", "ff12::1234");
 
   log_write("\n------Starting Button Test Server-----\n");
 

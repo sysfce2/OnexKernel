@@ -7,9 +7,9 @@ static bool initialised=false;
 
 static channel_ipv6_connect_cb connect_cb;
 
-void channel_ipv6_init(channel_ipv6_connect_cb cb) {
+void channel_ipv6_init(channel_ipv6_connect_cb cb, char* group) {
   connect_cb=cb;
-  initialised=ipv6_init(0);
+  initialised=ipv6_init(0,group);
   if(connect_cb) connect_cb("ipv6");
 }
 

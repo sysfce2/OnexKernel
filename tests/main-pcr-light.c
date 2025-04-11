@@ -31,7 +31,7 @@ int main(void) {
 //                 V      V
 // [ UID: uid-b  is: button  state: up ]
 
-  onex_init("light.db");
+  onex_init_ipv6("light.db", "ff12::1234");
 
   onex_set_evaluators("evaluate_light",  evaluate_light, 0);
 

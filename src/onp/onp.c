@@ -31,7 +31,7 @@ static void log_recv(char* buff, uint16_t size, char* channel);
 bool onn_recv_observe(char* text);
 bool onn_recv_object(char* text);
 
-void onp_init() {
+void onp_init(char* group) {
 #ifdef ONP_CHANNEL_SERIAL
   channel_serial_init(on_connect);
 #endif
@@ -39,7 +39,7 @@ void onp_init() {
   channel_radio_init(on_connect);
 #endif
 #ifdef ONP_CHANNEL_IPV6
-  channel_ipv6_init(on_connect);
+  channel_ipv6_init(on_connect, group);
 #endif
 }
 
@@ -107,7 +107,7 @@ static void handle_recv(uint16_t size, char* channel) {
 #endif
 
 static char* devices_to_channel(char* devices){
-  return "radio"; // "ipv6"; // "serial"; //"all-channels";
+  return "ipv6"; // "radio"; // "serial"; //"all-channels";
 }
 
 void onp_send_observe(char* uid, char* devices) {

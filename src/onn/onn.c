@@ -1262,13 +1262,20 @@ void object_log(object* o)
 
 // -----------------------------------------------------------------------
 
-void onex_init(char* dbpath)
-{
+void onex_init(char* dbpath) {
   timer_init();
   random_init();
   persist_init(dbpath);
   device_init();
-  onp_init();
+  onp_init(0);
+}
+
+void onex_init_ipv6(char* dbpath, char* group) {
+  timer_init();
+  random_init();
+  persist_init(dbpath);
+  device_init();
+  onp_init(group);
 }
 
 bool onex_loop()
