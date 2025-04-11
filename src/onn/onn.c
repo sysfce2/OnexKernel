@@ -52,7 +52,6 @@ static void    save_and_notify(object* n);
 static bool    has_notifies(object* o);
 static void    show_notifies(object* o);
 static object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size);
-static object* new_object_from(char* text, uint8_t max_size);
 static object* new_shell(value* uid);
 static bool    object_is_shell(object* o);
 static void    run_evaluators(object* o, void* data, value* alerted, bool timedout);
@@ -149,7 +148,7 @@ bool object_is_remote_device(object* o){
 
 object* object_new_from(char* text, uint8_t max_size)
 {
-  object* n=new_object_from(text, max_size);
+  object* n=object_from_text(text, max_size);
   if(!n) return 0;
   char* uid=value_string(n->uid);
   if(onex_get_from_cache(uid)){
@@ -181,7 +180,7 @@ object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size)
   return n;
 }
 
-object* new_object_from(char* text, uint8_t max_size){
+object* object_from_text(char* text, uint8_t max_size){
 
   size_t m=strlen(text)+1;
   char t[m]; memcpy(t, text, m); // TODO: presumably to allow read-only strings, but seems expensive and risky
@@ -355,8 +354,10 @@ char* object_get_persist(object* n){
 static char* object_property_observe(object* n, char* path, bool observe)
 {
   if(!n) return 0;
-  if(!strcmp(path, "UID"))   return value_string(n->uid);
-  if(!strcmp(path, "Timer")) return value_string(n->timer);
+  if(!strcmp(path, "UID"))     return value_string(n->uid);
+  if(!strcmp(path, "Timer"))   return value_string(n->timer);
+  if(!strcmp(path, "Devices")) return value_string(list_get_n(n->devices, 1));
+
   item* i=property_item(n,path,n,observe);
   if(i && i->type==ITEM_VALUE) return value_string((value*)i);
   return 0;
@@ -1323,7 +1324,7 @@ object* onex_get_from_cache(char* uid) {
   char* text=properties_get(persistence_objects_text, uid);
   if(!text) return 0; // <-- now pull from persistence!
 
-  o=new_object_from(text, MAX_OBJECT_SIZE);
+  o=object_from_text(text, MAX_OBJECT_SIZE);
 
   if(o && add_to_cache(o)){
     mem_freestr(properties_delete(persistence_objects_text, uid));
@@ -1516,46 +1517,16 @@ void persist_pull_keep_active() {
 
 // -----------------------------------------------------------------------
 
-bool onn_recv_observe(char* text) {
-
-  char* u=text;
-
-  char* obs=u; while(*u > ' ') u++; if(!*u) return false; *u=0; u++;
-  if(strcmp(obs, "OBS:")) return false;
-
-  char* uid=u; while(*u > ' ') u++; if(!*u) return false; *u=0; u++;
-  if(!strlen(uid)) return false;
-
-  char* dvp=u; while(*u > ' ') u++; if(!*u) return false; *u=0; u++;
-  if(strcmp(dvp, "Devices:")) return false;
-
-  char* dev=u; while(*u > ' ') u++;                       *u=0;
-  if(!strlen(dev)) return false;
-
-  if(value_is(onex_device_object->uid, dev)){
-    // log_write("reject own OBS: %s\n", dev);
-    return false;
-  }
+bool onn_recv_observe(char* uid, char* dev) {
   object* o=onex_get_from_cache(uid);
   if(!o) return false;
   add_notify(o, dev);
 //save?(and_notify?)(o)
   onp_send_object(o, dev);
-  while(*obs){ obs++; } *obs=' ';
-  while(*uid){ uid++; } *uid=' ';
-  while(*dvp){ dvp++; } *dvp=' ';
   return true;
 }
 
-bool onn_recv_object(char* text) {
-  object* n=new_object_from(text, MAX_OBJECT_SIZE);
-  if(!n) return false;
-  char* dev = value_string(list_get_n(n->devices, 1));
-  if(!dev) return false;
-  if(value_is(onex_device_object->uid, dev)){
-    // log_write("reject own UID: %s\n", dev);
-    return false;
-  }
+bool onn_recv_object(object* n) {
   object* o=onex_get_from_cache(value_string(n->uid));
   if(!o){
     if(!add_to_cache(n)) return false;
