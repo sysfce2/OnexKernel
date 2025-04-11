@@ -19,9 +19,6 @@
 #define PORT 4321
 #define INTERFACE "wifi"
 
-int sock;
-struct sockaddr_in6 mc_addr;
-
 static bool initialised=false;
 
 bool is_interface_up(const char *ifname) {
@@ -82,19 +79,19 @@ char* get_interface_name(char* interface) {
     if(is_wireless(entry->d_name)) {
       if(strcmp(interface, "wifi")) continue;
       name = strdup(entry->d_name);
-      printf("Using Wi-Fi: %s\n", name);
+      log_write("Using Wi-Fi: %s\n", name);
       break;
     }
     if(is_usb(entry->d_name)) {
       if(strcmp(interface, "usb")) continue;
       name = strdup(entry->d_name);
-      printf("Using USB Network: %s\n", name);
+      log_write("Using USB Network: %s\n", name);
       break;
     }
     {
       if(strcmp(interface, "eth")) continue;
       name = strdup(entry->d_name);
-      printf("Using Ethernet: %s\n", name);
+      log_write("Using Ethernet: %s\n", name);
       break;
     }
   }
@@ -102,9 +99,10 @@ char* get_interface_name(char* interface) {
   return name;
 }
 
-bool ipv6_init(ipv6_recv_cb cb, char* group){
+int                 sock;
+struct sockaddr_in6 mc_addr;
 
-  if(initialised) return true;
+static bool ipv6_init_a_group(char* group){
 
   struct sockaddr_in6 addr;
   struct ipv6_mreq mc_group;
@@ -168,33 +166,30 @@ bool ipv6_init(ipv6_recv_cb cb, char* group){
     close(sock);
     return false;
   }
-  printf("Joined multicast group: %s\n", group);
-/*
-  if (setsockopt(sock, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, &loopback, sizeof(loopback)) < 0) {
-    perror("Disabling multicast loopback failed");
-    close(sock);
-    return false;
-  }
-*/
-  printf("Listening and broadcasting on port %d...\n", PORT);
-
-  initialised=true;
+  log_write("Listening and broadcasting on multicast group: %s port %d...\n", group, PORT);
 
   return true;
 }
 
-uint16_t ipv6_recv(char* buf, uint16_t l){
+bool ipv6_init(list* groups){ // ipv6_recv_cb cb??
+  if(initialised) return true;
+  initialised=ipv6_init_a_group(value_string(list_get_n(groups, 1)));
+  return initialised;
+}
+
+uint16_t ipv6_recv(char* group, char* buf, uint16_t l){
   struct sockaddr_in6 addr;
   socklen_t addrLen = sizeof(addr);
+  // group->sock
   ssize_t n = recvfrom(sock, buf, l, 0, (struct sockaddr*)&addr, &addrLen);
   return (n>0)? n: 0;
 }
 
-size_t ipv6_printf(const char* fmt, ...){
+size_t ipv6_printf(char* group, const char* fmt, ...){
   if(!initialised) return 0;
   va_list args;
   va_start(args, fmt);
-  size_t r=ipv6_vprintf(fmt,args);
+  size_t r=ipv6_vprintf(group,fmt,args);
   va_end(args);
   return r;
 }
@@ -202,15 +197,15 @@ size_t ipv6_printf(const char* fmt, ...){
 #define PRINT_BUF_SIZE 2048
 static char print_buf[PRINT_BUF_SIZE];
 
-size_t ipv6_vprintf(const char* fmt, va_list args){
+size_t ipv6_vprintf(char* group, const char* fmt, va_list args){
   size_t r=vsnprintf((char*)print_buf, PRINT_BUF_SIZE, fmt, args);
   if(r>=PRINT_BUF_SIZE) r=PRINT_BUF_SIZE-1;
-  return ipv6_write(print_buf, r)? r: 0;
+  return ipv6_write(group, print_buf, r)? r: 0;
 }
 
-bool ipv6_write(char* buf, uint16_t len){
+bool ipv6_write(char* group, char* buf, uint16_t len){
   if(!buf || len > 2048) return false;
-
+  // group->sock/mc_addr
   if(sendto(sock, buf, len, 0, &mc_addr, sizeof(mc_addr)) >= 0) {
     return true;
   }

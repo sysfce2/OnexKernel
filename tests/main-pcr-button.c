@@ -1,8 +1,6 @@
 
-#include <time.h>
-#include <stdlib.h>
-#include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
+#include <onex-kernel/time.h>
 #include <onn.h>
 
 static bool button_pressed=false;
@@ -23,7 +21,7 @@ int main() {
   log_init();
   time_init();
 
-  onex_init_ipv6("button.db", "ff12::1234");
+  onex_init_ipv6("button.db", list_new_from("ff12::1234 ff12::4321", 2));
 
   log_write("\n------Starting Button Test Server-----\n");
 

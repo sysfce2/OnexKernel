@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <items.h> // only for list
+
 // -----------------------------------------------------------------------
 
 #define MAX_UID_LEN 128
@@ -173,7 +175,7 @@ extern object* onex_device_object;
 
 /** set things up. */
 void onex_init(char* dbpath);
-void onex_init_ipv6(char* dbpath, char* group);
+void onex_init_ipv6(char* dbpath, list* groups);
 
 /** call when you want your evaluator run
     can be used to set some state within a transaction etc with given data arg

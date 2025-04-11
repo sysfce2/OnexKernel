@@ -243,7 +243,7 @@ copy:
 clean:
 	find src tests -name '*.o' -o -name '*.d' | xargs -r rm
 	rm -f core*
-	rm -rf test-ok test-pcr* *.db *.xcb *.drm ok
+	rm -rf test-ok test-pcr* *.db light*/*.db button*/*.db *.xcb *.drm ok
 	rm -rf ${TARGETS} tests/ont-examples/vulkan/*.{inc,spv,vert.c,frag.c}
 	find . -name onex.ondb | xargs -r rm
 	@echo "------------------------------"

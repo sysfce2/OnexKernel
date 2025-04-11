@@ -31,7 +31,10 @@ static void log_recv(char* buff, uint16_t size, char* channel);
 bool onn_recv_observe(char* text);
 bool onn_recv_object(char* text);
 
-void onp_init(char* group) {
+static list* groups=0;
+
+void onp_init(list* g) {
+  groups = g;
 #ifdef ONP_CHANNEL_SERIAL
   channel_serial_init(on_connect);
 #endif
@@ -39,7 +42,7 @@ void onp_init(char* group) {
   channel_radio_init(on_connect);
 #endif
 #ifdef ONP_CHANNEL_IPV6
-  channel_ipv6_init(on_connect, group);
+  channel_ipv6_init(groups, on_connect);
 #endif
 }
 
@@ -72,8 +75,12 @@ bool onp_loop() {
   if(size){ handle_recv(size,"radio"); return true; }
 #endif
 #ifdef ONP_CHANNEL_IPV6
-  size = channel_ipv6_recv(recv_buff, RECV_BUFF_SIZE-1);
-  if(size){ handle_recv(size,"ipv6"); return true; }
+  for(int i=1; i<=list_size(groups); i++){
+    char* group = value_string(list_get_n(groups, i));
+    size = channel_ipv6_recv(group, recv_buff, RECV_BUFF_SIZE-1);
+    char channel[256]; snprintf(channel, 256, "ipv6-%s", group);
+    if(size){ handle_recv(size,channel); return true; }
+  }
 #endif
   do_connect();
   keep_awake=!!connect_time;
@@ -107,7 +114,7 @@ static void handle_recv(uint16_t size, char* channel) {
 #endif
 
 static char* devices_to_channel(char* devices){
-  return "ipv6"; // "radio"; // "serial"; //"all-channels";
+  return "ipv6-ff12::1234"; // "radio"; // "serial"; //"all-channels";
 }
 
 void onp_send_observe(char* uid, char* devices) {
@@ -140,8 +147,9 @@ void send(char* buff, char* channel){
   }
 #endif
 #ifdef ONP_CHANNEL_IPV6
-  if(!strcmp(channel, "ipv6") || !strcmp(channel, "all-channels")){
-    uint16_t size = channel_ipv6_send(buff, strlen(buff));
+  if(!strncmp(channel, "ipv6-", 5) || !strcmp(channel, "all-channels")){
+    char* group = channel + 5;
+    uint16_t size = channel_ipv6_send(group, buff, strlen(buff));
     log_sent(buff,size,channel);
   }
 #endif

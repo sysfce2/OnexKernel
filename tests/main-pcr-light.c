@@ -1,9 +1,6 @@
 
-#include <onex-kernel/lib.h>
-#include <onex-kernel/random.h>
-#include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
-#include <onex-kernel/ipv6.h>
+#include <onex-kernel/time.h>
 #include <onn.h>
 #include <tests.h>
 
@@ -18,20 +15,22 @@ bool evaluate_light(object* light, void* d) {
   return true;
 }
 
-int main(void) {
+int main(int argc, char *argv[]){
 
   log_init();
   time_init();
-  random_init();
-
-  log_write("-----------------OnexKernel PCR tests------------------------\n");
 
 // [ UID: uid-l  is: light  light: off  button: uid-b ]
 //                 | IPv6 |
-//                 V      V
 // [ UID: uid-b  is: button  state: up ]
 
-  onex_init_ipv6("light.db", "ff12::1234");
+  if(argc<=1){
+    log_write("Usage: %s <mcast group: ff12::1234 / ff12::4321>\n", argv[0]);
+    return -1;
+  }
+  onex_init_ipv6("light.db", list_new_from(argv[1], 1));
+
+  log_write("\n------Starting Light Test Server-----\n");
 
   onex_set_evaluators("evaluate_light",  evaluate_light, 0);
 
@@ -42,7 +41,8 @@ int main(void) {
 
   onex_run_evaluators("uid-l", 0);
 
-  while((number_up < 4 || number_down < 4) && keep_going){
+  #define LOOPS 50
+  while((number_up < LOOPS || number_down < LOOPS) && keep_going){
     if(!onex_loop()){
       time_delay_ms(5);
     }

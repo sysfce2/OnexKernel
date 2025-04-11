@@ -1270,12 +1270,12 @@ void onex_init(char* dbpath) {
   onp_init(0);
 }
 
-void onex_init_ipv6(char* dbpath, char* group) {
+void onex_init_ipv6(char* dbpath, list* groups) {
   timer_init();
   random_init();
   persist_init(dbpath);
   device_init();
-  onp_init(group);
+  onp_init(groups);
 }
 
 bool onex_loop()
