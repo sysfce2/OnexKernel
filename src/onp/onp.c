@@ -143,20 +143,21 @@ void recv_observe(uint16_t size, char* channel){
 
   char* dvp=u;
   while(*u > ' ') u++;
-  if(!*u) return;
+  if(!*u){ free(uid); return; }
   *u=0;
-  if(strcmp(dvp, "Devices:")) return;
+  if(strcmp(dvp, "Devices:")){ free(uid); return; }
   *u=' ';
   u++;
 
   char* dev=u;
   while(*u > ' ') u++;
   *u=0;
-  if(!strlen(dev)) return;
+  if(!strlen(dev)){ free(uid); return; }
   dev=strdup(dev);
 
   if(!strcmp(object_property(onex_device_object, "UID"), dev)){
     // log_write("reject own OBS: %s\n", dev);
+    free(uid); free(dev);
     return;
   }
   log_recv(recv_buff, size, channel);
