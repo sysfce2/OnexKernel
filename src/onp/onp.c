@@ -28,8 +28,8 @@ static void log_sent(char* buff, uint16_t size, char* channel);
 static void log_recv(char* buff, uint16_t size, char* channel);
 #endif
 
-bool onn_recv_observe(char* uid, char* dev);
-bool onn_recv_object(object* n);
+extern void onn_recv_observe(char* uid, char* dev);
+extern void onn_recv_object(object* n);
 
 static list* groups=0;
 
@@ -120,60 +120,76 @@ void do_connect() {
   send(send_buff, connect_channel);
 }
 
-bool recv_observe(char* text, char* channel){
+void recv_observe(uint16_t size, char* channel){
 
-  char* u=text;
+  char* u=recv_buff;
 
-  char* obs=u; while(*u > ' ') u++; if(!*u) return false; *u=0; u++;
-  if(strcmp(obs, "OBS:")) return false;
+  char* obs=u;
+  while(*u > ' ') u++;
+  if(!*u) return;
+  *u=0;
+  if(strcmp(obs, "OBS:")) return;
+  *u=' ';
+  u++;
 
-  char* uid=u; while(*u > ' ') u++; if(!*u) return false; *u=0; u++;
-  if(!strlen(uid)) return false;
+  char* uid=u;
+  while(*u > ' ') u++;
+  if(!*u) return;
+  *u=0;
+  if(!strlen(uid)) return;
+  uid=strdup(uid);
+  *u=' ';
+  u++;
 
-  char* dvp=u; while(*u > ' ') u++; if(!*u) return false; *u=0; u++;
-  if(strcmp(dvp, "Devices:")) return false;
+  char* dvp=u;
+  while(*u > ' ') u++;
+  if(!*u) return;
+  *u=0;
+  if(strcmp(dvp, "Devices:")) return;
+  *u=' ';
+  u++;
 
-  char* dev=u; while(*u > ' ') u++;                       *u=0;
-  if(!strlen(dev)) return false;
+  char* dev=u;
+  while(*u > ' ') u++;
+  *u=0;
+  if(!strlen(dev)) return;
+  dev=strdup(dev);
 
   if(!strcmp(object_property(onex_device_object, "UID"), dev)){
     // log_write("reject own OBS: %s\n", dev);
-    return false;
+    return;
   }
+  log_recv(recv_buff, size, channel);
+
   set_channel_of_device(dev, channel);
 
-  bool ok = onn_recv_observe(uid,dev);
+  onn_recv_observe(uid,dev);
 
-  while(*obs){ obs++; } *obs=' ';
-  while(*uid){ uid++; } *uid=' ';
-  while(*dvp){ dvp++; } *dvp=' ';
-
-  return ok;
+  free(uid); free(dev);
 }
 
-bool recv_object(char* text, char* channel){
-  object* n=object_from_text(text, MAX_OBJECT_SIZE);
-  if(!n) return false;
+void recv_object(uint16_t size, char* channel){
+
+  object* n=object_from_text(recv_buff, MAX_OBJECT_SIZE);
+  if(!n) return;
   char* dev = object_property(n, "Devices");
-  if(!dev) return false;
+  if(!dev) return;
   if(!strcmp(object_property(onex_device_object, "UID"), dev)){
     // log_write("reject own UID: %s\n", dev);
-    return false;
+    return;
   }
+  log_recv(recv_buff, size, channel);
+
   set_channel_of_device(dev, channel);
 
-  bool ok = onn_recv_object(n);
-
-  return ok;
+  onn_recv_object(n);
 }
 
 static void handle_recv(uint16_t size, char* channel) {
   if(recv_buff[size-1]<=' ') recv_buff[size-1]=0;
   else                       recv_buff[size  ]=0;
-  bool ok=false;
-  if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) ok=recv_observe(recv_buff, channel);
-  if(size>=5 && !strncmp(recv_buff,"UID: ",5)) ok=recv_object( recv_buff, channel);
-  if(ok) log_recv(recv_buff, size, channel);
+  if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) recv_observe(size, channel);
+  if(size>=5 && !strncmp(recv_buff,"UID: ",5)) recv_object( size, channel);
 }
 #endif
 

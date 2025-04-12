@@ -241,7 +241,7 @@ bool ipv6_write(char* group, char* buf, uint16_t len){
   for(int i=1; i<=properties_size(group_to_sock_addr); i++){
     char* gp = properties_key_n(group_to_sock_addr,i);
     sock_addr* gi = (sock_addr*)properties_get(group_to_sock_addr, gp);
-    ok = ok || ipv6_write_gi(gi, buf, len);
+    ok = ipv6_write_gi(gi, buf, len) || ok;
   }
   return ok;
 }

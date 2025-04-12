@@ -40,7 +40,7 @@ static char*   get_key(char** p);
 static char*   get_val(char** p);
 static bool    add_to_cache(object* n);
 static bool    add_to_cache_and_persist(object* n);
-static object* find_object(char* uid, object* n, bool observe);
+static object* find_object(char* uid, char* nuid, bool observe);
 static item*   property_item(object* n, char* path, object* t, bool observe);
 static item*   nested_property_item(object* n, char* path, object* t, bool observe);
 static bool    object_property_edit(object* n, char* path, char* val, uint8_t mode);
@@ -447,7 +447,7 @@ item* nested_property_item(object* n, char* path, object* t, bool observe)
       c+=2; // skip '1:' to next bit
     }
     if(is_uid(uid)){
-      object* o=find_object(uid,t,observe2);
+      object* o=find_object(uid,value_string(t->uid),observe2);
       return o? property_item(o,c,t,observe2): 0;
     }
     return 0;
@@ -458,7 +458,7 @@ item* nested_property_item(object* n, char* path, object* t, bool observe)
     item* r=list_get_n((list*)i,in);
     if(!(r && r->type==ITEM_VALUE && *e==':')) return r;
     char* uid=value_string((value*)r);
-    object* o=find_object(uid,t,observe2);
+    object* o=find_object(uid,value_string(t->uid),observe2);
     return o? property_item(o,e+1,t,observe2): 0;
   }
   return 0;
@@ -473,9 +473,9 @@ void obs_or_refresh(char* uid, object* o, uint32_t timeout)
   }
 }
 
-object* find_object(char* uid, object* n, bool observe)
-{
-  if(!is_uid(uid) || !n) return 0;
+object* find_object(char* uid, char* nuid, bool observe) {
+
+  if(!(is_uid(uid) && is_uid(nuid))) return 0;
 
   object* o=onex_get_from_cache(uid);
 
@@ -484,7 +484,9 @@ object* find_object(char* uid, object* n, bool observe)
     add_to_cache_and_persist(o);
   }
   if(observe){
-    add_notify(o, value_string(n->uid));
+
+    add_notify(o, nuid);
+
     if(object_is_shell(o)){
       obs_or_refresh(uid, o, 1000);
     }
@@ -1517,19 +1519,15 @@ void persist_pull_keep_active() {
 
 // -----------------------------------------------------------------------
 
-bool onn_recv_observe(char* uid, char* dev) {
-  object* o=onex_get_from_cache(uid);
-  if(!o) return false;
-  add_notify(o, dev);
-//save?(and_notify?)(o)
-  onp_send_object(o, dev);
-  return true;
+void onn_recv_observe(char* uid, char* dev) {
+  object* o=find_object(uid, dev, true);
+  if(o) onp_send_object(o, dev);
 }
 
-bool onn_recv_object(object* n) {
+void onn_recv_object(object* n) {
   object* o=onex_get_from_cache(value_string(n->uid));
   if(!o){
-    if(!add_to_cache(n)) return false;
+    if(!add_to_cache(n)) return;
     o=n;
   }
   else{
@@ -1547,7 +1545,6 @@ bool onn_recv_object(object* n) {
     add_notify(onex_device_object, value_string(o->uid));
   }
   save_and_notify(o);
-  return true;
 }
 
 // -----------------------------------------------------------------------

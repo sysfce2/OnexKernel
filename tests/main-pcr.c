@@ -3,7 +3,7 @@
 #include <onex-kernel/time.h>
 #include <onn.h>
 
-int main() {
+int main(int argc, char *argv[]) {
 
   log_init();
   time_init();

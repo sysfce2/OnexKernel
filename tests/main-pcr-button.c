@@ -17,13 +17,17 @@ bool evaluate_button(object* button, void* pressed) {
   return true;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
 
   log_init();
   time_init();
   random_init();
 
-  onex_init_ipv6("button.db", list_new_from("ff12::1234 ff12::4321", 2));
+  if(argc<=1){
+    log_write("Usage: %s <mcast group: ff12::1234 / ff12::4321>\n", argv[0]);
+    return -1;
+  }
+  onex_init_ipv6("button.db", list_new_from(argv[1], 1));
 
   log_write("\n------Starting Button Test Server-----\n");
 
