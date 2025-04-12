@@ -1,10 +1,11 @@
 
 #include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
+#include <onex-kernel/random.h>
 #include <onn.h>
 
 static bool button_pressed=false;
-static void every_1200(){
+static void every_tick(){
   button_pressed=!button_pressed;
   onex_run_evaluators("uid-b", (void*)button_pressed);
 }
@@ -20,6 +21,7 @@ int main() {
 
   log_init();
   time_init();
+  random_init();
 
   onex_init_ipv6("button.db", list_new_from("ff12::1234 ff12::4321", 2));
 
@@ -30,7 +32,7 @@ int main() {
   object_property_set(button, "state", "up");
   onex_run_evaluators("uid-b", 0);
 
-  time_ticker(every_1200, 1200);
+  time_ticker(every_tick, 8000);
 
   while(1){
     if(!onex_loop()){

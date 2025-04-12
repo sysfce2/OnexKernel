@@ -33,8 +33,23 @@ bool onn_recv_object(object* n);
 
 static list* groups=0;
 
+static properties* device_to_channel = 0;
+
+static void set_channel_of_device(char* device, char* channel){
+  properties_ins_setwise(device_to_channel, device, channel);
+}
+
+static char* channel_of_device(char* devices){
+  list* channels = (list*)properties_get(device_to_channel, devices);
+  char* channel = value_string(list_get_n(channels, 1));
+  return channel? channel: "all";
+}
+
+#define MAX_PEERS 32
+
 void onp_init(list* g) {
   groups = g;
+  device_to_channel = properties_new(MAX_PEERS);
 #ifdef ONP_CHANNEL_SERIAL
   channel_serial_init(on_connect);
 #endif
@@ -93,17 +108,19 @@ bool onp_loop() {
 // TODO: use proper time-delay
 // TODO: one per channel not one for all
 void on_connect(char* channel) {
-  connect_channel = channel;
+  if(connect_channel) free(connect_channel);
+  connect_channel = strdup(channel);
   connect_time = time_ms()+1800;
 }
 
 void do_connect() {
   if(!connect_time || time_ms() < connect_time ) return;
   connect_time=0;
-  onp_send_object(onex_device_object, connect_channel);
+  object_to_text(onex_device_object,send_buff,SEND_BUFF_SIZE,OBJECT_TO_TEXT_NETWORK);
+  send(send_buff, connect_channel);
 }
 
-bool recv_observe(char* text){
+bool recv_observe(char* text, char* channel){
 
   char* u=text;
 
@@ -123,6 +140,7 @@ bool recv_observe(char* text){
     // log_write("reject own OBS: %s\n", dev);
     return false;
   }
+  set_channel_of_device(dev, channel);
 
   bool ok = onn_recv_observe(uid,dev);
 
@@ -133,7 +151,7 @@ bool recv_observe(char* text){
   return ok;
 }
 
-bool recv_object(char* text){
+bool recv_object(char* text, char* channel){
   object* n=object_from_text(text, MAX_OBJECT_SIZE);
   if(!n) return false;
   char* dev = object_property(n, "Devices");
@@ -142,6 +160,8 @@ bool recv_object(char* text){
     // log_write("reject own UID: %s\n", dev);
     return false;
   }
+  set_channel_of_device(dev, channel);
+
   bool ok = onn_recv_object(n);
 
   return ok;
@@ -151,20 +171,16 @@ static void handle_recv(uint16_t size, char* channel) {
   if(recv_buff[size-1]<=' ') recv_buff[size-1]=0;
   else                       recv_buff[size  ]=0;
   bool ok=false;
-  if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) ok=recv_observe(recv_buff);
-  if(size>=5 && !strncmp(recv_buff,"UID: ",5)) ok=recv_object(recv_buff);
+  if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) ok=recv_observe(recv_buff, channel);
+  if(size>=5 && !strncmp(recv_buff,"UID: ",5)) ok=recv_object( recv_buff, channel);
   if(ok) log_recv(recv_buff, size, channel);
 }
 #endif
 
-static char* devices_to_channel(char* devices){
-  return "ipv6-ff12::1234"; // "radio"; // "serial"; //"all-channels";
-}
-
 void onp_send_observe(char* uid, char* devices) {
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
   sprintf(send_buff,"OBS: %s Devices: %s", uid, object_property(onex_device_object, "UID"));
-  send(send_buff, devices_to_channel(devices));
+  send(send_buff, channel_of_device(devices));
 #endif
 }
 
@@ -172,29 +188,29 @@ void onp_send_object(object* o, char* devices) {
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
   if(object_is_remote(o)) return; // log_write("======>forwarding remote object %s\n", object_property(o, "UID"));
   object_to_text(o,send_buff,SEND_BUFF_SIZE,OBJECT_TO_TEXT_NETWORK);
-  send(send_buff, devices_to_channel(devices));
+  send(send_buff, channel_of_device(devices));
 #endif
 }
 
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
 void send(char* buff, char* channel){
 #ifdef ONP_CHANNEL_SERIAL
-  if(!strcmp(channel, "serial") || !strcmp(channel, "all-channels")){
+  if(!strcmp(channel, "serial") || !strcmp(channel, "all")){
     uint16_t size = channel_serial_send(buff, strlen(buff));
-    log_sent(buff,size,channel);
+    log_sent(buff,size,"serial");
   }
 #endif
 #ifdef ONP_CHANNEL_RADIO
-  if(!strcmp(channel, "radio") || !strcmp(channel, "all-channels")){
+  if(!strcmp(channel, "radio") || !strcmp(channel, "all")){
     uint16_t size = channel_radio_send(buff, strlen(buff));
-    log_sent(buff,size,channel);
+    log_sent(buff,size,"radio");
   }
 #endif
 #ifdef ONP_CHANNEL_IPV6
-  if(!strncmp(channel, "ipv6-", 5) || !strcmp(channel, "all-channels")){
-    char* group = channel + 5;
+  if(!strncmp(channel, "ipv6-", 5) || !strcmp(channel, "all")){
+    char* group = strcmp(channel, "all")? channel + 5: "all";
     uint16_t size = channel_ipv6_send(group, buff, strlen(buff));
-    log_sent(buff,size,channel);
+    log_sent(buff,size,strcmp(channel, "all")? channel: "ipv6-all");
   }
 #endif
 }

@@ -75,6 +75,13 @@ bool list_ins(list* li, uint16_t index, void* val){
   return true;
 }
 
+/** Insert s as value at front if it's not already there. Returns true if so. */
+bool list_ins_setwise(list* li, char* v){
+  if(!li) return false;
+  if(list_has_value(li,v)) return false;
+  return list_ins(li,0,value_new(v));
+}
+
 bool list_set_n(list* li, uint16_t index, void* val)
 {
   if(!li) return false;
@@ -107,6 +114,15 @@ uint16_t list_size(list* li)
 {
   if(!li) return 0;
   return li->size;
+}
+
+/** Return index if list has v as a value. */
+uint16_t list_has_value(list* li, char* v){
+  if(!li) return 0;
+  for(uint16_t j=0; j<li->size; j++){
+    if(value_is(li->vals[j], v)) return j+1;
+  }
+  return 0;
 }
 
 uint16_t list_find(list* li, item* it)

@@ -1,6 +1,7 @@
 
 #include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
+#include <onex-kernel/random.h>
 #include <onn.h>
 #include <tests.h>
 
@@ -19,6 +20,7 @@ int main(int argc, char *argv[]){
 
   log_init();
   time_init();
+  random_init();
 
 // [ UID: uid-l  is: light  light: off  button: uid-b ]
 //                 | IPv6 |

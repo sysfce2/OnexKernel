@@ -221,16 +221,29 @@ size_t ipv6_vprintf(char* group, const char* fmt, va_list args){
   return ipv6_write(group, print_buf, r)? r: 0;
 }
 
-bool ipv6_write(char* group, char* buf, uint16_t len){
-  if(!buf || len > 2048) return false;
-  sock_addr* gi = (sock_addr*)properties_get(group_to_sock_addr, group);
-  if(!gi){ log_write("no sock/addr for %s\n", group); return false; }
+static bool ipv6_write_gi(sock_addr* gi, char* buf, uint16_t len){
   const struct sockaddr_in6 mc_addr=gi->mc_addr;
   if(sendto(gi->sock, buf, len, 0, (const struct sockaddr*)&mc_addr, sizeof(mc_addr)) >= 0) {
     return true;
   }
   perror("sendto failed");
   return false;
+}
+
+bool ipv6_write(char* group, char* buf, uint16_t len){
+  if(!buf || len > 2048) return false;
+
+  sock_addr* gi = (sock_addr*)properties_get(group_to_sock_addr, group);
+  if(gi) return ipv6_write_gi(gi, buf, len);
+
+  // given group not found, so just do the lot...
+  bool ok = false;
+  for(int i=1; i<=properties_size(group_to_sock_addr); i++){
+    char* gp = properties_key_n(group_to_sock_addr,i);
+    sock_addr* gi = (sock_addr*)properties_get(group_to_sock_addr, gp);
+    ok = ok || ipv6_write_gi(gi, buf, len);
+  }
+  return ok;
 }
 
 //  close(sock);
