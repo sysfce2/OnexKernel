@@ -224,16 +224,16 @@ void onp_send_object(object* o, char* devices) {
 
 void send(char* buff, char* channel){
   // REVISIT: should be OK in serial, radio, ipv6 order, but isn't
-  if(onp_channel_radio){
-    if(!strcmp(channel, "radio") || !strcmp(channel, "all")){
-      uint16_t size = channel_radio_send(buff, strlen(buff));
-      log_sent(buff,size,"radio");
-    }
-  }
   if(onp_channel_serial){
     if(!strcmp(channel, "serial") || !strcmp(channel, "all")){
       uint16_t size = channel_serial_send(buff, strlen(buff));
       log_sent(buff,size,"serial");
+    }
+  }
+  if(onp_channel_radio){
+    if(!strcmp(channel, "radio") || !strcmp(channel, "all")){
+      uint16_t size = channel_radio_send(buff, strlen(buff));
+      log_sent(buff,size,"radio");
     }
   }
   if(onp_channel_ipv6){
