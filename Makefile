@@ -213,7 +213,7 @@ X86_FLAGS=-ggdb3 -O2
 XCB_CC_SYMBOLS = -D$(TARGET) $(CHANNELS) -DVK_USE_PLATFORM_XCB_KHR
 DRM_CC_SYMBOLS = -D$(TARGET) $(CHANNELS) -DVK_USE_PLATFORM_DISPLAY_KHR
 
-CC_FLAGS = -std=gnu17 -Wall -Werror -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -fno-strict-aliasing -fno-builtin-memcmp -Wimplicit-fallthrough=0 -fvisibility=hidden -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-result -Wno-switch
+CC_FLAGS = -std=gnu17 -Wall -Werror -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -fno-strict-aliasing -fno-builtin-memcmp -Wimplicit-fallthrough=0 -fvisibility=hidden -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-result -Wno-switch -Wno-incompatible-pointer-types
 # -Wno-incompatible-pointer-types
 
 
@@ -259,7 +259,7 @@ copy:
 clean:
 	find src tests -name '*.o' -o -name '*.d' | xargs -r rm
 	rm -f core*
-	rm -rf test-ok test-pcr* *.db light*/*.db button*/*.db *.xcb *.drm ok
+	rm -rf test-ok test-pcr* *.db pcr/*.db light*/*.db button*/*.db *.xcb *.drm ok
 	rm -rf ${TARGETS} tests/ont-examples/vulkan/*.{inc,spv,vert.c,frag.c}
 	find . -name onex.ondb | xargs -r rm
 	@echo "------------------------------"

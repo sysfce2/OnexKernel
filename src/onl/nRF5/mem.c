@@ -10,8 +10,7 @@ static bool initialized=false;
 
 static char* top_alloc=0;
 
-void* Mem_alloc(char* func, int line, size_t n)
-{
+void* Mem_alloc(char* func, int line, size_t n) {
   if(!n) return 0;
   if(!initialized){ initialized=true; nrf_mem_init(); }
   void* p=nrf_calloc(1,n);
@@ -31,8 +30,8 @@ void* Mem_alloc(char* func, int line, size_t n)
   return p;
 }
 
-void Mem_free(char* func, int line, void* p)
-{
+void Mem_free(char* func, int line, void* p) {
+  if(!p) return;
   if(!initialized){ initialized=true; nrf_mem_init(); }
   if(LOG_MEM) log_write("mem_free    %p %lu %s:%d\n", p, (size_t)0, func, line);
   if(nrf_free(p)){
@@ -41,8 +40,7 @@ void Mem_free(char* func, int line, void* p)
   }
 }
 
-char* Mem_strdup(char* func, int line, const char* s)
-{
+char* Mem_strdup(char* func, int line, const char* s) {
   if(!s) return 0;
   if(!initialized){ initialized=true; nrf_mem_init(); }
   size_t n=strlen(s)+1;
@@ -65,8 +63,7 @@ char* Mem_strdup(char* func, int line, const char* s)
   return p;
 }
 
-void Mem_freestr(char* func, int line, char* p)
-{
+void Mem_freestr(char* func, int line, char* p) {
   if(!p) return;
   if(!initialized){ initialized=true; nrf_mem_init(); }
   size_t n=strlen(p)+1;
@@ -78,8 +75,7 @@ void Mem_freestr(char* func, int line, char* p)
   }
 }
 
-void mem_strncpy(char* dst, const char* src, size_t count)
-{
+void mem_strncpy(char* dst, const char* src, size_t count) {
   if(count < 1) return;
   strncpy(dst, src, count);
   dst[count-1] = 0;
