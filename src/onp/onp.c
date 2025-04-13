@@ -39,14 +39,12 @@ static list* groups=0;
 static properties* device_to_channel = 0;
 
 static void set_channel_of_device(char* device, char* channel){
-  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("set_channel_of_device(%s, %s)\n", device, channel);
   properties_ins_setwise(device_to_channel, device, channel);
   if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) properties_log(device_to_channel);
 }
 
 // REVISIT device<s>?? channel<s>? do each channel not #1!
 static char* channel_of_device(char* devices){
-  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("channel_of_device(%s)\n", devices);
   list* channels = (list*)properties_get(device_to_channel, devices);
   char* channel = value_string(list_get_n(channels, 1));
   return channel? channel: "all";

@@ -116,7 +116,6 @@ $(COMMON_DEFINES_FEATHER_SENSE) \
 -DONP_CHANNEL_SERIAL \
 -DONP_CHANNEL_RADIO \
 -DONP_DEBUG \
-# above are baked in but need to be runtime options!
 
 
 COMPILER_DEFINES_DONGLE = \
@@ -125,7 +124,6 @@ $(COMMON_DEFINES_DONGLE) \
 -DONP_CHANNEL_SERIAL \
 -DONP_CHANNEL_RADIO \
 -DONP_DEBUG \
-# above are baked in but need to be runtime options!
 
 
 INCLUDES_MAGIC3 = \
