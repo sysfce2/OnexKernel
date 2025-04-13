@@ -10,6 +10,8 @@
 #include "onn.h"
 #include "onp.h"
 
+#define VERBOSE_ONP_LOGGING_REMOVE_ME_LATER true
+
 #ifdef ONP_CHANNEL_SERIAL
 #include <channel-serial.h>
 #endif
@@ -37,10 +39,13 @@ static list* groups=0;
 static properties* device_to_channel = 0;
 
 static void set_channel_of_device(char* device, char* channel){
+  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("set_channel_of_device(%s, %s)\n", device, channel);
   properties_ins_setwise(device_to_channel, device, channel);
+  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) properties_log(device_to_channel);
 }
 
 static char* channel_of_device(char* devices){
+  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("channel_of_device(%s)\n", devices);
   list* channels = (list*)properties_get(device_to_channel, devices);
   char* channel = value_string(list_get_n(channels, 1));
   return channel? channel: "all";
@@ -112,10 +117,12 @@ void on_connect(char* channel) {
   mem_freestr(connect_channel);
   connect_channel = mem_strdup(channel);
   connect_time = time_ms()+1800;
+  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("on_connect(%s) @ %ld\n", connect_channel, connect_time);
 }
 
 void do_connect() {
   if(!connect_time || time_ms() < connect_time ) return;
+  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("do_connect(%s) @ %ld\n", connect_channel, connect_time);
   connect_time=0;
   object_to_text(onex_device_object,send_buff,SEND_BUFF_SIZE,OBJECT_TO_TEXT_NETWORK);
   send(send_buff, connect_channel);
