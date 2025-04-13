@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <onex-kernel/mem.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 
@@ -108,8 +109,8 @@ bool onp_loop() {
 // TODO: use proper time-delay
 // TODO: one per channel not one for all
 void on_connect(char* channel) {
-  if(connect_channel) free(connect_channel);
-  connect_channel = strdup(channel);
+  mem_freestr(connect_channel);
+  connect_channel = mem_strdup(channel);
   connect_time = time_ms()+1800;
 }
 
@@ -137,27 +138,27 @@ void recv_observe(uint16_t size, char* channel){
   if(!*u) return;
   *u=0;
   if(!strlen(uid)) return;
-  uid=strdup(uid);
+  uid=mem_strdup(uid);
   *u=' ';
   u++;
 
   char* dvp=u;
   while(*u > ' ') u++;
-  if(!*u){ free(uid); return; }
+  if(!*u){ mem_freestr(uid); return; }
   *u=0;
-  if(strcmp(dvp, "Devices:")){ free(uid); return; }
+  if(strcmp(dvp, "Devices:")){ mem_freestr(uid); return; }
   *u=' ';
   u++;
 
   char* dev=u;
   while(*u > ' ') u++;
   *u=0;
-  if(!strlen(dev)){ free(uid); return; }
-  dev=strdup(dev);
+  if(!strlen(dev)){ mem_freestr(uid); return; }
+  dev=mem_strdup(dev);
 
   if(!strcmp(object_property(onex_device_object, "UID"), dev)){
     // log_write("reject own OBS: %s\n", dev);
-    free(uid); free(dev);
+    mem_freestr(uid); mem_freestr(dev);
     return;
   }
   log_recv(recv_buff, size, channel);
@@ -166,7 +167,7 @@ void recv_observe(uint16_t size, char* channel){
 
   onn_recv_observe(uid,dev);
 
-  free(uid); free(dev);
+  mem_freestr(uid); mem_freestr(dev);
 }
 
 void recv_object(uint16_t size, char* channel){
