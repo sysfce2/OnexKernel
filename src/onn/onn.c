@@ -18,7 +18,7 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/random.h>
 #include <onex-kernel/time.h>
-#if defined(HAS_SERIAL)
+#if defined(LOG_TO_SERIAL) || defined(ONP_CHANNEL_SERIAL)
 #include <onex-kernel/serial.h>
 #endif
 #include <items.h>
@@ -1285,7 +1285,7 @@ bool onex_loop()
 {
   bool ska=false, lka=false, pka=false, oka=false, eka=false;
 #if defined(NRF5)
-#if defined(HAS_SERIAL)
+#if defined(LOG_TO_SERIAL) || defined(ONP_CHANNEL_SERIAL)
   ska = serial_loop();
 #endif
   lka = log_loop();

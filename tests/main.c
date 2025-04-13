@@ -25,7 +25,7 @@
 #include <onex-kernel/motion.h>
 #endif
 
-#if defined(HAS_SERIAL)
+#if defined(LOG_TO_SERIAL) || defined(ONP_CHANNEL_SERIAL)
 #include <onex-kernel/serial.h>
 #endif
 
@@ -298,7 +298,7 @@ int main(void) {
   random_init();
 #if defined(NRF5)
   gpio_init();
-#if defined(HAS_SERIAL) // board dongle or dk?
+#if defined(LOG_TO_SERIAL) || defined(ONP_CHANNEL_SERIAL)
   serial_init((serial_recv_cb)on_recv,0);
   set_up_gpio();
   time_ticker((void (*)())serial_loop, 1);
@@ -430,7 +430,7 @@ int main(void) {
     gfx_pos(10, 70);
     gfx_text(buf);
   }
-#endif // HAS_SERIAL
+#endif
 #else // NRF5
   on_recv((unsigned char*)"t", 1);
   run_tests_maybe();
