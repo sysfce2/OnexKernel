@@ -357,6 +357,7 @@ static char* object_property_observe(object* n, char* path, bool observe)
   if(!strcmp(path, "UID"))     return value_string(n->uid);
   if(!strcmp(path, "Timer"))   return value_string(n->timer);
   if(!strcmp(path, "Devices")) return value_string(list_get_n(n->devices, 1));
+                     // REVISIT Device<s> but only returns the first!!
 
   item* i=property_item(n,path,n,observe);
   if(i && i->type==ITEM_VALUE) return value_string((value*)i);

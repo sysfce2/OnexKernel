@@ -44,6 +44,7 @@ static void set_channel_of_device(char* device, char* channel){
   if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) properties_log(device_to_channel);
 }
 
+// REVISIT device<s>?? channel<s>? do each channel not #1!
 static char* channel_of_device(char* devices){
   if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("channel_of_device(%s)\n", devices);
   list* channels = (list*)properties_get(device_to_channel, devices);
@@ -111,8 +112,8 @@ bool onp_loop() {
 
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
 
-// TODO: use proper time-delay
-// TODO: one per channel not one for all
+// REVISIT: use proper time-delay
+// REVISIT: one per channel not one for all - second wipes out other
 void on_connect(char* channel) {
   mem_freestr(connect_channel);
   connect_channel = mem_strdup(channel);
@@ -120,6 +121,8 @@ void on_connect(char* channel) {
   if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("on_connect(%s) @ %ld\n", connect_channel, connect_time);
 }
 
+// REVISIT: test is: run button after light on 1234, 4321 only has device
+// REVISIT: also, light's observe of button needs to be triggered by that
 void do_connect() {
   if(!connect_time || time_ms() < connect_time ) return;
   if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("do_connect(%s) @ %ld\n", connect_channel, connect_time);
@@ -177,6 +180,8 @@ void recv_observe(uint16_t size, char* channel){
   mem_freestr(uid); mem_freestr(dev);
 }
 
+// REVISIT Device<s> above and below!?
+
 void recv_object(uint16_t size, char* channel){
 
   object* n=object_from_text(recv_buff, MAX_OBJECT_SIZE);
@@ -208,6 +213,8 @@ void onp_send_observe(char* uid, char* devices) {
   send(send_buff, channel_of_device(devices));
 #endif
 }
+
+// REVISIT device<s>?? and send for each channel in above and below
 
 void onp_send_object(object* o, char* devices) {
 #if defined(ONP_CHANNEL_SERIAL) || defined(ONP_CHANNEL_RADIO) || defined(ONP_CHANNEL_IPV6)
