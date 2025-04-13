@@ -18,9 +18,7 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/random.h>
 #include <onex-kernel/time.h>
-#if defined(LOG_TO_SERIAL) || defined(ONP_CHANNEL_SERIAL)
 #include <onex-kernel/serial.h>
-#endif
 #include <items.h>
 
 #include "persistence.h"
@@ -1266,29 +1264,19 @@ void object_log(object* o)
 
 // -----------------------------------------------------------------------
 
-void onex_init(char* dbpath) {
+void onex_init(char* dbpath, list* channels, list* ipv6_groups) {
   timer_init();
   random_init();
   persist_init(dbpath);
   device_init();
-  onp_init(0);
-}
-
-void onex_init_ipv6(char* dbpath, list* groups) {
-  timer_init();
-  random_init();
-  persist_init(dbpath);
-  device_init();
-  onp_init(groups);
+  onp_init(channels, ipv6_groups);
 }
 
 bool onex_loop()
 {
   bool ska=false, lka=false, pka=false, oka=false, eka=false;
 #if defined(NRF5)
-#if defined(LOG_TO_SERIAL) || defined(ONP_CHANNEL_SERIAL)
   ska = serial_loop();
-#endif
   lka = log_loop();
 #endif
   pka = persist_loop();

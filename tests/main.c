@@ -25,7 +25,7 @@
 #include <onex-kernel/motion.h>
 #endif
 
-#if defined(LOG_TO_SERIAL) || defined(ONP_CHANNEL_SERIAL)
+#if defined(LOG_TO_SERIAL)
 #include <onex-kernel/serial.h>
 #endif
 
@@ -298,7 +298,7 @@ int main(void) {
   random_init();
 #if defined(NRF5)
   gpio_init();
-#if defined(LOG_TO_SERIAL) || defined(ONP_CHANNEL_SERIAL)
+#if defined(LOG_TO_SERIAL)
   serial_init((serial_recv_cb)on_recv,0);
   set_up_gpio();
   time_ticker((void (*)())serial_loop, 1);

@@ -91,39 +91,26 @@ $(COMMON_DEFINES_DONGLE) \
 
 COMPILER_DEFINES_MAGIC3 = \
 $(COMMON_DEFINES_MAGIC3) \
--DONP_CHANNEL_RADIO \
 
 
 COMPILER_DEFINES_ADAFRUIT_DONGLE = \
 $(COMMON_DEFINES_ADAFRUIT_DONGLE) \
 -DLOG_TO_SERIAL \
--DONP_CHANNEL_SERIAL \
--DONP_CHANNEL_RADIO \
--DONP_DEBUG \
 
 
 COMPILER_DEFINES_ITSYBITSY = \
 $(COMMON_DEFINES_ITSYBITSY) \
 -DLOG_TO_SERIAL \
--DONP_CHANNEL_SERIAL \
--DONP_CHANNEL_RADIO \
--DONP_DEBUG \
 
 
 COMPILER_DEFINES_FEATHER_SENSE = \
 $(COMMON_DEFINES_FEATHER_SENSE) \
 -DLOG_TO_SERIAL \
--DONP_CHANNEL_SERIAL \
--DONP_CHANNEL_RADIO \
--DONP_DEBUG \
 
 
 COMPILER_DEFINES_DONGLE = \
 $(COMMON_DEFINES_DONGLE) \
 -DLOG_TO_SERIAL \
--DONP_CHANNEL_SERIAL \
--DONP_CHANNEL_RADIO \
--DONP_DEBUG \
 
 
 INCLUDES_MAGIC3 = \
@@ -203,8 +190,12 @@ NRF5_SOURCES = \
 ./src/onl/nRF5/log.c \
 ./src/onl/nRF5/mem.c \
 ./src/onl/nRF5/persistence.c \
+./src/onl/nRF5/serial.c \
 ./src/onl/nRF5/radio.c \
+./src/onl/nRF5/ipv6.c \
+./src/onl/nRF5/channel-serial.c \
 ./src/onl/nRF5/channel-radio.c \
+./src/onl/nRF5/channel-ipv6.c \
 
 
 MAGIC3_SOURCES = \
@@ -218,29 +209,26 @@ MAGIC3_SOURCES = \
 $(NRF5_SOURCES) \
 
 
+ADAFRUIT_TFT_SOURCES = \
+./src/onl/drivers/tft.c \
+./src/onl/drivers/adafruit_tft28.c \
+
+
 ADAFRUIT_DONGLE_SOURCES = \
-./src/onl/nRF5/serial.c \
-./src/onl/nRF5/channel-serial.c \
 $(NRF5_SOURCES) \
 
 
 ITSYBITSY_SOURCES = \
-./src/onl/nRF5/serial.c \
-./src/onl/nRF5/channel-serial.c \
 $(NRF5_SOURCES) \
 
 
 FEATHER_SENSE_SOURCES = \
 ./src/onl/nRF5/spi.c \
-./src/onl/nRF5/serial.c \
-./src/onl/nRF5/channel-serial.c \
 ./src/onl/drivers/feather-dotstar.c \
 $(NRF5_SOURCES) \
 
 
 DONGLE_SOURCES = \
-./src/onl/nRF5/serial.c \
-./src/onl/nRF5/channel-serial.c \
 $(NRF5_SOURCES) \
 
 #-------------------------------------------------------------------------------
@@ -546,12 +534,6 @@ SDK_C_SOURCES = \
 ./sdk/modules/nrfx/drivers/src/prs/nrfx_prs.c \
 ./sdk/modules/nrfx/soc/nrfx_atomic.c \
 
-
-#-------------------------------------------------------------------------------
-
-TFT_OBJECTS = \
-./src/onl/drivers/tft.c \
-./src/onl/drivers/adafruit_tft28.c \
 
 #-------------------------------------------------------------------------------
 # Targets

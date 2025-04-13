@@ -783,7 +783,7 @@ void run_onn_tests(char* dbpath)
 {
   log_write("\n----------ONN tests-----------\n");
 
-  onex_init(dbpath);
+  onex_init(dbpath, 0, 0);
 
   test_object_set_up();
 

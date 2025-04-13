@@ -37,8 +37,10 @@ ONL_UNIX_SOURCES = \
 ./src/onl/unix/random.c \
 ./src/onl/unix/persistence.c \
 ./src/onl/unix/serial.c \
+./src/onl/unix/radio.c \
 ./src/onl/unix/ipv6.c \
 ./src/onl/unix/channel-serial.c \
+./src/onl/unix/channel-radio.c \
 ./src/onl/unix/channel-ipv6.c \
 
 
@@ -118,7 +120,6 @@ libonex-kernel-xcb.a: CC=/usr/bin/gcc
 libonex-kernel-xcb.a: LD=/usr/bin/gcc
 libonex-kernel-xcb.a: AR=/usr/bin/ar
 libonex-kernel-xcb.a: TARGET=TARGET_X86
-libonex-kernel-xcb.a: CHANNELS=-DONP_CHANNEL_SERIAL -DONP_CHANNEL_IPV6 -DONP_DEBUG
 libonex-kernel-xcb.a: $(LIBONEX_XCB_SOURCES:.c=.o)
 	$(AR) rcs $@ $^
 
@@ -127,7 +128,6 @@ libonex-kernel-drm.a: CC=/usr/bin/gcc
 libonex-kernel-drm.a: LD=/usr/bin/gcc
 libonex-kernel-drm.a: AR=/usr/bin/ar
 libonex-kernel-drm.a: TARGET=TARGET_X86
-libonex-kernel-drm.a: CHANNELS=-DONP_CHANNEL_SERIAL -DONP_CHANNEL_IPV6 -DONP_DEBUG
 libonex-kernel-drm.a: $(LIBONEX_DRM_SOURCES:.c=.o)
 	$(AR) rcs $@ $^
 
@@ -137,7 +137,6 @@ test-ok: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(XCB_CC_SYMBOLS) $(INCLUDES)
 test-ok: CC=/usr/bin/gcc
 test-ok: LD=/usr/bin/gcc
 test-ok: TARGET=TARGET_X86
-test-ok: CHANNELS=-DONP_CHANNEL_SERIAL -DONP_CHANNEL_IPV6
 test-ok: libonex-kernel-xcb.a $(TESTS_SOURCES:.c=.o)
 	$(LD) $(TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-xcb -o $@
 
@@ -153,7 +152,6 @@ test-pcr-button: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(XCB_CC_SYMBOLS) $(INCLU
 test-pcr-button: CC=/usr/bin/gcc
 test-pcr-button: LD=/usr/bin/gcc
 test-pcr-button: TARGET=TARGET_X86
-test-pcr-button: CHANNELS=-DONP_CHANNEL_SERIAL -DONP_CHANNEL_IPV6
 test-pcr-button: libonex-kernel-xcb.a $(PCR_BUTTON_TESTS_SOURCES:.c=.o)
 	$(LD) $(PCR_BUTTON_TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-xcb -o $@
 
@@ -161,7 +159,6 @@ test-pcr: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(XCB_CC_SYMBOLS) $(INCLUDES)
 test-pcr: CC=/usr/bin/gcc
 test-pcr: LD=/usr/bin/gcc
 test-pcr: TARGET=TARGET_X86
-test-pcr: CHANNELS=-DONP_CHANNEL_SERIAL -DONP_CHANNEL_IPV6
 test-pcr: libonex-kernel-xcb.a $(PCR_TESTS_SOURCES:.c=.o)
 	$(LD) $(PCR_TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-xcb -o $@
 
@@ -169,7 +166,6 @@ test-pcr-light: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(XCB_CC_SYMBOLS) $(INCLUD
 test-pcr-light: CC=/usr/bin/gcc
 test-pcr-light: LD=/usr/bin/gcc
 test-pcr-light: TARGET=TARGET_X86
-test-pcr-light: CHANNELS=-DONP_CHANNEL_SERIAL -DONP_CHANNEL_IPV6
 test-pcr-light: libonex-kernel-xcb.a $(PCR_LIGHT_TESTS_SOURCES:.c=.o)
 	$(LD) $(PCR_LIGHT_TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-xcb -o $@
 

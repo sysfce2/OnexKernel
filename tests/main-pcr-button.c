@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
     log_write("Usage: %s <mcast group: ff12::1234 / ff12::4321>\n", argv[0]);
     return -1;
   }
-  onex_init_ipv6("button.db", list_new_from(argv[1], 1));
+  onex_init("button.db", list_new_from("ipv6", 1), list_new_from(argv[1], 1));
 
   log_write("\n------Starting Button Test Server-----\n");
 
