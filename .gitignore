@@ -12,7 +12,7 @@
 *.drm
 ,*
 .*.sw*
-*.db
+*.ondb
 test-ok
 test-pcr*
 .vimfiles

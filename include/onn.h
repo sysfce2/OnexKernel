@@ -176,8 +176,15 @@ void object_free(object* n);
 /** the device object for this device. */
 extern object* onex_device_object;
 
-/** set things up. */
-void onex_init(char* dbpath, list* channels, list* ipv6_groups);
+/** set things up. example config:
+               {
+                 dbpath: ./my.ondb
+                 channels: serial ipv6
+                 ipv6_groups: ff12::1234 ff12::4321
+                 flags: log-to-serial|log-to-gfx
+               }
+ */
+void onex_init(properties* config);
 
 /** call when you want your evaluator run
     can be used to set some state within a transaction etc with given data arg

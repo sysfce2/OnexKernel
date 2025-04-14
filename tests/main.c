@@ -257,7 +257,7 @@ void run_tests_maybe() {
   run_value_tests();
   run_list_tests();
   run_properties_tests();
-  run_onn_tests("Onex/onex.ondb");
+  run_onn_tests("tests.ondb");
 
 #if defined(NRF5)
   int failures=onex_assert_summary();

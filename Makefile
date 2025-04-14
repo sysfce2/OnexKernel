@@ -255,9 +255,9 @@ copy:
 clean:
 	find src tests -name '*.o' -o -name '*.d' | xargs -r rm
 	rm -f core*
-	rm -rf test-ok test-pcr* *.db pcr/*.db light*/*.db button*/*.db *.xcb *.drm ok
+	rm -rf test-ok test-pcr* *.xcb *.drm ok
 	rm -rf ${TARGETS} tests/ont-examples/vulkan/*.{inc,spv,vert.c,frag.c}
-	find . -name onex.ondb | xargs -r rm
+	find . -name '*.ondb' | xargs -r rm
 	@echo "------------------------------"
 	@echo "files not cleaned:"
 	@git ls-files --others --exclude-from=.git/info/exclude | xargs -r ls -Fla

@@ -50,10 +50,10 @@ static bool forward = false;
 
 #define MAX_PEERS 32
 
-void onp_init(list* channels_, list* ipv6_groups_) {
+void onp_init(properties* config) {
 
-  channels    = channels_;
-  ipv6_groups = ipv6_groups_;
+  channels    = properties_get(config, "channels");
+  ipv6_groups = properties_get(config, "ipv6_groups");
 
   onp_channel_serial = list_has_value(channels,"serial");
   onp_channel_radio  = list_has_value(channels,"radio");

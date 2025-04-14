@@ -30,7 +30,11 @@ int main(int argc, char *argv[]){
     log_write("Usage: %s <mcast group: ff12::1234 / ff12::4321>\n", argv[0]);
     return -1;
   }
-  onex_init("light.db", list_new_from("ipv6", 1), list_new_from(argv[1], 1));
+  properties* config = properties_new(32);
+  properties_set(config, "dbpath", value_new("light.ondb"));
+  properties_set(config, "channels", list_new_from("ipv6", 1));
+  properties_set(config, "ipv6_groups", list_new_from(argv[1], 1));
+  onex_init(config);
 
   log_write("\n------Starting Light Test Server-----\n");
 

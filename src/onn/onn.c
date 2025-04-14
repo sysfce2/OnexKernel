@@ -1264,12 +1264,15 @@ void object_log(object* o)
 
 // -----------------------------------------------------------------------
 
-void onex_init(char* dbpath, list* channels, list* ipv6_groups) {
+void onex_init(properties* config) {
+
+  char* dbpath=value_string(properties_get(config, "dbpath"));
+
   timer_init();
   random_init();
   persist_init(dbpath);
   device_init();
-  onp_init(channels, ipv6_groups);
+  onp_init(config);
 }
 
 bool onex_loop()

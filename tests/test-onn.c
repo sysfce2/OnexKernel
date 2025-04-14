@@ -783,7 +783,9 @@ void run_onn_tests(char* dbpath)
 {
   log_write("\n----------ONN tests-----------\n");
 
-  onex_init(dbpath, 0, 0);
+  properties* config = properties_new(32);
+  properties_set(config, "dbpath", value_new(dbpath));
+  onex_init(config);
 
   test_object_set_up();
 
@@ -873,6 +875,8 @@ void run_onn_tests(char* dbpath)
   onex_loop();
 
   onex_assert_equal_num(evaluate_timer_n4_called, 2, "evaluate_timer_n4 was called again, after 180");
+
+  properties_free(config, true);
 }
 
 // ---------------------------------------------------------------------------------
