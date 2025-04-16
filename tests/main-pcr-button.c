@@ -19,10 +19,6 @@ bool evaluate_button(object* button, void* pressed) {
 
 int main(int argc, char *argv[]) {
 
-  log_init();
-  time_init();
-  random_init();
-
   if(argc<=1){
     log_write("Usage: %s <mcast group: ff12::1234 / ff12::4321>\n", argv[0]);
     return -1;
@@ -31,6 +27,12 @@ int main(int argc, char *argv[]) {
   properties_set(config, "dbpath", value_new("button.ondb"));
   properties_set(config, "channels", list_new_from("ipv6", 1));
   properties_set(config, "ipv6_groups", list_new_from(argv[1], 1));
+  properties_set(config, "test-uid-prefix", value_new("button"));
+
+  log_init(config);
+  time_init();
+  random_init();
+
   onex_init(config);
 
   log_write("\n------Starting Button Test Server-----\n");
@@ -40,7 +42,7 @@ int main(int argc, char *argv[]) {
   object_property_set(button, "state", "up");
   onex_run_evaluators("uid-b", 0);
 
-  time_ticker(every_tick, 8000);
+  time_ticker(every_tick, 2000);
 
   while(1){
     if(!onex_loop()){

@@ -18,14 +18,6 @@ bool evaluate_light(object* light, void* d) {
 
 int main(int argc, char *argv[]){
 
-  log_init();
-  time_init();
-  random_init();
-
-// [ UID: uid-l  is: light  light: off  button: uid-b ]
-//                 | IPv6 |
-// [ UID: uid-b  is: button  state: up ]
-
   if(argc<=1){
     log_write("Usage: %s <mcast group: ff12::1234 / ff12::4321>\n", argv[0]);
     return -1;
@@ -34,6 +26,16 @@ int main(int argc, char *argv[]){
   properties_set(config, "dbpath", value_new("light.ondb"));
   properties_set(config, "channels", list_new_from("ipv6", 1));
   properties_set(config, "ipv6_groups", list_new_from(argv[1], 1));
+  properties_set(config, "test-uid-prefix", value_new("light"));
+
+  log_init(config);
+  time_init();
+  random_init();
+
+// [ UID: uid-l  is: light  light: off  button: uid-b ]
+//                 | IPv6 |
+// [ UID: uid-b  is: button  state: up ]
+
   onex_init(config);
 
   log_write("\n------Starting Light Test Server-----\n");

@@ -12,11 +12,8 @@
 #include "app_usbd_cdc_acm.h"
 #include "app_usbd_serial_num.h"
 
-#if !defined(LOG_TO_SERIAL)
-#define BUFFER_LOG_ON
-#include <onex-kernel/log.h>
-#endif
 #include <onex-kernel/serial.h>
+#include <onex-kernel/log.h>
 
 #define BUFFER_CHUNK_SIZE NRFX_USBD_EPSIZE
 static volatile char buffer_chunk[BUFFER_CHUNK_SIZE];
@@ -160,20 +157,19 @@ static uint8_t buffer_do_write(size_t size)
 {
   ret_code_t e=app_usbd_cdc_acm_write(&m_app_cdc_acm, (char*)buffer_chunk, size);
 
-#if !defined(LOG_TO_SERIAL)
-  if(e==NRF_ERROR_BUSY){
-    log_write("busy\n");
+  if(!log_to_serial){
+    if(e==NRF_ERROR_BUSY){
+      log_write("busy\n");
+    }
+    else
+    if(e==NRF_ERROR_INVALID_STATE){
+      log_write("closed\n");
+    }
+    else
+    if(e!=NRF_SUCCESS){
+      log_write("%s\n", nrf_strerror_get(e));
+    }
   }
-  else
-  if(e==NRF_ERROR_INVALID_STATE){
-    log_write("closed\n");
-  }
-  else
-  if(e!=NRF_SUCCESS){
-    log_write("%s\n", nrf_strerror_get(e));
-  }
-#endif
-
   return e==NRF_SUCCESS? BUFFER_WRITE_DONE: BUFFER_WRITE_FAILED;
 }
 

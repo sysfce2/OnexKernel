@@ -246,23 +246,25 @@ void send(char* buff, char* channel){
 }
 
 void log_sent(char* buff, uint16_t size, char* channel) {
-#if defined(LOG_TO_GFX) // || defined(LOG_TO_SERIAL)
-  log_write("> %d\n", size);
-#else
-  log_write("ONP sent '%s'", buff);
-  if(channel) log_write(" to channel %s ", channel);
-  log_write(" (%d bytes)\n", size);
-#endif
+  if(log_to_gfx){
+    log_write("> %d\n", size);
+  }
+  else{
+    log_write("ONP sent '%s'", buff);
+    if(channel) log_write(" to channel %s ", channel);
+    log_write(" (%d bytes)\n", size);
+  }
 }
 
 void log_recv(char* buff, uint16_t size, char* channel) {
-#if defined(LOG_TO_GFX) // || defined(LOG_TO_SERIAL)
-  log_write("< %d\n", size);
-#else
-  log_write("ONP recv '%s'", buff);
-  if(channel) log_write(" from channel %s ", channel);
-  log_write(" (%d bytes)\n", size);
-#endif
+  if(log_to_gfx){
+    log_write("< %d\n", size);
+  }
+  else{
+    log_write("ONP recv '%s'", buff);
+    if(channel) log_write(" from channel %s ", channel);
+    log_write(" (%d bytes)\n", size);
+  }
 }
 
 // -----------------------------------------------------------------------

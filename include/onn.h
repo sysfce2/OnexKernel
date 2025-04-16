@@ -181,7 +181,6 @@ extern object* onex_device_object;
                  dbpath: ./my.ondb
                  channels: serial ipv6
                  ipv6_groups: ff12::1234 ff12::4321
-                 flags: log-to-serial|log-to-gfx
                }
  */
 void onex_init(properties* config);

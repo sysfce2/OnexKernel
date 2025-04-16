@@ -63,7 +63,7 @@ static void    persist_flush();
 static void    persist_pull_keep_active();
 
 static void    timer_init();
-static void    device_init();
+static void    device_init(char* prefix);
 
 // ---------------------------------
 
@@ -717,40 +717,46 @@ bool stop_timer(object* n)
 
 // ----------------------------------------------
 
-void device_init()
-{
+void device_init(char* prefix) {
   if(!onex_device_object){
-    onex_device_object=object_new(0, 0, "device", 8);
+    if(prefix){
+      char devuid[128]; snprintf(devuid, 128, "uid-%s-device", prefix);
+      onex_device_object=object_new(devuid, 0, "device", 8);
+    }else{
+      onex_device_object=object_new(0, 0, "device", 8);
+    }
     object_set_cache(onex_device_object, "keep-active");
   }
 }
 
 // ----------------------------------------------
 
-#if defined(LOG_TO_GFX)
-  #define NOT_IN_EVAL(o,action,act) \
-   /* char* uid=value_string(o->uid)+4+15; */ \
-   // log_write(act " %s|%s|%s", object_property(o, "is:1"), path, val /*, uid*/);
-#else
-  #define NOT_IN_EVAL(o,action,act) \
+#define NOT_IN_EVAL(o,action,act) \
+  if(!log_to_gfx){ \
     log_write("--------------------------\n" \
               action " property in an object but not running in an evaluator!\n" \
               "uid: %s is: %s %s: '%s'\n" \
               "--------------------------\n", \
-              value_string(o->uid), object_property(o, "is:1"), path, val? val: "");
-#endif
-
-#if defined(LOG_TO_GFX)
-  #define IN_EVAL(o) \
+              value_string(o->uid), object_property(o, "is:1"), path, val? val: ""); \
+  }
+/*
+  else { \
     char* uid=value_string(o->uid)+4+15; \
-    log_write("E %s", uid);
-#else
-  #define IN_EVAL(o) \
+    log_write(act " %s|%s|%s", object_property(o, "is:1"), path, val, uid); \
+  }
+*/
+
+#define IN_EVAL(o) \
+  if(!log_to_gfx){ \
     log_write("--------------------------\n" \
               "Already in evaluators! %s\n" \
               "--------------------------\n", \
-              value_string(o->uid));
-#endif
+              value_string(o->uid)); \
+  } \
+  else{ \
+    char* uid=value_string(o->uid)+4+15; \
+    log_write("E %s", uid); \
+  }
 
 // ----------------------------------------------
 
@@ -1267,11 +1273,12 @@ void object_log(object* o)
 void onex_init(properties* config) {
 
   char* dbpath=value_string(properties_get(config, "dbpath"));
+  char* prefix=value_string(properties_get(config, "test-uid-prefix"));
 
   timer_init();
   random_init();
   persist_init(dbpath);
-  device_init();
+  device_init(prefix);
   onp_init(config);
 }
 

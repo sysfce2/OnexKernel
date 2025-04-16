@@ -779,12 +779,10 @@ void test_timer()
 
 // ---------------------------------------------------------------------------------
 
-void run_onn_tests(char* dbpath)
-{
+void run_onn_tests(properties* config) {
+
   log_write("\n----------ONN tests-----------\n");
 
-  properties* config = properties_new(32);
-  properties_set(config, "dbpath", value_new(dbpath));
   onex_init(config);
 
   test_object_set_up();

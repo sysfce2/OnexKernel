@@ -8,7 +8,12 @@
 #include <nrf_log.h>
 #include <nrf_log_ctrl.h>
 #endif
+#include <items.h>
 #include <onex-kernel/time.h>
+
+extern bool log_to_serial;
+extern bool log_to_gfx;
+extern bool log_to_rtt;
 
 #define LOG_BINARY_FMT "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
 #define LOG_BINARY(x)         \
@@ -21,7 +26,7 @@
   (x & 0x00000080? '1': '0'), (x & 0x00000040? '1': '0'), (x & 0x00000020? '1': '0'), (x & 0x00000010? '1': '0'), \
   (x & 0x00000008? '1': '0'), (x & 0x00000004? '1': '0'), (x & 0x00000002? '1': '0'), (x & 0x00000001? '1': '0')
 
-void log_init();
+void log_init(properties* config);
 bool log_loop();
 #define log_write(...)     log_write_current_file_line(0,0, __VA_ARGS__)
 #define log_write_src(...) log_write_current_file_line(__FILE__, __LINE__, __VA_ARGS__)

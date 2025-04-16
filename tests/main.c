@@ -25,10 +25,7 @@
 #include <onex-kernel/motion.h>
 #endif
 
-#if defined(LOG_TO_SERIAL)
 #include <onex-kernel/serial.h>
-#endif
-
 #include <onex-kernel/gfx.h>
 #include <onex-kernel/touch.h>
 
@@ -45,7 +42,7 @@ static volatile int16_t run_tests= -1;
 extern void run_properties_tests();
 extern void run_list_tests();
 extern void run_value_tests();
-extern void run_onn_tests(char* dbpath);
+extern void run_onn_tests(properties* config);
 
 #if defined(NRF5)
 static volatile bool display_state_prev=!LEDS_ACTIVE_STATE;
@@ -177,14 +174,11 @@ void show_battery()
 
 #endif // watches
 
-#if !defined(BOARD_MAGIC3)
-void on_recv(unsigned char* chars, size_t size)
-{
+void on_recv(unsigned char* chars, size_t size) {
   if(!size) return;
   log_write(">%c<----------\n", chars[0]);
   if(chars[0]=='t') run_tests++;
 }
-#endif
 
 #if defined(BOARD_MAGIC3)
 
@@ -229,7 +223,7 @@ char* run_flash_tests(char* allids) {
 }
 #endif
 
-void run_tests_maybe() {
+void run_tests_maybe(properties* config) {
 
   if(run_tests) return;
   run_tests++;
@@ -257,7 +251,7 @@ void run_tests_maybe() {
   run_value_tests();
   run_list_tests();
   run_properties_tests();
-  run_onn_tests("tests.ondb");
+  run_onn_tests(config);
 
 #if defined(NRF5)
   int failures=onex_assert_summary();
@@ -275,9 +269,7 @@ void run_tests_maybe() {
 #endif
 }
 
-#if defined(LOG_TO_GFX)
 extern volatile char* event_log_buffer;
-#endif
 
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
 static char   radio_buf[256];
@@ -293,23 +285,35 @@ void radio_cb(int8_t rssi){
 
 int main(void) {
 
-  log_init();
+  properties* config = properties_new(32);
+#if !defined(NRF5)
+  properties_set(config, "dbpath", value_new("tests.ondb"));
+#else
+#if !defined(BOARD_MAGIC3)
+  properties_set(config, "flags", list_new_from("log-to-serial", 1));
+#else
+  properties_set(config, "flags", list_new_from("log-to-gfx", 1));
+#endif
+#endif
+  properties_set(config, "test-uid-prefix", value_new("tests"));
+
+  log_init(config);
   time_init();
   random_init();
 #if defined(NRF5)
   gpio_init();
-#if defined(LOG_TO_SERIAL)
+#if !defined(BOARD_MAGIC3)
   serial_init((serial_recv_cb)on_recv,0);
   set_up_gpio();
   time_ticker((void (*)())serial_loop, 1);
-
+ 
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
   radio_init(radio_cb);
   char buf[256];
   uint8_t l=snprintf(buf, 256, "UID: uid-9bd4-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212c uid-36b0-2102-5ff9-bbf2");
   radio_write(buf,l);
 #endif
-
+ 
 #if defined(BOARD_FEATHER_SENSE)
   led_matrix_init();
   led_matrix_fill_col("grey1");
@@ -322,15 +326,15 @@ int main(void) {
   led_matrix_show();
 #endif
   while(1){
-    run_tests_maybe();
-
+    run_tests_maybe(config);
+ 
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
     if(radio_available){
-
+ 
       size_t rn;
       rn=strlen(radio_buf);
       log_write("<< (%s) %d/%d %d\n", radio_buf, rn, radio_available, radio_rssi);
-
+ 
       *(radio_buf+rn/2)=0;
 
       rn=strlen(radio_buf);
@@ -342,7 +346,9 @@ int main(void) {
 
     if (display_state_prev != display_state){
       display_state_prev = display_state;
+#if defined(BOARD_PCA10059) || defined(BOARD_ADAFRUIT_DONGLE) || defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE)
       gpio_set(leds_list[DISPLAY_STATE_LED], display_state);
+#endif
       log_write("#%d %d %d\n", display_state, random_ish_byte(), random_byte());
     }
   }
@@ -383,7 +389,7 @@ int main(void) {
 
     log_loop();
 
-    run_tests_maybe();
+    run_tests_maybe(config);
 
     if(new_touch_info){
       new_touch_info=false;
@@ -405,15 +411,15 @@ int main(void) {
       gpio_set(LCD_BACKLIGHT, display_state);
     }
 #endif
-#if defined(LOG_TO_GFX)
-    if(event_log_buffer){
-      gfx_pos(10, 10);
-      gfx_text_colour(GFX_RED);
-      gfx_text((char*)event_log_buffer);
-      gfx_text_colour(GFX_BLUE);
-      event_log_buffer=0;
+    if(log_to_gfx){
+      if(event_log_buffer){
+        gfx_pos(10, 10);
+        gfx_text_colour(GFX_RED);
+        gfx_text((char*)event_log_buffer);
+        gfx_text_colour(GFX_BLUE);
+        event_log_buffer=0;
+      }
     }
-#endif
 
     static uint8_t  loop_count = 0;
     static uint64_t tm_last = 0;
@@ -430,10 +436,10 @@ int main(void) {
     gfx_pos(10, 70);
     gfx_text(buf);
   }
-#endif
+#endif // MAGIC3
 #else // NRF5
   on_recv((unsigned char*)"t", 1);
-  run_tests_maybe();
+  run_tests_maybe(config);
   time_end();
 #endif
 }
