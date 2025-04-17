@@ -682,11 +682,11 @@ bool object_property_contains_peek(object* n, char* path, char* expected)
 
 static uint16_t timer_id;
 
-void just_wake_up(){}
+void just_wake_up(void* c){}
 
 void timer_init()
 {
-  timer_id=time_timeout(just_wake_up);
+  timer_id=time_timeout(just_wake_up, 0);
 }
 
 bool set_timer(object* n, char* timer)

@@ -14,10 +14,10 @@ uint64_t time_us(); // us since startup
 
 void time_es_set(uint64_t es); // set current epoch seconds
 
-typedef void (*time_up_cb)();
+typedef void (*time_up_cb)(void* arg);
 
-uint16_t time_ticker(time_up_cb cb, uint32_t every); // cb every ms; or 1 tick if every=0
-uint16_t time_timeout(time_up_cb cb); // cb after ms; or 1 tick if timeout=0
+uint16_t time_ticker(time_up_cb cb, void* arg, uint32_t every); // cb every ms; or 1 tick if every=0
+uint16_t time_timeout(time_up_cb cb, void* arg); // cb after ms; or 1 tick if timeout=0
 void     time_start_timer(uint16_t id, uint32_t timeout); // for time_timeout()
 void     time_stop_timer(uint16_t id);
 void     time_end();

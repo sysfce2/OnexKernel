@@ -95,51 +95,63 @@ static time_up_cb up_cb_4=0;
 static time_up_cb up_cb_5=0;
 static time_up_cb up_cb_6=0;
 
-static void time_up_1(void* p) { if(up_cb_1) up_cb_1(); }
-static void time_up_2(void* p) { if(up_cb_2) up_cb_2(); }
-static void time_up_3(void* p) { if(up_cb_3) up_cb_3(); }
-static void time_up_4(void* p) { if(up_cb_4) up_cb_4(); }
-static void time_up_5(void* p) { if(up_cb_5) up_cb_5(); }
-static void time_up_6(void* p) { if(up_cb_6) up_cb_6(); }
+static void* up_arg_1=0;
+static void* up_arg_2=0;
+static void* up_arg_3=0;
+static void* up_arg_4=0;
+static void* up_arg_5=0;
+static void* up_arg_6=0;
+
+static void time_up_1(void* p) { if(up_cb_1) up_cb_1(up_arg_1); }
+static void time_up_2(void* p) { if(up_cb_2) up_cb_2(up_arg_2); }
+static void time_up_3(void* p) { if(up_cb_3) up_cb_3(up_arg_3); }
+static void time_up_4(void* p) { if(up_cb_4) up_cb_4(up_arg_4); }
+static void time_up_5(void* p) { if(up_cb_5) up_cb_5(up_arg_5); }
+static void time_up_6(void* p) { if(up_cb_6) up_cb_6(up_arg_6); }
 
 static uint8_t volatile topid=1;
 
-uint16_t time_ticker(time_up_cb cb, uint32_t every)
-{
+uint16_t time_ticker(time_up_cb cb, void* arg, uint32_t every) {
   ret_code_t e;
   switch(topid){
     case 1: {
       up_cb_1=cb;
+      up_arg_1=arg;
       e = app_timer_create(&m_timer_1, APP_TIMER_MODE_REPEATED, time_up_1); APP_ERROR_CHECK(e);
       e = app_timer_start(m_timer_1, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
     case 2: {
       up_cb_2=cb;
+      up_arg_2=arg;
       e = app_timer_create(&m_timer_2, APP_TIMER_MODE_REPEATED, time_up_2); APP_ERROR_CHECK(e);
       e = app_timer_start(m_timer_2, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
     case 3: {
       up_cb_3=cb;
+      up_arg_3=arg;
       e = app_timer_create(&m_timer_3, APP_TIMER_MODE_REPEATED, time_up_3); APP_ERROR_CHECK(e);
       e = app_timer_start(m_timer_3, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
     case 4: {
       up_cb_4=cb;
+      up_arg_4=arg;
       e = app_timer_create(&m_timer_4, APP_TIMER_MODE_REPEATED, time_up_4); APP_ERROR_CHECK(e);
       e = app_timer_start(m_timer_4, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
     case 5: {
       up_cb_5=cb;
+      up_arg_5=arg;
       e = app_timer_create(&m_timer_5, APP_TIMER_MODE_REPEATED, time_up_5); APP_ERROR_CHECK(e);
       e = app_timer_start(m_timer_5, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
     case 6: {
       up_cb_6=cb;
+      up_arg_6=arg;
       e = app_timer_create(&m_timer_6, APP_TIMER_MODE_REPEATED, time_up_6); APP_ERROR_CHECK(e);
       e = app_timer_start(m_timer_6, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
       break;
@@ -148,37 +160,42 @@ uint16_t time_ticker(time_up_cb cb, uint32_t every)
   return topid++;
 }
 
-uint16_t time_timeout(time_up_cb cb)
-{
+uint16_t time_timeout(time_up_cb cb, void* arg) {
   ret_code_t e;
   switch(topid){
     case 1: {
       up_cb_1=cb;
+      up_arg_1=arg;
       e = app_timer_create(&m_timer_1, APP_TIMER_MODE_SINGLE_SHOT, time_up_1); APP_ERROR_CHECK(e);
       break;
     }
     case 2: {
       up_cb_2=cb;
+      up_arg_2=arg;
       e = app_timer_create(&m_timer_2, APP_TIMER_MODE_SINGLE_SHOT, time_up_2); APP_ERROR_CHECK(e);
       break;
     }
     case 3: {
       up_cb_3=cb;
+      up_arg_3=arg;
       e = app_timer_create(&m_timer_3, APP_TIMER_MODE_SINGLE_SHOT, time_up_3); APP_ERROR_CHECK(e);
       break;
     }
     case 4: {
       up_cb_4=cb;
+      up_arg_4=arg;
       e = app_timer_create(&m_timer_4, APP_TIMER_MODE_SINGLE_SHOT, time_up_4); APP_ERROR_CHECK(e);
       break;
     }
     case 5: {
       up_cb_5=cb;
+      up_arg_5=arg;
       e = app_timer_create(&m_timer_5, APP_TIMER_MODE_SINGLE_SHOT, time_up_5); APP_ERROR_CHECK(e);
       break;
     }
     case 6: {
       up_cb_6=cb;
+      up_arg_6=arg;
       e = app_timer_create(&m_timer_6, APP_TIMER_MODE_SINGLE_SHOT, time_up_6); APP_ERROR_CHECK(e);
       break;
     }

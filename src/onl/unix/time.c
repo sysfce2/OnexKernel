@@ -75,6 +75,7 @@ typedef struct timer_node {
   int                id;
   int                fd;
   time_up_cb         callback;
+  void*              callback_arg;
   t_timer            type;
   struct timer_node* next;
 } timer_node;
@@ -101,16 +102,17 @@ timer_node* timer_by_id(uint16_t id)
   return 0;
 }
 
-uint16_t create_timer(time_up_cb cb, t_timer type)
+uint16_t create_timer(time_up_cb cb, void* arg, t_timer type)
 {
   timer_node* timer = (timer_node*)malloc(sizeof(timer_node));
 
   if(!timer) return 0;
 
-  timer->id       = topid++;
-  timer->callback = cb;
-  timer->type     = type;
-  timer->fd       = timerfd_create(CLOCK_REALTIME, 0);
+  timer->id           = topid++;
+  timer->callback     = cb;
+  timer->callback_arg = arg;
+  timer->type         = type;
+  timer->fd           = timerfd_create(CLOCK_REALTIME, 0);
 
   if(timer->fd == -1) { free(timer); return 0; }
 
@@ -120,16 +122,16 @@ uint16_t create_timer(time_up_cb cb, t_timer type)
   return timer->id;
 }
 
-uint16_t time_ticker(time_up_cb cb, uint32_t every)
+uint16_t time_ticker(time_up_cb cb, void* arg, uint32_t every)
 {
-  uint32_t id=create_timer(cb, TIMER_PERIODIC);
+  uint32_t id=create_timer(cb, arg, TIMER_PERIODIC);
   time_start_timer(id, every);
   return id;
 }
 
-uint16_t time_timeout(time_up_cb cb)
+uint16_t time_timeout(time_up_cb cb, void* arg)
 {
-  return create_timer(cb, TIMER_SINGLE_SHOT);
+  return create_timer(cb, arg, TIMER_SINGLE_SHOT);
 }
 
 void time_start_timer(uint16_t id, uint32_t timeout)
@@ -211,7 +213,7 @@ void* timer_thread(void* data)
         s = read(ufds[i].fd, &exp, sizeof(uint64_t));
         if(s!=sizeof(uint64_t)) continue;
         timer = timer_by_fd(ufds[i].fd);
-        if(timer && timer->callback) timer->callback();
+        if(timer && timer->callback) timer->callback(timer->callback_arg);
       }
     }
   }
