@@ -17,7 +17,7 @@
 #include <channel-ipv6.h>
 
 static void on_connect(char* channel);
-static void do_connect();
+static void do_connect(void* c);
 static void handle_recv(uint16_t size, char* channel);
 static void send(char* buff, char* channel);
 static void log_sent(char* buff, uint16_t size, char* channel);
@@ -83,11 +83,9 @@ void onp_init(properties* config) {
 static char recv_buff[RECV_BUFF_SIZE];
 static char send_buff[SEND_BUFF_SIZE];
 
-static char*    connect_channel=0;
-static uint32_t connect_time=0;
+static volatile int waiting_on_connect=0;
 
 bool onp_loop() {
-  bool keep_awake=false;
   uint16_t size=0;
   if(onp_channel_serial){
     size = channel_serial_recv(recv_buff, RECV_BUFF_SIZE-1);
@@ -105,31 +103,22 @@ bool onp_loop() {
       if(size){ handle_recv(size,channel); return true; }
     }
   }
-  do_connect();
-  keep_awake=!!connect_time;
-  return keep_awake;
+  return waiting_on_connect > 0;
 }
 
+void do_connect(void* c) {
+  char* channel = (char*)c;
+  char buf[256]; object_to_text(onex_device_object, buf,256, OBJECT_TO_TEXT_NETWORK);
+  send(buf, channel);
+  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("do_connect(%s) %d\n", channel, waiting_on_connect);
+  waiting_on_connect--;
+  mem_freestr(c);
+}
 
-// REVISIT: use proper time-delay
-// REVISIT: one per channel not one for all - second wipes out other
 void on_connect(char* channel) {
-  // REVISIT: just hacking this so radio gets priority
-  if(connect_channel) return;
-  mem_freestr(connect_channel);
-  connect_channel = mem_strdup(channel);
-  connect_time = time_ms()+1800;
-  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("on_connect(%s) @ %ld\n", connect_channel, connect_time);
-}
-
-// REVISIT: test is: run button after light on 1234, 4321 only has device
-// REVISIT: also, light's observe of button needs to be triggered by that
-void do_connect() {
-  if(!connect_time || time_ms() < connect_time ) return;
-  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("do_connect(%s) @ %ld\n", connect_channel, connect_time);
-  connect_time=0;
-  object_to_text(onex_device_object,send_buff,SEND_BUFF_SIZE,OBJECT_TO_TEXT_NETWORK);
-  send(send_buff, connect_channel);
+  time_start_timer(time_timeout(do_connect, mem_strdup(channel)), 1200);
+  waiting_on_connect++;
+  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("on_connect(%s) %d\n", channel, waiting_on_connect);
 }
 
 void recv_observe(uint16_t size, char* channel){
