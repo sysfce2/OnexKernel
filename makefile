@@ -109,8 +109,9 @@ $(COMMON_DEFINES_DONGLE) \
 
 INCLUDES_MAGIC3 = \
 -I./include \
--I./src/onl/nRF5/magic3 \
 -I./src/ \
+-I./src/onl/nRF5/magic3 \
+-I./src/onl/ \
 -I./src/onn/ \
 -I./src/onp/ \
 -I./tests \
@@ -119,8 +120,9 @@ $(SDK_INCLUDES_MAGIC3) \
 
 INCLUDES_ADAFRUIT_DONGLE = \
 -I./include \
--I./src/onl/nRF5/adafruit-dongle \
 -I./src/ \
+-I./src/onl/nRF5/adafruit-dongle \
+-I./src/onl/ \
 -I./src/onn/ \
 -I./src/onp/ \
 -I./tests \
@@ -129,8 +131,9 @@ $(SDK_INCLUDES_ADAFRUIT_DONGLE) \
 
 INCLUDES_ITSYBITSY = \
 -I./include \
--I./src/onl/nRF5/itsybitsy \
 -I./src/ \
+-I./src/onl/nRF5/itsybitsy \
+-I./src/onl/ \
 -I./src/onn/ \
 -I./src/onp/ \
 -I./tests \
@@ -139,8 +142,9 @@ $(SDK_INCLUDES_ITSYBITSY) \
 
 INCLUDES_FEATHER_SENSE = \
 -I./include \
--I./src/onl/nRF5/feather-sense \
 -I./src/ \
+-I./src/onl/nRF5/feather-sense \
+-I./src/onl/ \
 -I./src/onn/ \
 -I./src/onp/ \
 -I./tests \
@@ -149,8 +153,9 @@ $(SDK_INCLUDES_FEATHER_SENSE) \
 
 INCLUDES_DONGLE = \
 -I./include \
--I./src/onl/nRF5/dongle \
 -I./src/ \
+-I./src/onl/nRF5/dongle \
+-I./src/onl/ \
 -I./src/onn/ \
 -I./src/onp/ \
 -I./tests \
