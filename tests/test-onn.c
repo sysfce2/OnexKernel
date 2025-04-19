@@ -873,8 +873,6 @@ void run_onn_tests(properties* config) {
   onex_loop();
 
   onex_assert_equal_num(evaluate_timer_n4_called, 2, "evaluate_timer_n4 was called again, after 180");
-
-  properties_free(config, true);
 }
 
 // ---------------------------------------------------------------------------------
