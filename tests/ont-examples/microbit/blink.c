@@ -20,20 +20,21 @@ static void serial_received(unsigned char* chars, size_t size)
 
 const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 
+static void loop_serial(void*){ serial_loop(); }
+
 int main()
 {
+  time_init();
   log_init();
+  random_init();
+  serial_init((serial_recv_cb)serial_received,0);
+
   gpio_init();
 
   for(uint8_t l=0; l< LEDS_NUMBER; l++) gpio_mode(leds_list[l], OUTPUT);
   for(uint8_t l=0; l< LEDS_NUMBER; l++) gpio_set( leds_list[l], !LEDS_ACTIVE_STATE);
 
-  serial_init((serial_recv_cb)serial_received,0);
-
-  time_init();
-  random_init();
-
-  time_ticker((void (*)())serial_loop, 1);
+  time_ticker(loop_serial, 0, 1);
 
   serial_printf("Type 'o' or 'i'\n");
 

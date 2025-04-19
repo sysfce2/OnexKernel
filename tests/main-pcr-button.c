@@ -29,8 +29,8 @@ int main(int argc, char *argv[]) {
   properties_set(config, "ipv6_groups", list_new_from(argv[1], 1));
   properties_set(config, "test-uid-prefix", value_new("button"));
 
-  log_init(config);
   time_init();
+  log_init(config);
   random_init();
 
   onex_init(config);

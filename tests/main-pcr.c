@@ -11,8 +11,8 @@ int main(int argc, char *argv[]) {
   properties_set(config, "ipv6_groups", list_new_from("ff12::1234 ff12::4321", 2));
   properties_set(config, "test-uid-prefix", value_new("pcr"));
 
-  log_init(config);
   time_init();
+  log_init(config);
 
   onex_init(config);
 
