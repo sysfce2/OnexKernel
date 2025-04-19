@@ -1276,7 +1276,6 @@ void onex_init(properties* config) {
   char* prefix=value_string(properties_get(config, "test-uid-prefix"));
 
   timer_init();
-  random_init();
   persist_init(dbpath);
   device_init(prefix);
   onp_init(config);

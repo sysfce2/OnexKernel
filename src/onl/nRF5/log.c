@@ -17,6 +17,7 @@ void log_init(properties* config) {
   log_to_serial = list_has_value(properties_get(config, "flags"), "log-to-serial");
   log_to_gfx    = list_has_value(properties_get(config, "flags"), "log-to-gfx");
   log_to_rtt    = list_has_value(properties_get(config, "flags"), "log-to-rtt");
+  if(log_to_serial) serial_init(0,0);
 #if defined(NRF_LOG_ENABLED)
   NRF_LOG_INIT(NULL);
   NRF_LOG_DEFAULT_BACKENDS_INIT();

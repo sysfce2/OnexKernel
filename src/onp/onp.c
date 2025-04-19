@@ -43,10 +43,10 @@ static char* channel_of_device(char* devices){
   return channel? channel: "all";
 }
 
-static bool onp_channel_serial = false;
-static bool onp_channel_radio  = false;
-static bool onp_channel_ipv6   = false;
-static bool forward = false;
+static bool onp_channel_serial  = false;
+static bool onp_channel_radio   = false;
+static bool onp_channel_ipv6    = false;
+static bool onp_channel_forward = false;
 
 static volatile list* connected_channels = 0;
 static volatile int   num_waiting_on_connect=0;
@@ -62,9 +62,9 @@ void onp_init(properties* config) {
   onp_channel_radio  = list_has_value(channels,"radio");
   onp_channel_ipv6   = list_has_value(channels,"ipv6");
 
-  forward = (onp_channel_radio && onp_channel_serial)        ||
-            (onp_channel_ipv6  && onp_channel_serial)        ||
-            (onp_channel_ipv6  && list_size(ipv6_groups) >= 2);
+  onp_channel_forward = (onp_channel_radio && onp_channel_serial)        ||
+                        (onp_channel_ipv6  && onp_channel_serial)        ||
+                        (onp_channel_ipv6  && list_size(ipv6_groups) >= 2);
 
   device_to_channel = properties_new(MAX_PEERS);
 
@@ -74,7 +74,10 @@ void onp_init(properties* config) {
   if(onp_channel_radio)  channel_radio_init(on_connect);
   if(onp_channel_ipv6)   channel_ipv6_init(ipv6_groups, on_connect);
 
-  if(forward) log_write("!Forwarding, PCR!\n");
+  if(onp_channel_serial)  log_write("ONP channel serial\n");
+  if(onp_channel_radio)   log_write("ONP channel radio\n");
+  if(onp_channel_ipv6)    log_write("ONP channel IPv6\n");
+  if(onp_channel_forward) log_write("ONP forwarding, PCR\n");
 }
 
 #if defined(NRF5)
@@ -218,7 +221,7 @@ void onp_send_observe(char* uid, char* devices) {
 // REVISIT device<s>?? and send for each channel in above and below
 void onp_send_object(object* o, char* devices) {
   if(object_is_remote(o)){
-    if(!forward) return;
+    if(!onp_channel_forward) return;
     log_write("forwarding remote: %s\n", object_property(o, "UID"));
   }
   object_to_text(o,send_buff,SEND_BUFF_SIZE,OBJECT_TO_TEXT_NETWORK);
