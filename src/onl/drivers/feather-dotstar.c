@@ -7,7 +7,9 @@
 
 #include "color_table.h"
 
-const uint16_t num_leds=LED_MATRIX_WIDTH * LED_MATRIX_HEIGHT;
+const uint16_t num_leds=LED_MATRIX_WIDTH*LED_MATRIX_HEIGHT;
+
+uint8_t led_matrix_array[LED_MATRIX_WIDTH*LED_MATRIX_HEIGHT][3];
 
 void led_matrix_init(){
   spi_fast_init();

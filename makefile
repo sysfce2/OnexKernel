@@ -674,7 +674,7 @@ M4_CC_FLAGS = -std=gnu17  -Wall -Werror -Wno-unused-function -Wno-unused-variabl
 # remove these for thorough linting:
 M4_CC_FLAGS += -Wno-incompatible-pointer-types -Wno-discarded-qualifiers -Wno-array-bounds -Wno-char-subscripts
 
-M4_LD_FLAGS = $(M4_CPU) -Wl,--gc-sections -specs=nano.specs
+M4_LD_FLAGS = $(M4_CPU) -Wl,--gc-sections #-specs=nano.specs
 
 LD_FILES_MAGIC3          = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/magic3/onex.ld
 LD_FILES_ADAFRUIT_DONGLE = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/adafruit-dongle/onex.ld

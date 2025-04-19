@@ -8,6 +8,19 @@
 #include <sys/stat.h>
 
 #if defined(NRF5)
+// if any of these linker-fixen actually gets called, we should find out soon enough when
+// it hangs there and I debug it...
+__attribute__((weak)) void _close() { while (1); }
+__attribute__((weak)) void _fstat() { while (1); }
+__attribute__((weak)) void _getpid(){ while (1); }
+__attribute__((weak)) void _isatty(){ while (1); }
+__attribute__((weak)) void _kill()  { while (1); }
+__attribute__((weak)) void _lseek() { while (1); }
+__attribute__((weak)) void _read()  { while (1); }
+__attribute__((weak)) void _write() { while (1); }
+#endif
+
+#if defined(NRF5)
 #include <app_util_platform.h>
 #else
 #include <pthread.h>
