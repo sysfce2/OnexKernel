@@ -671,6 +671,9 @@ M4_CPU = -O3 -g3 -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mab
 
 M4_CC_FLAGS = -std=c99  -Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin -fshort-enums
 
+# remove these for thorough linting:
+M4_CC_FLAGS += -Wno-incompatible-pointer-types -Wno-discarded-qualifiers
+
 M4_LD_FLAGS = $(M4_CPU) -Wl,--gc-sections -specs=nano.specs
 
 LD_FILES_MAGIC3          = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/magic3/onex.ld

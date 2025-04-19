@@ -1,4 +1,6 @@
 
+#include <nRF5/m-class-support.h>
+
 #include <onex-kernel/radio.h>
 #include <onex-kernel/log.h>
 #include <channel-radio.h>
@@ -73,6 +75,7 @@ uint16_t channel_radio_recv(char* b, uint16_t l) {
 
 uint16_t channel_radio_send(char* b, uint16_t n) {
   if(!initialised) return 0;
+  if(in_interrupt_context()) log_write("OOPS: channel_radio_send called from interrupt context!!\n");
   return radio_printf("%s\n", b);
 }
 

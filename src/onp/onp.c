@@ -17,7 +17,7 @@
 #include <channel-ipv6.h>
 
 static void on_connect(char* channel);
-static void do_connect(void* c);
+static void connect_time_cb(void* c);
 static void handle_recv(uint16_t size, char* channel);
 static void send(char* buff, char* channel);
 static void log_sent(char* buff, uint16_t size, char* channel);
@@ -48,6 +48,9 @@ static bool onp_channel_radio  = false;
 static bool onp_channel_ipv6   = false;
 static bool forward = false;
 
+static volatile list* connected_channels = 0;
+static volatile int   num_waiting_on_connect=0;
+
 #define MAX_PEERS 32
 
 void onp_init(properties* config) {
@@ -63,13 +66,15 @@ void onp_init(properties* config) {
             (onp_channel_ipv6  && onp_channel_serial)        ||
             (onp_channel_ipv6  && list_size(ipv6_groups) >= 2);
 
-  if(forward) log_write("!Forwarding, PCR!\n");
-
   device_to_channel = properties_new(MAX_PEERS);
+
+  connected_channels = list_new(MAX_PEERS);
 
   if(onp_channel_serial) channel_serial_init(on_connect);
   if(onp_channel_radio)  channel_radio_init(on_connect);
   if(onp_channel_ipv6)   channel_ipv6_init(ipv6_groups, on_connect);
+
+  if(forward) log_write("!Forwarding, PCR!\n");
 }
 
 #if defined(NRF5)
@@ -82,8 +87,6 @@ void onp_init(properties* config) {
 
 static char recv_buff[RECV_BUFF_SIZE];
 static char send_buff[SEND_BUFF_SIZE];
-
-static volatile int waiting_on_connect=0;
 
 bool onp_loop() {
   uint16_t size=0;
@@ -103,22 +106,33 @@ bool onp_loop() {
       if(size){ handle_recv(size,channel); return true; }
     }
   }
-  return waiting_on_connect > 0;
-}
+  if(list_size(connected_channels)){
 
-void do_connect(void* c) {
-  char* channel = (char*)c;
-  char buf[256]; object_to_text(onex_device_object, buf,256, OBJECT_TO_TEXT_NETWORK);
-  send(buf, channel);
-  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("do_connect(%s) %d\n", channel, waiting_on_connect);
-  waiting_on_connect--;
-  mem_freestr(c);
+    char buf[256]; object_to_text(onex_device_object, buf,256, OBJECT_TO_TEXT_NETWORK);
+
+    for(int n=1; n<=list_size(connected_channels); n++){
+
+      char* connected_channel = list_get_n(connected_channels, n);
+      send(buf, connected_channel);
+
+      num_waiting_on_connect--;
+      if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("sent device object to %s %d\n", connected_channel, num_waiting_on_connect);
+      mem_freestr(connected_channel);
+    }
+    list_clear(connected_channels, false);
+  }
+  return num_waiting_on_connect > 0;
 }
 
 void on_connect(char* channel) {
-  time_start_timer(time_timeout(do_connect, mem_strdup(channel)), 1200);
-  waiting_on_connect++;
-  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("on_connect(%s) %d\n", channel, waiting_on_connect);
+  time_start_timer(time_timeout(connect_time_cb, mem_strdup(channel)), 1200);
+  num_waiting_on_connect++;
+  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("on_connect(%s) %d\n", channel, num_waiting_on_connect);
+}
+
+void connect_time_cb(void* connected_channel) {
+  list_add(connected_channels, connected_channel);
+  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("connect_time_cb(%s) %d\n", (char*)connected_channel, num_waiting_on_connect);
 }
 
 void recv_observe(uint16_t size, char* channel){
