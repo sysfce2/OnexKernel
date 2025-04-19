@@ -22,7 +22,7 @@ uint64_t get_time_us()
 
 static pthread_t thread_id;
 static volatile bool thread_running=true;
-static void* timer_thread(void* data);
+static void* timer_thread(void*);
 
 void time_init()
 {
@@ -181,7 +181,7 @@ void time_end()
   pthread_join(thread_id, 0);
 }
 
-void* timer_thread(void* data)
+void* timer_thread(void*)
 {
   struct pollfd ufds[MAX_TIMER_COUNT] = {{0}};
   int fdn = 0;

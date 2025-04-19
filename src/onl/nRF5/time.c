@@ -14,7 +14,7 @@ static volatile uint32_t seconds=0;
 static volatile uint64_t epoch_seconds=1675959628;
 static volatile uint32_t ticks_at_second=0;
 
-static void every_second(void* p) {
+static void every_second(void*) {
   seconds++;
   epoch_seconds++;
   ticks_at_second = app_timer_cnt_get();
@@ -102,12 +102,12 @@ static void* up_arg_4=0;
 static void* up_arg_5=0;
 static void* up_arg_6=0;
 
-static void time_up_1(void* p) { if(up_cb_1) up_cb_1(up_arg_1); }
-static void time_up_2(void* p) { if(up_cb_2) up_cb_2(up_arg_2); }
-static void time_up_3(void* p) { if(up_cb_3) up_cb_3(up_arg_3); }
-static void time_up_4(void* p) { if(up_cb_4) up_cb_4(up_arg_4); }
-static void time_up_5(void* p) { if(up_cb_5) up_cb_5(up_arg_5); }
-static void time_up_6(void* p) { if(up_cb_6) up_cb_6(up_arg_6); }
+static void time_up_1(void*) { if(up_cb_1) up_cb_1(up_arg_1); }
+static void time_up_2(void*) { if(up_cb_2) up_cb_2(up_arg_2); }
+static void time_up_3(void*) { if(up_cb_3) up_cb_3(up_arg_3); }
+static void time_up_4(void*) { if(up_cb_4) up_cb_4(up_arg_4); }
+static void time_up_5(void*) { if(up_cb_5) up_cb_5(up_arg_5); }
+static void time_up_6(void*) { if(up_cb_6) up_cb_6(up_arg_6); }
 
 static uint8_t volatile topid=1;
 

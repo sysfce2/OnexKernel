@@ -17,7 +17,7 @@
 #include <channel-ipv6.h>
 
 static void on_connect(char* channel);
-static void connect_time_cb(void* c);
+static void connect_time_cb(void* connected_channel);
 static void handle_recv(uint16_t size, char* channel);
 static void send(char* buff, char* channel);
 static void log_sent(char* buff, uint16_t size, char* channel);
