@@ -16,9 +16,10 @@ int main(int argc, char *argv[]) {
   log_init(config);
   random_init();
 
-  onex_init(config);
 
   log_write("\n------Starting PCR Test Server-----\n");
+
+  onex_init(config);
 
   while(true){
     if(!onex_loop()){

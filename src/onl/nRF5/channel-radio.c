@@ -25,7 +25,7 @@ void channel_radio_on_recv(int8_t rssi){
   static char ch[256];
   uint8_t n=radio_recv(ch);
 
-  log_write("<=(%s) %d/%d %d\n", ch, strlen(ch), n, rssi);
+  log_write("channel_radio_on_recv(rssi=%d): %d/%d octets \n", rssi, n, strlen(ch));
 
   for(uint16_t i=0; i<n; i++){
     if(data_available()==RADIO_BUFFER_SIZE-1){

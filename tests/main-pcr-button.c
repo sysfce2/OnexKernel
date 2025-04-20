@@ -5,6 +5,7 @@
 #include <onn.h>
 
 static bool button_pressed=false;
+
 static void every_tick(void*){
   button_pressed=!button_pressed;
   onex_run_evaluators("uid-b", (void*)button_pressed);
