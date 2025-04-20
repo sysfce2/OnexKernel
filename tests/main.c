@@ -283,6 +283,10 @@ void radio_cb(int8_t rssi){
 }
 #endif
 
+#if defined(NRF5)
+static void loop_serial(void*){ serial_loop(); }
+#endif
+
 int main(void) {
 
   properties* config = properties_new(32);
@@ -305,7 +309,7 @@ int main(void) {
 #if !defined(BOARD_MAGIC3)
   serial_init((serial_recv_cb)on_recv,0);
   set_up_gpio();
-  time_ticker((void (*)())serial_loop, 0, 1);
+  time_ticker(loop_serial, 0, 1);
  
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
   radio_init(radio_cb);

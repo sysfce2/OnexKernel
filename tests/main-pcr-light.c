@@ -32,10 +32,6 @@ int main(int argc, char *argv[]){
   log_init(config);
   random_init();
 
-// [ UID: uid-l  is: light  light: off  button: uid-b ]
-//                 | IPv6 |
-// [ UID: uid-b  is: button  state: up ]
-
   onex_init(config);
 
   log_write("\n------Starting Light Test Server-----\n");
