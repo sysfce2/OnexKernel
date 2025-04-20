@@ -77,6 +77,8 @@ void        properties_free(properties* op, bool free_items);
 list*    list_new(uint16_t max_size);
 list*    list_new_from(char* text, uint16_t max_size);
 bool     list_add(list* li, void* val);
+bool     list_add_setwise(list* li, char* v);
+bool     list_add_value(list* li, char* v);
 bool     list_ins(list* li, uint16_t index, void* val);
 bool     list_ins_setwise(list* li, char* v);
 bool     list_set_n(list* li, uint16_t index, void* val);
