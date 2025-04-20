@@ -23,6 +23,7 @@ static volatile char buffer_chunk[BUFFER_CHUNK_SIZE];
 static volatile bool initialised=false;
 
 static volatile serial_recv_cb recv_cb;
+static volatile bool           pending_connect=false;
 
 #ifndef USBD_POWER_DETECTION
 #define USBD_POWER_DETECTION true
@@ -66,6 +67,7 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
             UNUSED_VARIABLE(ret);
             buffer_clear();
             if(recv_cb) recv_cb(0,0);
+            else        pending_connect = true;
             NRF_LOG_INFO("CDC ACM port opened");
             break;
         }
@@ -212,8 +214,11 @@ bool serial_init(serial_recv_cb cb, uint32_t baudrate)
     return true;
 }
 
-bool serial_loop()
-{
+bool serial_loop() {
+  if(pending_connect && recv_cb){
+    recv_cb(0,0);
+    pending_connect = false;
+  }
   return app_usbd_event_queue_process();
 }
 
