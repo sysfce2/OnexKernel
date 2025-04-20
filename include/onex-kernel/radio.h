@@ -6,6 +6,8 @@
 #include <stddef.h>
 #include <stdarg.h>
 
+#include <items.h>
+
 typedef void (*radio_recv_cb)(int8_t rssi);
 
 bool     radio_init(radio_recv_cb cb);

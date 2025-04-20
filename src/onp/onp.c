@@ -28,6 +28,7 @@ extern void onn_recv_object(object* n);
 
 static list* channels=0;
 static list* ipv6_groups=0;
+static list* serial_ttys=0;
 
 static properties*    device_to_channel = 0;
 static volatile list* connected_channels = 0;
@@ -57,20 +58,20 @@ void onp_init(properties* config) {
 
   channels    = properties_get(config, "channels");
   ipv6_groups = properties_get(config, "ipv6_groups");
+  serial_ttys = properties_get(config, "serial_ttys");
 
   onp_channel_serial = list_has_value(channels,"serial");
   onp_channel_radio  = list_has_value(channels,"radio");
   onp_channel_ipv6   = list_has_value(channels,"ipv6");
 
-  onp_channel_forward = (onp_channel_radio && onp_channel_serial)        ||
-                        (onp_channel_ipv6  && onp_channel_serial)        ||
-                        (onp_channel_ipv6  && list_size(ipv6_groups) >= 2);
+  onp_channel_forward = (onp_channel_radio && onp_channel_serial)          ||
+                        (onp_channel_ipv6  && onp_channel_serial)          ||
+                        (list_size(ipv6_groups)+list_size(serial_ttys) >=2);
 
-  device_to_channel = properties_new(MAX_PEERS);
-
+  device_to_channel  = properties_new(MAX_PEERS);
   connected_channels = list_new(MAX_PEERS);
 
-  if(onp_channel_serial) channel_serial_init(on_connect);
+  if(onp_channel_serial) channel_serial_init(serial_ttys, on_connect);
   if(onp_channel_radio)  channel_radio_init(on_connect);
   if(onp_channel_ipv6)   channel_ipv6_init(ipv6_groups, on_connect);
 

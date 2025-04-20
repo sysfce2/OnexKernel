@@ -307,7 +307,7 @@ int main(void) {
 #if defined(NRF5)
   gpio_init();
 #if !defined(BOARD_MAGIC3)
-  serial_init((serial_recv_cb)on_recv,0);
+  serial_init(0,(serial_recv_cb)on_recv,0);
   set_up_gpio();
   time_ticker(loop_serial, 0, 1);
  

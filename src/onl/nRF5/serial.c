@@ -175,8 +175,8 @@ static uint8_t buffer_do_write(size_t size)
   return e==NRF_SUCCESS? BUFFER_WRITE_DONE: BUFFER_WRITE_FAILED;
 }
 
-bool serial_init(serial_recv_cb cb, uint32_t baudrate)
-{
+bool serial_init(list* ttys, serial_recv_cb cb, uint32_t baudrate) {
+
     recv_cb = cb;
 
     if(initialised) return true;
@@ -229,7 +229,7 @@ void serial_cb(serial_recv_cb cb)
 
 void serial_putchar(unsigned char ch)
 {
-  if(!initialised) serial_init(0,0);
+  if(!initialised) serial_init(0,0,0);
   serial_write(&ch, 1);
 }
 
@@ -240,7 +240,7 @@ size_t serial_write(unsigned char* buf, size_t size)
 
 size_t serial_printf(const char* fmt, ...)
 {
-  if(!initialised) serial_init(0,0);
+  if(!initialised) serial_init(0,0,0);
   va_list args;
   va_start(args, fmt);
   size_t r=serial_vprintf(fmt,args);

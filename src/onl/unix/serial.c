@@ -72,41 +72,45 @@ static int init_serial(char* devtty, int b){
     return fd;
 }
 
+static list*          serial_ttys=0;
 static serial_recv_cb recv_cb;
-static uint32_t baudrate;
+static uint32_t       baudrate;
+
 static uint32_t nextupdate=0;
 
-bool serial_init(serial_recv_cb cb, uint32_t br) {
+bool serial_init(list* ttys, serial_recv_cb cb, uint32_t br) {
+  serial_ttys=ttys;
   recv_cb=cb;
   baudrate=br;
   return true;
 }
 
-#define TTYS_RANGE 3
-char* ttys[] = { "/dev/ttyACM0", "/dev/ttyACM1" , "/dev/ttyACM2" };
-int fds[TTYS_RANGE]  = {-1,-1,-1};
+#define MAX_TTYS 3
+int fds[MAX_TTYS]  = {-1,-1,-1};
 
 void update_connected_serials() {
+
   if(time_ms() < nextupdate) return;
   nextupdate=time_ms()+1500;
-  for(uint8_t t=0; t< TTYS_RANGE; t++){
-    if(fds[t]== -1){
-      fds[t]=init_serial(ttys[t], baudrate);
-      if(fds[t]!= -1 && recv_cb) recv_cb(0,0);
-    }
+
+  for(uint8_t t=0; t<list_size(serial_ttys) && t<MAX_TTYS; t++){
+    if(fds[t]!= -1) continue;
+    char* tty = value_string(list_get_n(serial_ttys, t+1));
+    fds[t]=init_serial(tty, baudrate);
+    if(fds[t]!= -1 && recv_cb) recv_cb(0,0);
   }
 }
 
 #define SERIAL_MAX_LENGTH 1024
 
-static int  ser_index[TTYS_RANGE]={0,0,0};
-static char ser_buff[TTYS_RANGE][SERIAL_MAX_LENGTH];
+static int  ser_index[MAX_TTYS]={0,0,0};
+static char ser_buff[MAX_TTYS][SERIAL_MAX_LENGTH];
 static int  nt=0;
 
 int serial_recv(char* b, int l)
 {
   update_connected_serials();
-  for(int n=0; n<TTYS_RANGE; n++){
+  for(int n=0; n<MAX_TTYS; n++){
     int fd=fds[nt];
     if(fd!= -1){
       int bytes_available_for_reading=0;
@@ -119,13 +123,13 @@ int serial_recv(char* b, int l)
             ser_index[nt]=0;
             int size=l<ss? l: ss;
             memcpy(b, ser_buff[nt], size);
-            nt++; if(nt==TTYS_RANGE) nt=0;
+            nt++; if(nt==MAX_TTYS) nt=0;
             return size;
           }
         }
       }
     }
-    nt++; if(nt==TTYS_RANGE) nt=0;
+    nt++; if(nt==MAX_TTYS) nt=0;
   }
   return 0;
 }
@@ -136,7 +140,7 @@ char print_buff[PRINT_BUFF_SIZE];
 size_t serial_printf(const char* fmt, ...)
 {
   int i=0;
-  for(uint8_t t=0; t< TTYS_RANGE; t++){
+  for(uint8_t t=0; t< MAX_TTYS; t++){
     int fd=fds[t]; if(fd== -1) continue;
     va_list args;
     va_start(args, fmt);

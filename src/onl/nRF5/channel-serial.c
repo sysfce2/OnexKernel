@@ -33,9 +33,9 @@ void channel_serial_on_recv(unsigned char* ch, size_t len) {
   }
 }
 
-void channel_serial_init(connect_cb serial_connect_cb_) {
+void channel_serial_init(list* ttys, connect_cb serial_connect_cb_) {
   serial_connect_cb=serial_connect_cb_;
-  initialised=serial_init(channel_serial_on_recv, 9600);
+  initialised=serial_init(ttys, channel_serial_on_recv, 9600);
 }
 
 uint16_t channel_serial_recv(char* b, uint16_t l) {
