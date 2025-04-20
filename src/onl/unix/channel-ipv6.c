@@ -8,6 +8,7 @@ static bool initialised=false;
 void channel_ipv6_init(list* groups, channel_ipv6_connect_cb connect_cb) {
 
   initialised=ipv6_init(groups);
+  if(!initialised) return;
 
   for(int i=1; i<=list_size(groups); i++){
     char* group = value_string(list_get_n(groups, i));

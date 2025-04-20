@@ -29,7 +29,10 @@ extern void onn_recv_object(object* n);
 static list* channels=0;
 static list* ipv6_groups=0;
 
-static properties* device_to_channel = 0;
+static properties*    device_to_channel = 0;
+static volatile list* connected_channels = 0;
+static volatile int   num_waiting_on_connect=0;
+
 
 static void set_channel_of_device(char* device, char* channel){
   properties_ins_setwise(device_to_channel, device, channel);
@@ -47,9 +50,6 @@ static bool onp_channel_serial  = false;
 static bool onp_channel_radio   = false;
 static bool onp_channel_ipv6    = false;
 static bool onp_channel_forward = false;
-
-static volatile list* connected_channels = 0;
-static volatile int   num_waiting_on_connect=0;
 
 #define MAX_PEERS 32
 

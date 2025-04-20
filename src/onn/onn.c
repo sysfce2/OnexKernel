@@ -853,7 +853,8 @@ bool property_edit(object* n, char* key, char* val, uint8_t mode){
     return !!i;
   }
 
-  if(strchr(val, ' ') && strchr(val, '\n')) return false; // don't do space-sept val yet
+  if(strchr(val, ' ') && strchr(val, '\n')) return false;
+  // don't do space-sept val yet REVISIT: && not || ??
 
   item* i=properties_get(n->properties, key);
   if(!i){
@@ -901,7 +902,7 @@ bool property_edit(object* n, char* key, char* val, uint8_t mode){
 bool nested_property_edit(object* n, char* path, uint16_t index, char* val, uint8_t mode){
 
   if(mode!=LIST_EDIT_MODE_DELETE && strchr(val, ' ') && strchr(val, '\n')) return false;
-  // don't do space-sept val yet
+  // don't do space-sept val yet REVISIT: && not || ??
 
   size_t m=strlen(path)+1;
   char key[m]; memcpy(key, path, m);

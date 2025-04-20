@@ -84,7 +84,7 @@ bool serial_init(serial_recv_cb cb, uint32_t br) {
 
 #define TTYS_RANGE 3
 char* ttys[] = { "/dev/ttyACM0", "/dev/ttyACM1" , "/dev/ttyACM2" };
-int   fds[]  = {-1,-1,-1};
+int fds[TTYS_RANGE]  = {-1,-1,-1};
 
 void update_connected_serials() {
   if(time_ms() < nextupdate) return;
