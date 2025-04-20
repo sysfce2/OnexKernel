@@ -10,6 +10,12 @@ int number_down = 0;
 bool keep_going = true;
 
 bool evaluate_light(object* light, void* d) {
+  if(object_property_is(light, "button:state", "up"  )){
+    object_property_set(light,  "light", "off");
+  }
+  if(object_property_is(light, "button:state", "down")){
+    object_property_set(light,  "light", "on");
+  }
   if(object_property_is(light, "button:state", "up"  )) number_up++;
   if(object_property_is(light, "button:state", "down")) number_down++;
   log_write("evaluate_light %d %d: ", number_up, number_down); object_log(light);
