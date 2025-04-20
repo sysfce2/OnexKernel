@@ -695,17 +695,17 @@ feather-sense-flash: nrf.tests.feather-sense
 
 dongle-flash: nrf.tests.dongle
 	nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application ./onex-kernel.hex --key-file $(PRIVATE_PEM) dfu.zip
-	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM0 -b 115200
+	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/`ls -l /dev/nordic_dongle_flash | sed 's/.*-> //'` -b 115200
 
 #-------------------------------:
 
 dongle-pcr-flash: dongle-pcr
 	nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application ./onex-kernel.hex --key-file $(PRIVATE_PEM) dfu.zip
-	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM0 -b 115200
+	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/`ls -l /dev/nordic_dongle_flash | sed 's/.*-> //'` -b 115200
 
 dongle-pcr-light-flash: dongle-pcr-light
 	nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application ./onex-kernel.hex --key-file $(PRIVATE_PEM) dfu.zip
-	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/ttyACM0 -b 115200
+	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/`ls -l /dev/nordic_dongle_flash | sed 's/.*-> //'` -b 115200
 
 feather-pcr-light-flash: feather-pcr-light
 	uf2conv.py onex-kernel.hex --family 0xada52840 --output onex-kernel.uf2
