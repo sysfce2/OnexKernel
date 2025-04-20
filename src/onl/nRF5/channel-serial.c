@@ -5,7 +5,7 @@
 
 static volatile bool initialised=false;
 
-static channel_serial_connect_cb connect_cb;
+static connect_cb serial_connect_cb;
 
 #define SERIAL_BUFFER_SIZE 2048
 
@@ -20,7 +20,7 @@ static uint16_t data_available() {
 
 void channel_serial_on_recv(unsigned char* ch, size_t len) {
   if(!ch){
-    if(connect_cb) connect_cb("serial");
+    if(serial_connect_cb) serial_connect_cb("serial");
     return;
   }
   for(uint16_t i=0; i<len; i++){
@@ -33,8 +33,8 @@ void channel_serial_on_recv(unsigned char* ch, size_t len) {
   }
 }
 
-void channel_serial_init(channel_serial_connect_cb cb) {
-  connect_cb=cb;
+void channel_serial_init(connect_cb serial_connect_cb_) {
+  serial_connect_cb=serial_connect_cb_;
   initialised=serial_init(channel_serial_on_recv, 9600);
 }
 

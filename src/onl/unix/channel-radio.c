@@ -4,7 +4,7 @@
 
 #include <channel-radio.h>
 
-void channel_radio_init(channel_radio_connect_cb cb) {
+void channel_radio_init(connect_cb radio_connect_cb) {
 }
 
 uint16_t channel_radio_recv(char* b, uint16_t l) {

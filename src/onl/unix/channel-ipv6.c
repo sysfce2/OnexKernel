@@ -5,7 +5,7 @@
 
 static bool initialised=false;
 
-void channel_ipv6_init(list* groups, channel_ipv6_connect_cb connect_cb) {
+void channel_ipv6_init(list* groups, connect_cb ipv6_connect_cb) {
 
   initialised=ipv6_init(groups);
   if(!initialised) return;
@@ -13,7 +13,7 @@ void channel_ipv6_init(list* groups, channel_ipv6_connect_cb connect_cb) {
   for(int i=1; i<=list_size(groups); i++){
     char* group = value_string(list_get_n(groups, i));
     char channel[256]; snprintf(channel, 256, "ipv6-%s", group);
-    if(connect_cb) connect_cb(channel);
+    if(ipv6_connect_cb) ipv6_connect_cb(channel);
   }
 }
 

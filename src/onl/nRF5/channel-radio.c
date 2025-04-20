@@ -7,8 +7,6 @@
 
 static volatile bool initialised=false;
 
-static channel_radio_connect_cb connect_cb;
-
 #define RADIO_BUFFER_SIZE 2048
 
 static volatile char     buffer[RADIO_BUFFER_SIZE];
@@ -37,10 +35,9 @@ void channel_radio_on_recv(int8_t rssi){
   }
 }
 
-void channel_radio_init(channel_radio_connect_cb cb) {
-  connect_cb=cb;
+void channel_radio_init(connect_cb radio_connect_cb) {
   initialised=radio_init(channel_radio_on_recv);
-  if(connect_cb) connect_cb("radio");
+  if(radio_connect_cb) radio_connect_cb("radio");
 }
 
 uint16_t channel_radio_recv(char* b, uint16_t l) {
