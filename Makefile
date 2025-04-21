@@ -23,6 +23,7 @@ INCLUDES = \
 #-------------------------------------------------------------------------------
 
 LIB_SOURCES = \
+./src/lib/config.c \
 ./src/lib/lib.c \
 ./src/lib/list.c \
 ./src/lib/value.c \

@@ -1,4 +1,5 @@
 
+#include <onex-kernel/config.h>
 #include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/random.h>
@@ -24,15 +25,8 @@ bool evaluate_light(object* light, void* d) {
 
 int main(int argc, char *argv[]){
 
-  if(argc<=1){
-    log_write("Usage: %s <mcast group: ff12::1234 / ff12::4321>\n", argv[0]);
-    return -1;
-  }
-  properties* config = properties_new(32);
-  properties_set(config, "dbpath", value_new("light.ondb"));
-  properties_set(config, "channels", list_new_from("ipv6", 1));
-  properties_set(config, "ipv6_groups", list_new_from(argv[1], 1));
-  properties_set(config, "test-uid-prefix", value_new("light"));
+  properties* config = get_config(argc, argv, "light");
+  if(!config) return -1;
 
   time_init();
   log_init(config);

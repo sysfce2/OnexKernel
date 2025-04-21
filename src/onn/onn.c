@@ -1293,6 +1293,8 @@ void onex_init(properties* config) {
   } // REVISIT!
 #endif
 
+  log_write("Initialising Onex...\n");
+
   char* dbpath=value_string(properties_get(config, "dbpath"));
   char* prefix=value_string(properties_get(config, "test-uid-prefix"));
 
