@@ -51,14 +51,9 @@ int main(){
   log_init(config);
   random_init();
 
-  while(time_ms() < 700){
-    serial_loop();
-    log_loop();
-  } // REVISIT!
+  onex_init(config);
 
   log_write("\n------Starting Light Test -----\n");
-
-  onex_init(config);
 
 #if defined(BOARD_PCA10059)
   gpio_mode(LED1_G, OUTPUT);

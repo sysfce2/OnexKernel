@@ -1286,6 +1286,13 @@ void object_log(object* o)
 
 void onex_init(properties* config) {
 
+#if defined(NRF5)
+  while(time_ms() < 700){
+    serial_loop();
+    log_loop();
+  } // REVISIT!
+#endif
+
   char* dbpath=value_string(properties_get(config, "dbpath"));
   char* prefix=value_string(properties_get(config, "test-uid-prefix"));
 

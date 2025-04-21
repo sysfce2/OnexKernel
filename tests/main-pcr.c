@@ -23,16 +23,9 @@ int main(int argc, char *argv[]) {
   log_init(config);
   random_init();
 
-#if defined(NRF5)
-  while(time_ms() < 700){
-    serial_loop();
-    log_loop();
-  } // REVISIT!
-#endif
+  onex_init(config);
 
   log_write("\n------Starting PCR Test Server-----\n");
-
-  onex_init(config);
 
   while(true){
     if(!onex_loop()){
