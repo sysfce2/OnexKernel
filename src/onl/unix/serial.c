@@ -17,6 +17,9 @@
 
 static int init_serial(char* devtty, int b){
 
+    int fd=open(devtty, O_RDWR | O_NOCTTY | O_SYNC | O_NDELAY);
+    if(fd< 0) return -1;
+
     int baud=B9600;
     if(b==   1200) baud=   B1200; else
     if(b==   1800) baud=   B1800; else // not available in nrf51
@@ -40,11 +43,6 @@ static int init_serial(char* devtty, int b){
     if(b==3000000) baud=B3000000; else // not available in nrf51
     if(b==3500000) baud=B3500000; else // not available in nrf51
     if(b==4000000) baud=B4000000; else log_write("speed %d not found: using default 9600 baud!\n", b);
-
-    // log_write("opening %s @ %d\n", devtty, b);
-
-    int fd=open(devtty, O_RDWR | O_NOCTTY | O_SYNC | O_NDELAY);
-    if(fd< 0){ /* log_write("%s: %s (%d)\n", devtty, strerror(errno), errno); */ return -1; }
 
     struct termios tty;
     memset(&tty, 0, sizeof tty);
@@ -91,7 +89,7 @@ int fds[MAX_TTYS]  = {-1,-1,-1};
 void update_connected_serials() {
 
   if(time_ms() < nextupdate) return;
-  nextupdate=time_ms()+1500;
+  nextupdate=time_ms()+250;
 
   for(uint8_t t=0; t<list_size(serial_ttys) && t<MAX_TTYS; t++){
     if(fds[t]!= -1) continue;
