@@ -39,7 +39,6 @@ bool evaluate_light(object* light, void* d) {
   return true;
 }
 
-
 int main(){
 
   properties* config = properties_new(32);
@@ -49,6 +48,7 @@ int main(){
 
   time_init();
   log_init(config);
+  gpio_init();
   random_init();
 
   onex_init(config);
@@ -64,13 +64,13 @@ int main(){
 
   onex_set_evaluators("evaluate_light",  evaluate_light, 0);
 
-  light=object_new("uid-l", "evaluate_light",  "light", 4);
+  light=object_new("uid-light", "evaluate_light",  "light", 4);
 
   deviceuid=object_property(onex_device_object, "UID");
   lightuid =object_property(light, "UID");
 
   object_property_set(light,  "light", "off");
-  object_property_set(light,  "button", "uid-b");
+  object_property_set(light,  "button", "uid-button");
 
   onex_run_evaluators(lightuid, 0);
 

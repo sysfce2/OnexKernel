@@ -11,7 +11,7 @@ static bool button_pressed=false;
 
 static void every_tick(void*){
   button_pressed=!button_pressed;
-  onex_run_evaluators("uid-b", (void*)button_pressed);
+  onex_run_evaluators("uid-button", (void*)button_pressed);
 }
 
 bool evaluate_button(object* button, void* pressed) {
@@ -35,9 +35,9 @@ int main(int argc, char *argv[]) {
   log_write("\n------Starting Button Test Server-----\n");
 
   onex_set_evaluators("evaluate_button", evaluate_button, 0);
-  object* button=object_new("uid-b", "evaluate_button", "button", 4);
+  object* button=object_new("uid-button", "evaluate_button", "button", 4);
   object_property_set(button, "state", "up");
-  onex_run_evaluators("uid-b", 0);
+  onex_run_evaluators("uid-button", 0);
 
   time_ticker(every_tick, 0, 2000);
 

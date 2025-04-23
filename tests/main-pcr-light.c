@@ -38,12 +38,12 @@ int main(int argc, char *argv[]){
 
   onex_set_evaluators("evaluate_light",  evaluate_light, 0);
 
-  object* light=object_new("uid-l", "evaluate_light",  "light", 4);
+  object* light=object_new("uid-light", "evaluate_light",  "light", 4);
 
   object_property_set(light,  "light", "off");
-  object_property_set(light,  "button", "uid-b");
+  object_property_set(light,  "button", "uid-button");
 
-  onex_run_evaluators("uid-l", 0);
+  onex_run_evaluators("uid-light", 0);
 
   #define LOOPS 50
   while((number_up < LOOPS || number_down < LOOPS) && keep_going){
