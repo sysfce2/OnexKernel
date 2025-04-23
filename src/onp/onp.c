@@ -18,10 +18,10 @@
 
 static void on_connect(char* channel);
 static void connect_time_cb(void* connected_channel);
-static void handle_recv(uint16_t size, char* channel);
+static bool handle_recv(uint16_t size, char* channel);
 static void send(char* buff, char* channel);
-static void log_sent(char* buff, uint16_t size, char* channel);
-static void log_recv(char* buff, uint16_t size, char* channel);
+static void log_sent(char* prefix, char* buff, uint16_t size, char* channel);
+static void log_recv(char* prefix, char* buff, uint16_t size, char* channel);
 
 extern void onn_recv_observe(char* uid, char* dev);
 extern void onn_recv_object(object* n);
@@ -95,18 +95,18 @@ bool onp_loop() {
   uint16_t size=0;
   if(onp_channel_serial){
     size = channel_serial_recv(recv_buff, RECV_BUFF_SIZE-1);
-    if(size){ handle_recv(size,"serial"); return true; }
+    if(size) return handle_recv(size,"serial");
   }
   if(onp_channel_radio){
     size = channel_radio_recv(recv_buff, RECV_BUFF_SIZE-1);
-    if(size){ handle_recv(size,"radio"); return true; }
+    if(size) return handle_recv(size,"radio");
   }
   if(onp_channel_ipv6){
     for(int i=1; i<=list_size(ipv6_groups); i++){
       char* group = value_string(list_get_n(ipv6_groups, i));
       size = channel_ipv6_recv(group, recv_buff, RECV_BUFF_SIZE-1);
       char channel[256]; snprintf(channel, 256, "ipv6-%s", group);
-      if(size){ handle_recv(size,channel); return true; }
+      if(size) return handle_recv(size,channel);
     }
   }
   if(list_size(connected_channels)){
@@ -137,85 +137,91 @@ void connect_time_cb(void* connected_channel) {
   log_write("connect_time_cb(%s) %d\n", (char*)connected_channel, num_waiting_on_connect);
 }
 
-void recv_observe(uint16_t size, char* channel){
+static bool recv_observe(uint16_t size, char* channel){
 
   char* u=recv_buff;
 
   char* obs=u;
   while(*u > ' ') u++;
-  if(!*u) return;
+  if(!*u) return true;
   *u=0;
-  if(strcmp(obs, "OBS:")) return;
+  if(strcmp(obs, "OBS:")) return true;
   *u=' ';
   u++;
 
   char* uid=u;
   while(*u > ' ') u++;
-  if(!*u) return;
+  if(!*u) return true;
   *u=0;
-  if(!strlen(uid)) return;
+  if(!strlen(uid)) return true;
   uid=mem_strdup(uid);
   *u=' ';
   u++;
 
   char* dvp=u;
   while(*u > ' ') u++;
-  if(!*u){ mem_freestr(uid); return; }
+  if(!*u){ mem_freestr(uid); return true; }
   *u=0;
-  if(strcmp(dvp, "Devices:")){ mem_freestr(uid); return; }
+  if(strcmp(dvp, "Devices:")){ mem_freestr(uid); return true; }
   *u=' ';
   u++;
 
   char* dev=u;
   while(*u > ' ') u++;
   *u=0;
-  if(!strlen(dev)){ mem_freestr(uid); return; }
+  if(!strlen(dev)){ mem_freestr(uid); return true; }
   dev=mem_strdup(dev);
 
   if(!strcmp(object_property(onex_device_object, "UID"), dev)){
     // log_write("reject own OBS: %s\n", dev);
     mem_freestr(uid); mem_freestr(dev);
-    return;
+    return true;
   }
-  log_recv(recv_buff, size, channel);
+  log_recv("ONP", recv_buff, size, channel);
 
   set_channel_of_device(dev, channel);
 
   onn_recv_observe(uid,dev);
 
   mem_freestr(uid); mem_freestr(dev);
+
+  return true;
 }
 
 // REVISIT Device<s> above and below!?
 
-void recv_object(uint16_t size, char* channel){
+static bool recv_object(uint16_t size, char* channel){
 
-  object* n=object_from_text(recv_buff, MAX_OBJECT_SIZE); if(!n) return;
+  object* n=object_from_text(recv_buff, MAX_OBJECT_SIZE); if(!n) return true;
 
-  char* uid = object_property(n, "UID");     if(!uid) return;
-  char* dev = object_property(n, "Devices"); if(!dev) return;
+  char* uid = object_property(n, "UID");     if(!uid) return true;
+  char* dev = object_property(n, "Devices"); if(!dev) return true;
 
-  log_recv(recv_buff, size, channel);
+  log_recv("ONP", recv_buff, size, channel);
 
   if(!strcmp(object_property(onex_device_object, "UID"), dev)){
     log_write("Rejecting own device, UID: %s\n", dev);
-    return;
+    return true;
   }
   if(is_local(uid)){
     log_write("Rejecting own object, UID: %s\n", uid);
-    return;
+    return true;
   }
 
   set_channel_of_device(dev, channel);
 
   onn_recv_object(n);
+
+  return true;
 }
 
-static void handle_recv(uint16_t size, char* channel) {
+static bool handle_recv(uint16_t size, char* channel) {
   if(recv_buff[size-1]<=' ') recv_buff[size-1]=0;
   else                       recv_buff[size  ]=0;
-  if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) recv_observe(size, channel);
-  if(size>=5 && !strncmp(recv_buff,"UID: ",5)) recv_object( size, channel);
+  if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) return recv_observe(size, channel);
+  if(size>=5 && !strncmp(recv_buff,"UID: ",5)) return recv_object( size, channel);
+  log_recv(">>>>>>>>>>>>>>>>>", recv_buff, size, channel);
+  return true;
 }
 
 void onp_send_observe(char* uid, char* devices) {
@@ -238,41 +244,41 @@ void send(char* buff, char* channel){
   if(onp_channel_serial){
     if(!strcmp(channel, "serial") || !strcmp(channel, "all")){
       uint16_t size = channel_serial_send(buff, strlen(buff));
-      log_sent(buff,size,"serial");
+      log_sent("ONP",buff,size,"serial");
     }
   }
   if(onp_channel_radio){
     if(!strcmp(channel, "radio") || !strcmp(channel, "all")){
       uint16_t size = channel_radio_send(buff, strlen(buff));
-      log_sent(buff,size,"radio");
+      log_sent("ONP",buff,size,"radio");
     }
   }
   if(onp_channel_ipv6){
     if(!strncmp(channel, "ipv6-", 5) || !strcmp(channel, "all")){
       char* group = strcmp(channel, "all")? channel + 5: "all";
       uint16_t size = channel_ipv6_send(group, buff, strlen(buff));
-      log_sent(buff,size,strcmp(channel, "all")? channel: "ipv6-all");
+      log_sent("ONP",buff,size,strcmp(channel, "all")? channel: "ipv6-all");
     }
   }
 }
 
-void log_sent(char* buff, uint16_t size, char* channel) {
+void log_sent(char* prefix, char* buff, uint16_t size, char* channel) {
   if(log_to_gfx){
     log_write("> %d\n", size);
   }
   else{
-    log_write("ONP sent '%s'", buff);
+    log_write("%s sent '%s'", prefix, buff);
     if(channel) log_write(" to channel %s ", channel);
     log_write(" (%d bytes)\n", size);
   }
 }
 
-void log_recv(char* buff, uint16_t size, char* channel) {
+void log_recv(char* prefix, char* buff, uint16_t size, char* channel) {
   if(log_to_gfx){
     log_write("< %d\n", size);
   }
   else{
-    log_write("ONP recv '%s'", buff);
+    log_write("%s recv '%s'", prefix, buff);
     if(channel) log_write(" from channel %s ", channel);
     log_write(" (%d bytes)\n", size);
   }

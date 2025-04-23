@@ -13,6 +13,7 @@ int main(int argc, char *argv[]) {
 #if defined(NRF5)
   properties* config = properties_new(32);
   properties_set(config, "channels", list_new_from("radio serial",2));
+  properties_set(config, "flags", list_new_from("log-to-serial",2));
   properties_set(config, "test-uid-prefix", value_new("pcr"));
 #else
   properties* config = get_config(argc, argv, "pcr");
