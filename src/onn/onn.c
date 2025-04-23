@@ -1137,7 +1137,7 @@ bool run_any_evaluators()
         }
         else{
           object* a=onex_get_from_cache(value_string(alerted));
-          onp_send_object(a, uid);
+          onp_send_object(a, o? value_string(list_get_n(o->devices, 1)): "all");
         }
         break;
       }
