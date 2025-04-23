@@ -193,11 +193,18 @@ void recv_observe(uint16_t size, char* channel){
 void recv_object(uint16_t size, char* channel){
 
   object* n=object_from_text(recv_buff, MAX_OBJECT_SIZE); if(!n) return;
+
+  char* uid = object_property(n, "UID");     if(!uid) return;
   char* dev = object_property(n, "Devices"); if(!dev) return;
+
   log_recv(recv_buff, size, channel);
 
   if(!strcmp(object_property(onex_device_object, "UID"), dev)){
     log_write("Rejecting own device, UID: %s\n", dev);
+    return;
+  }
+  if(is_local(uid)){
+    log_write("Rejecting own object, UID: %s\n", uid);
     return;
   }
 
