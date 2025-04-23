@@ -121,7 +121,7 @@ bool is_uid(char* uid){
 
 bool object_is_local(object* o){
 
-  return o && !list_size(o->devices);
+  return o && !list_size(o->devices);  // REVISIT: implied remote when !o
 }
 
 bool is_local(char* uid){
@@ -132,7 +132,7 @@ bool is_local(char* uid){
 
 bool object_is_remote(object* o){
 
-  return o && list_size(o->devices);
+  return o && list_size(o->devices); // REVISIT: o || list_s...?
 }
 
 bool object_is_shell(object* o){
@@ -1135,7 +1135,7 @@ bool run_any_evaluators()
         if(object_is_local(o)){
           run_evaluators(o, 0, alerted, false);
         }
-        else{
+        else{ // REVISIT: remote if !o
           object* a=onex_get_from_cache(value_string(alerted));
           onp_send_object(a, o? value_string(list_get_n(o->devices, 1)): "all");
         }

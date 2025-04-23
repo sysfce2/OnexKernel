@@ -192,15 +192,14 @@ void recv_observe(uint16_t size, char* channel){
 
 void recv_object(uint16_t size, char* channel){
 
-  object* n=object_from_text(recv_buff, MAX_OBJECT_SIZE);
-  if(!n) return;
-  char* dev = object_property(n, "Devices");
-  if(!dev) return;
+  object* n=object_from_text(recv_buff, MAX_OBJECT_SIZE); if(!n) return;
+  char* dev = object_property(n, "Devices"); if(!dev) return;
+  log_recv(recv_buff, size, channel);
+
   if(!strcmp(object_property(onex_device_object, "UID"), dev)){
-    // log_write("reject own UID: %s\n", dev);
+    log_write("Rejecting own device, UID: %s\n", dev);
     return;
   }
-  log_recv(recv_buff, size, channel);
 
   set_channel_of_device(dev, channel);
 
@@ -222,8 +221,8 @@ void onp_send_observe(char* uid, char* devices) {
 // REVISIT device<s>?? and send for each channel in above and below
 void onp_send_object(object* o, char* devices) {
   if(object_is_remote(o)){
+    log_write("%sforwarding remote: %s\n", onp_channel_forward? "": "not ", object_property(o, "UID"));
     if(!onp_channel_forward) return;
-    log_write("forwarding remote: %s\n", object_property(o, "UID"));
   }
   object_to_text(o,send_buff,SEND_BUFF_SIZE,OBJECT_TO_TEXT_NETWORK);
   send(send_buff, channel_of_device(devices));
