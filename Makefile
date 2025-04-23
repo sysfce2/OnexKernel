@@ -171,7 +171,7 @@ test-pcr-light: libonex-kernel-xcb.a $(PCR_LIGHT_TESTS_SOURCES:.c=.o)
 	$(LD) $(PCR_LIGHT_TESTS_SOURCES:.c=.o) -pthread -L. -lonex-kernel-xcb -o $@
 
 run.pcr-button: test-pcr-button
-	./test-pcr-button ff12::4321
+	./test-pcr-button /dev/nordic_dongle
 
 run.pcr: test-pcr
 	./test-pcr ff12::1234 ff12::4321

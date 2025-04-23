@@ -37,7 +37,6 @@ static volatile int   num_waiting_on_connect=0;
 
 static void set_channel_of_device(char* device, char* channel){
   properties_ins_setwise(device_to_channel, device, channel);
-  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) properties_log(device_to_channel);
 }
 
 // REVISIT device<s>?? channel<s>? do each channel not #1!
@@ -120,7 +119,6 @@ bool onp_loop() {
       send(buf, connected_channel);
 
       num_waiting_on_connect--;
-      if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("sent device object to %s %d\n", connected_channel, num_waiting_on_connect);
       mem_freestr(connected_channel);
     }
     list_clear(connected_channels, false);
@@ -131,12 +129,12 @@ bool onp_loop() {
 void on_connect(char* channel) {
   time_start_timer(time_timeout(connect_time_cb, mem_strdup(channel)), 1200);
   num_waiting_on_connect++;
-  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("on_connect(%s) %d\n", channel, num_waiting_on_connect);
+  log_write("on_connect(%s) %d\n", channel, num_waiting_on_connect);
 }
 
 void connect_time_cb(void* connected_channel) {
   list_add(connected_channels, connected_channel);
-  if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("connect_time_cb(%s) %d\n", (char*)connected_channel, num_waiting_on_connect);
+  log_write("connect_time_cb(%s) %d\n", (char*)connected_channel, num_waiting_on_connect);
 }
 
 void recv_observe(uint16_t size, char* channel){

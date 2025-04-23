@@ -9,9 +9,6 @@
 
 object* light;
 
-char* deviceuid;
-char* lightuid;
-
 bool evaluate_light(object* light, void* d) {
 
   if(object_property_is(light, "button:state", "up"  )){
@@ -20,8 +17,6 @@ bool evaluate_light(object* light, void* d) {
   if(object_property_is(light, "button:state", "down")){
     object_property_set(light,  "light", "on");
   }
-
-  log_write("evaluate_light\n"); object_log(light);
 
   if(object_property_is(light, "light", "on")){
 #if defined(BOARD_PCA10059)
@@ -66,13 +61,10 @@ int main(){
 
   light=object_new("uid-light", "evaluate_light",  "light", 4);
 
-  deviceuid=object_property(onex_device_object, "UID");
-  lightuid =object_property(light, "UID");
-
   object_property_set(light,  "light", "off");
   object_property_set(light,  "button", "uid-button");
 
-  onex_run_evaluators(lightuid, 0);
+  onex_run_evaluators("uid-light", 0);
 
 #if defined(BOARD_PCA10059)
   gpio_set(LED1_G, LEDS_ACTIVE_STATE);
