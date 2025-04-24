@@ -5,6 +5,8 @@
 #include "app_error.h"
 #include "nrf_log_default_backends.h"
 
+#include <nRF5/m-class-support.h>
+
 #include <onex-kernel/serial.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
@@ -40,6 +42,8 @@ bool log_loop()
 static volatile char log_buffer[LOG_BUF_SIZE];
 volatile char* event_log_buffer=0;
 
+volatile char* log_write_in_int=0;
+
 int log_write_current_file_line(char* file, uint32_t line, const char* fmt, ...)
 {
   va_list args;
@@ -48,6 +52,17 @@ int log_write_current_file_line(char* file, uint32_t line, const char* fmt, ...)
   if(log_to_serial){
     //size_t n=snprintf((char*)log_buffer, LOG_BUF_SIZE, "LOG: %s", fmt);
     //if(n>=LOG_BUF_SIZE) n=LOG_BUF_SIZE-1;
+    if(in_interrupt_context()){
+      log_write_in_int = strdup(fmt);
+      return 0;
+    }
+    if(log_write_in_int){
+      char* msg = "LOG INT: ";
+      serial_write((unsigned char*)msg, strlen(msg));
+      serial_write(log_write_in_int, strlen(log_write_in_int));
+      free(log_write_in_int);
+      log_write_in_int = 0;
+    }
     r=serial_vprintf(fmt, args);
     time_delay_ms(1);
   }

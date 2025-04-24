@@ -1,6 +1,4 @@
 
-#include <nRF5/m-class-support.h>
-
 #include <onex-kernel/radio.h>
 #include <onex-kernel/log.h>
 #include <channel-radio.h>
@@ -22,8 +20,6 @@ void channel_radio_on_recv(int8_t rssi){
 
   static char ch[256];
   uint8_t n=radio_recv(ch);
-
-  log_write("channel_radio_on_recv(rssi=%d): %d/%d octets \n", rssi, n, strlen(ch));
 
   for(uint16_t i=0; i<n; i++){
     if(data_available()==RADIO_BUFFER_SIZE-1){
@@ -72,7 +68,6 @@ uint16_t channel_radio_recv(char* b, uint16_t l) {
 
 uint16_t channel_radio_send(char* b, uint16_t n) {
   if(!initialised) return 0;
-  if(in_interrupt_context()) log_write("OOPS: channel_radio_send called from interrupt context!!\n");
   return radio_printf("%s\n", b);
 }
 

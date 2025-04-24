@@ -5,9 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "nrf52.h"
-#include "nrf52_bitfields.h"
-
+#include <onex-kernel/log.h>
 #include <onex-kernel/radio.h>
 
 #define RADIO_TXPOWER                  RADIO_TXPOWER_TXPOWER_0dBm
@@ -88,7 +86,10 @@ bool radio_init(radio_recv_cb cb){
 
 bool radio_write(char* buf, uint8_t len) {
 
-  if(!buf || len > RADIO_MAX_PACKET_SIZE) return false;
+  if(!buf || len > RADIO_MAX_PACKET_SIZE){
+    log_write("radio_write overloaded: %d '%s'\n", len, buf);
+    return false;
+  }
 
   NVIC_DisableIRQ(RADIO_IRQn);
 
