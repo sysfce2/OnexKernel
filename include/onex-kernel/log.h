@@ -31,7 +31,7 @@ bool log_loop();
 #define log_write(...)     log_write_current_file_line(0,0, __VA_ARGS__)
 #define log_write_src(...) log_write_current_file_line(__FILE__, __LINE__, __VA_ARGS__)
 int  log_write_current_file_line(char* file, uint32_t line, const char* fmt, ...);
-void log_flash();
+void log_flash(uint8_t r, uint8_t g, uint8_t b);
 void log_flush();
 
 #endif

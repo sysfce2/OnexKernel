@@ -33,8 +33,12 @@ void log_init(properties* config) {
   if(log_to_leds){
     gpio_init();
 #if defined(BOARD_PCA10059)
-    gpio_mode(LED1_G, OUTPUT);
-    gpio_set(LED1_G,  !LEDS_ACTIVE_STATE);
+    gpio_mode(LED2_R, OUTPUT);
+    gpio_mode(LED2_G, OUTPUT);
+    gpio_mode(LED2_B, OUTPUT);
+    gpio_set(LED2_R, !LEDS_ACTIVE_STATE);
+    gpio_set(LED2_G, !LEDS_ACTIVE_STATE);
+    gpio_set(LED2_B, !LEDS_ACTIVE_STATE);
 #elif defined(BOARD_FEATHER_SENSE)
     gpio_mode(LED_1, OUTPUT);
     gpio_set(LED_1,  !LEDS_ACTIVE_STATE);
@@ -106,22 +110,26 @@ static volatile bool flash_on=false;
 
 void flash_time_cb(void*) {
 #if defined(BOARD_PCA10059)
-  gpio_set(LED1_G, !LEDS_ACTIVE_STATE);
+  gpio_set(LED2_R, !LEDS_ACTIVE_STATE);
+  gpio_set(LED2_G, !LEDS_ACTIVE_STATE);
+  gpio_set(LED2_B, !LEDS_ACTIVE_STATE);
 #elif defined(BOARD_FEATHER_SENSE)
   gpio_set(LED_1,  !LEDS_ACTIVE_STATE);
 #endif
   flash_on=false;
 }
 
-void log_flash(){
+void log_flash(uint8_t r, uint8_t g, uint8_t b){
   if(!log_to_leds || flash_on) return;
 #if defined(BOARD_PCA10059)
-  gpio_set(LED1_G, LEDS_ACTIVE_STATE);
+  if(r) gpio_set(LED2_R, LEDS_ACTIVE_STATE);
+  if(g) gpio_set(LED2_G, LEDS_ACTIVE_STATE);
+  if(b) gpio_set(LED2_B, LEDS_ACTIVE_STATE);
 #elif defined(BOARD_FEATHER_SENSE)
   gpio_set(LED_1,  LEDS_ACTIVE_STATE);
 #endif
   flash_on=true;
-  time_start_timer(flash_id, 140);
+  time_start_timer(flash_id, 250);
 }
 
 void log_flush()
