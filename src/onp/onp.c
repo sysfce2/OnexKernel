@@ -128,7 +128,7 @@ bool onp_loop() {
 }
 
 void on_connect(char* channel) {
-  time_start_timer(time_timeout(connect_time_cb, mem_strdup(channel)), 1200);
+  time_start_timer(time_timeout(connect_time_cb, mem_strdup(channel)), 1200); // REVISIT: free timer once cb called!
   num_waiting_on_connect++;
   log_write("on_connect(%s) %d\n", channel, num_waiting_on_connect);
 }

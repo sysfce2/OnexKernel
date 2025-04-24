@@ -6,22 +6,42 @@
 #include "nrf_log_default_backends.h"
 
 #include <nRF5/m-class-support.h>
+#include <boards.h>
 
 #include <onex-kernel/serial.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
+#include <onex-kernel/gpio.h>
 
 bool log_to_serial=false;
 bool log_to_gfx=false;
 bool log_to_rtt=false;
+bool log_to_leds=false;
+
+uint16_t    flash_id=0;
+static void flash_time_cb(void*);
 
 void log_init(properties* config) {
 
   log_to_serial = list_has_value(properties_get(config, "flags"), "log-to-serial");
   log_to_gfx    = list_has_value(properties_get(config, "flags"), "log-to-gfx");
   log_to_rtt    = list_has_value(properties_get(config, "flags"), "log-to-rtt");
+  log_to_leds   = list_has_value(properties_get(config, "flags"), "log-to-leds");
 
   if(log_to_serial) serial_init(0,0,0);
+
+  if(log_to_leds){
+    gpio_init();
+#if defined(BOARD_PCA10059)
+    gpio_mode(LED1_G, OUTPUT);
+    gpio_set(LED1_G,  !LEDS_ACTIVE_STATE);
+#elif defined(BOARD_FEATHER_SENSE)
+    gpio_mode(LED_1, OUTPUT);
+    gpio_set(LED_1,  !LEDS_ACTIVE_STATE);
+#endif
+    time_init();
+    flash_id=time_timeout(flash_time_cb,0);
+  }
 
 #if defined(NRF_LOG_ENABLED)
   NRF_LOG_INIT(NULL);
@@ -80,6 +100,28 @@ int log_write_current_file_line(char* file, uint32_t line, const char* fmt, ...)
   }
   va_end(args);
   return r;
+}
+
+static volatile bool flash_on=false;
+
+void flash_time_cb(void*) {
+#if defined(BOARD_PCA10059)
+  gpio_set(LED1_G, !LEDS_ACTIVE_STATE);
+#elif defined(BOARD_FEATHER_SENSE)
+  gpio_set(LED_1,  !LEDS_ACTIVE_STATE);
+#endif
+  flash_on=false;
+}
+
+void log_flash(){
+  if(!log_to_leds || flash_on) return;
+#if defined(BOARD_PCA10059)
+  gpio_set(LED1_G, LEDS_ACTIVE_STATE);
+#elif defined(BOARD_FEATHER_SENSE)
+  gpio_set(LED_1,  LEDS_ACTIVE_STATE);
+#endif
+  flash_on=true;
+  time_start_timer(flash_id, 140);
 }
 
 void log_flush()
