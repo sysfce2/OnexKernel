@@ -1,4 +1,5 @@
 
+#include <nrf_nvic.h>
 #include <nrf_pwr_mgmt.h>
 #include <nrf_bootloader_info.h>
 #include <nrf_soc.h>
@@ -17,6 +18,11 @@ void boot_init()
 #if defined(SOFTDEVICE_PRESENT)
   sd_power_mode_set(NRF_POWER_MODE_LOWPWR);
 #endif
+}
+
+void boot_reset(bool enter_bootloader) {
+  NRF_POWER->GPREGRET = enter_bootloader? 0x57: 0x6D;
+  NVIC_SystemReset();
 }
 
 void boot_feed_watchdog()

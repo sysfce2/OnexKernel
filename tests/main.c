@@ -5,6 +5,7 @@
 
 #if defined(NRF5)
 #include <boards.h>
+#include <onex-kernel/boot.h>
 #endif
 
 #include <onex-kernel/gpio.h>
@@ -334,6 +335,8 @@ int main(void) {
 
     if(char_recvd){
       log_write(">%c<----------\n", char_recvd);
+      if(char_recvd=='b') boot_reset(false);
+      if(char_recvd=='B') boot_reset(true);
       char_recvd=0;
     }
 

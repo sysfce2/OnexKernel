@@ -184,6 +184,7 @@ LIB_SOURCES = \
 
 
 NRF5_SOURCES = \
+./src/onl/nRF5/boot.c \
 ./src/onl/nRF5/time.c \
 ./src/onl/nRF5/random.c \
 ./src/onl/nRF5/gpio.c \
