@@ -14,11 +14,9 @@
 
 #include <onex-kernel/serial.h>
 #include <onex-kernel/log.h>
+#include <onex-kernel/chunkbuf.h>
 
-#define BUFFER_CHUNK_SIZE NRFX_USBD_EPSIZE
-static volatile char buffer_chunk[BUFFER_CHUNK_SIZE];
 #define BUFFER_SIZE 4096
-#include "../../lib/buffer.c"
 
 static volatile bool initialised=false;
 
@@ -49,6 +47,16 @@ APP_USBD_CDC_ACM_GLOBAL_DEF(m_app_cdc_acm,
                             APP_USBD_CDC_COMM_PROTOCOL_AT_V250
 );
 
+chunkbuf* serial_write_buf = 0;
+
+static uint16_t do_usb_write_block(){
+  char block[NRFX_USBD_EPSIZE];
+  uint16_t s = chunkbuf_read(serial_write_buf, block, NRFX_USBD_EPSIZE, -1);
+  if(!s) return 0;
+  ret_code_t e=app_usbd_cdc_acm_write(&m_app_cdc_acm, block, s);
+  return e==NRF_SUCCESS? s: 0;
+}
+
 #define INPUT_BUF_SIZE 1024
 static unsigned char m_cdc_data_array[INPUT_BUF_SIZE];
 
@@ -65,7 +73,7 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
                                                    m_cdc_data_array,
                                                    1);
             UNUSED_VARIABLE(ret);
-            buffer_clear();
+            chunkbuf_clear(serial_write_buf);
             if(recv_cb) recv_cb(0,0);
             else        pending_connect = true;
             NRF_LOG_INFO("CDC ACM port opened");
@@ -73,12 +81,12 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
         }
         case APP_USBD_CDC_ACM_USER_EVT_PORT_CLOSE:
         {
-            buffer_clear();
+            chunkbuf_clear(serial_write_buf);
             break;
         }
         case APP_USBD_CDC_ACM_USER_EVT_TX_DONE:
         {
-            buffer_write_chunk();
+            do_usb_write_block();
             break;
         }
         case APP_USBD_CDC_ACM_USER_EVT_RX_DONE:
@@ -155,31 +163,13 @@ static void usbd_user_ev_handler(app_usbd_event_type_t event)
     }
 }
 
-static uint8_t buffer_do_write(size_t size)
-{
-  ret_code_t e=app_usbd_cdc_acm_write(&m_app_cdc_acm, (char*)buffer_chunk, size);
-
-  if(!log_to_serial){
-    if(e==NRF_ERROR_BUSY){
-      log_write("busy\n");
-    }
-    else
-    if(e==NRF_ERROR_INVALID_STATE){
-      log_write("closed\n");
-    }
-    else
-    if(e!=NRF_SUCCESS){
-      log_write("%s\n", nrf_strerror_get(e));
-    }
-  }
-  return e==NRF_SUCCESS? BUFFER_WRITE_DONE: BUFFER_WRITE_FAILED;
-}
-
 bool serial_init(list* ttys, serial_recv_cb cb, uint32_t baudrate) {
 
     recv_cb = cb;
 
     if(initialised) return true;
+
+    serial_write_buf = chunkbuf_new(BUFFER_SIZE);
 
     app_usbd_serial_num_generate();
 
@@ -233,9 +223,10 @@ void serial_putchar(unsigned char ch)
   serial_write(&ch, 1);
 }
 
-size_t serial_write(unsigned char* buf, size_t size)
-{
-  return buffer_write(buf, size);
+size_t serial_write(unsigned char* buf, size_t size) {
+  uint16_t s=chunkbuf_write(serial_write_buf, (char*)buf, size);
+  do_usb_write_block();
+  return s;
 }
 
 size_t serial_printf(const char* fmt, ...)
