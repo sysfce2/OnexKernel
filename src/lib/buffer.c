@@ -29,12 +29,13 @@ static uint16_t buffer_data_available()
 
 static void buffer_write_chunk_guard(bool done);
 
-static size_t buffer_write(unsigned char* buf, size_t size)
-{
+static size_t buffer_write(unsigned char* buf, size_t size) {
+
   uint32_t reqd=false; if(!nrfx_atomic_u32_cmp_exch(&buffer_in_use, &reqd, true)) return 0;
 
   if(size > (BUFFER_SIZE-1) - buffer_data_available()){
     if(!log_to_serial) log_write("buffer full!\n"); // REVISIT: depends on being used for serial, which it is, but
+    log_flash(1,0,0);
     buffer_in_use=false;
     buffer_write_chunk_guard(false);
     return 0;

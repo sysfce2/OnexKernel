@@ -17,7 +17,7 @@
 
 #define BUFFER_CHUNK_SIZE NRFX_USBD_EPSIZE
 static volatile char buffer_chunk[BUFFER_CHUNK_SIZE];
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 4096
 #include "../../lib/buffer.c"
 
 static volatile bool initialised=false;
