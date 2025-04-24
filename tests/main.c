@@ -38,6 +38,7 @@
 #include <tests.h>
 
 static volatile int16_t run_tests= -1;
+static volatile char   char_recvd=  0;
 
 extern void run_properties_tests();
 extern void run_list_tests();
@@ -176,8 +177,8 @@ void show_battery()
 
 void on_recv(unsigned char* chars, size_t size) {
   if(!size) return;
-  log_write(">%c<----------\n", chars[0]);
-  if(chars[0]=='t') run_tests++;
+  char_recvd=chars[0];
+  if(char_recvd=='t') run_tests++;
 }
 
 #if defined(BOARD_MAGIC3)
@@ -330,6 +331,12 @@ int main(void) {
   led_matrix_show();
 #endif
   while(1){
+
+    if(char_recvd){
+      log_write(">%c<----------\n", char_recvd);
+      char_recvd=0;
+    }
+
     run_tests_maybe(config);
  
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
