@@ -1,72 +1,39 @@
 
 #include <onex-kernel/serial.h>
 #include <onex-kernel/log.h>
+#include <onex-kernel/chunkbuf.h>
+
 #include <channel-serial.h>
 
 static volatile bool initialised=false;
 
 static connect_cb serial_connect_cb;
 
-#define SERIAL_BUFFER_SIZE 2048
+#define SERIAL_READ_BUFFER_SIZE 2048
 
-static volatile char     buffer[SERIAL_BUFFER_SIZE];
-static volatile uint16_t current_write=0;
-static volatile uint16_t current_read=0;
+static volatile chunkbuf* serial_read_buf = 0;
 
-static uint16_t data_available() {
-  int16_t da=(int16_t)current_write-(int16_t)current_read;
-  return da >= 0? da: da+SERIAL_BUFFER_SIZE;
-}
-
-void channel_serial_on_recv(unsigned char* ch, size_t len) {
-  if(!ch){
+void channel_serial_on_recv(unsigned char* buf, size_t size) {
+  if(!buf){
     if(serial_connect_cb) serial_connect_cb("serial");
     return;
   }
-  for(uint16_t i=0; i<len; i++){
-    if(data_available()==SERIAL_BUFFER_SIZE-1){
-      log_write("channel serial recv buffer full!\n");
-      return;
-    }
-    buffer[current_write++]=ch[i];
-    if(current_write==SERIAL_BUFFER_SIZE) current_write=0;
+  uint16_t s=chunkbuf_write(serial_read_buf, (char*)buf, size);
+  if(!s){
+    log_flash(1,0,0);
+    return;
   }
 }
 
 void channel_serial_init(list* ttys, connect_cb serial_connect_cb_) {
+  serial_read_buf = chunkbuf_new(SERIAL_READ_BUFFER_SIZE);
   serial_connect_cb=serial_connect_cb_;
   initialised=serial_init(ttys, channel_serial_on_recv, 9600);
 }
 
 uint16_t channel_serial_recv(char* b, uint16_t l) {
-
-  if(!initialised || !data_available()) return 0;
-
-  uint16_t cr=current_read;
-  uint16_t da=data_available();
-  uint16_t s=0;
-  while(true){
-    char d=buffer[cr];
-    if(d=='\r' || d=='\n') break;
-    da--; if(!da) return 0;
-    cr++; if(cr==SERIAL_BUFFER_SIZE) cr=0;
-    s++;
-    if(s==l){
-      log_write("channel_serial_recv can fill all of the available buffer without hitting EOL!\n");
-      return 0;
-    }
-  }
-
-  uint16_t size=0;
-  while(data_available() && size<l){
-    b[size++]=buffer[current_read++];
-    if(current_read==SERIAL_BUFFER_SIZE) current_read=0;
-    if(b[size-1]=='\r' || b[size-1]=='\n'){
-      if(buffer[current_read]=='\n') continue;
-      break;
-    }
-  }
-  return size;
+  if(!initialised || !chunkbuf_current_size(serial_read_buf)) return 0;
+  return chunkbuf_read(serial_read_buf, b, l, '\n');
 }
 
 uint16_t channel_serial_send(char* b, uint16_t n) {
