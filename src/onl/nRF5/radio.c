@@ -7,6 +7,9 @@
 
 #include <onex-kernel/log.h>
 #include <onex-kernel/radio.h>
+#include <onex-kernel/chunkbuf.h>
+
+#define RADIO_WRITE_BUFFER_SIZE 2048
 
 #define RADIO_TXPOWER                  RADIO_TXPOWER_TXPOWER_0dBm
 #define RADIO_CHANNEL                  7 // 2.407GHz
@@ -20,6 +23,30 @@ static char rx_buffer[256];
 
 static volatile bool initialised=false;
 
+
+static volatile chunkbuf* radio_write_buf = 0;
+
+static bool write_a_packet(char* block, uint16_t size);
+
+static volatile bool write_loop_in_progress=false;
+
+static void do_tx_write_block(bool first_write){
+
+  if(first_write && write_loop_in_progress) return;
+  write_loop_in_progress=true;
+
+  char block[RADIO_MAX_PACKET_SIZE];
+  uint16_t s = chunkbuf_read(radio_write_buf, block, RADIO_MAX_PACKET_SIZE, -1);
+
+  if(!s){
+    write_loop_in_progress = false;
+    return;
+  }
+  if(write_a_packet(block, s)){
+    write_loop_in_progress = false;
+  }
+}
+
 static radio_recv_cb recv_cb = 0;
 
 bool radio_init(radio_recv_cb cb){
@@ -27,6 +54,8 @@ bool radio_init(radio_recv_cb cb){
   recv_cb = cb;
 
   if(initialised) return true;
+
+  radio_write_buf = chunkbuf_new(RADIO_WRITE_BUFFER_SIZE);
 
   NRF_CLOCK->EVENTS_HFCLKSTARTED = 0;
   NRF_CLOCK->TASKS_HFCLKSTART = 1;
@@ -86,10 +115,17 @@ bool radio_init(radio_recv_cb cb){
 
 uint16_t radio_write(char* buf, uint16_t size) {
 
-  if(!buf || len > RADIO_MAX_PACKET_SIZE){
-    log_write("radio_write overloaded: %d '%s'\n", len, buf);
-    return false;
+  uint16_t s=chunkbuf_write(radio_write_buf, buf, size);
+
+  if(!s){
+    log_flash(1,0,0);
+    return 0;
   }
+  do_tx_write_block(true);
+  return s;
+}
+
+static bool write_a_packet(char* block, uint16_t size){
 
   NVIC_DisableIRQ(RADIO_IRQn);
 
@@ -100,7 +136,7 @@ uint16_t radio_write(char* buf, uint16_t size) {
 
   // hijack the rx_buffer for tx!
   rx_buffer[0]=size;               // bit shite, but first byte is the size
-  memcpy(rx_buffer+1, buf, size);
+  memcpy(rx_buffer+1, block, size);
 
   // turn on the transmitter, and wait for it ready to use
   NRF_RADIO->EVENTS_READY = 0;
@@ -127,6 +163,8 @@ uint16_t radio_write(char* buf, uint16_t size) {
 
 //NVIC_ClearPendingIRQ(RADIO_IRQn); // REVISIT
   NVIC_EnableIRQ(RADIO_IRQn);
+
+  do_tx_write_block(false); // do on interrupt!
 
   return true;
 }
