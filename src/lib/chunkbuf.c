@@ -20,14 +20,17 @@ chunkbuf* chunkbuf_new(uint16_t buf_size){
   return cb;
 }
 
-uint16_t chunkbuf_current_size(chunkbuf* cb){
-  int16_t da=((int16_t)cb->current_write) - ((int16_t)cb->current_read);
+static uint16_t size_from_read_point(chunkbuf* cb, uint16_t cr){
+  int16_t da=((int16_t)cb->current_write) - ((int16_t)cr);
   return da >= 0? da: da+cb->buf_size;
+}
+
+uint16_t chunkbuf_current_size(chunkbuf* cb){
+  return size_from_read_point(cb, cb->current_read);
 }
 
 uint16_t chunkbuf_write(chunkbuf* cb, char* buf, uint16_t size){
   if(size > (cb->buf_size-1) - chunkbuf_current_size(cb)){
-    log_flash(1,0,0);
     return 0;
   }
   uint16_t i;

@@ -6,8 +6,8 @@ static bool initialised=false;
 
 static connect_cb serial_connect_cb;
 
-void channel_serial_on_recv(unsigned char* ch, size_t len) {
-  if(!ch){
+void channel_serial_on_recv(unsigned char* buf, size_t size) {
+  if(!buf){
     if(serial_connect_cb) serial_connect_cb("serial");
     return;
   }

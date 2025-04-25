@@ -16,7 +16,7 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/chunkbuf.h>
 
-#define BUFFER_SIZE 4096
+#define SERIAL_WRITE_BUFFER_SIZE 4096
 
 static volatile bool initialised=false;
 
@@ -183,7 +183,7 @@ bool serial_init(list* ttys, serial_recv_cb cb, uint32_t baudrate) {
 
     if(initialised) return true;
 
-    serial_write_buf = chunkbuf_new(BUFFER_SIZE);
+    serial_write_buf = chunkbuf_new(SERIAL_WRITE_BUFFER_SIZE);
 
     app_usbd_serial_num_generate();
 
@@ -239,6 +239,10 @@ void serial_putchar(unsigned char ch)
 
 size_t serial_write(unsigned char* buf, size_t size) {
   uint16_t s=chunkbuf_write(serial_write_buf, (char*)buf, size);
+  if(!s){
+    log_flash(1,0,0);
+    return 0;
+  }
   do_usb_write_block(true);
   return s;
 }

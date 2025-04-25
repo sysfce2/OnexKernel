@@ -296,7 +296,7 @@ int main(void) {
   properties_set(config, "dbpath", value_new("tests.ondb"));
 #else
 #if !defined(BOARD_MAGIC3)
-  properties_set(config, "flags", list_new_from("log-to-serial", 1));
+  properties_set(config, "flags", list_new_from("log-to-serial log-to-leds", 1));
 #else
   properties_set(config, "flags", list_new_from("log-to-gfx", 1));
 #endif

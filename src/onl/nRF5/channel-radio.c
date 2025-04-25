@@ -18,15 +18,16 @@ static uint16_t data_available() {
 
 void channel_radio_on_recv(int8_t rssi){
 
-  static char ch[256];
-  uint8_t n=radio_recv(ch);
+  static char buf[256];
+  uint8_t n=radio_recv(buf);
 
   for(uint16_t i=0; i<n; i++){
     if(data_available()==RADIO_BUFFER_SIZE-1){
       log_write("channel radio recv buffer full!\n");
+      log_flash(1,0,0);
       return;
     }
-    buffer[current_write++]=ch[i];
+    buffer[current_write++]=buf[i];
     if(current_write==RADIO_BUFFER_SIZE) current_write=0;
   }
 }
@@ -50,6 +51,7 @@ uint16_t channel_radio_recv(char* b, uint16_t l) {
     s++;
     if(s==l){
       log_write("channel_radio_recv can fill all of the available buffer without hitting EOL!\n");
+      log_flash(1,0,0);
       return 0;
     }
   }
