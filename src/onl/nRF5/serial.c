@@ -47,14 +47,28 @@ APP_USBD_CDC_ACM_GLOBAL_DEF(m_app_cdc_acm,
                             APP_USBD_CDC_COMM_PROTOCOL_AT_V250
 );
 
-chunkbuf* serial_write_buf = 0;
+static volatile chunkbuf* serial_write_buf = 0;
 
-static uint16_t do_usb_write_block(){
+static volatile bool write_loop_in_progress=false;
+
+static void do_usb_write_block(bool first_write){
+
+  if(first_write && write_loop_in_progress) return;
+  write_loop_in_progress=true;
+
   char block[NRFX_USBD_EPSIZE];
   uint16_t s = chunkbuf_read(serial_write_buf, block, NRFX_USBD_EPSIZE, -1);
-  if(!s) return 0;
+
+  if(!s){
+    write_loop_in_progress = false;
+    return;
+  }
+
   ret_code_t e=app_usbd_cdc_acm_write(&m_app_cdc_acm, block, s);
-  return e==NRF_SUCCESS? s: 0;
+
+  if(e!=NRF_SUCCESS){
+    write_loop_in_progress = false;
+  }
 }
 
 #define INPUT_BUF_SIZE 1024
@@ -86,7 +100,7 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
         }
         case APP_USBD_CDC_ACM_USER_EVT_TX_DONE:
         {
-            do_usb_write_block();
+            do_usb_write_block(false);
             break;
         }
         case APP_USBD_CDC_ACM_USER_EVT_RX_DONE:
@@ -225,7 +239,7 @@ void serial_putchar(unsigned char ch)
 
 size_t serial_write(unsigned char* buf, size_t size) {
   uint16_t s=chunkbuf_write(serial_write_buf, (char*)buf, size);
-  do_usb_write_block();
+  do_usb_write_block(true);
   return s;
 }
 
