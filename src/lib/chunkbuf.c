@@ -47,6 +47,24 @@ uint16_t chunkbuf_read(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
   uint16_t i;
   bool newline_delim = (delim=='\r' || delim=='\n');
   if(delim>=0){
+    bool found_delim=false;
+    uint16_t cr=cb->current_read;
+    for(i=0; i<size && size_from_read_point(cb, cr) && !found_delim; i++){
+
+      char c=cb->buffer[cr++];
+      if(cr==cb->buf_size) cr=0;
+
+      if(c==delim || IS_NL(c)){
+        if(i+1<size && size_from_read_point(cb,cr) && IS_NL(cb->buffer[cr])){
+          continue;
+        }
+        found_delim=true;
+      }
+    }
+    if(!found_delim){
+      if(i==size) log_flash(1,0,0); // can fill whole buffer without seeing delim
+      return 0;
+    }
   }
   for(i=0; i<size && chunkbuf_current_size(cb); i++){
 
@@ -56,6 +74,9 @@ uint16_t chunkbuf_read(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
     if(delim<0) continue;
 
     if(buf[i]==delim || IS_NL(buf[i])){
+      if(i+1<size && chunkbuf_current_size(cb) && IS_NL(cb->buffer[cb->current_read])){
+        continue;
+      }
       i++;
       break;
     }
