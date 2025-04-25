@@ -41,12 +41,24 @@ uint16_t chunkbuf_write(chunkbuf* cb, char* buf, uint16_t size){
   return i;
 }
 
-uint16_t chunkbuf_read(chunkbuf* cb, char* buf, uint16_t size, char delim){
+#define IS_NL(c) (newline_delim && ((c)=='\r' || (c)=='\n'))
+
+uint16_t chunkbuf_read(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
   uint16_t i;
+  bool newline_delim = (delim=='\r' || delim=='\n');
+  if(delim>=0){
+  }
   for(i=0; i<size && chunkbuf_current_size(cb); i++){
+
     buf[i]=cb->buffer[cb->current_read++];
     if(cb->current_read==cb->buf_size) cb->current_read=0;
-    if(buf[i]==delim){ i++; break; }
+
+    if(delim<0) continue;
+
+    if(buf[i]==delim || IS_NL(buf[i])){
+      i++;
+      break;
+    }
   }
   return i;
 }
