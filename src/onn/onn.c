@@ -748,9 +748,11 @@ void device_init(char* prefix) {
   if(!log_to_gfx){ \
     log_write("--------------------------\n" \
               action " property in an object but not running in an evaluator!\n" \
-              "uid: %s is: %s %s: '%s'\n" \
+              "uid: %s is: %s @ %s: '%s'\n" \
               "--------------------------\n", \
-              value_string(o->uid), object_property(o, "is:1"), path, val? val: ""); \
+              value_string(o->uid), \
+              object_property(o, "is:1")? object_property(o, "is:1"): "<none set>", \
+              path, val? val: "<no val>"); \
   }
 /*
   else { \
