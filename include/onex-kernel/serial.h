@@ -8,15 +8,15 @@
 
 #include <items.h>
 
-typedef void (*serial_recv_cb) (unsigned char*, size_t);
+typedef void (*serial_recv_cb) (char*, uint16_t);
 
-bool   serial_init(list* ttys, serial_recv_cb cb, uint32_t baudrate);
-void   serial_cb(serial_recv_cb cb);
-int    serial_recv(char* b, int l);
-size_t serial_printf(const char* fmt, ...);
-size_t serial_vprintf(const char* fmt, va_list args);
-void   serial_putchar(unsigned char ch);
-size_t serial_write(unsigned char* b, size_t l);
-bool   serial_loop();
+bool     serial_init(list* ttys, serial_recv_cb cb, uint32_t baudrate);
+void     serial_cb(serial_recv_cb cb);
+uint16_t serial_recv(char* buf, uint16_t size);
+int16_t  serial_printf(const char* fmt, ...);
+int16_t  serial_vprintf(const char* fmt, va_list args);
+void     serial_putchar(char ch);
+uint16_t serial_write(char* buf, uint16_t size);
+bool     serial_loop();
 
 #endif

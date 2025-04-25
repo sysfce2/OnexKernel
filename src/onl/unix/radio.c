@@ -11,19 +11,19 @@ bool radio_init(radio_recv_cb cb){
   return true;
 }
 
-bool radio_write(char* buf, uint8_t len) {
+uint16_t radio_write(char* buf, uint16_t size) {
   return true;
 }
 
-size_t radio_printf(const char* fmt, ...){
+int16_t radio_printf(const char* fmt, ...){
   return 0;
 }
 
-size_t radio_vprintf(const char* fmt, va_list args){
+int16_t radio_vprintf(const char* fmt, va_list args){
   return 0;
 }
 
-uint16_t radio_recv(char* buf) {
+uint8_t radio_recv(char* buf) {
     return 0;
 }
 

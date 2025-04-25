@@ -14,15 +14,15 @@ uint16_t ipv6_recv(char* group, char* buf, uint16_t l){
   return 0;
 }
 
-size_t ipv6_printf(char* group, const char* fmt, ...){
+int16_t ipv6_printf(char* group, const char* fmt, ...){
   return 0;
 }
 
-size_t ipv6_vprintf(char* group, const char* fmt, va_list args){
+int16_t ipv6_vprintf(char* group, const char* fmt, va_list args){
   return 0;
 }
 
-bool ipv6_write(char* group, char* buf, uint16_t len){
+uint16_t ipv6_write(char* group, char* buf, uint16_t size){
   return 0;
 }
 

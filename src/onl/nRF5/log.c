@@ -68,11 +68,10 @@ volatile char* event_log_buffer=0;
 
 volatile char* log_write_in_int=0;
 
-int log_write_current_file_line(char* file, uint32_t line, const char* fmt, ...)
-{
+int16_t log_write_current_file_line(char* file, uint32_t line, const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
-  int r=0;
+  int16_t r=0;
   if(log_to_serial){
     //size_t n=snprintf((char*)log_buffer, LOG_BUF_SIZE, "LOG: %s", fmt);
     //if(n>=LOG_BUF_SIZE) n=LOG_BUF_SIZE-1;
@@ -82,7 +81,7 @@ int log_write_current_file_line(char* file, uint32_t line, const char* fmt, ...)
     }
     if(log_write_in_int){
       char* msg = "LOG INT: ";
-      serial_write((unsigned char*)msg, strlen(msg));
+      serial_write(msg, strlen(msg));
       serial_write(log_write_in_int, strlen(log_write_in_int));
       free(log_write_in_int);
       log_write_in_int = 0;

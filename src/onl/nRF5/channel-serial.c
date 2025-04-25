@@ -13,12 +13,12 @@ static connect_cb serial_connect_cb;
 
 static volatile chunkbuf* serial_read_buf = 0;
 
-void channel_serial_on_recv(unsigned char* buf, size_t size) {
+void channel_serial_on_recv(char* buf, uint16_t size) {
   if(!buf){
     if(serial_connect_cb) serial_connect_cb("serial");
     return;
   }
-  uint16_t s=chunkbuf_write(serial_read_buf, (char*)buf, size);
+  uint16_t s=chunkbuf_write(serial_read_buf, buf, size);
   if(!s){
     log_flash(1,0,0);
     return;

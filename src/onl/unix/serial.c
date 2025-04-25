@@ -101,12 +101,11 @@ void update_connected_serials() {
 
 #define SERIAL_MAX_LENGTH 1024
 
-static int  ser_index[MAX_TTYS]={0,0,0};
-static char ser_buff[MAX_TTYS][SERIAL_MAX_LENGTH];
-static int  nt=0;
+static uint16_t ser_index[MAX_TTYS]={0,0,0};
+static char     ser_buff[MAX_TTYS][SERIAL_MAX_LENGTH];
+static uint8_t  nt=0;
 
-int serial_recv(char* b, int l)
-{
+uint16_t serial_recv(char* buf, uint16_t size) {
   update_connected_serials();
   for(int n=0; n<MAX_TTYS; n++){
     int fd=fds[nt];
@@ -117,12 +116,12 @@ int serial_recv(char* b, int l)
         for(; read(fd, ser_buff[nt]+ser_index[nt], 1)==1; ser_index[nt]++){
           if(ser_index[nt]==SERIAL_MAX_LENGTH-1 || ser_buff[nt][ser_index[nt]]=='\n'){
             ser_buff[nt][ser_index[nt]]=0;
-            int ss = ser_index[nt]+1;
+            uint16_t ss = ser_index[nt]+1;
             ser_index[nt]=0;
-            int size=l<ss? l: ss;
-            memcpy(b, ser_buff[nt], size);
+            uint16_t s=size<ss? size: ss;
+            memcpy(buf, ser_buff[nt], s);
             nt++; if(nt==MAX_TTYS) nt=0;
-            return size;
+            return s;
           }
         }
       }
@@ -135,15 +134,14 @@ int serial_recv(char* b, int l)
 #define PRINT_BUFF_SIZE 1024
 char print_buff[PRINT_BUFF_SIZE];
 
-size_t serial_printf(const char* fmt, ...)
-{
-  int i=0;
+int16_t serial_printf(const char* fmt, ...) {
+  int16_t i=0;
   for(uint8_t t=0; t< MAX_TTYS; t++){
     int fd=fds[t]; if(fd== -1) continue;
     va_list args;
     va_start(args, fmt);
-    int n=vsnprintf(print_buff, PRINT_BUFF_SIZE, fmt, args);
-    int j=write(fd, print_buff, n); if(j>=0) i=j;
+    int16_t n=vsnprintf(print_buff, PRINT_BUFF_SIZE, fmt, args);
+    int16_t j=write(fd, print_buff, n); if(j>=0) i=j;
     va_end(args);
   }
   return i; // TODO: returns last tty chars written

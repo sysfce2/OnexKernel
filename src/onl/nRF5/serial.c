@@ -118,7 +118,7 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
                     if (index > 1)
                     {
                         uint16_t length = (uint16_t)index;
-                        if(recv_cb) recv_cb(m_cdc_data_array, length);
+                        if(recv_cb) recv_cb((char*)m_cdc_data_array, length);
                     }
                     index = 0;
                 }
@@ -231,14 +231,13 @@ void serial_cb(serial_recv_cb cb)
     recv_cb = cb;
 }
 
-void serial_putchar(unsigned char ch)
-{
+void serial_putchar(char ch) {
   if(!initialised) serial_init(0,0,0);
   serial_write(&ch, 1);
 }
 
-size_t serial_write(unsigned char* buf, size_t size) {
-  uint16_t s=chunkbuf_write(serial_write_buf, (char*)buf, size);
+uint16_t serial_write(char* buf, uint16_t size) {
+  uint16_t s=chunkbuf_write(serial_write_buf, buf, size);
   if(!s){
     log_flash(1,0,0);
     return 0;
@@ -247,22 +246,20 @@ size_t serial_write(unsigned char* buf, size_t size) {
   return s;
 }
 
-size_t serial_printf(const char* fmt, ...)
-{
+int16_t serial_printf(const char* fmt, ...) {
   if(!initialised) serial_init(0,0,0);
   va_list args;
   va_start(args, fmt);
-  size_t r=serial_vprintf(fmt,args);
+  int16_t r=serial_vprintf(fmt,args);
   va_end(args);
   return r;
 }
 
 #define PRINT_BUF_SIZE 1024
-static unsigned char print_buf[PRINT_BUF_SIZE];
+static char print_buf[PRINT_BUF_SIZE];
 
-size_t serial_vprintf(const char* fmt, va_list args)
-{
-  size_t r=vsnprintf((char*)print_buf, PRINT_BUF_SIZE, fmt, args);
+int16_t serial_vprintf(const char* fmt, va_list args) {
+  int16_t r=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
   if(r>=PRINT_BUF_SIZE) r=PRINT_BUF_SIZE-1;
   return serial_write(print_buf, r);
 }

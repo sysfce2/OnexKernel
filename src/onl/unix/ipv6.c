@@ -196,19 +196,19 @@ bool ipv6_init(list* groups){ // ipv6_recv_cb cb??
   return initialised;
 }
 
-uint16_t ipv6_recv(char* group, char* buf, uint16_t l){
+uint16_t ipv6_recv(char* group, char* buf, uint16_t size){
   struct sockaddr_in6 addr;
   socklen_t addrLen = sizeof(addr);
   sock_addr* gi = (sock_addr*)properties_get(group_to_sock_addr, group);
-  ssize_t n = recvfrom(gi->sock, buf, l, 0, (struct sockaddr*)&addr, &addrLen);
+  ssize_t n = recvfrom(gi->sock, buf, size, 0, (struct sockaddr*)&addr, &addrLen);
   return (n>0)? n: 0;
 }
 
-size_t ipv6_printf(char* group, const char* fmt, ...){
+int16_t ipv6_printf(char* group, const char* fmt, ...){
   if(!initialised) return 0;
   va_list args;
   va_start(args, fmt);
-  size_t r=ipv6_vprintf(group,fmt,args);
+  int16_t r=ipv6_vprintf(group,fmt,args);
   va_end(args);
   return r;
 }
@@ -216,26 +216,26 @@ size_t ipv6_printf(char* group, const char* fmt, ...){
 #define PRINT_BUF_SIZE 2048
 static char print_buf[PRINT_BUF_SIZE];
 
-size_t ipv6_vprintf(char* group, const char* fmt, va_list args){
-  size_t r=vsnprintf((char*)print_buf, PRINT_BUF_SIZE, fmt, args);
+int16_t ipv6_vprintf(char* group, const char* fmt, va_list args){
+  int16_t r=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
   if(r>=PRINT_BUF_SIZE) r=PRINT_BUF_SIZE-1;
   return ipv6_write(group, print_buf, r)? r: 0;
 }
 
-static bool ipv6_write_gi(sock_addr* gi, char* buf, uint16_t len){
+static uint16_t ipv6_write_gi(sock_addr* gi, char* buf, uint16_t size){
   const struct sockaddr_in6 mc_addr=gi->mc_addr;
-  if(sendto(gi->sock, buf, len, 0, (const struct sockaddr*)&mc_addr, sizeof(mc_addr)) >= 0) {
-    return true;
+  if(sendto(gi->sock, buf, size, 0, (const struct sockaddr*)&mc_addr, sizeof(mc_addr)) >= 0) {
+    return size;
   }
   perror("sendto failed");
-  return false;
+  return 0;
 }
 
-bool ipv6_write(char* group, char* buf, uint16_t len){
-  if(!buf || len > 2048) return false;
+uint16_t ipv6_write(char* group, char* buf, uint16_t size){
+  if(!buf || size > 2048) return 0;
 
   sock_addr* gi = (sock_addr*)properties_get(group_to_sock_addr, group);
-  if(gi) return ipv6_write_gi(gi, buf, len);
+  if(gi) return ipv6_write_gi(gi, buf, size);
 
   // given group not found, so just do the lot...
   bool ok = false;
@@ -243,9 +243,9 @@ bool ipv6_write(char* group, char* buf, uint16_t len){
     char* gp = properties_key_n(group_to_sock_addr,i);
     if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("sending to all: %s '%s'\n", gp, buf);
     sock_addr* gi = (sock_addr*)properties_get(group_to_sock_addr, gp);
-    ok = ipv6_write_gi(gi, buf, len) || ok;
+    ok = !!ipv6_write_gi(gi, buf, size) || ok;
   }
-  return ok;
+  return ok? size: 0;
 }
 
 //  close(sock);

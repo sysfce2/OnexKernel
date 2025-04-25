@@ -84,7 +84,7 @@ bool radio_init(radio_recv_cb cb){
   return true;
 }
 
-bool radio_write(char* buf, uint8_t len) {
+uint16_t radio_write(char* buf, uint16_t size) {
 
   if(!buf || len > RADIO_MAX_PACKET_SIZE){
     log_write("radio_write overloaded: %d '%s'\n", len, buf);
@@ -99,8 +99,8 @@ bool radio_write(char* buf, uint8_t len) {
   while(!NRF_RADIO->EVENTS_DISABLED);
 
   // hijack the rx_buffer for tx!
-  rx_buffer[0]=len;               // bit shite, but first byte is the len
-  memcpy(rx_buffer+1, buf, len);
+  rx_buffer[0]=size;               // bit shite, but first byte is the size
+  memcpy(rx_buffer+1, buf, size);
 
   // turn on the transmitter, and wait for it ready to use
   NRF_RADIO->EVENTS_READY = 0;
@@ -131,12 +131,12 @@ bool radio_write(char* buf, uint8_t len) {
   return true;
 }
 
-size_t radio_printf(const char* fmt, ...){
+int16_t radio_printf(const char* fmt, ...){
 
   if(!initialised) radio_init(0);
   va_list args;
   va_start(args, fmt);
-  size_t r=radio_vprintf(fmt,args);
+  int16_t r=radio_vprintf(fmt,args);
   va_end(args);
   return r;
 }
@@ -144,18 +144,18 @@ size_t radio_printf(const char* fmt, ...){
 #define PRINT_BUF_SIZE 255
 static char print_buf[PRINT_BUF_SIZE];
 
-size_t radio_vprintf(const char* fmt, va_list args){
+int16_t radio_vprintf(const char* fmt, va_list args){
 
-  size_t r=vsnprintf((char*)print_buf, PRINT_BUF_SIZE, fmt, args);
+  int16_t r=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
   if(r>=PRINT_BUF_SIZE) r=PRINT_BUF_SIZE-1;
   return radio_write(print_buf, r)? r: 0;
 }
 
-uint16_t radio_recv(char* buf) {
-    uint8_t len = rx_buffer[0];
-    if(len > 0) memcpy(buf, rx_buffer+1, len);
-    if(len < 256) buf[len]=0;
-    return len;
+uint8_t radio_recv(char* buf) {
+    uint8_t size = rx_buffer[0];
+    if(size > 0) memcpy(buf, rx_buffer+1, size);
+    if(size < 256) buf[size]=0;
+    return size;
 } // REVISIT relies on being called in the irq
 
 void RADIO_IRQHandler(void){
