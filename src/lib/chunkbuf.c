@@ -29,16 +29,16 @@ uint16_t chunkbuf_current_size(chunkbuf* cb){
   return size_from_read_point(cb, cb->current_read);
 }
 
-uint16_t chunkbuf_write(chunkbuf* cb, char* buf, uint16_t size){
+bool chunkbuf_write(chunkbuf* cb, char* buf, uint16_t size){
   if(size > (cb->buf_size-1) - chunkbuf_current_size(cb)){
-    return 0;
+    return false;
   }
   uint16_t i;
   for(i=0; i<size; i++){
     cb->buffer[cb->current_write++]=buf[i];
     if(cb->current_write==cb->buf_size) cb->current_write=0;
   }
-  return i;
+  return true;
 }
 
 #define IS_NL(c) (newline_delim && ((c)=='\r' || (c)=='\n'))

@@ -18,8 +18,7 @@ void channel_serial_on_recv(char* buf, uint16_t size) {
     if(serial_connect_cb) serial_connect_cb("serial");
     return;
   }
-  uint16_t s=chunkbuf_write(serial_read_buf, buf, size);
-  if(!s){
+  if(!chunkbuf_write(serial_read_buf, buf, size)){
     log_flash(1,0,0);
     return;
   }

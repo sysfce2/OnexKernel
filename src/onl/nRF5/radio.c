@@ -115,14 +115,13 @@ bool radio_init(radio_recv_cb cb){
 
 uint16_t radio_write(char* buf, uint16_t size) {
 
-  uint16_t s=chunkbuf_write(radio_write_buf, buf, size);
 
-  if(!s){
+  if(!chunkbuf_write(radio_write_buf, buf, size)){
     log_flash(1,0,0);
     return 0;
   }
   do_tx_write_block(true);
-  return s;
+  return size;
 }
 
 static bool write_a_packet(char* block, uint16_t size){

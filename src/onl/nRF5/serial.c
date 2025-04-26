@@ -237,13 +237,12 @@ void serial_putchar(char ch) {
 }
 
 uint16_t serial_write(char* buf, uint16_t size) {
-  uint16_t s=chunkbuf_write(serial_write_buf, buf, size);
-  if(!s){
+  if(!chunkbuf_write(serial_write_buf, buf, size)){
     log_flash(1,0,0);
     return 0;
   }
   do_usb_write_block(true);
-  return s;
+  return size;
 }
 
 int16_t serial_printf(const char* fmt, ...) {
