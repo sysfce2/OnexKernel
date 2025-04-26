@@ -11,6 +11,7 @@
 #include <onex-kernel/gpio.h>
 
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
+#include <onex-kernel/chunkbuf.h>
 #include <onex-kernel/radio.h>
 #endif
 
@@ -275,12 +276,15 @@ extern volatile char* event_log_buffer;
 
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
 static char   radio_buf[256];
-static size_t radio_available;
+static bool   radio_available;
 static int8_t radio_rssi;
 
-void radio_cb(int8_t rssi){
+static volatile chunkbuf* radio_read_buf = 0;
 
-  radio_available=radio_recv(radio_buf);
+void radio_cb(int8_t rssi){
+  uint8_t size=radio_recv(radio_buf);
+  uint16_t s=chunkbuf_write(radio_read_buf, radio_buf, size);
+  radio_available=!!s;
   radio_rssi=rssi;
 }
 #endif
@@ -314,10 +318,11 @@ int main(void) {
   time_ticker(loop_serial, 0, 1);
  
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
+  radio_read_buf = chunkbuf_new(1024);
   radio_init(radio_cb);
   char buf[256];
-  uint8_t l=snprintf(buf, 256, "UID: uid-9bd4-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212c uid-36b0-2102-5ff9-bbf2");
-  radio_write(buf,l);
+  snprintf(buf, 256, "UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212c uid-36b0-2102-5ff9-bbf2\n");
+  radio_write(buf,strlen(buf));
 #endif
  
 #if defined(BOARD_FEATHER_SENSE)
@@ -345,16 +350,16 @@ int main(void) {
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
     if(radio_available){
  
-      size_t rn;
+      static char radio_buf[1024];
+      uint16_t rn = chunkbuf_read(radio_read_buf, radio_buf, 1024, '\n');
+      radio_buf[rn-1]=0; log_write("<< (%s) %d\n", radio_buf, rn);
+      *(radio_buf+rn/2 - 1)='\n';
+      *(radio_buf+rn/2 - 0)=0;
       rn=strlen(radio_buf);
-      log_write("<< (%s) %d/%d %d\n", radio_buf, rn, radio_available, radio_rssi);
- 
-      *(radio_buf+rn/2)=0;
+      if(rn) log_write(">> (%s) %d %d\n", radio_buf, rn, radio_write(radio_buf, rn));
 
-      rn=strlen(radio_buf);
-      if(rn) log_write(">> (%s) %d %d\n", radio_buf, rn+1, radio_write(radio_buf, rn+1));
-
-      radio_available=0;
+      radio_available=false;
+      log_write("------------------\n");
     }
 #endif
 
