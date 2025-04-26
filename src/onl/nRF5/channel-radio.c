@@ -11,8 +11,8 @@ static volatile bool initialised=false;
 static volatile chunkbuf* radio_read_buf = 0;
 
 void channel_radio_on_recv(int8_t rssi){
-  static char buf[256];
-  uint8_t size=radio_recv(buf);
+  static char buf[256]; // REVISIT: too much copying
+  uint8_t size=radio_recv(buf); // REVISIT: ug, and !buf radio_connect_cb
   if(!chunkbuf_write(radio_read_buf, buf, size)){
     log_flash(1,0,0);
     return;

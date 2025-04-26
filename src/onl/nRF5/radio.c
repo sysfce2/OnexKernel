@@ -23,6 +23,7 @@ static char rx_buffer[256];
 
 static volatile bool initialised=false;
 
+// REVISIT: when do I need chunkbuf_clear(radio_write_buf);
 
 static volatile chunkbuf* radio_write_buf = 0;
 

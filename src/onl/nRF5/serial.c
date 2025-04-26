@@ -106,7 +106,7 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
         case APP_USBD_CDC_ACM_USER_EVT_RX_DONE:
         {
             ret_code_t ret;
-            static uint8_t index = 0;
+            static uint16_t index = 0;
             index++;
 
             do
@@ -117,7 +117,7 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
                 {
                     if (index > 1)
                     {
-                        uint16_t length = (uint16_t)index;
+                        uint16_t length = index;
                         if(recv_cb) recv_cb((char*)m_cdc_data_array, length);
                     }
                     index = 0;
