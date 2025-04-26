@@ -27,25 +27,75 @@ static volatile bool initialised=false;
 
 static volatile chunkbuf* radio_write_buf = 0;
 
-static bool write_a_packet(char* block, uint16_t size);
+static void switch_to_tx();
+static void switch_to_rx();
+static bool write_a_packet(uint16_t size);
 
 static volatile bool write_loop_in_progress=false;
 
 static void do_tx_write_block(bool first_write){
 
   if(first_write && write_loop_in_progress) return;
+
+  switch_to_tx();
+
+  uint16_t size = chunkbuf_read(radio_write_buf, rx_buffer+1, RADIO_MAX_PACKET_SIZE, -1);
+
+  if(!write_a_packet(size)){
+    switch_to_rx();
+  }
+}
+
+static void switch_to_tx(){
+
+  if(write_loop_in_progress) return;
   write_loop_in_progress=true;
 
-  char block[RADIO_MAX_PACKET_SIZE];
-  uint16_t s = chunkbuf_read(radio_write_buf, block, RADIO_MAX_PACKET_SIZE, -1);
+  NVIC_DisableIRQ(RADIO_IRQn);
 
-  if(!s){
-    write_loop_in_progress = false;
-    return;
-  }
-  if(write_a_packet(block, s)){
-    write_loop_in_progress = false;
-  }
+  NRF_RADIO->EVENTS_DISABLED = 0;
+  NRF_RADIO->TASKS_DISABLE = 1;
+  while(!NRF_RADIO->EVENTS_DISABLED);
+
+  NRF_RADIO->EVENTS_READY = 0;
+  NRF_RADIO->TASKS_TXEN = 1;
+  while(!NRF_RADIO->EVENTS_READY);
+}
+
+static void switch_to_rx(){
+
+  if(!write_loop_in_progress) return;
+  write_loop_in_progress = false;
+
+  NRF_RADIO->EVENTS_DISABLED = 0;
+  NRF_RADIO->TASKS_DISABLE = 1;
+  while(!NRF_RADIO->EVENTS_DISABLED);
+
+  NRF_RADIO->EVENTS_READY = 0;
+  NRF_RADIO->TASKS_RXEN = 1;
+  while(!NRF_RADIO->EVENTS_READY);
+
+  NRF_RADIO->EVENTS_END = 0;
+  NRF_RADIO->TASKS_START = 1;
+
+//NVIC_ClearPendingIRQ(RADIO_IRQn); // REVISIT
+  NVIC_EnableIRQ(RADIO_IRQn);
+}
+
+static bool write_a_packet(uint16_t size){
+
+  if(!size) return false;
+
+  rx_buffer[0]=size;  // first byte is the size (!)
+
+  NRF_RADIO->EVENTS_END = 0;
+  NRF_RADIO->TASKS_START = 1;
+
+  while(!NRF_RADIO->EVENTS_END);
+  // don't wait for EVENTS_END do_tx_write_block on interrupt
+  do_tx_write_block(false);
+
+  return true;
 }
 
 static radio_recv_cb recv_cb = 0;
@@ -123,50 +173,6 @@ uint16_t radio_write(char* buf, uint16_t size) {
   return size;
 }
 
-static bool write_a_packet(char* block, uint16_t size){
-
-  NVIC_DisableIRQ(RADIO_IRQn);
-
-  // turn off the radio
-  NRF_RADIO->EVENTS_DISABLED = 0;
-  NRF_RADIO->TASKS_DISABLE = 1;
-  while(!NRF_RADIO->EVENTS_DISABLED);
-
-  // hijack the rx_buffer for tx!
-  rx_buffer[0]=size;               // bit shite, but first byte is the size
-  memcpy(rx_buffer+1, block, size);
-
-  // turn on the transmitter, and wait for it ready to use
-  NRF_RADIO->EVENTS_READY = 0;
-  NRF_RADIO->TASKS_TXEN = 1;
-  while(!NRF_RADIO->EVENTS_READY);
-
-  // start transmission and wait for end of packet
-  NRF_RADIO->EVENTS_END = 0;
-  NRF_RADIO->TASKS_START = 1;
-  while(!NRF_RADIO->EVENTS_END);
-
-  // turn off the radio
-  NRF_RADIO->EVENTS_DISABLED = 0;
-  NRF_RADIO->TASKS_DISABLE = 1;
-  while(!NRF_RADIO->EVENTS_DISABLED);
-
-  // start listening for the next packet
-  NRF_RADIO->EVENTS_READY = 0;
-  NRF_RADIO->TASKS_RXEN = 1;
-  while(!NRF_RADIO->EVENTS_READY);
-
-  NRF_RADIO->EVENTS_END = 0;
-  NRF_RADIO->TASKS_START = 1;
-
-//NVIC_ClearPendingIRQ(RADIO_IRQn); // REVISIT
-  NVIC_EnableIRQ(RADIO_IRQn);
-
-  do_tx_write_block(false); // do on interrupt!
-
-  return true;
-}
-
 int16_t radio_printf(const char* fmt, ...){
 
   if(!initialised) radio_init(0);
@@ -181,7 +187,6 @@ int16_t radio_printf(const char* fmt, ...){
 static char print_buf[PRINT_BUF_SIZE];
 
 int16_t radio_vprintf(const char* fmt, va_list args){
-
   int16_t r=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
   if(r>=PRINT_BUF_SIZE) r=PRINT_BUF_SIZE-1;
   return radio_write(print_buf, r)? r: 0;

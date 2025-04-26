@@ -383,9 +383,11 @@ int main(void) {
  
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
     if(radio_available){
+      radio_available=false;
       static bool needs_a_reply=false;
       static char radio_buf[200];
       while(true){
+      //log_write("radio_available: %d\n", chunkbuf_current_size(radio_read_buf));
         uint16_t rn = chunkbuf_read(radio_read_buf, radio_buf, 200, '\n');
         if(!rn) break;
         radio_buf[rn-1]=0; log_write("<< (%s) %d\n", radio_buf, rn);
@@ -395,7 +397,6 @@ int main(void) {
           send_big_radio_data(false);
         }
       }
-      radio_available=false;
       log_write("------------------\n");
     }
 #endif
