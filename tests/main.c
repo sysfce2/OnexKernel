@@ -317,6 +317,17 @@ void run_chunkbuf_tests(){
   }
 }
 
+void send_big_radio_data(bool needs_a_reply){
+  char buf[1024];     // 152 * 3 = 456 - 252 = 204 = 2 pkts; 3 lines
+  snprintf(buf, 1024, "UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
+                      "UID: uid-2222-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
+                      "UID: uid-%s%s-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n",
+                      needs_a_reply? "ff": "00",
+                      needs_a_reply? "ff": "00"
+  );
+  radio_write(buf,strlen(buf));
+}
+
 int main(void) {
 
   properties* config = properties_new(32);
@@ -344,9 +355,7 @@ int main(void) {
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
   radio_read_buf = chunkbuf_new(1024);
   radio_init(radio_cb);
-  char buf[512];
-  snprintf(buf, 512, "UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212c UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212c UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212c UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212c\n");
-  radio_write(buf,strlen(buf));
+  send_big_radio_data(true);
 #endif
  
 #if defined(BOARD_FEATHER_SENSE)
@@ -374,15 +383,18 @@ int main(void) {
  
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
     if(radio_available){
- 
-      static char radio_buf[1024];
-      uint16_t rn = chunkbuf_read(radio_read_buf, radio_buf, 1024, '\n');
-      radio_buf[rn-1]=0; log_write("<< (%s) %d\n", radio_buf, rn);
-      *(radio_buf+rn/2 - 1)='\n';
-      *(radio_buf+rn/2 - 0)=0;
-      rn=strlen(radio_buf);
-      if(rn) log_write(">> (%s) %d %d\n", radio_buf, rn, radio_write(radio_buf, rn));
-
+      static bool needs_a_reply=false;
+      static char radio_buf[200];
+      while(true){
+        uint16_t rn = chunkbuf_read(radio_read_buf, radio_buf, 200, '\n');
+        if(!rn) break;
+        radio_buf[rn-1]=0; log_write("<< (%s) %d\n", radio_buf, rn);
+        needs_a_reply=strstr(radio_buf, "UID: uid-ffff");
+        if(needs_a_reply){
+          needs_a_reply=false;
+          send_big_radio_data(false);
+        }
+      }
       radio_available=false;
       log_write("------------------\n");
     }
