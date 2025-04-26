@@ -320,8 +320,8 @@ int main(void) {
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
   radio_read_buf = chunkbuf_new(1024);
   radio_init(radio_cb);
-  char buf[256];
-  snprintf(buf, 256, "UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212c uid-36b0-2102-5ff9-bbf2\n");
+  char buf[512];
+  snprintf(buf, 512, "UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212c UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212c UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212c UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212c\n");
   radio_write(buf,strlen(buf));
 #endif
  
