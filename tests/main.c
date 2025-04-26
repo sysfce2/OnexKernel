@@ -293,6 +293,30 @@ void radio_cb(int8_t rssi){
 static void loop_serial(void*){ serial_loop(); }
 #endif
 
+void run_chunkbuf_tests(){
+  log_write("-------- chunkbuf tests ---------\n");
+  chunkbuf* wside = chunkbuf_new(100);
+  chunkbuf* rside = chunkbuf_new(100);
+  chunkbuf_write(wside, "111111111111111111.\n", strlen("111111111111111111.\n"));
+  chunkbuf_write(wside, "222222222222222222.\n", strlen("222222222222222222.\n"));
+  chunkbuf_write(wside, "333333333333333333.\n", strlen("333333333333333333.\n"));
+  chunkbuf_write(wside, "444444444444444444.\n", strlen("444444444444444444.\n"));
+  while(true){
+    char pkt[7];
+    uint16_t rn = chunkbuf_read(wside, pkt, 7, -1);
+  ; if(!rn) break;
+    chunkbuf_write(rside, pkt, rn);
+  }
+  while(true){
+    char line[32];
+    uint16_t rn = chunkbuf_read(rside, line, 32, '\n');
+  ; if(!rn) break;
+    line[rn-1]=0;
+    log_write("line: \"%s\" len: %d\n", line, strlen(line));
+    if(!rn) break;
+  }
+}
+
 int main(void) {
 
   properties* config = properties_new(32);
@@ -342,6 +366,7 @@ int main(void) {
       log_write(">%c<----------\n", char_recvd);
       if(char_recvd=='b') boot_reset(false);
       if(char_recvd=='B') boot_reset(true);
+      if(char_recvd=='c') run_chunkbuf_tests();
       char_recvd=0;
     }
 
