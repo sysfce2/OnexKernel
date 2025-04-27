@@ -136,8 +136,7 @@ bool object_is_remote(object* o){
 }
 
 bool object_is_shell(object* o){
-
-  return object_is_remote(o) && value_is(list_get_n(o->devices,1), "shell") && !o->properties;
+  return object_is_remote(o) && value_is(list_get_n(o->devices,1), "shell");
 }
 
 bool object_is_device(object* o){
@@ -500,14 +499,14 @@ object* find_object(char* uid, char* nuid, bool observe) {
     add_notify(o, nuid);
 
     if(object_is_shell(o)){
-      obs_or_refresh(uid, o, 1000);
+      obs_or_refresh(uid, o, 2000);
     }
     else
     if(object_is_remote(o)){
-      obs_or_refresh(uid, o, 10000);
+      obs_or_refresh(uid, o, 8000);
     }
   }
-  return object_is_shell(o)? 0: o;
+  return o;
 }
 
 uint16_t object_property_length(object* n, char* path)
@@ -1544,7 +1543,7 @@ void persist_pull_keep_active() {
 
 void onn_recv_observe(char* uid, char* dev) {
   object* o=find_object(uid, dev, true);
-  if(o) onp_send_object(o, dev);
+  if(o && !object_is_shell(o)) onp_send_object(o, dev);
 }
 
 void onn_recv_object(object* n) {
