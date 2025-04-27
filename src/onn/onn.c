@@ -361,11 +361,20 @@ char* object_get_persist(object* n){
 
 // ------------------------------------------------------
 
+static char obstime[64];
+static value* format_obstime(object* n){
+  if(!n->last_observe) return value_new("-");
+  uint32_t t = ((uint32_t)(time_ms() - n->last_observe)/1000);
+  snprintf(obstime, 64, "%d", (uint16_t)t);
+  return value_new(obstime);
+}
+
 static char* object_property_observe(object* n, char* path, bool observe)
 {
   if(!n) return 0;
   if(!strcmp(path, "UID"))     return value_string(n->uid);
   if(!strcmp(path, "Timer"))   return value_string(n->timer);
+  if(!strcmp(path, "Obstime")) return value_string(format_obstime(n));
   if(!strcmp(path, "Devices")) return value_string(list_get_n(n->devices, 1));
                      // REVISIT Device<s> but only returns the first!!
 
@@ -428,6 +437,7 @@ item* property_item(object* n, char* path, object* t, bool observe)
 {
   if(!strcmp(path, "UID"))     return (item*)n->uid;
   if(!strcmp(path, "Timer"))   return (item*)n->timer;
+  if(!strcmp(path, "Obstime")) return (item*)format_obstime(n);
   if(!strcmp(path, ""))        return (item*)n->properties;
   if(!strcmp(path, ":"))       return (item*)n->properties;
   if(!strcmp(path, "Alerted")) return (item*)n->alerted;
