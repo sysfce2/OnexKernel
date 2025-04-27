@@ -3,17 +3,10 @@
 
 #if defined(NRF5)
 
-#if defined(NRF5)
 #include <boards.h>
 #include <onex-kernel/boot.h>
-#endif
-
 #include <onex-kernel/gpio.h>
-
-#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
-#include <onex-kernel/chunkbuf.h>
 #include <onex-kernel/radio.h>
-#endif
 
 #if defined(BOARD_FEATHER_SENSE)
 #include <onex-kernel/led-matrix.h>
@@ -33,6 +26,9 @@
 
 #endif // NRF5
 
+#include <string.h>
+
+#include <onex-kernel/chunkbuf.h>
 #include <onex-kernel/random.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
@@ -286,6 +282,17 @@ void radio_cb(int8_t rssi){
   radio_available=chunkbuf_write(radio_read_buf, radio_buf, size);
   radio_rssi=rssi;
 }
+
+void send_big_radio_data(bool needs_a_reply){
+  char buf[1024];     // 152 * 3 = 456 - 252 = 204 = 2 pkts; 3 lines
+  snprintf(buf, 1024, "UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
+                      "UID: uid-2222-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
+                      "UID: uid-%s%s-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n",
+                      needs_a_reply? "ff": "00",
+                      needs_a_reply? "ff": "00"
+  );
+  radio_write(buf,strlen(buf));
+}
 #endif
 
 #if defined(NRF5)
@@ -314,17 +321,6 @@ void run_chunkbuf_tests(){
     log_write("line: \"%s\" len: %d\n", line, strlen(line));
     if(!rn) break;
   }
-}
-
-void send_big_radio_data(bool needs_a_reply){
-  char buf[1024];     // 152 * 3 = 456 - 252 = 204 = 2 pkts; 3 lines
-  snprintf(buf, 1024, "UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
-                      "UID: uid-2222-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
-                      "UID: uid-%s%s-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n",
-                      needs_a_reply? "ff": "00",
-                      needs_a_reply? "ff": "00"
-  );
-  radio_write(buf,strlen(buf));
 }
 
 int main(void) {
@@ -396,7 +392,7 @@ int main(void) {
           send_big_radio_data(false);
         }
       }
-      log_write("------------------\n");
+      log_write("-----------------(%d)--\n", radio_rssi);
     }
 #endif
 
@@ -496,6 +492,7 @@ int main(void) {
 #else // NRF5
   on_recv((unsigned char*)"t", 1);
   run_tests_maybe(config);
+  run_chunkbuf_tests();
   time_end();
 #endif
 
