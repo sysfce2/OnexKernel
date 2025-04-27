@@ -283,8 +283,7 @@ static volatile chunkbuf* radio_read_buf = 0;
 
 void radio_cb(int8_t rssi){
   uint8_t size=radio_recv(radio_buf);
-  uint16_t s=chunkbuf_write(radio_read_buf, radio_buf, size);
-  radio_available=!!s;
+  radio_available=chunkbuf_write(radio_read_buf, radio_buf, size);
   radio_rssi=rssi;
 }
 #endif

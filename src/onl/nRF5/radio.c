@@ -1,3 +1,4 @@
+#define NON_BLOCKING
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -60,12 +61,21 @@ static void switch_to_tx(){
   NRF_RADIO->EVENTS_READY = 0;
   NRF_RADIO->TASKS_TXEN = 1;
   while(!NRF_RADIO->EVENTS_READY);
+
+#ifdef NON_BLOCKING
+//NVIC_ClearPendingIRQ(RADIO_IRQn); // REVISIT
+  NVIC_EnableIRQ(RADIO_IRQn);
+#endif
 }
 
 static void switch_to_rx(){
 
   if(!write_loop_in_progress) return;
   write_loop_in_progress = false;
+
+#ifdef NON_BLOCKING
+  NVIC_DisableIRQ(RADIO_IRQn);
+#endif
 
   NRF_RADIO->EVENTS_DISABLED = 0;
   NRF_RADIO->TASKS_DISABLE = 1;
@@ -91,9 +101,10 @@ static bool write_a_packet(uint16_t size){
   NRF_RADIO->EVENTS_END = 0;
   NRF_RADIO->TASKS_START = 1;
 
+#ifndef NON_BLOCKING
   while(!NRF_RADIO->EVENTS_END);
-  // don't wait for EVENTS_END do_tx_write_block on interrupt
   do_tx_write_block(false);
+#endif
 
   return true;
 }
@@ -201,6 +212,16 @@ uint8_t radio_recv(char* buf) {
 
 void RADIO_IRQHandler(void){
 
+#ifdef NON_BLOCKING
+  if(write_loop_in_progress) {
+    if(NRF_RADIO->EVENTS_END) {
+      NRF_RADIO->EVENTS_END = 0;
+      do_tx_write_block(false);
+    }
+    return;
+  }
+#endif
+
   if(NRF_RADIO->EVENTS_READY) {
     NRF_RADIO->EVENTS_READY = 0;
     NRF_RADIO->TASKS_START = 1;
@@ -208,13 +229,14 @@ void RADIO_IRQHandler(void){
   if(NRF_RADIO->EVENTS_END) {
     NRF_RADIO->EVENTS_END = 0;
 
-    if(NRF_RADIO->CRCSTATUS == 1) {
-      int8_t rssi = -NRF_RADIO->RSSISAMPLE;
-      // REVISIT copy quickly to a queue/buffer here!
-      if(recv_cb) recv_cb(rssi);
-    }
-    NRF_RADIO->TASKS_START = 1;
+      if(NRF_RADIO->CRCSTATUS == 1) {
+        int8_t rssi = -NRF_RADIO->RSSISAMPLE;
+        // REVISIT copy quickly to a queue/buffer here!
+        if(recv_cb) recv_cb(rssi);
+      }
+      NRF_RADIO->TASKS_START = 1;
   }
 }
+
 
 
