@@ -58,6 +58,9 @@ static void switch_to_tx(){
   NRF_RADIO->TASKS_DISABLE = 1;
   while(!NRF_RADIO->EVENTS_DISABLED);
 
+  // go to START per packet, not on READY, do; no RSSI
+  NRF_RADIO->SHORTS = 0;
+
   NRF_RADIO->EVENTS_READY = 0;
   NRF_RADIO->TASKS_TXEN = 1;
   while(!NRF_RADIO->EVENTS_READY);
@@ -81,12 +84,15 @@ static void switch_to_rx(){
   NRF_RADIO->TASKS_DISABLE = 1;
   while(!NRF_RADIO->EVENTS_DISABLED);
 
+  NRF_RADIO->SHORTS =
+           (RADIO_SHORTS_READY_START_Enabled       << RADIO_SHORTS_READY_START_Pos      )|
+           (RADIO_SHORTS_ADDRESS_RSSISTART_Enabled << RADIO_SHORTS_ADDRESS_RSSISTART_Pos);
+
   NRF_RADIO->EVENTS_READY = 0;
   NRF_RADIO->TASKS_RXEN = 1;
   while(!NRF_RADIO->EVENTS_READY);
 
   NRF_RADIO->EVENTS_END = 0;
-  NRF_RADIO->TASKS_START = 1;
 
 //NVIC_ClearPendingIRQ(RADIO_IRQn); // REVISIT
   NVIC_EnableIRQ(RADIO_IRQn);
@@ -158,9 +164,8 @@ bool radio_init(radio_recv_cb cb){
   NVIC_ClearPendingIRQ(RADIO_IRQn);
   NVIC_EnableIRQ(RADIO_IRQn); // RADIO_IRQHandler()
 
-  NRF_RADIO->SHORTS |=
-      //   (RADIO_SHORTS_READY_START_Enabled       << RADIO_SHORTS_READY_START_Pos      )|
-      //   (RADIO_SHORTS_END_DISABLE_Enabled       << RADIO_SHORTS_END_DISABLE_Pos      )|
+  NRF_RADIO->SHORTS =
+           (RADIO_SHORTS_READY_START_Enabled       << RADIO_SHORTS_READY_START_Pos      )|
            (RADIO_SHORTS_ADDRESS_RSSISTART_Enabled << RADIO_SHORTS_ADDRESS_RSSISTART_Pos);
 
   NRF_RADIO->EVENTS_READY = 0;
@@ -168,7 +173,6 @@ bool radio_init(radio_recv_cb cb){
   while(!NRF_RADIO->EVENTS_READY);
 
   NRF_RADIO->EVENTS_END = 0;
-  NRF_RADIO->TASKS_START = 1;
 
   initialised=true;
 
@@ -222,19 +226,14 @@ void RADIO_IRQHandler(void){
   }
 #endif
 
-  if(NRF_RADIO->EVENTS_READY) {
-    NRF_RADIO->EVENTS_READY = 0;
-    NRF_RADIO->TASKS_START = 1;
-  }
   if(NRF_RADIO->EVENTS_END) {
     NRF_RADIO->EVENTS_END = 0;
-
-      if(NRF_RADIO->CRCSTATUS == 1) {
-        int8_t rssi = -NRF_RADIO->RSSISAMPLE;
-        // REVISIT copy quickly to a queue/buffer here!
-        if(recv_cb) recv_cb(rssi);
-      }
-      NRF_RADIO->TASKS_START = 1;
+    if(NRF_RADIO->CRCSTATUS == 1) {
+      int8_t rssi = -NRF_RADIO->RSSISAMPLE;
+      // REVISIT copy quickly to a queue/buffer here!
+      if(recv_cb) recv_cb(rssi);
+    }
+    NRF_RADIO->TASKS_START = 1;
   }
 }
 
