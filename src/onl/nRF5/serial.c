@@ -259,7 +259,10 @@ static char print_buf[PRINT_BUF_SIZE];
 
 int16_t serial_vprintf(const char* fmt, va_list args) {
   int16_t r=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
-  if(r>=PRINT_BUF_SIZE) r=PRINT_BUF_SIZE-1;
+  if(r>=PRINT_BUF_SIZE){
+    log_flash(1,0,0);
+    return 0;
+  }
   return serial_write(print_buf, r);
 }
 

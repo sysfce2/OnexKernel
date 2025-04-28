@@ -213,12 +213,12 @@ int16_t ipv6_printf(char* group, const char* fmt, ...){
   return r;
 }
 
-#define PRINT_BUF_SIZE 2048
+#define PRINT_BUF_SIZE 4096
 static char print_buf[PRINT_BUF_SIZE];
 
 int16_t ipv6_vprintf(char* group, const char* fmt, va_list args){
   int16_t r=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
-  if(r>=PRINT_BUF_SIZE) r=PRINT_BUF_SIZE-1;
+  if(r>=PRINT_BUF_SIZE) return 0;
   return ipv6_write(group, print_buf, r)? r: 0;
 }
 

@@ -74,7 +74,7 @@ int16_t log_write_current_file_line(char* file, uint32_t line, const char* fmt, 
   int16_t r=0;
   if(log_to_serial){
     //size_t n=snprintf((char*)log_buffer, LOG_BUF_SIZE, "LOG: %s", fmt);
-    //if(n>=LOG_BUF_SIZE) n=LOG_BUF_SIZE-1;
+    //if(n>=LOG_BUF_SIZE) ...
     if(in_interrupt_context()){
       log_write_in_int = strdup(fmt);
       return 0;
@@ -91,11 +91,13 @@ int16_t log_write_current_file_line(char* file, uint32_t line, const char* fmt, 
   }
   if(log_to_gfx){
     uint16_t ln=file? snprintf((char*)log_buffer, LOG_BUF_SIZE, "%s:%ld:", file, line): 0;
-    vsnprintf((char*)log_buffer+ln, LOG_BUF_SIZE-ln, fmt, args);
+    ln+=vsnprintf((char*)log_buffer+ln, LOG_BUF_SIZE-ln, fmt, args);
+    if(ln >= LOG_BUF_SIZE){ log_flash(1,0,0); return 0; }
     event_log_buffer=log_buffer;
   }
   if(log_to_rtt){
-    vsnprintf((char*)log_buffer, LOG_BUF_SIZE, fmt, args);
+    uint16_t ln=vsnprintf((char*)log_buffer, LOG_BUF_SIZE, fmt, args);
+    if(ln >= LOG_BUF_SIZE){ log_flash(1,0,0); return 0; }
     NRF_LOG_DEBUG("%s", (char*)log_buffer);
     time_delay_ms(2);
     NRF_LOG_FLUSH();

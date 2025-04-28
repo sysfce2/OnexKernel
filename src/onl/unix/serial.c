@@ -131,20 +131,24 @@ uint16_t serial_recv(char* buf, uint16_t size) {
   return 0;
 }
 
-#define PRINT_BUFF_SIZE 1024
-char print_buff[PRINT_BUFF_SIZE];
+#define PRINT_BUF_SIZE 4096
+char print_buf[PRINT_BUF_SIZE];
 
 int16_t serial_printf(const char* fmt, ...) {
+
+  va_list args;
+  va_start(args, fmt);
+  int16_t n=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
+  va_end(args);
+  if(n>=PRINT_BUF_SIZE) return 0;
+
   int16_t i=0;
   for(uint8_t t=0; t< MAX_TTYS; t++){
     int fd=fds[t]; if(fd== -1) continue;
-    va_list args;
-    va_start(args, fmt);
-    int16_t n=vsnprintf(print_buff, PRINT_BUFF_SIZE, fmt, args);
-    int16_t j=write(fd, print_buff, n); if(j>=0) i=j;
-    va_end(args);
+    int16_t j=write(fd, print_buf, n);
+    if(j>=0) i=j; // REVISIT: last tty chars written
   }
-  return i; // TODO: returns last tty chars written
+  return i; // REVISIT: returns last tty chars written
 }
 
 

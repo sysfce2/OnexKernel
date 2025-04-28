@@ -204,7 +204,6 @@ static char print_buf[PRINT_BUF_SIZE];
 int16_t radio_vprintf(const char* fmt, va_list args){
   int16_t r=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
   if(r>=PRINT_BUF_SIZE){
-    // REVISIT: see other channels' vprintf
     log_flash(1,0,0);
     return 0;
   }
