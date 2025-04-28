@@ -197,12 +197,17 @@ int16_t radio_printf(const char* fmt, ...){
   return r;
 }
 
-#define PRINT_BUF_SIZE 255
+// allow two radio packets' worth in a single printf, enough?
+#define PRINT_BUF_SIZE (2 * RADIO_MAX_PACKET_SIZE)
 static char print_buf[PRINT_BUF_SIZE];
 
 int16_t radio_vprintf(const char* fmt, va_list args){
   int16_t r=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
-  if(r>=PRINT_BUF_SIZE) r=PRINT_BUF_SIZE-1;
+  if(r>=PRINT_BUF_SIZE){
+    // REVISIT: see other channels' vprintf
+    log_flash(1,0,0);
+    return 0;
+  }
   return radio_write(print_buf, r)? r: 0;
 }
 
