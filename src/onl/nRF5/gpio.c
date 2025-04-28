@@ -7,12 +7,15 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/gpio.h>
 
-void gpio_init()
-{
+static volatile bool initialised=false;
+
+void gpio_init() {
+  if(initialised) return;
   NRF_GPIOTE->EVENTS_PORT = 0; volatile uint32_t readit=NRF_GPIOTE->EVENTS_PORT; (void)readit;
   NRF_GPIOTE->INTENSET = GPIOTE_INTENSET_PORT_Msk;
   NVIC_SetPriority(GPIOTE_IRQn, APP_IRQ_PRIORITY_HIGH);
   NVIC_EnableIRQ(GPIOTE_IRQn);
+  initialised=true;
 }
 
 void gpio_mode(uint8_t pin, uint8_t mode)

@@ -44,8 +44,8 @@ extern void run_value_tests();
 extern void run_onn_tests(properties* config);
 
 #if defined(NRF5)
-static volatile bool display_state_prev=!LEDS_ACTIVE_STATE;
-static volatile bool display_state     = LEDS_ACTIVE_STATE;
+static volatile bool display_state_prev= LEDS_ACTIVE_STATE;
+static volatile bool display_state     =!LEDS_ACTIVE_STATE;
 
 void button_changed(uint8_t pin, uint8_t type)
 {
@@ -336,9 +336,9 @@ int main(void) {
   properties_set(config, "dbpath", value_new("tests.ondb"));
 #else
 #if !defined(BOARD_MAGIC3)
-  properties_set(config, "flags", list_new_from("log-to-serial log-to-leds", 1));
+  properties_set(config, "flags", list_new_from("log-to-serial log-to-leds", 2));
 #else
-  properties_set(config, "flags", list_new_from("log-to-gfx", 1));
+  properties_set(config, "flags", list_new_from("log-to-gfx", 2));
 #endif
 #endif
   properties_set(config, "test-uid-prefix", value_new("tests"));
