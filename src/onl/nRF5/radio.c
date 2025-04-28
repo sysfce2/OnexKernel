@@ -189,7 +189,6 @@ uint16_t radio_write(char* buf, uint16_t size) {
 }
 
 int16_t radio_printf(const char* fmt, ...){
-
   if(!initialised) radio_init(0);
   va_list args;
   va_start(args, fmt);

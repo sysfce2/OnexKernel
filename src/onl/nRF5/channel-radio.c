@@ -30,8 +30,8 @@ uint16_t channel_radio_recv(char* b, uint16_t l) {
   return chunkbuf_read(radio_read_buf, b, l, '\n');
 }
 
-uint16_t channel_radio_send(char* b, uint16_t n) {
+uint16_t channel_radio_send(char* b, uint16_t n) { // REVISIT: n not used!! see other channels
   if(!initialised) return 0;
-  return radio_printf("%s\n", b);
+  return radio_printf("%s\n", b); // REVISIT!!!! this is mental - see other channels
 }
 

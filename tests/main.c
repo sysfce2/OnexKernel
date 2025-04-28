@@ -283,15 +283,21 @@ void radio_cb(int8_t rssi){
   radio_rssi=rssi;
 }
 
-void send_big_radio_data(bool needs_a_reply){
-  char buf[1024];     // 152 * 3 = 456 - 252 = 204 = 2 pkts; 3 lines
-  snprintf(buf, 1024, "UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
-                      "UID: uid-2222-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
-                      "UID: uid-%s%s-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n",
-                      needs_a_reply? "ff": "00",
-                      needs_a_reply? "ff": "00"
-  );
-  radio_write(buf,strlen(buf));
+void send_big_radio_data(bool first_send){
+  char buf[1024];
+  if(first_send){     // 152 * 3 = 456 - 252 = 204 = 2 pkts; 3 lines  ! 3rd line "ffff" triggers a reply
+    snprintf(buf, 1024, "UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
+                        "UID: uid-2222-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
+                        "UID: uid-ffff-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
+    );
+    radio_write(buf,strlen(buf));
+
+  } else {     // 269 chars = 2 pkts; 1 line
+
+    radio_printf("UID: uid-e7d3-f5fb-18bd-881e Devices: uid-pcr-device Notify: uid-c392-a132-1deb-29c6 uid-pcr-device is: device name: OnexApp user: uid-c392-a132-1deb-29c6 "
+                 "io: uid-d90b-7d12-2ca9-3cbc uid-ac9c-8998-d9f6-f6a7 uid-fce5-31ad-2a29-eba9 peers: uid-pcr-device uid-iot-device\n");
+    radio_printf("OBS: uid-4ea0-9edd-f54b-ef44 Devices: uid-pcr-device\n");
+  }
 }
 #endif
 
@@ -379,16 +385,13 @@ int main(void) {
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
     if(radio_available){
       radio_available=false;
-      static bool needs_a_reply=false;
-      static char radio_buf[200];
+      static char radio_buf[512];
       while(true){
-      //log_write("radio_available: %d\n", chunkbuf_current_size(radio_read_buf));
-        uint16_t rn = chunkbuf_read(radio_read_buf, radio_buf, 200, '\n');
+        log_write("radio_available: %d\n", chunkbuf_current_size(radio_read_buf));
+        uint16_t rn = chunkbuf_read(radio_read_buf, radio_buf, 512, '\n');
         if(!rn) break;
         radio_buf[rn-1]=0; log_write("<< (%s) %d\n", radio_buf, rn);
-        needs_a_reply=strstr(radio_buf, "UID: uid-ffff");
-        if(needs_a_reply){
-          needs_a_reply=false;
+        if(strstr(radio_buf, "UID: uid-ffff")){
           send_big_radio_data(false);
         }
       }
