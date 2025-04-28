@@ -21,6 +21,7 @@ bool log_to_leds=false;
 uint16_t    flash_id=0;
 static void flash_time_cb(void*);
 
+// REVISIT: initialised?
 void log_init(properties* config) {
 
   log_to_serial = list_has_value(properties_get(config, "flags"), "log-to-serial");

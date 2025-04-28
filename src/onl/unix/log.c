@@ -7,6 +7,7 @@
 bool log_to_serial=false;
 bool log_to_gfx=false;
 
+// REVISIT: initialised?
 void log_init(properties* config) {
   log_to_serial = list_has_value(properties_get(config, "flags"), "log-to-serial");
   log_to_gfx    = list_has_value(properties_get(config, "flags"), "log-to-gfx");

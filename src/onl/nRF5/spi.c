@@ -46,6 +46,7 @@ void spim_event_handler(nrfx_spim_evt_t const* p_event, void* p_context)
     next_block_of_255();
 }
 
+// REVISIT: initialised?
 nrfx_err_t spi_init()
 {
     nrf_gpio_cfg_output(SPIM_SS_PIN);

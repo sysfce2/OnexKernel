@@ -69,6 +69,7 @@ static void show_reg(char* name, uint8_t reg)
   log_write("%s %x", name, val);
 }
 
+// REVISIT: initialised?
 int motion_init(motion_change_cb cb)
 {
   motion_cb = cb;
