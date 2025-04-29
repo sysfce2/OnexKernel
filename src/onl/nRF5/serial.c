@@ -56,7 +56,7 @@ static void do_usb_write_block(bool first_write){
   if(first_write && write_loop_in_progress) return;
   write_loop_in_progress=true;
 
-  char block[NRFX_USBD_EPSIZE];
+  static char block[NRFX_USBD_EPSIZE];
   uint16_t s = chunkbuf_read(serial_write_buf, block, NRFX_USBD_EPSIZE, -1);
 
   if(!s){

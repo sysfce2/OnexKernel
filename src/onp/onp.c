@@ -29,6 +29,7 @@ extern void onn_recv_object(object* n);
 static list* channels=0;
 static list* ipv6_groups=0;
 static list* serial_ttys=0;
+static char* test_uid_prefix=0;
 
 static properties*    device_to_channel = 0;
 static volatile list* connected_channels = 0;
@@ -58,6 +59,8 @@ void onp_init(properties* config) {
   channels    = properties_get(config, "channels");
   ipv6_groups = properties_get(config, "ipv6_groups");
   serial_ttys = properties_get(config, "serial_ttys");
+
+  test_uid_prefix=value_string(properties_get(config, "test-uid-prefix"));
 
   onp_channel_serial = list_has_value(channels,"serial");
   onp_channel_radio  = list_has_value(channels,"radio");
@@ -131,7 +134,7 @@ void on_connect(char* channel) {
   time_start_timer(time_timeout(connect_time_cb, mem_strdup(channel)), 1200); // REVISIT: free timer once cb called!
   num_waiting_on_connect++;
   // REVISIT: not in_interrupt_context() from acm cdc ??
-  log_write("on_connect(%s) %d\n", channel, num_waiting_on_connect);
+  log_write("%s%son_connect(%s) %d\n", test_uid_prefix? test_uid_prefix: "", test_uid_prefix? " ": "", channel, num_waiting_on_connect);
 }
 
 void connect_time_cb(void* connected_channel) {
