@@ -25,6 +25,7 @@ static char rx_buffer[256];
 static volatile bool initialised=false;
 
 static volatile radio_recv_cb recv_cb = 0;
+
 // REVISIT: when do I need chunkbuf_clear(radio_write_buf);
 
 static volatile chunkbuf* radio_write_buf = 0;
@@ -175,6 +176,8 @@ bool radio_init(radio_recv_cb cb){
   NRF_RADIO->EVENTS_END = 0;
 
   initialised=true;
+
+  if(recv_cb) recv_cb(0,0,0);
 
   return true;
 }
