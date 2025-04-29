@@ -24,6 +24,7 @@ static char rx_buffer[256];
 
 static volatile bool initialised=false;
 
+static volatile radio_recv_cb recv_cb = 0;
 // REVISIT: when do I need chunkbuf_clear(radio_write_buf);
 
 static volatile chunkbuf* radio_write_buf = 0;
@@ -114,8 +115,6 @@ static bool write_a_packet(uint16_t size){
 
   return true;
 }
-
-static radio_recv_cb recv_cb = 0;
 
 bool radio_init(radio_recv_cb cb){
 
@@ -210,13 +209,6 @@ int16_t radio_vprintf(const char* fmt, va_list args){
   return radio_write(print_buf, r)? r: 0;
 }
 
-uint8_t radio_recv(char* buf) {
-    uint8_t size = rx_buffer[0];
-    if(size > 0) memcpy(buf, rx_buffer+1, size);
-    if(size < 256) buf[size]=0;
-    return size;
-} // REVISIT relies on being called in the irq
-
 void RADIO_IRQHandler(void){
 
 #ifdef NON_BLOCKING
@@ -234,9 +226,9 @@ void RADIO_IRQHandler(void){
     NRF_RADIO->TASKS_START = 1;
 
     if(NRF_RADIO->CRCSTATUS == 1) {
+      uint8_t size = rx_buffer[0];
       int8_t rssi = -NRF_RADIO->RSSISAMPLE;
-      // REVISIT copy quickly to a queue/buffer here!
-      if(recv_cb) recv_cb(rssi);
+      if(recv_cb) recv_cb(rx_buffer+1, size, rssi);
     }
   }
 }

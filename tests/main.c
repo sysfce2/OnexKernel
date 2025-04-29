@@ -271,15 +271,13 @@ void run_tests_maybe(properties* config) {
 extern volatile char* event_log_buffer;
 
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
-static char   radio_buf[256];
 static bool   radio_available;
 static int8_t radio_rssi;
 
 static volatile chunkbuf* radio_read_buf = 0;
 
-void radio_cb(int8_t rssi){
-  uint8_t size=radio_recv(radio_buf);
-  radio_available=chunkbuf_write(radio_read_buf, radio_buf, size);
+void radio_cb(char* buf, uint16_t size, int8_t rssi){
+  radio_available=chunkbuf_write(radio_read_buf, buf, size);
   radio_rssi=rssi;
 }
 
