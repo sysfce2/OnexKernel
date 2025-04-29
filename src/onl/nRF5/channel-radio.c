@@ -2,6 +2,7 @@
 #include <onex-kernel/radio.h>
 #include <onex-kernel/log.h>
 #include <onex-kernel/chunkbuf.h>
+
 #include <channel-radio.h>
 
 static volatile bool initialised=false;
@@ -21,7 +22,7 @@ void channel_radio_on_recv(int8_t rssi){
 
 void channel_radio_init(connect_cb radio_connect_cb) {
   radio_read_buf = chunkbuf_new(RADIO_READ_BUFFER_SIZE);
-  initialised=radio_init(channel_radio_on_recv);
+  initialised = radio_init(channel_radio_on_recv);
   if(radio_connect_cb) radio_connect_cb("radio");
 }
 

@@ -161,6 +161,7 @@ bool radio_init(radio_recv_cb cb){
 
   NRF_RADIO->INTENSET = RADIO_INTENSET_END_Msk;
   NVIC_SetPriority(RADIO_IRQn, 0); // REVISIT
+  // REVISIT: call switch_to_rx here?
   NVIC_ClearPendingIRQ(RADIO_IRQn);
   NVIC_EnableIRQ(RADIO_IRQn); // RADIO_IRQHandler()
 
@@ -189,7 +190,6 @@ uint16_t radio_write(char* buf, uint16_t size) {
 }
 
 int16_t radio_printf(const char* fmt, ...){
-  if(!initialised) radio_init(0);
   va_list args;
   va_start(args, fmt);
   int16_t r=radio_vprintf(fmt,args);

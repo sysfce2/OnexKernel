@@ -20,7 +20,7 @@
 
 static volatile bool initialised=false;
 
-static volatile serial_recv_cb recv_cb;
+static volatile serial_recv_cb recv_cb = 0;
 static volatile bool           pending_connect=false;
 
 #ifndef USBD_POWER_DETECTION
