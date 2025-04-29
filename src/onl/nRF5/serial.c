@@ -177,7 +177,7 @@ static void usbd_user_ev_handler(app_usbd_event_type_t event)
     }
 }
 
-bool serial_init(list* ttys, serial_recv_cb cb, uint32_t baudrate) {
+bool serial_init(list* ttys, uint32_t baudrate, serial_recv_cb cb) {
 
     recv_cb = cb;
 
@@ -232,7 +232,6 @@ void serial_cb(serial_recv_cb cb)
 }
 
 void serial_putchar(char ch) {
-  if(!initialised) serial_init(0,0,0);
   serial_write(&ch, 1);
 }
 
@@ -246,7 +245,6 @@ uint16_t serial_write(char* buf, uint16_t size) {
 }
 
 int16_t serial_printf(const char* fmt, ...) {
-  if(!initialised) serial_init(0,0,0);
   va_list args;
   va_start(args, fmt);
   int16_t r=serial_vprintf(fmt,args);

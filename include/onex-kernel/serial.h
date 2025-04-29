@@ -8,9 +8,9 @@
 
 #include <items.h>
 
-typedef void (*serial_recv_cb) (char*, uint16_t);
+typedef void (*serial_recv_cb)(char* buf, uint16_t size);
 
-bool     serial_init(list* ttys, serial_recv_cb cb, uint32_t baudrate);
+bool     serial_init(list* ttys, uint32_t baudrate, serial_recv_cb cb);
 void     serial_cb(serial_recv_cb cb);
 uint16_t serial_recv(char* buf, uint16_t size);
 int16_t  serial_printf(const char* fmt, ...);

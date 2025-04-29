@@ -26,8 +26,8 @@ void channel_serial_on_recv(char* buf, uint16_t size) {
 
 void channel_serial_init(list* ttys, connect_cb serial_connect_cb_) {
   serial_read_buf = chunkbuf_new(SERIAL_READ_BUFFER_SIZE);
-  serial_connect_cb=serial_connect_cb_;
-  initialised = serial_init(ttys, channel_serial_on_recv, 9600);
+  serial_connect_cb = serial_connect_cb_;
+  initialised = serial_init(ttys, 9600, channel_serial_on_recv);
 }
 
 uint16_t channel_serial_recv(char* b, uint16_t l) {

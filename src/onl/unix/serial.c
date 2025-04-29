@@ -77,7 +77,7 @@ static uint32_t       baudrate;
 static uint32_t nextupdate=0;
 
 // REVISIT: initialised?
-bool serial_init(list* ttys, serial_recv_cb cb, uint32_t br) {
+bool serial_init(list* ttys, uint32_t br, serial_recv_cb cb) {
   serial_ttys=ttys;
   recv_cb=cb;
   baudrate=br;
