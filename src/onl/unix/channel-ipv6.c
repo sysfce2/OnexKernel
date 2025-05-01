@@ -18,9 +18,9 @@ void channel_ipv6_init(list* groups, connect_cb ipv6_connect_cb) {
   }
 }
 
-uint16_t channel_ipv6_recv(char* group, char* b, uint16_t l) {
+uint16_t channel_ipv6_recv(char* group, char* buf, uint16_t size) {
   if(!initialised) return 0;
-  return ipv6_recv(group, b,l);
+  return ipv6_recv(group, buf, size);
 }
 
 uint16_t channel_ipv6_send(char* group, char* b, uint16_t n) {

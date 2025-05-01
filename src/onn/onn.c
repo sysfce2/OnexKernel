@@ -1216,8 +1216,8 @@ void show_notifies(object* o)
 
 // ------------------------------------------------------
 
-char* object_to_text(object* n, char* b, uint16_t s, int target)
-{
+char* object_to_text(object* n, char* b, uint16_t s, int target) {
+
   if(!n){ *b = 0; return b; }
 
   int ln=0;

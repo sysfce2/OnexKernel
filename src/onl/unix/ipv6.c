@@ -15,7 +15,6 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/ipv6.h>
 
-#define VERBOSE_ONP_LOGGING_REMOVE_ME_LATER true
 #define SYS_CLASS_NET "/sys/class/net/"
 #define PORT 4321
 #define INTERFACE "wifi"
@@ -241,7 +240,6 @@ uint16_t ipv6_write(char* group, char* buf, uint16_t size){
   bool ok = false;
   for(int i=1; i<=properties_size(group_to_sock_addr); i++){
     char* gp = properties_key_n(group_to_sock_addr,i);
-    if(VERBOSE_ONP_LOGGING_REMOVE_ME_LATER) log_write("sending to all: %s '%s'\n", gp, buf);
     sock_addr* gi = (sock_addr*)properties_get(group_to_sock_addr, gp);
     ok = !!ipv6_write_gi(gi, buf, size) || ok;
   }

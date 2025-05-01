@@ -30,9 +30,9 @@ void channel_radio_init(connect_cb radio_connect_cb_) {
   initialised = radio_init(channel_radio_on_recv);
 }
 
-uint16_t channel_radio_recv(char* b, uint16_t l) {
+uint16_t channel_radio_recv(char* buf, uint16_t size) {
   if(!initialised || !chunkbuf_current_size(radio_read_buf)) return 0;
-  return chunkbuf_read(radio_read_buf, b, l, '\n');
+  return chunkbuf_read(radio_read_buf, buf, size, '\n');
 }
 
 uint16_t channel_radio_send(char* b, uint16_t n) { // REVISIT: n not used!! see other channels

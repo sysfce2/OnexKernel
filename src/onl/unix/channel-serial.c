@@ -18,9 +18,9 @@ void channel_serial_init(list* ttys, connect_cb serial_connect_cb_) {
   initialised = serial_init(ttys, 9600, channel_serial_on_recv);
 }
 
-uint16_t channel_serial_recv(char* b, uint16_t l) {
+uint16_t channel_serial_recv(char* buf, uint16_t size) {
   if(!initialised) return 0;
-  return serial_recv(b,l);
+  return serial_recv(buf,size);
 }
 
 uint16_t channel_serial_send(char* b, uint16_t n) {

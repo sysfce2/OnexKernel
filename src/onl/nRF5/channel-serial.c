@@ -30,9 +30,9 @@ void channel_serial_init(list* ttys, connect_cb serial_connect_cb_) {
   initialised = serial_init(ttys, 9600, channel_serial_on_recv);
 }
 
-uint16_t channel_serial_recv(char* b, uint16_t l) {
+uint16_t channel_serial_recv(char* buf, uint16_t size) {
   if(!initialised || !chunkbuf_current_size(serial_read_buf)) return 0;
-  return chunkbuf_read(serial_read_buf, b, l, '\n');
+  return chunkbuf_read(serial_read_buf, buf, size, '\n');
 }
 
 uint16_t channel_serial_send(char* b, uint16_t n) { // REVISIT: n not used!! see other channels
