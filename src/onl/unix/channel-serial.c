@@ -6,8 +6,8 @@ static bool initialised=false;
 
 static connect_cb serial_connect_cb;
 
-void channel_serial_on_recv(char* buf, uint16_t size) {
-  if(!buf){
+void channel_serial_on_recv(bool connect) {
+  if(connect){
     if(serial_connect_cb) serial_connect_cb("serial");
     return;
   }
@@ -20,11 +20,11 @@ void channel_serial_init(list* ttys, connect_cb serial_connect_cb_) {
 
 uint16_t channel_serial_recv(char* buf, uint16_t size) {
   if(!initialised) return 0;
-  return serial_recv(buf,size);
+  return serial_read(buf, size);
 }
 
-uint16_t channel_serial_send(char* b, uint16_t n) {
+uint16_t channel_serial_send(char* buf, uint16_t size) {
   if(!initialised) return 0;
-  return serial_printf("%s\n", b);
+  return serial_write(buf, size);
 }
 

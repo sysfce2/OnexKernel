@@ -66,6 +66,7 @@ uint16_t chunkbuf_read(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
       return 0;
     }
   }
+  uint8_t num_delims=0;
   for(i=0; i<size && chunkbuf_current_size(cb); i++){
 
     buf[i]=cb->buffer[cb->current_read++];
@@ -74,14 +75,15 @@ uint16_t chunkbuf_read(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
     if(delim<0) continue;
 
     if(buf[i]==delim || IS_NL(buf[i])){
-      if(i+1<size && chunkbuf_current_size(cb) && IS_NL(cb->buffer[cb->current_read])){
-        continue;
+      buf[i]=0; num_delims++;
+      if(i+1<size && chunkbuf_current_size(cb)){
+        if(IS_NL(cb->buffer[cb->current_read])) continue;
       }
       i++;
       break;
     }
   }
-  return i;
+  return i-num_delims;
 }
 
 void chunkbuf_clear(chunkbuf* cb){

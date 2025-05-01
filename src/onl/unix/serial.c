@@ -96,9 +96,11 @@ void update_connected_serials() {
     if(fds[t]!= -1) continue;
     char* tty = value_string(list_get_n(serial_ttys, t+1));
     fds[t]=init_serial(tty, baudrate);
-    if(fds[t]!= -1 && recv_cb) recv_cb(0,0);
+    if(fds[t]!= -1 && recv_cb) recv_cb(true);
   }
 }
+
+static char nl_delim = '\n';
 
 #define SERIAL_MAX_LENGTH 4096
 
@@ -106,7 +108,7 @@ static uint16_t ser_index[MAX_TTYS]={0,0,0};
 static char     ser_buff[MAX_TTYS][SERIAL_MAX_LENGTH];
 static uint8_t  nt=0;
 
-uint16_t serial_recv(char* buf, uint16_t size) {
+uint16_t serial_read(char* buf, uint16_t size) {
   update_connected_serials();
   for(int n=0; n<MAX_TTYS; n++){
     int fd=fds[nt];
@@ -115,7 +117,7 @@ uint16_t serial_recv(char* buf, uint16_t size) {
       ioctl(fd, FIONREAD, &bytes_available_for_reading);
       if(bytes_available_for_reading){
         for(; read(fd, ser_buff[nt]+ser_index[nt], 1)==1; ser_index[nt]++){
-          if(ser_index[nt]==SERIAL_MAX_LENGTH-1 || ser_buff[nt][ser_index[nt]]=='\n'){
+          if(ser_index[nt]==SERIAL_MAX_LENGTH-1 || ser_buff[nt][ser_index[nt]]==nl_delim){
             ser_buff[nt][ser_index[nt]]=0;
             uint16_t ss = ser_index[nt]+1;
             ser_index[nt]=0;
@@ -149,8 +151,10 @@ uint16_t serial_write(char* buf, uint16_t size){
   for(uint8_t t=0; t< MAX_TTYS; t++){
     int fd=fds[t]; if(fd== -1) continue;
     int16_t j=write(fd, buf, size);
-    if(j>=0) i=j; // REVISIT: last tty chars written
- // else; // REVISIT!
+    if(j<0) continue; // REVISIT!
+    int16_t k=write(fd, &nl_delim, 1);
+    if(k<0) continue; // REVISIT!
+    i=j+k;
   }
   return i; // REVISIT: returns last tty chars written
 }

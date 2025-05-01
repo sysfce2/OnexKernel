@@ -8,12 +8,13 @@
 
 #include <items.h>
 
-typedef void (*radio_recv_cb)(char* buf, uint16_t size, int8_t rssi);
+typedef void (*radio_recv_cb)(bool connect, int8_t rssi);
 
 bool     radio_init(radio_recv_cb cb);
 int16_t  radio_printf(const char* fmt, ...);
 int16_t  radio_vprintf(const char* fmt, va_list args);
 uint16_t radio_write(char* buf, uint16_t size);
+uint16_t radio_read(char* buf, uint16_t size);
 
 //void   radio_cb(radio_recv_cb cb);
 //void   radio_putchar(char ch);

@@ -23,7 +23,7 @@ int16_t radio_vprintf(const char* fmt, va_list args){
   return 0;
 }
 
-uint8_t radio_recv(char* buf) {
+uint16_t radio_read(char* buf, uint16_t size){
     return 0;
 }
 

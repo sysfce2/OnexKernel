@@ -10,6 +10,7 @@
 #include <onex-kernel/radio.h>
 #include <onex-kernel/chunkbuf.h>
 
+#define RADIO_READ_BUFFER_SIZE  2048
 #define RADIO_WRITE_BUFFER_SIZE 2048
 
 #define RADIO_TXPOWER                  RADIO_TXPOWER_TXPOWER_0dBm
@@ -28,6 +29,7 @@ static volatile radio_recv_cb recv_cb = 0;
 
 // REVISIT: when do I need chunkbuf_clear(radio_write_buf);
 
+static volatile chunkbuf* radio_read_buf = 0;
 static volatile chunkbuf* radio_write_buf = 0;
 
 static void switch_to_tx();
@@ -123,6 +125,7 @@ bool radio_init(radio_recv_cb cb){
 
   if(initialised) return true;
 
+  radio_read_buf  = chunkbuf_new(RADIO_READ_BUFFER_SIZE);
   radio_write_buf = chunkbuf_new(RADIO_WRITE_BUFFER_SIZE);
 
   NRF_CLOCK->EVENTS_HFCLKSTARTED = 0;
@@ -177,13 +180,21 @@ bool radio_init(radio_recv_cb cb){
 
   initialised=true;
 
-  if(recv_cb) recv_cb(0,0,0);
+  if(recv_cb) recv_cb(true, 0);
 
   return true;
 }
 
+static char nl_delim = '\n';
+
+uint16_t radio_read(char* buf, uint16_t size){
+  if(!initialised || !chunkbuf_current_size(radio_read_buf)) return 0;
+  return chunkbuf_read(radio_read_buf, buf, size, nl_delim);
+}
+
 uint16_t radio_write(char* buf, uint16_t size) {
-  if(!chunkbuf_write(radio_write_buf, buf, size)){
+  if(!chunkbuf_write(radio_write_buf, buf, size) ||
+     !chunkbuf_write(radio_write_buf, &nl_delim, 1)){
     log_flash(1,0,0);
     return 0;
   }
@@ -212,6 +223,14 @@ int16_t radio_vprintf(const char* fmt, va_list args){
   return radio_write(print_buf, r)? r: 0;
 }
 
+static void buffer_readable(char* buf, uint16_t size, int8_t rssi){
+  if(!chunkbuf_write(radio_read_buf, buf, size)){
+    log_flash(1,0,0);
+    return;
+  }
+  if(recv_cb) recv_cb(false, rssi);
+}
+
 void RADIO_IRQHandler(void){
 
 #ifdef NON_BLOCKING
@@ -231,7 +250,7 @@ void RADIO_IRQHandler(void){
     if(NRF_RADIO->CRCSTATUS == 1) {
       uint8_t size = rx_buffer[0];
       int8_t rssi = -NRF_RADIO->RSSISAMPLE;
-      if(recv_cb) recv_cb(rx_buffer+1, size, rssi);
+      buffer_readable(rx_buffer+1, size, rssi);
     }
   }
 }

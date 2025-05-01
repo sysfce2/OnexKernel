@@ -13,7 +13,7 @@ typedef void (*ipv6_recv_cb)();
 #define MAX_GROUPS 8
 
 bool     ipv6_init(list* groups);
-uint16_t ipv6_recv(char* group, char* buf, uint16_t l);
+uint16_t ipv6_read(char* group, char* buf, uint16_t l);
 int16_t  ipv6_printf(char* group, const char* fmt, ...);
 int16_t  ipv6_vprintf(char* group, const char* fmt, va_list args);
 uint16_t ipv6_write(char* group, char* buf, uint16_t size);

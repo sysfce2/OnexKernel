@@ -173,9 +173,15 @@ void show_battery()
 
 #endif // watches
 
-void on_recv(unsigned char* chars, size_t size) {
-  if(!size) return;
+void serial_cb(bool connect){
+  if(connect) return;
+#if defined(NRF5)
+  char chars[1024];
+  serial_read(chars, 1024);
   char_recvd=chars[0];
+#else
+  char_recvd='t';
+#endif
   if(char_recvd=='t') run_tests++;
 }
 
@@ -271,14 +277,10 @@ void run_tests_maybe(properties* config) {
 extern volatile char* event_log_buffer;
 
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
-static bool   radio_available;
+
 static int8_t radio_rssi;
-
-static volatile chunkbuf* radio_read_buf = 0;
-
-void radio_cb(char* buf, uint16_t size, int8_t rssi){
-  if(!buf) return;
-  radio_available=chunkbuf_write(radio_read_buf, buf, size);
+void radio_cb(bool connect, int8_t rssi){
+  if(connect) return;
   radio_rssi=rssi;
 }
 
@@ -348,12 +350,11 @@ int main(void) {
 #if defined(NRF5)
   gpio_init();
 #if !defined(BOARD_MAGIC3)
-  serial_init(0,0,(serial_recv_cb)on_recv);
+  serial_init(0,0,serial_cb);
   set_up_gpio();
   time_ticker(loop_serial, 0, 1);
  
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
-  radio_read_buf = chunkbuf_new(1024);
   radio_init(radio_cb);
   send_big_radio_data(true);
 #endif
@@ -382,20 +383,16 @@ int main(void) {
     run_tests_maybe(config);
  
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
-    if(radio_available){
-      radio_available=false;
+    do{
       static char buf[512];
-      while(true){
-        log_write("radio_available: %d\n", chunkbuf_current_size(radio_read_buf));
-        uint16_t rn = chunkbuf_read(radio_read_buf, buf, 512, '\n');
-        if(!rn) break;
-        buf[rn-1]=0; log_write("<< (%s) %d\n", buf, rn);
-        if(strstr(buf, "UID: uid-ffff")){
-          send_big_radio_data(false);
-        }
+      uint16_t rn=radio_read(buf, 512);
+      if(!rn) break;
+      log_write("radio available: %d (%s)\n", rn, buf);
+      if(strstr(buf, "UID: uid-ffff")){
+        send_big_radio_data(false);
       }
       log_write("-----------------(%d)--\n", radio_rssi);
-    }
+    } while(true);
 #endif
 
     if (display_state_prev != display_state){
@@ -492,7 +489,7 @@ int main(void) {
   }
 #endif // MAGIC3
 #else // NRF5
-  on_recv((unsigned char*)"t", 1);
+  serial_cb(false);
   run_tests_maybe(config);
   run_chunkbuf_tests();
   time_end();

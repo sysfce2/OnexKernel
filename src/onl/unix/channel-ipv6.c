@@ -20,12 +20,12 @@ void channel_ipv6_init(list* groups, connect_cb ipv6_connect_cb) {
 
 uint16_t channel_ipv6_recv(char* group, char* buf, uint16_t size) {
   if(!initialised) return 0;
-  return ipv6_recv(group, buf, size);
+  return ipv6_read(group, buf, size);
 }
 
-uint16_t channel_ipv6_send(char* group, char* b, uint16_t n) {
+uint16_t channel_ipv6_send(char* group, char* buf, uint16_t size) {
   if(!initialised) return 0;
-  return ipv6_printf(group, "%s\n", b);
+  return ipv6_write(group, buf, size);
 }
 
 

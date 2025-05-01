@@ -195,7 +195,7 @@ bool ipv6_init(list* groups){ // ipv6_recv_cb cb??
   return initialised;
 }
 
-uint16_t ipv6_recv(char* group, char* buf, uint16_t size){
+uint16_t ipv6_read(char* group, char* buf, uint16_t size){
   struct sockaddr_in6 addr;
   socklen_t addrLen = sizeof(addr);
   sock_addr* gi = (sock_addr*)properties_get(group_to_sock_addr, group);
