@@ -100,7 +100,7 @@ void update_connected_serials() {
   }
 }
 
-#define SERIAL_MAX_LENGTH 1024
+#define SERIAL_MAX_LENGTH 4096
 
 static uint16_t ser_index[MAX_TTYS]={0,0,0};
 static char     ser_buff[MAX_TTYS][SERIAL_MAX_LENGTH];
@@ -136,18 +136,21 @@ uint16_t serial_recv(char* buf, uint16_t size) {
 char print_buf[PRINT_BUF_SIZE];
 
 int16_t serial_printf(const char* fmt, ...) {
-
   va_list args;
   va_start(args, fmt);
-  int16_t n=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
+  int16_t size=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
   va_end(args);
-  if(n>=PRINT_BUF_SIZE) return 0;
+  if(size>=PRINT_BUF_SIZE) return 0;
+  return serial_write(print_buf, size);
+}
 
-  int16_t i=0;
+uint16_t serial_write(char* buf, uint16_t size){
+  uint16_t i=0;
   for(uint8_t t=0; t< MAX_TTYS; t++){
     int fd=fds[t]; if(fd== -1) continue;
-    int16_t j=write(fd, print_buf, n);
+    int16_t j=write(fd, buf, size);
     if(j>=0) i=j; // REVISIT: last tty chars written
+ // else; // REVISIT!
   }
   return i; // REVISIT: returns last tty chars written
 }
