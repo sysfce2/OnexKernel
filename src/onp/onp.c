@@ -143,10 +143,15 @@ bool onp_loop() {
 }
 
 void on_connect(char* channel) {
-  time_start_timer(time_timeout(connect_time_cb, mem_strdup(channel)), 1200); // REVISIT: free timer once cb called!
+
+  // REVISIT: free timer once cb called!
+  time_start_timer(time_timeout(connect_time_cb, mem_strdup(channel)), 1200);
   num_waiting_on_connect++;
-  // REVISIT: not in_interrupt_context() from acm cdc ??
-  log_write("%s%son_connect(%s) %d\n", test_uid_prefix? test_uid_prefix: "", test_uid_prefix? " ": "", channel, num_waiting_on_connect);
+  log_write("%s%son_connect(%s) %d\n",
+             test_uid_prefix? test_uid_prefix: "",
+             test_uid_prefix? " ":             "",
+             channel,
+             num_waiting_on_connect);
 }
 
 void connect_time_cb(void* connected_channel) {
