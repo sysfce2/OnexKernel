@@ -147,6 +147,8 @@ void on_connect(char* channel) {
   // REVISIT: free timer once cb called!
   time_start_timer(time_timeout(connect_time_cb, mem_strdup(channel)), 1200);
   num_waiting_on_connect++;
+  log_write("===========================================================\n");
+  time_delay_ms(10);
   log_write("%s%son_connect(%s) %d\n",
              test_uid_prefix? test_uid_prefix: "",
              test_uid_prefix? " ":             "",
