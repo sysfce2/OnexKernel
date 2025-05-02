@@ -287,6 +287,7 @@ void radio_cb(bool connect, int8_t rssi){
 void send_big_radio_data(bool first_send){
   char buf[1024];
   if(first_send){     // 152 * 3 = 456 - 252 = 204 = 2 pkts; 3 lines  ! 3rd line "ffff" triggers a reply
+
     snprintf(buf, 1024, "UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
                         "UID: uid-2222-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
                         "UID: uid-ffff-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
@@ -295,9 +296,13 @@ void send_big_radio_data(bool first_send){
 
   } else {     // 269 chars = 2 pkts; 1 line
 
-    radio_printf("UID: uid-e7d3-f5fb-18bd-881e Devices: uid-pcr-device Notify: uid-c392-a132-1deb-29c6 uid-pcr-device is: device name: OnexApp user: uid-c392-a132-1deb-29c6 "
-                 "io: uid-d90b-7d12-2ca9-3cbc uid-ac9c-8998-d9f6-f6a7 uid-fce5-31ad-2a29-eba9 peers: uid-pcr-device uid-iot-device\n");
-    radio_printf("OBS: uid-4ea0-9edd-f54b-ef44 Devices: uid-pcr-device\n");
+    snprintf(buf, 1024, "UID: uid-e7d3-f5fb-18bd-881e Devices: uid-pcr-device Notify: uid-c392-a132-1deb-29c6 uid-pcr-device is: device name: OnexApp user: uid-c392-a132-1deb-29c6 "
+                        "io: uid-d90b-7d12-2ca9-3cbc uid-ac9c-8998-d9f6-f6a7 uid-fce5-31ad-2a29-eba9 peers: uid-pcr-device uid-iot-device\n"
+    );
+    radio_write(buf,strlen(buf));
+
+    snprintf(buf, 1024, "OBS: uid-4ea0-9edd-f54b-ef44 Devices: uid-pcr-device\n");
+    radio_write(buf,strlen(buf));
   }
 }
 #endif

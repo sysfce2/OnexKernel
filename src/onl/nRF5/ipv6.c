@@ -14,14 +14,6 @@ uint16_t ipv6_read(char* group, char* buf, uint16_t l){
   return 0;
 }
 
-int16_t ipv6_printf(char* group, const char* fmt, ...){
-  return 0;
-}
-
-int16_t ipv6_vprintf(char* group, const char* fmt, va_list args){
-  return 0;
-}
-
 uint16_t ipv6_write(char* group, char* buf, uint16_t size){
   return 0;
 }

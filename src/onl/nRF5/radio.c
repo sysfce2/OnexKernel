@@ -202,27 +202,6 @@ uint16_t radio_write(char* buf, uint16_t size) {
   return size;
 }
 
-int16_t radio_printf(const char* fmt, ...){
-  va_list args;
-  va_start(args, fmt);
-  int16_t r=radio_vprintf(fmt,args);
-  va_end(args);
-  return r;
-}
-
-// allow two radio packets' worth in a single printf, enough?
-#define PRINT_BUF_SIZE (2 * RADIO_MAX_PACKET_SIZE)
-static char print_buf[PRINT_BUF_SIZE];
-
-int16_t radio_vprintf(const char* fmt, va_list args){
-  int16_t r=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
-  if(r>=PRINT_BUF_SIZE){
-    log_flash(1,0,0);
-    return 0;
-  }
-  return radio_write(print_buf, r)? r: 0;
-}
-
 static void buffer_readable(char* buf, uint16_t size, int8_t rssi){
   if(!chunkbuf_write(radio_read_buf, buf, size)){
     log_flash(1,0,0);

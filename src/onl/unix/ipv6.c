@@ -208,32 +208,7 @@ uint16_t ipv6_read(char* group, char* buf, uint16_t size){
   return (n>0)? n: 0;
 }
 
-int16_t ipv6_printf(char* group, const char* fmt, ...){
-  if(!initialised) return 0;
-  va_list args;
-  va_start(args, fmt);
-  int16_t r=ipv6_vprintf(group,fmt,args);
-  va_end(args);
-  return r;
-}
-
-#define PRINT_BUF_SIZE 4096
-static char print_buf[PRINT_BUF_SIZE];
-
-int16_t ipv6_vprintf(char* group, const char* fmt, va_list args){
-  int16_t r=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
-  if(r>=PRINT_BUF_SIZE) return 0;
-  return ipv6_write(group, print_buf, r)? r: 0;
-}
-
-static uint16_t ipv6_write_gi(sock_addr* gi, char* buf, uint16_t size){
-  const struct sockaddr_in6 mc_addr=gi->mc_addr;
-  if(sendto(gi->sock, buf, size, 0, (const struct sockaddr*)&mc_addr, sizeof(mc_addr)) >= 0) {
-    return size;
-  }
-  perror("sendto failed");
-  return 0;
-}
+static uint16_t ipv6_write_gi(sock_addr* gi, char* buf, uint16_t size);
 
 uint16_t ipv6_write(char* group, char* buf, uint16_t size){
   if(!buf || size > 2048) return 0;
@@ -249,6 +224,15 @@ uint16_t ipv6_write(char* group, char* buf, uint16_t size){
     ok = !!ipv6_write_gi(gi, buf, size) || ok;
   }
   return ok? size: 0;
+}
+
+static uint16_t ipv6_write_gi(sock_addr* gi, char* buf, uint16_t size){
+  const struct sockaddr_in6 mc_addr=gi->mc_addr;
+  if(sendto(gi->sock, buf, size, 0, (const struct sockaddr*)&mc_addr, sizeof(mc_addr)) >= 0) {
+    return size;
+  }
+  perror("sendto failed");
+  return 0;
 }
 
 //  close(sock);

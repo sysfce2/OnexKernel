@@ -245,26 +245,18 @@ uint16_t serial_read(char* buf, uint16_t size) {
   return chunkbuf_read(serial_read_buf, buf, size, nl_delim);
 }
 
-uint16_t serial_write(char* buf, uint16_t size) {
-  if(!chunkbuf_write(serial_write_buf, buf, size) ||
-     !chunkbuf_write(serial_write_buf, &nl_delim, 1)){
-    log_flash(1,0,0);
-    return 0;
-  }
-  do_usb_write_block(true);
-  return size;
-}
+static uint16_t serial_write_delim(char* buf, uint16_t size, bool delim);
 
-void serial_putchar(char ch) {
-  serial_write(&ch, 1);
+uint16_t serial_write(char* buf, uint16_t size) {
+  return serial_write_delim(buf, size, true);
 }
 
 int16_t serial_printf(const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
-  int16_t r=serial_vprintf(fmt,args);
+  int16_t size=serial_vprintf(fmt,args);
   va_end(args);
-  return r;
+  return size;
 }
 
 #define PRINT_BUF_SIZE 1024
@@ -276,6 +268,22 @@ int16_t serial_vprintf(const char* fmt, va_list args) {
     log_flash(1,0,0);
     return 0;
   }
-  return serial_write(print_buf, r);
+  return serial_write_delim(print_buf, r, false);
 }
+
+static uint16_t serial_write_delim(char* buf, uint16_t size, bool delim) {
+  if(!chunkbuf_write(serial_write_buf, buf, size)){
+    log_flash(1,0,0);
+    return 0;
+  }
+  if(delim){
+    if(!chunkbuf_write(serial_write_buf, &nl_delim, 1)){
+      log_flash(1,0,0);
+      return 0;
+    }
+  }
+  do_usb_write_block(true);
+  return size;
+}
+
 

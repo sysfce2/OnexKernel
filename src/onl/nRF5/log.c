@@ -81,9 +81,7 @@ int16_t log_write_current_file_line(char* file, uint32_t line, const char* fmt, 
       return 0;
     }
     if(log_write_in_int){
-      char* msg = "LOG INT: ";
-      serial_write(msg, strlen(msg));
-      serial_write(log_write_in_int, strlen(log_write_in_int));
+      serial_printf("LOG INT: [%s]\n", log_write_in_int);
       free(log_write_in_int);
       log_write_in_int = 0;
     }

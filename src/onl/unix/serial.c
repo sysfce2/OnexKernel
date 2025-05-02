@@ -134,29 +134,41 @@ uint16_t serial_read(char* buf, uint16_t size) {
   return 0;
 }
 
-#define PRINT_BUF_SIZE 4096
-char print_buf[PRINT_BUF_SIZE];
+static uint16_t serial_write_delim(char* buf, uint16_t size, bool delim);
+
+uint16_t serial_write(char* buf, uint16_t size){
+  return serial_write_delim(buf, size, true);
+}
 
 int16_t serial_printf(const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
-  int16_t size=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
+  int16_t size=serial_vprintf(fmt,args);
   va_end(args);
-  if(size>=PRINT_BUF_SIZE) return 0;
-  return serial_write(print_buf, size);
+  return size;
 }
 
-uint16_t serial_write(char* buf, uint16_t size){
+#define PRINT_BUF_SIZE 4096
+char print_buf[PRINT_BUF_SIZE];
+
+int16_t serial_vprintf(const char* fmt, va_list args) {
+  int16_t size=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
+  if(size>=PRINT_BUF_SIZE) return 0;
+  return serial_write_delim(print_buf, size, false);
+}
+
+static uint16_t serial_write_delim(char* buf, uint16_t size, bool delim) {
   uint16_t i=0;
   for(uint8_t t=0; t< MAX_TTYS; t++){
     int fd=fds[t]; if(fd== -1) continue;
     int16_t j=write(fd, buf, size);
     if(j<0) continue; // REVISIT!
-    int16_t k=write(fd, &nl_delim, 1);
-    if(k<0) continue; // REVISIT!
-    i=j+k;
+    i=j;
+    if(delim){
+      int16_t k=write(fd, &nl_delim, 1);
+      if(k<0) continue; // REVISIT!
+    }
   }
   return i; // REVISIT: returns last tty chars written
 }
-
 

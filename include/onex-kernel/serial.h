@@ -12,10 +12,12 @@ typedef void (*serial_recv_cb)(bool connect, char* tty);
 
 bool     serial_init(list* ttys, uint32_t baudrate, serial_recv_cb cb);
 uint16_t serial_read(char* buf, uint16_t size);
+uint16_t serial_write(char* buf, uint16_t size);
+
+// following are used by log.c:
 int16_t  serial_printf(const char* fmt, ...);
 int16_t  serial_vprintf(const char* fmt, va_list args);
-void     serial_putchar(char ch);
-uint16_t serial_write(char* buf, uint16_t size);
+
 bool     serial_loop();
 
 #endif
