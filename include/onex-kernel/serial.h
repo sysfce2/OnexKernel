@@ -8,7 +8,7 @@
 
 #include <items.h>
 
-typedef void (*serial_recv_cb)(bool connect);
+typedef void (*serial_recv_cb)(bool connect, char* tty);
 
 bool     serial_init(list* ttys, uint32_t baudrate, serial_recv_cb cb);
 uint16_t serial_read(char* buf, uint16_t size);

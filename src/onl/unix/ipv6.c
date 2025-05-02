@@ -184,13 +184,18 @@ static bool ipv6_init_a_group(char* group){
   return true;
 }
 
-bool ipv6_init(list* groups){ // ipv6_recv_cb cb??
+static ipv6_recv_cb recv_cb;
+
+bool ipv6_init(list* groups, ipv6_recv_cb cb){
   if(initialised) return true;
   initialised = true;
+  recv_cb = cb;
   group_to_sock_addr=properties_new(MAX_GROUPS);
   for(int i=1; i<=list_size(groups); i++){
     char* group = value_string(list_get_n(groups, i));
     initialised=initialised && ipv6_init_a_group(group);
+    char channel[256]; snprintf(channel, 256, "ipv6-%s", group);
+    if(recv_cb) recv_cb(true, channel);
   }
   return initialised;
 }

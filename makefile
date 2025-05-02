@@ -194,9 +194,6 @@ NRF5_SOURCES = \
 ./src/onl/nRF5/serial.c \
 ./src/onl/nRF5/radio.c \
 ./src/onl/nRF5/ipv6.c \
-./src/onl/nRF5/channel-serial.c \
-./src/onl/nRF5/channel-radio.c \
-./src/onl/nRF5/channel-ipv6.c \
 
 
 MAGIC3_SOURCES = \

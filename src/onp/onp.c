@@ -6,15 +6,14 @@
 #include <onex-kernel/mem.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
+#include <onex-kernel/serial.h>
+#include <onex-kernel/radio.h>
+#include <onex-kernel/ipv6.h>
 
 #include "onn.h"
 #include "onp.h"
 
 #define VERBOSE_ONP_LOGGING_REMOVE_ME_LATER true
-
-#include <channel-serial.h>
-#include <channel-radio.h>
-#include <channel-ipv6.h>
 
 static void on_connect(char* channel);
 static void connect_time_cb(void* connected_channel);
@@ -54,6 +53,19 @@ static bool onp_channel_forward = false;
 
 #define MAX_PEERS 32
 
+void serial_on_recv(bool connect, char* tty) {
+  if(connect) on_connect("serial");
+  // REVISIT: tty for unix channel; but ==0 ="serial" for NRF5
+}
+
+void radio_on_recv(bool connect, int8_t rssi){
+  if(connect) on_connect("radio");
+}
+
+void ipv6_on_recv(bool connect, char* channel){
+  if(connect) on_connect(channel);
+}
+
 void onp_init(properties* config) {
 
   channels    = properties_get(config, "channels");
@@ -73,9 +85,9 @@ void onp_init(properties* config) {
   device_to_channel  = properties_new(MAX_PEERS);
   connected_channels = list_new(MAX_PEERS);
 
-  if(onp_channel_serial) channel_serial_init(serial_ttys, on_connect);
-  if(onp_channel_radio)  channel_radio_init(on_connect);
-  if(onp_channel_ipv6)   channel_ipv6_init(ipv6_groups, on_connect);
+  if(onp_channel_serial) serial_init(serial_ttys, 9600, serial_on_recv);
+  if(onp_channel_radio)  radio_init(radio_on_recv);
+  if(onp_channel_ipv6)   ipv6_init(ipv6_groups, ipv6_on_recv);
 
   if(onp_channel_serial)  log_write("ONP channel serial\n");
   if(onp_channel_radio)   log_write("ONP channel radio\n");
@@ -97,17 +109,17 @@ static char send_buff[SEND_BUFF_SIZE];
 bool onp_loop() {
   uint16_t size=0;
   if(onp_channel_serial){
-    size = channel_serial_recv(recv_buff, RECV_BUFF_SIZE-1);
+    size = serial_read(recv_buff, RECV_BUFF_SIZE-1);
     if(size) return handle_recv(size,"serial");
   }
   if(onp_channel_radio){
-    size = channel_radio_recv(recv_buff, RECV_BUFF_SIZE-1);
+    size = radio_read(recv_buff, RECV_BUFF_SIZE-1);
     if(size) return handle_recv(size,"radio");
   }
   if(onp_channel_ipv6){
     for(int i=1; i<=list_size(ipv6_groups); i++){
       char* group = value_string(list_get_n(ipv6_groups, i));
-      size = channel_ipv6_recv(group, recv_buff, RECV_BUFF_SIZE-1);
+      size = ipv6_read(group, recv_buff, RECV_BUFF_SIZE-1);
       char channel[256]; snprintf(channel, 256, "ipv6-%s", group);
       if(size) return handle_recv(size,channel);
     }
@@ -246,20 +258,20 @@ void onp_send_object(object* o, char* devices) {
 void send(char* channel){
   if(onp_channel_serial){
     if(!strcmp(channel, "serial") || !strcmp(channel, "all")){
-      uint16_t size = channel_serial_send(send_buff, strlen(send_buff));
+      uint16_t size = serial_write(send_buff, strlen(send_buff));
       log_sent("ONP sent",size,"serial");
     }
   }
   if(onp_channel_radio){
     if(!strcmp(channel, "radio") || !strcmp(channel, "all")){
-      uint16_t size = channel_radio_send(send_buff, strlen(send_buff));
+      uint16_t size = radio_write(send_buff, strlen(send_buff));
       log_sent("ONP sent",size,"radio");
     }
   }
   if(onp_channel_ipv6){
     if(!strncmp(channel, "ipv6-", 5) || !strcmp(channel, "all")){
       char* group = strcmp(channel, "all")? channel + 5: "all";
-      uint16_t size = channel_ipv6_send(group, send_buff, strlen(send_buff));
+      uint16_t size = ipv6_write(group, send_buff, strlen(send_buff));
       log_sent("ONP sent",size,strcmp(channel, "all")? channel: "ipv6-all");
     }
   }

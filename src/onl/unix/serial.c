@@ -96,7 +96,7 @@ void update_connected_serials() {
     if(fds[t]!= -1) continue;
     char* tty = value_string(list_get_n(serial_ttys, t+1));
     fds[t]=init_serial(tty, baudrate);
-    if(fds[t]!= -1 && recv_cb) recv_cb(true);
+    if(fds[t]!= -1 && recv_cb) recv_cb(true, tty);
   }
 }
 

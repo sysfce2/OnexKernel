@@ -41,9 +41,6 @@ ONL_UNIX_SOURCES = \
 ./src/onl/unix/serial.c \
 ./src/onl/unix/radio.c \
 ./src/onl/unix/ipv6.c \
-./src/onl/unix/channel-serial.c \
-./src/onl/unix/channel-radio.c \
-./src/onl/unix/channel-ipv6.c \
 
 
 ONL_VULKAN_XCB_SOURCES = \
