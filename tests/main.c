@@ -173,7 +173,7 @@ void show_battery()
 
 #endif // watches
 
-void serial_cb(bool connect){
+void serial_cb(bool connect, char* tty){
   if(connect) return;
 #if defined(NRF5)
   char chars[1024];
@@ -489,7 +489,7 @@ int main(void) {
   }
 #endif // MAGIC3
 #else // NRF5
-  serial_cb(false);
+  serial_cb(false, "tty");
   run_tests_maybe(config);
   run_chunkbuf_tests();
   time_end();

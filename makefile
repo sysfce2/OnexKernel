@@ -712,8 +712,16 @@ M4_CPU = -O3 -g3 -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mab
 
 M4_CC_FLAGS = -std=gnu17  -Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin -fshort-enums
 
-# remove these for thorough linting:
-M4_CC_FLAGS += -Wno-incompatible-pointer-types -Wno-discarded-qualifiers -Wno-array-bounds -Wno-char-subscripts
+# do these for thorough linting:
+#M4_CC_FLAGS += -Wextra
+#M4_CC_FLAGS += -Wpedantic
+#M4_CC_FLAGS += -Wstrict-prototypes
+
+# undo these for thorough linting:
+#M4_CC_FLAGS += -Wno-incompatible-pointer-types
+M4_CC_FLAGS += -Wno-discarded-qualifiers
+M4_CC_FLAGS += -Wno-array-bounds
+M4_CC_FLAGS += -Wno-char-subscripts
 
 M4_LD_FLAGS = $(M4_CPU) -Wl,--gc-sections #-specs=nano.specs
 

@@ -79,7 +79,7 @@ static void buffer_readable(char* buf, uint16_t size){
     log_flash(1,0,0);
     return;
   }
-  if(recv_cb) recv_cb(false, 0);
+  if(recv_cb) recv_cb(false, "serial");
 }
 
 #define INPUT_BUF_SIZE 1024
@@ -99,7 +99,7 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
                                                    1);
             UNUSED_VARIABLE(ret);
             chunkbuf_clear(serial_write_buf);
-            if(recv_cb) recv_cb(true, 0);
+            if(recv_cb) recv_cb(true, "serial");
             else        pending_connect = true;
             NRF_LOG_INFO("CDC ACM port opened");
             break;
@@ -232,7 +232,7 @@ bool serial_init(list* ttys, uint32_t baudrate, serial_recv_cb cb) {
 
 bool serial_loop() {
   if(pending_connect && recv_cb){
-    recv_cb(true, 0);
+    recv_cb(true, "serial");
     pending_connect = false;
   }
   return app_usbd_event_queue_process();
