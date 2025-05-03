@@ -276,7 +276,7 @@ void run_tests_maybe(properties* config) {
 
 extern volatile char* event_log_buffer;
 
-#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
+#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059) || defined(BOARD_MAGIC3)
 
 static int8_t radio_rssi;
 void radio_cb(bool connect, int8_t rssi){
@@ -284,7 +284,7 @@ void radio_cb(bool connect, int8_t rssi){
   radio_rssi=rssi;
 }
 
-void send_big_radio_data(bool first_send){
+static void send_big_radio_data(bool first_send){
   char buf[1024];
   if(first_send){     // 152 * 3 = 456 - 252 = 204 = 2 pkts; 3 lines  ! 3rd line "ffff" triggers a reply
 
@@ -304,6 +304,19 @@ void send_big_radio_data(bool first_send){
     snprintf(buf, 1024, "OBS: uid-4ea0-9edd-f54b-ef44 Devices: uid-pcr-device\n");
     radio_write(buf,strlen(buf));
   }
+}
+
+static void check_big_radio_data(){
+  do{
+    static char buf[512];
+    uint16_t rn=radio_read(buf, 512);
+    if(!rn) return;
+    log_write("radio available: %d (%s)\n", rn, buf);
+    if(strstr(buf, "UID: uid-ffff")){
+      send_big_radio_data(false);
+    }
+    log_write("-----------------(%d)--\n", radio_rssi);
+  } while(true);
 }
 #endif
 
@@ -390,16 +403,7 @@ int main(void) {
     run_tests_maybe(config);
  
 #if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
-    do{
-      static char buf[512];
-      uint16_t rn=radio_read(buf, 512);
-      if(!rn) break;
-      log_write("radio available: %d (%s)\n", rn, buf);
-      if(strstr(buf, "UID: uid-ffff")){
-        send_big_radio_data(false);
-      }
-      log_write("-----------------(%d)--\n", radio_rssi);
-    } while(true);
+    check_big_radio_data();
 #endif
 
     if (display_state_prev != display_state){
@@ -438,6 +442,9 @@ int main(void) {
   gfx_rect_fill(195,210,  20, 20, GFX_CYAN);
   gfx_text_colour(GFX_BLUE);
 
+  radio_init(radio_cb);
+  send_big_radio_data(true);
+
   touch_init(touched);
 #if defined(DO_MOTION)
   motion_init(moved);
@@ -448,6 +455,8 @@ int main(void) {
     log_loop();
 
     run_tests_maybe(config);
+
+    check_big_radio_data();
 
     if(new_touch_info){
       new_touch_info=false;
@@ -463,12 +472,10 @@ int main(void) {
       if(!(ticks%20)) show_motion();
     }
 #endif
-#if defined(BOARD_MAGIC3)
     if (display_state_prev != display_state){
       display_state_prev = display_state;
       gpio_set(LCD_BACKLIGHT, display_state);
     }
-#endif
     if(log_to_gfx){
       if(event_log_buffer){
         gfx_pos(10, 10);

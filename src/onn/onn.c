@@ -1298,10 +1298,10 @@ void object_log(object* o)
 void onex_init(properties* config) {
 
 #if defined(NRF5)
-  while(time_ms() < 700){
+  while(time_ms() < 700){ // REVISIT!
     serial_loop();
     log_loop();
-  } // REVISIT!
+  }
 #endif
 
   log_write("Initialising Onex...\n");

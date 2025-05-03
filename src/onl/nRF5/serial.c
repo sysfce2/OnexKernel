@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 
 #include "nrf_log.h"
@@ -16,6 +15,8 @@
 #include <onex-kernel/serial.h>
 #include <onex-kernel/log.h>
 #include <onex-kernel/chunkbuf.h>
+
+#if !defined(BOARD_MAGIC3)
 
 #define SERIAL_READ_BUFFER_SIZE  2048
 #define SERIAL_WRITE_BUFFER_SIZE 4096
@@ -286,4 +287,13 @@ static uint16_t serial_write_delim(char* buf, uint16_t size, bool delim) {
   return size;
 }
 
+#else // BOARD_MAGIC3
 
+bool     serial_init(list* ttys, uint32_t baudrate, serial_recv_cb cb){ return false; }
+uint16_t serial_read(char* buf, uint16_t size){ return 0; }
+uint16_t serial_write(char* buf, uint16_t size){ return 0; }
+int16_t  serial_printf(const char* fmt, ...){ return 0; }
+int16_t  serial_vprintf(const char* fmt, va_list args){ return 0; }
+bool     serial_loop(){ return false; };
+
+#endif
