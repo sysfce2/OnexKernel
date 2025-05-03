@@ -408,7 +408,7 @@ char* object_property_values(object* n, char* path) {
   if(!i) return 0;
   if(i->type==ITEM_VALUE){
     char* v=value_string((value*)i);
-    if(is_uid(v)) return 0;
+    // if(is_uid(v)) return 0;
     return v;
   }
   if(i->type==ITEM_LIST){
