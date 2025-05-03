@@ -23,8 +23,8 @@
 
 static volatile bool initialised=false;
 
-static volatile serial_recv_cb recv_cb = 0;
-static volatile bool           pending_connect=false;
+static volatile channel_recv_cb recv_cb = 0;
+static volatile bool            pending_connect=false;
 
 #ifndef USBD_POWER_DETECTION
 #define USBD_POWER_DETECTION true
@@ -189,7 +189,7 @@ static void usbd_user_ev_handler(app_usbd_event_type_t event)
     }
 }
 
-bool serial_init(list* ttys, uint32_t baudrate, serial_recv_cb cb) {
+bool serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb) {
 
     recv_cb = cb;
 
@@ -246,10 +246,10 @@ uint16_t serial_read(char* buf, uint16_t size) {
   return chunkbuf_read(serial_read_buf, buf, size, nl_delim);
 }
 
-static uint16_t serial_write_delim(char* buf, uint16_t size, bool delim);
+static uint16_t serial_write_delim(char* tty, char* buf, uint16_t size, bool delim);
 
-uint16_t serial_write(char* buf, uint16_t size) {
-  return serial_write_delim(buf, size, true);
+uint16_t serial_write(char* tty, char* buf, uint16_t size) {
+  return serial_write_delim(tty, buf, size, true);
 }
 
 int16_t serial_printf(const char* fmt, ...) {
@@ -269,10 +269,10 @@ int16_t serial_vprintf(const char* fmt, va_list args) {
     log_flash(1,0,0);
     return 0;
   }
-  return serial_write_delim(print_buf, r, false);
+  return serial_write_delim("all", print_buf, r, false);
 }
 
-static uint16_t serial_write_delim(char* buf, uint16_t size, bool delim) {
+static uint16_t serial_write_delim(char* tty, char* buf, uint16_t size, bool delim) {
   if(!chunkbuf_write(serial_write_buf, buf, size)){
     log_flash(1,0,0);
     return 0;
@@ -289,9 +289,9 @@ static uint16_t serial_write_delim(char* buf, uint16_t size, bool delim) {
 
 #else // BOARD_MAGIC3
 
-bool     serial_init(list* ttys, uint32_t baudrate, serial_recv_cb cb){ return false; }
+bool     serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb){ return false; }
 uint16_t serial_read(char* buf, uint16_t size){ return 0; }
-uint16_t serial_write(char* buf, uint16_t size){ return 0; }
+uint16_t serial_write(char* tty, char* buf, uint16_t size){ return 0; }
 int16_t  serial_printf(const char* fmt, ...){ return 0; }
 int16_t  serial_vprintf(const char* fmt, va_list args){ return 0; }
 bool     serial_loop(){ return false; };

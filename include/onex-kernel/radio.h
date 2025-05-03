@@ -8,15 +8,14 @@
 
 #include <items.h>
 
-typedef void (*radio_recv_cb)(bool connect, int8_t rssi);
+#include <onex-kernel/channels.h>
 
-bool     radio_init(radio_recv_cb cb);
+bool     radio_init(channel_recv_cb cb);
 uint16_t radio_read(char* buf, uint16_t size);
-uint16_t radio_write(char* buf, uint16_t size);
+uint16_t radio_write(char* band, char* buf, uint16_t size);
+int8_t   radio_last_rssi();
+uint16_t radio_available();
 
-//void   radio_cb(radio_recv_cb cb);
-//bool   radio_available();
-//int8_t radio_last_rssi();
 //bool   radio_set_frequency(float freq);
 //void   radio_set_encryption_key(uint8_t* key);
 

@@ -70,17 +70,17 @@ static int init_serial(char* devtty, int b){
     return fd;
 }
 
-static list*          serial_ttys=0;
-static serial_recv_cb recv_cb;
-static uint32_t       baudrate;
+static list*           serial_ttys=0;
+static uint32_t        baudrate;
+static channel_recv_cb recv_cb;
 
 static uint32_t nextupdate=0;
 
 // REVISIT: initialised?
-bool serial_init(list* ttys, uint32_t br, serial_recv_cb cb) {
+bool serial_init(list* ttys, uint32_t br, channel_recv_cb cb) {
   serial_ttys=ttys;
-  recv_cb=cb;
   baudrate=br;
+  recv_cb=cb;
   return true;
 }
 
@@ -96,7 +96,8 @@ void update_connected_serials() {
     if(fds[t]!= -1) continue;
     char* tty = value_string(list_get_n(serial_ttys, t+1));
     fds[t]=init_serial(tty, baudrate);
-    if(fds[t]!= -1 && recv_cb) recv_cb(true, tty);
+    char channel[256]; snprintf(channel, 256, "serial-%s", tty+strlen("/dev/"));
+    if(fds[t]!= -1 && recv_cb) recv_cb(true, channel);
   }
 }
 
@@ -134,10 +135,10 @@ uint16_t serial_read(char* buf, uint16_t size) {
   return 0;
 }
 
-static uint16_t serial_write_delim(char* buf, uint16_t size, bool delim);
+static uint16_t serial_write_delim(char* tty, char* buf, uint16_t size, bool delim);
 
-uint16_t serial_write(char* buf, uint16_t size){
-  return serial_write_delim(buf, size, true);
+uint16_t serial_write(char* tty, char* buf, uint16_t size){
+  return serial_write_delim(tty, buf, size, true);
 }
 
 int16_t serial_printf(const char* fmt, ...) {
@@ -154,10 +155,10 @@ char print_buf[PRINT_BUF_SIZE];
 int16_t serial_vprintf(const char* fmt, va_list args) {
   int16_t size=vsnprintf(print_buf, PRINT_BUF_SIZE, fmt, args);
   if(size>=PRINT_BUF_SIZE) return 0;
-  return serial_write_delim(print_buf, size, false);
+  return serial_write_delim("all", print_buf, size, false);
 }
 
-static uint16_t serial_write_delim(char* buf, uint16_t size, bool delim) {
+static uint16_t serial_write_delim(char* tty, char* buf, uint16_t size, bool delim){
   uint16_t i=0;
   for(uint8_t t=0; t< MAX_TTYS; t++){
     int fd=fds[t]; if(fd== -1) continue;

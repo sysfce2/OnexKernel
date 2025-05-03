@@ -7,7 +7,7 @@
 
 #include <onex-kernel/radio.h>
 
-bool radio_init(radio_recv_cb cb){
+bool radio_init(channel_recv_cb cb){
   return true;
 }
 
@@ -15,7 +15,7 @@ uint16_t radio_read(char* buf, uint16_t size){
     return 0;
 }
 
-uint16_t radio_write(char* buf, uint16_t size) {
+uint16_t radio_write(char* band, char* buf, uint16_t size) {
   return true;
 }
 

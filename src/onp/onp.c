@@ -53,16 +53,7 @@ static bool onp_channel_forward = false;
 
 #define MAX_PEERS 32
 
-void serial_on_recv(bool connect, char* tty) {
-  if(connect) on_connect("serial");
-  // REVISIT: tty for unix channel; but ==0 ="serial" for NRF5
-}
-
-void radio_on_recv(bool connect, int8_t rssi){
-  if(connect) on_connect("radio");
-}
-
-void ipv6_on_recv(bool connect, char* channel){
+void channel_on_recv(bool connect, char* channel) {
   if(connect) on_connect(channel);
 }
 
@@ -85,9 +76,9 @@ void onp_init(properties* config) {
   device_to_channel  = properties_new(MAX_PEERS);
   connected_channels = list_new(MAX_PEERS);
 
-  if(onp_channel_serial) serial_init(serial_ttys, 9600, serial_on_recv);
-  if(onp_channel_radio)  radio_init(radio_on_recv);
-  if(onp_channel_ipv6)   ipv6_init(ipv6_groups, ipv6_on_recv);
+  if(onp_channel_serial) serial_init(serial_ttys, 9600, channel_on_recv);
+  if(onp_channel_radio)  radio_init(channel_on_recv);
+  if(onp_channel_ipv6)   ipv6_init(ipv6_groups, channel_on_recv);
 
   if(onp_channel_serial)  log_write("ONP channel serial\n");
   if(onp_channel_radio)   log_write("ONP channel radio\n");
@@ -264,22 +255,24 @@ void onp_send_object(object* o, char* devices) {
 
 void send(char* channel){
   if(onp_channel_serial){
-    if(!strcmp(channel, "serial") || !strcmp(channel, "all")){
-      uint16_t size = serial_write(send_buff, strlen(send_buff));
-      log_sent("ONP sent",size,"serial");
+    if(!strncmp(channel, "serial", 6) || !strcmp(channel, "all")){
+      char* tty = (!strcmp(channel, "all") || !strcmp(channel, "serial"))? "all": channel + 7;
+      uint16_t size = serial_write(tty, send_buff, strlen(send_buff));
+      log_sent("ONP sent",size,!strcmp(channel, "all")? "serial-all": channel);
     }
   }
   if(onp_channel_radio){
-    if(!strcmp(channel, "radio") || !strcmp(channel, "all")){
-      uint16_t size = radio_write(send_buff, strlen(send_buff));
-      log_sent("ONP sent",size,"radio");
+    if(!strncmp(channel, "radio", 5) || !strcmp(channel, "all")){
+      char* band = (!strcmp(channel, "all") || !strcmp(channel, "radio"))? "all": channel + 6;
+      uint16_t size = radio_write(band, send_buff, strlen(send_buff));
+      log_sent("ONP sent",size,!strcmp(channel, "all")? "radio-all": channel);
     }
   }
   if(onp_channel_ipv6){
-    if(!strncmp(channel, "ipv6-", 5) || !strcmp(channel, "all")){
-      char* group = strcmp(channel, "all")? channel + 5: "all";
+    if(!strncmp(channel, "ipv6", 4) || !strcmp(channel, "all")){
+      char* group = (!strcmp(channel, "all") || !strcmp(channel, "ipv6"))? "all": channel + 5;
       uint16_t size = ipv6_write(group, send_buff, strlen(send_buff));
-      log_sent("ONP sent",size,strcmp(channel, "all")? channel: "ipv6-all");
+      log_sent("ONP sent",size,!strcmp(channel, "all")? "ipv6-all": channel);
     }
   }
 }

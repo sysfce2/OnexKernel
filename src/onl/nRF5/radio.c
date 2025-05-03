@@ -25,7 +25,7 @@ static char rx_buffer[256];
 
 static volatile bool initialised=false;
 
-static volatile radio_recv_cb recv_cb = 0;
+static volatile channel_recv_cb recv_cb = 0;
 
 // REVISIT: when do I need chunkbuf_clear(radio_write_buf);
 
@@ -119,7 +119,7 @@ static bool write_a_packet(uint16_t size){
   return true;
 }
 
-bool radio_init(radio_recv_cb cb){
+bool radio_init(channel_recv_cb cb){
 
   recv_cb = cb;
 
@@ -180,7 +180,7 @@ bool radio_init(radio_recv_cb cb){
 
   initialised=true;
 
-  if(recv_cb) recv_cb(true, 0);
+  if(recv_cb) recv_cb(true, "radio");
 
   return true;
 }
@@ -192,7 +192,7 @@ uint16_t radio_read(char* buf, uint16_t size){
   return chunkbuf_read(radio_read_buf, buf, size, nl_delim);
 }
 
-uint16_t radio_write(char* buf, uint16_t size) {
+uint16_t radio_write(char* band, char* buf, uint16_t size) {
   if(!chunkbuf_write(radio_write_buf, buf, size) ||
      !chunkbuf_write(radio_write_buf, &nl_delim, 1)){
     log_flash(1,0,0);
@@ -202,12 +202,24 @@ uint16_t radio_write(char* buf, uint16_t size) {
   return size;
 }
 
+static int8_t last_rssi = -127;
+
+int8_t radio_last_rssi(){
+  return last_rssi;
+}
+
+uint16_t radio_available(){
+  if(!initialised) return 0;
+  return chunkbuf_current_size(radio_read_buf);
+}
+
 static void buffer_readable(char* buf, uint16_t size, int8_t rssi){
+  last_rssi=rssi;
   if(!chunkbuf_write(radio_read_buf, buf, size)){
     log_flash(1,0,0);
     return;
   }
-  if(recv_cb) recv_cb(false, rssi);
+  if(recv_cb) recv_cb(false, "radio");
 }
 
 void RADIO_IRQHandler(void){

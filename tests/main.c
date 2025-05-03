@@ -276,12 +276,12 @@ void run_tests_maybe(properties* config) {
 
 extern volatile char* event_log_buffer;
 
-#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059) || defined(BOARD_MAGIC3)
+#if defined(NRF5)
 
 static int8_t radio_rssi;
-void radio_cb(bool connect, int8_t rssi){
+void radio_cb(bool connect, char* channel){
   if(connect) return;
-  radio_rssi=rssi;
+  radio_rssi=radio_last_rssi();
 }
 
 static void send_big_radio_data(bool first_send){
@@ -292,36 +292,36 @@ static void send_big_radio_data(bool first_send){
                         "UID: uid-2222-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
                         "UID: uid-ffff-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
     );
-    radio_write(buf,strlen(buf));
+    radio_write("",buf,strlen(buf));
 
   } else {     // 269 chars = 2 pkts; 1 line
 
     snprintf(buf, 1024, "UID: uid-e7d3-f5fb-18bd-881e Devices: uid-pcr-device Notify: uid-c392-a132-1deb-29c6 uid-pcr-device is: device name: OnexApp user: uid-c392-a132-1deb-29c6 "
                         "io: uid-d90b-7d12-2ca9-3cbc uid-ac9c-8998-d9f6-f6a7 uid-fce5-31ad-2a29-eba9 peers: uid-pcr-device uid-iot-device\n"
     );
-    radio_write(buf,strlen(buf));
+    radio_write("",buf,strlen(buf));
 
     snprintf(buf, 1024, "OBS: uid-4ea0-9edd-f54b-ef44 Devices: uid-pcr-device\n");
-    radio_write(buf,strlen(buf));
+    radio_write("",buf,strlen(buf));
   }
 }
 
 static void check_big_radio_data(){
   do{
     static char buf[512];
+    uint16_t rm=radio_available();
     uint16_t rn=radio_read(buf, 512);
     if(!rn) return;
-    log_write("radio available: %d (%s)\n", rn, buf);
+    log_write("radio available: %d %d (%s)\n", rm, rn, buf);
     if(strstr(buf, "UID: uid-ffff")){
       send_big_radio_data(false);
     }
     log_write("-----------------(%d)--\n", radio_rssi);
   } while(true);
 }
-#endif
 
-#if defined(NRF5)
 static void loop_serial(void*){ serial_loop(); }
+
 #endif
 
 void run_chunkbuf_tests(){
@@ -371,13 +371,11 @@ int main(void) {
   gpio_init();
 #if !defined(BOARD_MAGIC3)
   serial_init(0,0,serial_cb);
+
   set_up_gpio();
   time_ticker(loop_serial, 0, 1);
- 
-#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
+
   radio_init(radio_cb);
-  send_big_radio_data(true);
-#endif
  
 #if defined(BOARD_FEATHER_SENSE)
   led_matrix_init();
@@ -390,6 +388,7 @@ int main(void) {
   led_matrix_fill_rgb((led_matrix_rgb){ 0, 0, 16 });
   led_matrix_show();
 #endif
+
   while(1){
 
     if(char_recvd){
@@ -397,20 +396,17 @@ int main(void) {
       if(char_recvd=='b') boot_reset(false);
       if(char_recvd=='B') boot_reset(true);
       if(char_recvd=='c') run_chunkbuf_tests();
+      if(char_recvd=='s') send_big_radio_data(true);
       char_recvd=0;
     }
 
     run_tests_maybe(config);
  
-#if defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE) || defined(BOARD_PCA10059)
     check_big_radio_data();
-#endif
 
     if (display_state_prev != display_state){
       display_state_prev = display_state;
-#if defined(BOARD_PCA10059) || defined(BOARD_ADAFRUIT_DONGLE) || defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE)
       gpio_set(leds_list[DISPLAY_STATE_LED], display_state);
-#endif
       log_write("#%d %d %d\n", display_state, random_ish_byte(), random_byte());
     }
   }

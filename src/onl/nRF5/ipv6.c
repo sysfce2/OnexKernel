@@ -6,7 +6,7 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/ipv6.h>
 
-bool ipv6_init(list* groups, ipv6_recv_cb cb){
+bool ipv6_init(list* groups, channel_recv_cb cb){
   return true;
 }
 

@@ -184,9 +184,9 @@ static bool ipv6_init_a_group(char* group){
   return true;
 }
 
-static ipv6_recv_cb recv_cb;
+static channel_recv_cb recv_cb;
 
-bool ipv6_init(list* groups, ipv6_recv_cb cb){
+bool ipv6_init(list* groups, channel_recv_cb cb){
   if(initialised) return true;
   initialised = true;
   recv_cb = cb;
