@@ -333,6 +333,8 @@ void run_chunkbuf_tests(){
     log_write("line: \"%s\" len: %d\n", line, strlen(line));
     if(!rn) break;
   }
+  chunkbuf_free(rside);
+  chunkbuf_free(wside);
 }
 
 int main(void) {

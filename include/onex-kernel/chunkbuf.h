@@ -11,5 +11,6 @@ bool      chunkbuf_write(chunkbuf* cb, char* buf, uint16_t size);
 uint16_t  chunkbuf_read( chunkbuf* cb, char* buf, uint16_t size, int8_t delim);
 uint16_t  chunkbuf_current_size(chunkbuf* cb);
 void      chunkbuf_clear(chunkbuf* cb);
+void      chunkbuf_free(chunkbuf* cb);
 
 #endif

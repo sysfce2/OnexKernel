@@ -91,6 +91,11 @@ void chunkbuf_clear(chunkbuf* cb){
   cb->current_read=0;
 }
 
+void chunkbuf_free(chunkbuf* cb){
+  if(!cb) return;
+  mem_free(cb->buffer);
+  mem_free(cb);
+}
 
 
 
