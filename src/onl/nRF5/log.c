@@ -8,30 +8,43 @@
 #include <nRF5/m-class-support.h>
 #include <boards.h>
 
+#include <onex-kernel/boot.h>
 #include <onex-kernel/serial.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 #include <onex-kernel/gpio.h>
 
-bool log_to_serial=false;
+#include <onn.h>
+
 bool log_to_gfx=false;
 bool log_to_rtt=false;
-bool log_to_leds=false;
+bool log_to_led=false;
+bool debug_on_serial=false;
 
 uint16_t    flash_id=0;
 static void flash_time_cb(void*);
 
+static volatile char char_recvd=0;
+
+static void serial_cb(bool connect, char* tty){
+  if(connect) return;
+  char chars[16];
+  uint16_t n = serial_read(chars, 16);
+  if(n<2 || chars[0] != '#') return;
+  char_recvd=chars[1];
+}
+
 // REVISIT: initialised?
 void log_init(properties* config) {
 
-  log_to_serial = list_has_value(properties_get(config, "flags"), "log-to-serial");
-  log_to_gfx    = list_has_value(properties_get(config, "flags"), "log-to-gfx");
-  log_to_rtt    = list_has_value(properties_get(config, "flags"), "log-to-rtt");
-  log_to_leds   = list_has_value(properties_get(config, "flags"), "log-to-leds");
+  log_to_gfx      = list_has_value(properties_get(config, "flags"), "log-to-gfx");
+  log_to_rtt      = list_has_value(properties_get(config, "flags"), "log-to-rtt");
+  log_to_led      = list_has_value(properties_get(config, "flags"), "log-to-led");
+  debug_on_serial = list_has_value(properties_get(config, "flags"), "debug-on-serial");
 
-  if(log_to_serial) serial_init(0,0,0);
+  if(debug_on_serial) serial_init(0,0,serial_cb);
 
-  if(log_to_leds){
+  if(log_to_led){
     gpio_init();
 #if defined(BOARD_PCA10059)
     gpio_mode(LED2_R, OUTPUT);
@@ -54,8 +67,19 @@ void log_init(properties* config) {
 #endif
 }
 
-bool log_loop()
-{
+bool log_loop() {
+
+  if(debug_on_serial){
+    if(char_recvd){
+      log_write(">%c<----------\n", char_recvd);
+      if(char_recvd=='r') boot_reset(false);
+      if(char_recvd=='b') boot_reset(true);
+      if(char_recvd=='c') onex_show_cache();
+      if(char_recvd=='v') value_dump();
+      char_recvd=0;
+    }
+  }
+
 #if defined(NRF_LOG_ENABLED)
   return NRF_LOG_PROCESS();
 #else
@@ -73,7 +97,7 @@ int16_t log_write_current_file_line(char* file, uint32_t line, const char* fmt, 
   va_list args;
   va_start(args, fmt);
   int16_t r=0;
-  if(log_to_serial){
+  if(debug_on_serial){
     //size_t n=snprintf((char*)log_buffer, LOG_BUF_SIZE, "LOG: %s", fmt);
     //if(n>=LOG_BUF_SIZE) ...
     if(in_interrupt_context()){
@@ -120,7 +144,7 @@ void flash_time_cb(void*) {
 }
 
 void log_flash(uint8_t r, uint8_t g, uint8_t b){
-  if(!log_to_leds || flash_on) return;
+  if(!log_to_led || flash_on) return;
 #if defined(BOARD_PCA10059)
   if(r) gpio_set(LED2_R, LEDS_ACTIVE_STATE);
   if(g) gpio_set(LED2_G, LEDS_ACTIVE_STATE);

@@ -357,7 +357,7 @@ int main(void) {
   properties_set(config, "dbpath", value_new("tests.ondb"));
 #else
 #if !defined(BOARD_MAGIC3)
-  properties_set(config, "flags", list_new_from("log-to-serial log-to-leds", 2));
+  properties_set(config, "flags", list_new_from("debug-on-serial log-to-led",2));
 #else
   properties_set(config, "flags", list_new_from("log-to-gfx", 2));
 #endif
@@ -370,7 +370,7 @@ int main(void) {
 #if defined(NRF5)
   gpio_init();
 #if !defined(BOARD_MAGIC3)
-  serial_init(0,0,serial_cb);
+  serial_init(0,0,serial_cb); // overrides one in log for commands
 
   set_up_gpio();
   time_ticker(loop_serial, 0, 1);
@@ -393,8 +393,8 @@ int main(void) {
 
     if(char_recvd){
       log_write(">%c<----------\n", char_recvd);
-      if(char_recvd=='b') boot_reset(false);
-      if(char_recvd=='B') boot_reset(true);
+      if(char_recvd=='r') boot_reset(false);
+      if(char_recvd=='b') boot_reset(true);
       if(char_recvd=='c') run_chunkbuf_tests();
       if(char_recvd=='s') send_big_radio_data(true);
       char_recvd=0;

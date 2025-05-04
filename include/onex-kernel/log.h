@@ -11,9 +11,10 @@
 #include <items.h>
 #include <onex-kernel/time.h>
 
-extern bool log_to_serial;
 extern bool log_to_gfx;
 extern bool log_to_rtt;
+extern bool log_to_led;
+extern bool debug_on_serial;
 
 #define LOG_BINARY_FMT "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
 #define LOG_BINARY(x)         \

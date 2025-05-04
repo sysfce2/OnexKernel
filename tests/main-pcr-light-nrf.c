@@ -38,7 +38,7 @@ int main(){
 
   properties* config = properties_new(32);
   properties_set(config, "channels", list_new_from("radio",2));
-  properties_set(config, "flags", list_new_from("log-to-serial",2));
+  properties_set(config, "flags", list_new_from("debug-on-serial log-to-led",2));
   properties_set(config, "test-uid-prefix", value_new("light"));
 
   time_init();
