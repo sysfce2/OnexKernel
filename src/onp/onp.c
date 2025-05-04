@@ -236,6 +236,10 @@ static bool handle_recv(uint16_t size, char* channel) {
 
   if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) return recv_observe(size, channel);
   if(size>=5 && !strncmp(recv_buff,"UID: ",5)) return recv_object( size, channel);
+
+  if(debug_on_serial && !strncmp(channel, "serial", 6)){
+    if(log_debug_read(recv_buff, size)) return true;
+  }
   log_recv(">>>>>>>>", size, channel);
   return true;
 }

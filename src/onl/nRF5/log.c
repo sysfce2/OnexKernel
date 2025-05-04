@@ -28,10 +28,17 @@ static volatile char char_recvd=0;
 
 static void serial_cb(bool connect, char* tty){
   if(connect) return;
-  char chars[16];
-  uint16_t n = serial_read(chars, 16);
-  if(n<2 || chars[0] != '#') return;
-  char_recvd=chars[1];
+  char buf[16]; uint16_t size = serial_read(buf, 16);
+  // REVISIT URGENT all serial_read()s: ensure fully empty buffer as there won't be another cb!
+  log_debug_read(buf, size);
+}
+
+bool log_debug_read(char* buf, uint16_t size){
+  if(size>=2 && buf[0] == '#'){
+    char_recvd=buf[1];
+    return true;
+  }
+  return false;
 }
 
 // REVISIT: initialised?

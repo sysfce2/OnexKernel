@@ -28,6 +28,7 @@ int16_t log_write_current_file_line(char* file, uint32_t line, const char* fmt, 
   return r;
 }
 
+bool log_debug_read(char* buf, uint16_t size){}
 void log_flash(uint8_t r, uint8_t g, uint8_t b) { }
 void log_flush() { }
 
