@@ -4,7 +4,6 @@
 #if defined(NRF5)
 
 #include <boards.h>
-#include <onex-kernel/boot.h>
 #include <onex-kernel/gpio.h>
 #include <onex-kernel/radio.h>
 
@@ -288,6 +287,8 @@ static void send_big_radio_data(bool first_send){
   char buf[1024];
   if(first_send){     // 152 * 3 = 456 - 252 = 204 = 2 pkts; 3 lines  ! 3rd line "ffff" triggers a reply
 
+    log_write("send_big_radio_data first\n");
+
     snprintf(buf, 1024, "UID: uid-1111-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
                         "UID: uid-2222-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
                         "UID: uid-ffff-da59-40a5-560b Devices: uid-9bd4-da59-40a5-560b is: device io: uid-b7e0-376f-59b8-212cc uid-6dd9-c392-4bd7-aa79 uid-b7e0-376f-59b8-212cc\n"
@@ -295,6 +296,8 @@ static void send_big_radio_data(bool first_send){
     radio_write("",buf,strlen(buf));
 
   } else {     // 269 chars = 2 pkts; 1 line
+
+    log_write("send_big_radio_data response\n");
 
     snprintf(buf, 1024, "UID: uid-e7d3-f5fb-18bd-881e Devices: uid-pcr-device Notify: uid-c392-a132-1deb-29c6 uid-pcr-device is: device name: OnexApp user: uid-c392-a132-1deb-29c6 "
                         "io: uid-d90b-7d12-2ca9-3cbc uid-ac9c-8998-d9f6-f6a7 uid-fce5-31ad-2a29-eba9 peers: uid-pcr-device uid-iot-device\n"
@@ -393,8 +396,6 @@ int main(void) {
 
     if(char_recvd){
       log_write(">%c<----------\n", char_recvd);
-      if(char_recvd=='r') boot_reset(false);
-      if(char_recvd=='b') boot_reset(true);
       if(char_recvd=='c') run_chunkbuf_tests();
       if(char_recvd=='s') send_big_radio_data(true);
       char_recvd=0;

@@ -4,13 +4,14 @@
 
 #include <onex-kernel/log.h>
 
-bool log_to_serial=false;
+// not on Unix
 bool log_to_gfx=false;
+bool log_to_rtt=false;
+bool log_to_led=false;
+bool debug_on_serial=false;
 
 // REVISIT: initialised?
 void log_init(properties* config) {
-  log_to_serial = list_has_value(properties_get(config, "flags"), "log-to-serial");
-  log_to_gfx    = list_has_value(properties_get(config, "flags"), "log-to-gfx");
 }
 
 bool log_loop()
@@ -27,10 +28,7 @@ int16_t log_write_current_file_line(char* file, uint32_t line, const char* fmt, 
   return r;
 }
 
-void log_flash(uint8_t r, uint8_t g, uint8_t b)
-{
-}
+void log_flash(uint8_t r, uint8_t g, uint8_t b) { }
+void log_flush() { }
 
-void log_flush()
-{
-}
+

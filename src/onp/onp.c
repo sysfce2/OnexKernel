@@ -230,8 +230,10 @@ static bool recv_object(uint16_t size, char* channel){
 }
 
 static bool handle_recv(uint16_t size, char* channel) {
-  if(recv_buff[size-1]<=' ') recv_buff[size-1]=0;
-  else                       recv_buff[size  ]=0;
+
+  if(recv_buff[size-1]<=' ') recv_buff[size-1]=0; // REVISIT
+  else                       recv_buff[size  ]=0; // REVISIT
+
   if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) return recv_observe(size, channel);
   if(size>=5 && !strncmp(recv_buff,"UID: ",5)) return recv_object( size, channel);
   log_recv(">>>>>>>>", size, channel);
