@@ -21,15 +21,16 @@ bool log_to_rtt=false;
 bool log_to_led=false;
 bool debug_on_serial=false;
 
-uint16_t    flash_id=0;
-static void flash_time_cb(void*);
+volatile char* event_log_buffer=0;
 
+#define LOG_BUF_SIZE 1024
+static volatile char log_buffer[LOG_BUF_SIZE];
+static volatile char* log_write_in_int=0;
 static volatile char char_recvd=0;
 
 static void serial_cb(bool connect, char* tty){
   if(connect) return;
   char buf[16]; uint16_t size = serial_read(buf, 16);
-  // REVISIT URGENT all serial_read()s: ensure fully empty buffer as there won't be another cb!
   log_debug_read(buf, size);
 }
 
@@ -41,8 +42,13 @@ bool log_debug_read(char* buf, uint16_t size){
   return false;
 }
 
-// REVISIT: initialised?
+uint16_t    flash_id=0;
+static void flash_time_cb(void*);
+static volatile bool initialised=false;
+
 void log_init(properties* config) {
+
+  if(initialised) return; initialised=true;
 
   log_to_gfx      = list_has_value(properties_get(config, "flags"), "log-to-gfx");
   log_to_rtt      = list_has_value(properties_get(config, "flags"), "log-to-rtt");
@@ -94,19 +100,11 @@ bool log_loop() {
 #endif
 }
 
-#define LOG_BUF_SIZE 1024
-static volatile char log_buffer[LOG_BUF_SIZE];
-volatile char* event_log_buffer=0;
-
-volatile char* log_write_in_int=0;
-
 int16_t log_write_current_file_line(char* file, uint32_t line, const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
   int16_t r=0;
   if(debug_on_serial){
-    //size_t n=snprintf((char*)log_buffer, LOG_BUF_SIZE, "LOG: %s", fmt);
-    //if(n>=LOG_BUF_SIZE) ...
     if(in_interrupt_context()){
       log_write_in_int = strdup(fmt);
       return 0;

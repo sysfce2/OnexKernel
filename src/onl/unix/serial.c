@@ -76,8 +76,10 @@ static channel_recv_cb recv_cb;
 
 static uint32_t nextupdate=0;
 
-// REVISIT: initialised?
+static bool initialised=false;
+
 bool serial_init(list* ttys, uint32_t br, channel_recv_cb cb) {
+  if(initialised) return true; initialised = true;
   serial_ttys=ttys;
   baudrate=br;
   recv_cb=cb;

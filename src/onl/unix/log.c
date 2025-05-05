@@ -10,7 +10,6 @@ bool log_to_rtt=false;
 bool log_to_led=false;
 bool debug_on_serial=false;
 
-// REVISIT: initialised?
 void log_init(properties* config) {
 }
 

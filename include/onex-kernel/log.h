@@ -16,6 +16,8 @@ extern bool log_to_rtt;
 extern bool log_to_led;
 extern bool debug_on_serial;
 
+extern volatile char* event_log_buffer;
+
 #define LOG_BINARY_FMT "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
 #define LOG_BINARY(x)         \
   (x & 0x80000000? '1': '0'), (x & 0x40000000? '1': '0'), (x & 0x20000000? '1': '0'), (x & 0x10000000? '1': '0'), \

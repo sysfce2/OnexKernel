@@ -273,8 +273,6 @@ void run_tests_maybe(properties* config) {
 #endif
 }
 
-extern volatile char* event_log_buffer;
-
 #if defined(NRF5)
 
 static int8_t radio_rssi;
