@@ -736,6 +736,7 @@ M4_CC_FLAGS = -std=gnu17  -Wall -Werror -Wno-unused-function -Wno-unused-variabl
 M4_CC_FLAGS += -Wno-discarded-qualifiers
 M4_CC_FLAGS += -Wno-array-bounds
 M4_CC_FLAGS += -Wno-char-subscripts
+M4_CC_FLAGS += -Wno-misleading-indentation
 
 M4_LD_FLAGS = $(M4_CPU) -Wl,--gc-sections #-specs=nano.specs
 
