@@ -30,8 +30,8 @@ static volatile char char_recvd=0;
 
 static void serial_cb(bool connect, char* tty){
   if(connect) return;
-  char buf[16]; uint16_t size = serial_read(buf, 16);
-  log_debug_read(buf, size);
+  uint16_t size = serial_read(log_buffer, 1024);
+  if(debug_on_serial) log_debug_read(log_buffer, size);
 }
 
 bool log_debug_read(char* buf, uint16_t size){
