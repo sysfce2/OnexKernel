@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include "nrf_gpio.h"
+#include <nrf_saadc.h>
 
 #define LEDS_NUMBER    1
 
@@ -36,6 +37,8 @@ extern "C" {
 #define SPIM_MISO_PIN  NRF_GPIO_PIN_MAP(0,15)
 #define SPIM_MODE      NRF_SPIM_MODE_0
 #define SPIM_FREQ      NRF_SPIM_FREQ_32M
+
+#define BATTERY_V    NRF_SAADC_INPUT_AIN5 // NRF_GPIO_PIN_MAP(0,29)
 
 #ifdef __cplusplus
 }

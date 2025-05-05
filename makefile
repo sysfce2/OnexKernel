@@ -463,6 +463,7 @@ $(SDK_C_SOURCES) \
 ./sdk/components/libraries/usbd/class/cdc/acm/app_usbd_cdc_acm.c \
 ./sdk/integration/nrfx/legacy/nrf_drv_power.c \
 ./sdk/integration/nrfx/legacy/nrf_drv_uart.c \
+./sdk/modules/nrfx/drivers/src/nrfx_saadc.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_power.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_systick.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_uart.c \

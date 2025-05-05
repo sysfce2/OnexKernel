@@ -82,6 +82,10 @@ static void set_up_gpio(void)
 #if defined(BOARD_PCA10059)
   gpio_set(leds_list[READY_LED], LEDS_ACTIVE_STATE);
 #endif
+#if defined(BOARD_FEATHER_SENSE)
+#define ADC_CHANNEL 0
+  gpio_adc_init(BATTERY_V, ADC_CHANNEL);
+#endif
 #elif defined(BOARD_MAGIC3)
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, RISING_AND_FALLING, button_changed);
   gpio_mode(I2C_ENABLE, OUTPUT);
@@ -92,6 +96,17 @@ static void set_up_gpio(void)
 #define ADC_CHANNEL 0
   gpio_adc_init(BATTERY_V, ADC_CHANNEL);
 #endif
+}
+#endif
+
+#if defined(BOARD_MAGIC3) || defined(BOARD_FEATHER_SENSE)
+void sprintf_battery(char* buf, uint16_t size) {
+
+  int16_t bv = gpio_read(ADC_CHANNEL);
+  int16_t mv = bv*2000/(1024/(33/10));
+  int8_t  pc = ((mv-3520)*100/5200)*10;
+
+  snprintf(buf, size, "%d/%dmv/%d%%", bv, mv, pc);
 }
 #endif
 
@@ -156,13 +171,10 @@ void show_motion()
 }
 #endif
 
-void show_battery()
-{
-  int16_t bv = gpio_read(ADC_CHANNEL);
-  int16_t mv = bv*2000/(1024/(33/10));
-  int8_t  pc = ((mv-3520)*100/5200)*10;
+static void show_battery(){
 
-  snprintf(buf, 64, "%d/%dmv/%d%%", bv, mv, pc);
+  sprintf_battery(buf, 64);
+
   gfx_pos(10, 135);
   gfx_text(buf);
 
@@ -170,7 +182,7 @@ void show_battery()
   gfx_text(is_charging? "charging": "battery");
 }
 
-#endif // watches
+#endif // magic 3
 
 void serial_cb(bool connect, char* tty){
   if(connect) return;
@@ -396,6 +408,10 @@ int main(void) {
       log_write(">%c<----------\n", char_recvd);
       if(char_recvd=='c') run_chunkbuf_tests();
       if(char_recvd=='s') send_big_radio_data(true);
+      if(char_recvd=='p'){
+        static char b[64]; sprintf_battery(b, 64);
+        log_write("battery: %s\n", b);
+      }
       char_recvd=0;
     }
 
