@@ -86,6 +86,8 @@ bool serial_init(list* ttys, uint32_t br, channel_recv_cb cb) {
   return true;
 }
 
+bool serial_ready(){ return true; }
+
 #define MAX_TTYS 3
 int fds[MAX_TTYS]  = {-1,-1,-1};
 

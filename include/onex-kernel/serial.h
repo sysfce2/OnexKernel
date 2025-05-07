@@ -11,6 +11,7 @@
 #include <onex-kernel/channels.h>
 
 bool     serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb);
+bool     serial_ready();
 uint16_t serial_read(char* buf, uint16_t size);
 uint16_t serial_write(char* tty, char* buf, uint16_t size);
 

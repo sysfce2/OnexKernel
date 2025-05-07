@@ -232,6 +232,14 @@ bool serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb) {
     return true;
 }
 
+static bool init_ready=false;
+bool serial_ready(){
+  if(init_ready) return true;
+  if(time_ms() < 750) return false; // REVISIT!
+  init_ready=true;
+  return true;
+}
+
 bool serial_loop() {
   if(pending_connect && recv_cb){
     recv_cb(true, "serial");
@@ -294,6 +302,7 @@ static uint16_t serial_write_delim(char* tty, char* buf, uint16_t size, bool del
 #else // BOARD_MAGIC3
 
 bool     serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb){ return false; }
+bool     serial_ready(){ return true; }
 uint16_t serial_read(char* buf, uint16_t size){ return 0; }
 uint16_t serial_write(char* tty, char* buf, uint16_t size){ return 0; }
 int16_t  serial_printf(const char* fmt, ...){ return 0; }

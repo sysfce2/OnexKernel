@@ -387,6 +387,7 @@ int main(void) {
 
   serial_init(0,0,serial_cb); // overrides one in log for commands
   time_ticker(loop_serial, 0, 1);
+  while(!serial_ready());
 
 #if defined(BOARD_FEATHER_SENSE)
   led_matrix_init();
