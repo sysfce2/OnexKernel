@@ -55,9 +55,9 @@ static volatile chunkbuf* serial_write_buf = 0;
 
 static volatile bool write_loop_in_progress=false;
 
-static void do_usb_write_block(bool first_write){
+static bool do_usb_write_block(bool first_write){
 
-  if(first_write && write_loop_in_progress) return;
+  if(first_write && write_loop_in_progress) return true;
   write_loop_in_progress=true;
 
   static char block[NRFX_USBD_EPSIZE]; // it's 64!
@@ -65,14 +65,17 @@ static void do_usb_write_block(bool first_write){
 
   if(!s){
     write_loop_in_progress = false;
-    return;
+    return true;
   }
 
   ret_code_t e=app_usbd_cdc_acm_write(&m_app_cdc_acm, block, s);
 
   if(e!=NRF_SUCCESS){
+    log_flash(1,0,0);
     write_loop_in_progress = false;
+    return false;
   }
+  return true;
 }
 
 static void buffer_readable(char* buf, uint16_t size){
@@ -206,20 +209,18 @@ bool serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb) {
     };
 
     ret = app_usbd_init(&usbd_config);
-    APP_ERROR_CHECK(ret);
+    if(ret != NRF_SUCCESS){ log_flash(1,0,0); return false; }
+
     NRF_LOG_INFO("USBD CDC ACM example started.");
 
     app_usbd_class_inst_t const * class_cdc_acm = app_usbd_cdc_acm_class_inst_get(&m_app_cdc_acm);
     ret = app_usbd_class_append(class_cdc_acm);
-    APP_ERROR_CHECK(ret);
+    if(ret != NRF_SUCCESS){ log_flash(1,0,0); return false; }
 
-    if (USBD_POWER_DETECTION)
-    {
+    if (USBD_POWER_DETECTION) {
         ret = app_usbd_power_events_enable();
-        APP_ERROR_CHECK(ret);
-    }
-    else
-    {
+        if(ret != NRF_SUCCESS){ log_flash(1,0,0); return false; }
+    } else {
         NRF_LOG_INFO("No USB power detection enabled\r\nStarting USB now");
 
         app_usbd_enable();
@@ -283,7 +284,10 @@ static uint16_t serial_write_delim(char* tty, char* buf, uint16_t size, bool del
       return 0;
     }
   }
-  do_usb_write_block(true);
+  if(!do_usb_write_block(true)){
+    // do_usb_write_block already flashed
+    return 0;
+  }
   return size;
 }
 

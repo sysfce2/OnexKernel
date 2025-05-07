@@ -73,8 +73,8 @@ const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 #define DISPLAY_STATE_LED 0
 #endif
 
-static void set_up_gpio(void)
-{
+#define ADC_CHANNEL 0
+static void set_up_gpio(void) {
 #if defined(BOARD_PCA10059) || defined(BOARD_ADAFRUIT_DONGLE) || defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE)
   gpio_mode_cb(BUTTON_1, INPUT_PULLUP, RISING_AND_FALLING, button_changed);
   for(uint8_t l=0; l< LEDS_NUMBER; l++){ gpio_mode(leds_list[l], OUTPUT); gpio_set(leds_list[l], !LEDS_ACTIVE_STATE); }
@@ -83,7 +83,6 @@ static void set_up_gpio(void)
   gpio_set(leds_list[READY_LED], LEDS_ACTIVE_STATE);
 #endif
 #if defined(BOARD_FEATHER_SENSE)
-#define ADC_CHANNEL 0
   gpio_adc_init(BATTERY_V, ADC_CHANNEL);
 #endif
 #elif defined(BOARD_MAGIC3)
@@ -93,13 +92,12 @@ static void set_up_gpio(void)
   gpio_mode(LCD_BACKLIGHT, OUTPUT);
   gpio_set(LCD_BACKLIGHT, LEDS_ACTIVE_STATE);
   gpio_mode_cb(CHARGE_SENSE, INPUT, RISING_AND_FALLING, charging_changed);
-#define ADC_CHANNEL 0
   gpio_adc_init(BATTERY_V, ADC_CHANNEL);
 #endif
 }
 #endif
 
-#if defined(BOARD_MAGIC3) || defined(BOARD_FEATHER_SENSE)
+#if defined(NRF5)
 void sprintf_battery(char* buf, uint16_t size) {
 
   int16_t bv = gpio_read(ADC_CHANNEL);
@@ -382,14 +380,14 @@ int main(void) {
   random_init();
 #if defined(NRF5)
   gpio_init();
-#if !defined(BOARD_MAGIC3)
-  serial_init(0,0,serial_cb); // overrides one in log for commands
-
   set_up_gpio();
-  time_ticker(loop_serial, 0, 1);
+#if !defined(BOARD_MAGIC3)
 
   radio_init(radio_cb);
- 
+
+  serial_init(0,0,serial_cb); // overrides one in log for commands
+  time_ticker(loop_serial, 0, 1);
+
 #if defined(BOARD_FEATHER_SENSE)
   led_matrix_init();
   led_matrix_fill_col("grey1");
@@ -416,7 +414,7 @@ int main(void) {
     }
 
     run_tests_maybe(config);
- 
+
     check_big_radio_data();
 
     if (display_state_prev != display_state){
@@ -426,7 +424,6 @@ int main(void) {
     }
   }
 #else
-  set_up_gpio();
   gfx_init();
   gfx_screen_colour(GFX_YELLOW);
   gfx_screen_fill();

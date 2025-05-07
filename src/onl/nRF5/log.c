@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "app_error.h"
 #include "nrf_log_default_backends.h"
 
 #include <nRF5/m-class-support.h>
@@ -72,6 +71,7 @@ void log_init(properties* config) {
 #endif
     time_init();
     flash_id=time_timeout(flash_time_cb,0);
+    log_flash(1,1,1);
   }
 
 #if defined(NRF_LOG_ENABLED)

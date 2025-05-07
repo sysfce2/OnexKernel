@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include <app_error.h>
 #include <nrf_soc.h>
 #include <nrf_crypto.h>
 

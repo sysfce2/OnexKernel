@@ -11,12 +11,11 @@ typedef struct chunkbuf {
 } chunkbuf;
 
 chunkbuf* chunkbuf_new(uint16_t buf_size){
-  chunkbuf* cb=(chunkbuf*)mem_alloc(sizeof(chunkbuf));
+  chunkbuf* cb=(chunkbuf*)mem_alloc(sizeof(chunkbuf)); if(!cb) return 0;
   cb->buf_size=buf_size;
-  cb->buffer=(char*)mem_alloc(buf_size);
+  cb->buffer=(char*)mem_alloc(buf_size); if(!cb->buffer) return 0;
   cb->current_write=0;
   cb->current_read=0;
-  if(!cb) return 0;
   return cb;
 }
 

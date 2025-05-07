@@ -395,7 +395,6 @@ SDK_C_SOURCES_MAGIC3 = \
 $(SDK_C_SOURCES) \
 ./mod-sdk/components/libraries/gfx/nrf_gfx.c \
 ./sdk/external/thedotfactory_fonts/orkney8pts.c \
-./sdk/modules/nrfx/drivers/src/nrfx_saadc.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_spim.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_qspi.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_twi.c \
@@ -463,7 +462,6 @@ $(SDK_C_SOURCES) \
 ./sdk/components/libraries/usbd/class/cdc/acm/app_usbd_cdc_acm.c \
 ./sdk/integration/nrfx/legacy/nrf_drv_power.c \
 ./sdk/integration/nrfx/legacy/nrf_drv_uart.c \
-./sdk/modules/nrfx/drivers/src/nrfx_saadc.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_power.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_systick.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_uart.c \
@@ -506,7 +504,6 @@ SDK_C_SOURCES = \
 ./sdk/components/libraries/atomic_fifo/nrf_atfifo.c \
 ./sdk/components/libraries/atomic_flags/nrf_atflags.c \
 ./sdk/components/libraries/balloc/nrf_balloc.c \
-./sdk/components/libraries/button/app_button.c \
 ./sdk/components/libraries/experimental_section_vars/nrf_section_iter.c \
 ./sdk/components/libraries/hardfault/hardfault_implementation.c \
 ./sdk/components/libraries/log/src/nrf_log_backend_rtt.c \
@@ -536,6 +533,7 @@ SDK_C_SOURCES = \
 ./sdk/external/utf_converter/utf.c \
 ./sdk/integration/nrfx/legacy/nrf_drv_clock.c \
 ./sdk/integration/nrfx/legacy/nrf_drv_rng.c \
+./sdk/modules/nrfx/drivers/src/nrfx_saadc.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_rng.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_clock.c \
 ./sdk/modules/nrfx/drivers/src/prs/nrfx_prs.c \

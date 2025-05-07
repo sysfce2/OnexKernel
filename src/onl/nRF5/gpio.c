@@ -13,7 +13,7 @@ void gpio_init() {
   if(initialised) return;
   NRF_GPIOTE->EVENTS_PORT = 0; volatile uint32_t readit=NRF_GPIOTE->EVENTS_PORT; (void)readit;
   NRF_GPIOTE->INTENSET = GPIOTE_INTENSET_PORT_Msk;
-  NVIC_SetPriority(GPIOTE_IRQn, APP_IRQ_PRIORITY_HIGH);
+  NVIC_SetPriority(GPIOTE_IRQn, 2);
   NVIC_EnableIRQ(GPIOTE_IRQn);
   initialised=true;
 }
