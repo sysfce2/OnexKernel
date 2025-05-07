@@ -36,15 +36,22 @@ void time_init_set(uint64_t es)
   time_init();
 }
 
-void time_init()
-{
+void time_init() {
+
   if(initialised) return;
   ret_code_t e = nrf_drv_clock_init(); APP_ERROR_CHECK(e);
+
   nrf_drv_clock_lfclk_request(NULL);
   while(!nrf_drv_clock_lfclk_is_running());
+
+  NRF_CLOCK->EVENTS_HFCLKSTARTED = 0;
+  NRF_CLOCK->TASKS_HFCLKSTART = 1;
+  while(!NRF_CLOCK->EVENTS_HFCLKSTARTED);
+
   e = app_timer_init(); APP_ERROR_CHECK(e);
   e = app_timer_create(&m_timer_0, APP_TIMER_MODE_REPEATED, every_second); APP_ERROR_CHECK(e);
   e = app_timer_start(m_timer_0, APP_TIMER_TICKS(1000), NULL); APP_ERROR_CHECK(e);
+
   timer_ids[0]=m_timer_0;
   timer_ids[1]=m_timer_1;
   timer_ids[2]=m_timer_2;
@@ -52,6 +59,7 @@ void time_init()
   timer_ids[4]=m_timer_4;
   timer_ids[5]=m_timer_5;
   timer_ids[6]=m_timer_6;
+
   initialised=true;
 }
 

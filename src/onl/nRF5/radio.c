@@ -128,10 +128,6 @@ bool radio_init(channel_recv_cb cb){
   radio_read_buf  = chunkbuf_new(RADIO_READ_BUFFER_SIZE);
   radio_write_buf = chunkbuf_new(RADIO_WRITE_BUFFER_SIZE);
 
-  NRF_CLOCK->EVENTS_HFCLKSTARTED = 0;
-  NRF_CLOCK->TASKS_HFCLKSTART = 1;
-  while(!NRF_CLOCK->EVENTS_HFCLKSTARTED);
-
   NRF_RADIO->MODECNF0 = (RADIO_MODECNF0_DTX_B0 << RADIO_MODECNF0_DTX_Pos) |
                         (RADIO_MODECNF0_RU_Fast << RADIO_MODECNF0_RU_Pos);
 
