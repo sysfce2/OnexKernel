@@ -392,16 +392,33 @@ int main(void) {
   while(!serial_ready_state());
 
 #if defined(BOARD_FEATHER_SENSE)
+  uint8_t usb_status = serial_ready_state();
+
   led_matrix_init();
-  led_matrix_fill_col("grey1");
-  led_matrix_show();
-  time_delay_ms(500);
-  led_matrix_fill_col("#010");
-  led_matrix_show();
-  time_delay_ms(500);
-  led_matrix_fill_rgb((led_matrix_rgb){ 0, 0, 16 });
-  led_matrix_show();
+  if(usb_status == SERIAL_NOT_POWERED_OR_READY){
+    led_matrix_fill_col("#100");
+    led_matrix_show();
+  }
+  else
+  if(usb_status == SERIAL_POWERED_NOT_READY){
+    led_matrix_fill_col("#110");
+    led_matrix_show();
+    boot_reset(false); // REVISIT
+  }
+  else
+  if(usb_status == SERIAL_READY){
+    led_matrix_fill_col("grey1");
+    led_matrix_show();
+    time_delay_ms(500);
+    led_matrix_fill_rgb((led_matrix_rgb){ 0, 0, 16 });
+    led_matrix_show();
+    time_delay_ms(500);
+    led_matrix_fill_col("#010");
+    led_matrix_show();
+  }
 #endif
+
+  log_write("----------nRF52 tests----------------\n");
 
   while(1){
 

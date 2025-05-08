@@ -27,7 +27,7 @@ static volatile channel_recv_cb recv_cb = 0;
 static volatile bool            pending_connect=false;
 
 #ifndef USBD_POWER_DETECTION
-#define USBD_POWER_DETECTION true
+#define USBD_POWER_DETECTION true // REVISIT
 #endif
 
 static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,

@@ -1297,13 +1297,6 @@ void object_log(object* o)
 
 void onex_init(properties* config) {
 
-#if defined(NRF5)
-  while(!serial_ready_state()){
-    serial_loop();
-    log_loop();
-  }
-#endif
-
   log_write("Initialising Onex...\n");
 
   char* dbpath=value_string(properties_get(config, "dbpath"));
