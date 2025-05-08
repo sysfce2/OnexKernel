@@ -363,7 +363,7 @@ void run_chunkbuf_tests(){
   chunkbuf_free(wside);
 }
 
-int main(void) {
+int main() {
 
   properties* config = properties_new(32);
 #if !defined(NRF5)
@@ -378,18 +378,23 @@ int main(void) {
   properties_set(config, "test-uid-prefix", value_new("tests"));
 
   time_init();
+
   log_init(config);
+  log_write("-------- test of early message 1 -------\n");
+
+#if defined(NRF5) && !defined(BOARD_MAGIC3)
+  serial_init(0,0,serial_cb); // overrides one in log for commands
+  while(!serial_ready_state()){ time_delay_ms(100); serial_loop(); }
+  time_ticker(loop_serial, 0, 1);
+#endif
+
+  log_write("-------- test of early message 2-------\n");
+
   random_init();
 #if defined(NRF5)
   gpio_init();
   set_up_gpio();
 #if !defined(BOARD_MAGIC3)
-
-  radio_init(radio_cb);
-
-  serial_init(0,0,serial_cb); // overrides one in log for commands
-  time_ticker(loop_serial, 0, 1);
-  while(!serial_ready_state());
 
 #if defined(BOARD_FEATHER_SENSE)
   uint8_t usb_status = serial_ready_state();
@@ -418,9 +423,13 @@ int main(void) {
   }
 #endif
 
+  radio_init(radio_cb);
+
   log_write("----------nRF52 tests----------------\n");
 
   while(1){
+
+    log_loop();
 
     if(char_recvd){
       log_write(">%c<----------\n", char_recvd);
