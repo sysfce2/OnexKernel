@@ -4,6 +4,8 @@
 #if defined(NRF5)
 
 #include <boards.h>
+
+#include <onex-kernel/boot.h>
 #include <onex-kernel/gpio.h>
 #include <onex-kernel/radio.h>
 
@@ -411,6 +413,9 @@ int main(void) {
         static char b[64]; sprintf_battery(b, 64);
         log_write("battery: %s\n", b);
       }
+      if(char_recvd=='b') boot_reset(true);
+      if(char_recvd=='r') boot_reset(false);
+
       char_recvd=0;
     }
 
