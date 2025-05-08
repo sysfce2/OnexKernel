@@ -10,8 +10,13 @@
 
 #include <onex-kernel/channels.h>
 
+#define SERIAL_STARTING 0
+#define SERIAL_NOT_POWERED_OR_READY 1
+#define SERIAL_POWERED_NOT_READY 2
+#define SERIAL_READY 3
+
 bool     serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb);
-bool     serial_ready();
+uint8_t  serial_ready_state();
 uint16_t serial_read(char* buf, uint16_t size);
 uint16_t serial_write(char* tty, char* buf, uint16_t size);
 

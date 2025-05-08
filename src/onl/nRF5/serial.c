@@ -233,11 +233,15 @@ bool serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb) {
 }
 
 static bool init_ready=false;
-bool serial_ready(){
-  if(init_ready) return true;
-  if(time_ms() < 750) return false; // REVISIT!
+uint8_t serial_ready_state(){
+  if(!init_ready && time_ms() < 750) return SERIAL_STARTING; // REVISIT!
   init_ready=true;
-  return true;
+  bool powered = NRF_POWER->USBREGSTATUS & POWER_USBREGSTATUS_VBUSDETECT_Msk;
+  bool ready   = NRF_POWER->USBREGSTATUS & POWER_USBREGSTATUS_OUTPUTRDY_Msk;
+  if(!powered && !ready) return SERIAL_NOT_POWERED_OR_READY;
+  if( powered && !ready) return SERIAL_POWERED_NOT_READY;
+  if( powered &&  ready) return SERIAL_READY;
+  return 99; // not powered but still somehow ready!
 }
 
 bool serial_loop() {
@@ -302,7 +306,7 @@ static uint16_t serial_write_delim(char* tty, char* buf, uint16_t size, bool del
 #else // BOARD_MAGIC3
 
 bool     serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb){ return false; }
-bool     serial_ready(){ return true; }
+uint8_t  serial_ready_state(){ return SERIAL_READY; }
 uint16_t serial_read(char* buf, uint16_t size){ return 0; }
 uint16_t serial_write(char* tty, char* buf, uint16_t size){ return 0; }
 int16_t  serial_printf(const char* fmt, ...){ return 0; }

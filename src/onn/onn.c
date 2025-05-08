@@ -1298,7 +1298,7 @@ void object_log(object* o)
 void onex_init(properties* config) {
 
 #if defined(NRF5)
-  while(!serial_ready()){
+  while(!serial_ready_state()){
     serial_loop();
     log_loop();
   }
