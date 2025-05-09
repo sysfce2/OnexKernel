@@ -35,6 +35,8 @@ void persistence_init(char* filename) {
 
   if(!filename || !*filename) return;
 
+  log_write("Using DB file %s\n", filename);
+
   if(!mkdir_p(filename)){
     log_write("Couldn't make directory for '%s' errno=%d\n", filename, errno);
     return;

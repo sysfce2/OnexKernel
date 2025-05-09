@@ -80,7 +80,7 @@ void log_init(properties* config) {
 #endif
 }
 
-#define LOG_EARLY_MS 2000
+#define LOG_EARLY_MS 1000
 
 static void flush_saved_messages(){
   if(time_ms() < LOG_EARLY_MS) return;
