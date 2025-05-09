@@ -384,7 +384,7 @@ int main() {
 
 #if defined(NRF5) && !defined(BOARD_MAGIC3)
   serial_init(0,0,serial_cb); // overrides one in log for commands
-  while(!serial_ready_state()){ time_delay_ms(100); serial_loop(); }
+  serial_ready_state(); // blocks until stable at start
   time_ticker(loop_serial, 0, 1);
 #endif
 

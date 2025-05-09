@@ -232,16 +232,22 @@ bool serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb) {
     return true;
 }
 
-static bool init_ready=false;
-uint8_t serial_ready_state(){
-  if(!init_ready && time_ms() < 750) return SERIAL_STARTING; // REVISIT!
-  init_ready=true;
+static uint8_t get_ready_state(){
   bool powered = NRF_POWER->USBREGSTATUS & POWER_USBREGSTATUS_VBUSDETECT_Msk;
   bool ready   = NRF_POWER->USBREGSTATUS & POWER_USBREGSTATUS_OUTPUTRDY_Msk;
   if(!powered && !ready) return SERIAL_NOT_POWERED_OR_READY;
   if( powered && !ready) return SERIAL_POWERED_NOT_READY;
   if( powered &&  ready) return SERIAL_READY;
   return 99; // not powered but still somehow ready!
+}
+
+uint8_t serial_ready_state(){
+  uint32_t start=time_ms();
+  while(get_ready_state()!=SERIAL_READY && time_ms()-start < 100){
+    serial_loop();
+    time_delay_ms(1);
+  }
+  return get_ready_state();
 }
 
 bool serial_loop() {
