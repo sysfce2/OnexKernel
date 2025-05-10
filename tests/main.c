@@ -190,7 +190,7 @@ void serial_cb(bool connect, char* tty){
 #if defined(NRF5)
   char chars[1024];
   serial_read(chars, 1024);
-  char_recvd=chars[0];
+  if(chars[0]=='#') char_recvd=chars[1];
 #else
   char_recvd='t';
 #endif
