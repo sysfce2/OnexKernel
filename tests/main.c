@@ -30,6 +30,7 @@
 #include <string.h>
 
 #include <onex-kernel/chunkbuf.h>
+#include <onex-kernel/colours.h>
 #include <onex-kernel/random.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
@@ -363,6 +364,77 @@ void run_chunkbuf_tests(){
   chunkbuf_free(wside);
 }
 
+void run_colour_tests(){
+
+  log_write("-------- colour tests ---------\n");
+
+  colours_hsv hsv;
+  colours_rgb rgb;
+
+  hsv = (colours_hsv){   0,   0,   0 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){   0,   0, 127 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){   0,   0, 255 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+
+  hsv = (colours_hsv){  85,   0,   0 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){  85,   0, 127 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){  85,   0, 255 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+
+  hsv = (colours_hsv){ 171,   0,   0 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){ 171,   0, 127 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){ 171,   0, 255 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+
+  hsv = (colours_hsv){   0, 127,   0 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){   0, 127, 127 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){   0, 127, 255 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+
+  hsv = (colours_hsv){  85, 127,   0 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){  85, 127, 127 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){  85, 127, 255 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+
+  hsv = (colours_hsv){ 171, 127,   0 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){ 171, 127, 127 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){ 171, 127, 255 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+
+  hsv = (colours_hsv){   0, 255,   0 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){   0, 255, 127 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){   0, 255, 255 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+
+  hsv = (colours_hsv){  85, 255,   0 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){  85, 255, 127 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){  85, 255, 255 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+
+  hsv = (colours_hsv){ 171, 255,   0 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){ 171, 255, 127 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){ 171, 255, 255 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
+}
+
 int main() {
 
   properties* config = properties_new(32);
@@ -415,7 +487,7 @@ int main() {
     led_matrix_fill_col("grey1");
     led_matrix_show();
     time_delay_ms(500);
-    led_matrix_fill_rgb((led_matrix_rgb){ 0, 0, 16 });
+    led_matrix_fill_rgb((colours_rgb){ 0, 0, 16 });
     led_matrix_show();
     time_delay_ms(500);
     led_matrix_fill_col("#010");
@@ -434,6 +506,7 @@ int main() {
     if(char_recvd){
       log_write(">%c<----------\n", char_recvd);
       if(char_recvd=='c') run_chunkbuf_tests();
+      if(char_recvd=='l') run_colour_tests();
       if(char_recvd=='s') send_big_radio_data(true);
       if(char_recvd=='p'){
         static char b[64]; sprintf_battery(b, 64);
@@ -546,6 +619,7 @@ int main() {
   serial_cb(false, "tty");
   run_tests_maybe(config);
   run_chunkbuf_tests();
+  run_colour_tests();
   time_end();
 #endif
 

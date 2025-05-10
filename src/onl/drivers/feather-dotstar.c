@@ -22,15 +22,15 @@ int hex_to_int(char c) {
     return -1;
 }
 
-led_matrix_rgb parse_colour_string(const char *cs) {
+colours_rgb parse_colour_string(const char *cs) {
 
-  led_matrix_rgb black = {0, 0, 0};
+  colours_rgb black = {0, 0, 0};
 
   if (!cs || *cs == '\0') return black;
 
   for (const ColorName *entry = colorNames; entry->name; ++entry) {
       if (strcasecmp(cs, entry->name) == 0) {
-          return (led_matrix_rgb){
+          return (colours_rgb){
             (entry->value >> 16) & 0xFF,
             (entry->value >>  8) & 0xFF,
             (entry->value      ) & 0xFF
@@ -40,7 +40,7 @@ led_matrix_rgb parse_colour_string(const char *cs) {
 
   if (cs[0] != '#') return black;
 
-  led_matrix_rgb color = black;
+  colours_rgb color = black;
 
   size_t len = strlen(cs);
   if (len == 7) { // e.g., "#ff0000"
@@ -72,7 +72,7 @@ led_matrix_rgb parse_colour_string(const char *cs) {
   return color;
 }
 
-void led_matrix_fill_rgb(led_matrix_rgb rgb){
+void led_matrix_fill_rgb(colours_rgb rgb){
   for(uint16_t i=0; i<num_leds; i++){
     led_matrix_array[i][0]=rgb.r;
     led_matrix_array[i][1]=rgb.g;

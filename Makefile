@@ -25,6 +25,7 @@ INCLUDES = \
 LIB_SOURCES = \
 ./src/lib/config.c \
 ./src/lib/lib.c \
+./src/lib/colours.c \
 ./src/lib/chunkbuf.c \
 ./src/lib/list.c \
 ./src/lib/value.c \
