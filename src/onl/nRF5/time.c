@@ -253,6 +253,22 @@ void time_end()
   app_timer_stop_all();
 }
 
+void time_delay_ns(uint32_t ns){
+
+    // REVISIT: can't get this right!
+    uint32_t cycles = (ns * 10 / 47 + 62) / 63;
+
+    __asm__ volatile (
+        "1: \n"
+        "nop \n"
+        "subs %[cnt], %[cnt], #1 \n"
+        "bne 1b \n"
+        : [cnt] "+r" (cycles)
+        :
+        : "cc"
+    );
+}
+
 void time_delay_us(uint32_t us)
 {
   nrf_delay_us(us);

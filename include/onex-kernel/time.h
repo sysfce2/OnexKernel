@@ -26,14 +26,16 @@ void     time_end();
 
 void time_delay_ms(uint32_t ms);
 void time_delay_us(uint32_t us);
+void time_delay_ns(uint32_t ns);
 
 #else
 
  #include <unistd.h>
  #include <time.h>
 
- #define time_delay_ms(m) usleep(   1000 * (m))
- #define time_delay_us(m) usleep(          (m))
+ #define time_delay_ms(m) usleep((m) * 1000)
+ #define time_delay_us(u) usleep((u)       )
+ #define time_delay_ns(n) usleep((n) / 1000)
 
 #endif
 
