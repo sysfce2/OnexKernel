@@ -16,6 +16,8 @@ extern "C" {
 #define LEDS_INV_MASK  LEDS_MASK
 #define BSP_LED_0      LED_1
 
+#define LED_NEOPIXEL   NRF_GPIO_PIN_MAP(0,16)
+
 #define BUTTONS_NUMBER 1
 #define BUTTON_1       NRF_GPIO_PIN_MAP(1,2)
 #define BUTTON_PULL    NRF_GPIO_PIN_PULLUP

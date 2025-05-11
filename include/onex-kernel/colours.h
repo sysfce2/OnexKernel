@@ -16,5 +16,7 @@ typedef struct {
 } colours_hsv;
 
 colours_rgb colours_hsv_to_rgb(colours_hsv hsv);
+colours_rgb colours_parse_colour_string(char* cs);
+uint8_t     colours_hex_to_int(char c);
 
 #endif

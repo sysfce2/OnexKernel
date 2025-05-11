@@ -10,6 +10,7 @@
 #include <onex-kernel/radio.h>
 
 #if defined(BOARD_FEATHER_SENSE)
+#include <onex-kernel/led-strip.h>
 #include <onex-kernel/led-matrix.h>
 #endif
 
@@ -484,14 +485,34 @@ int main() {
   }
   else
   if(usb_status == SERIAL_READY){
+
     led_matrix_fill_col("grey1");
     led_matrix_show();
-    time_delay_ms(500);
+
+    led_strip_fill_rgb((colours_rgb){ 255,255,  0 }); led_strip_show(); time_delay_ms(350);
+    led_strip_fill_rgb((colours_rgb){ 255,  0,255 }); led_strip_show(); time_delay_ms(350);
+    led_strip_fill_rgb((colours_rgb){   0,255,255 }); led_strip_show(); time_delay_ms(350);
+
     led_matrix_fill_rgb((colours_rgb){ 0, 0, 16 });
     led_matrix_show();
-    time_delay_ms(500);
-    led_matrix_fill_col("#010");
+
+    led_strip_fill_hsv((colours_hsv){   0,255,255 }); led_strip_show(); time_delay_ms(350);
+    led_strip_fill_hsv((colours_hsv){  85,255,255 }); led_strip_show(); time_delay_ms(350);
+    led_strip_fill_hsv((colours_hsv){ 171,255,255 }); led_strip_show(); time_delay_ms(350);
+
+    led_matrix_fill_col("#110");
     led_matrix_show();
+
+    led_strip_fill_col("yellow"); led_strip_show(); time_delay_ms(350);
+    led_strip_fill_col("#f0f");   led_strip_show(); time_delay_ms(350);
+    led_strip_fill_col("cyan");   led_strip_show(); time_delay_ms(350);
+
+    led_matrix_fill_hsv((colours_hsv){  85,255,127 });
+    led_matrix_show();
+
+    led_strip_fill_col("#f00");   led_strip_show(); time_delay_ms(350);
+    led_strip_fill_col("green");  led_strip_show(); time_delay_ms(350);
+    led_strip_fill_col("blue");   led_strip_show(); time_delay_ms(350);
   }
 #endif
 

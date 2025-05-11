@@ -223,6 +223,7 @@ $(NRF5_SOURCES) \
 
 FEATHER_SENSE_SOURCES = \
 ./src/onl/nRF5/spi.c \
+./src/onl/drivers/neopixel.c \
 ./src/onl/drivers/feather-dotstar.c \
 $(NRF5_SOURCES) \
 
