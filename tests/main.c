@@ -10,6 +10,7 @@
 #include <onex-kernel/radio.h>
 
 #if defined(BOARD_FEATHER_SENSE)
+#include <onex-kernel/compass.h>
 #include <onex-kernel/led-strip.h>
 #include <onex-kernel/led-matrix.h>
 #endif
@@ -435,6 +436,7 @@ void run_colour_tests(){
   hsv = (colours_hsv){ 171, 255, 255 }; rgb = colours_hsv_to_rgb(hsv);
   log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
 
+#if defined(BOARD_FEATHER_SENSE)
   led_strip_fill_col( "#ff0");
   led_matrix_fill_col("#ff0");  led_strip_show(); led_matrix_show(); time_delay_ms(350);
   led_strip_fill_col( "#f0f");
@@ -462,6 +464,7 @@ void run_colour_tests(){
   led_matrix_fill_hsv((colours_hsv){  85,255,127 }); led_strip_show(); led_matrix_show(); time_delay_ms(350);
   led_strip_fill_hsv( (colours_hsv){ 171,255,127 });
   led_matrix_fill_hsv((colours_hsv){ 171,255,127 }); led_strip_show(); led_matrix_show(); time_delay_ms(350);
+#endif
 }
 
 int main() {
@@ -522,6 +525,10 @@ int main() {
 
   radio_init(radio_cb);
 
+#if defined(BOARD_FEATHER_SENSE)
+  compass_init();
+#endif
+
   log_write("----------nRF52 tests----------------\n");
 
   while(1){
@@ -537,6 +544,42 @@ int main() {
         static char b[64]; sprintf_battery(b, 64);
         log_write("battery: %s\n", b);
       }
+#if defined(BOARD_FEATHER_SENSE)
+      if(char_recvd=='x'){
+
+        int16_t x_min= 10000;
+        int16_t x_max=-10000;
+        int16_t y_min= 10000;
+        int16_t y_max=-10000;
+        int16_t z_min= 10000;
+        int16_t z_max=-10000;
+
+        for(uint32_t x=0; true; x++){
+
+          compass_info_t ci = compass_direction();
+          uint8_t        tm = compass_temperature();
+
+          if(x>60){
+            if(ci.x < x_min) x_min = ci.x;
+            if(ci.x > x_max) x_max = ci.x;
+            if(ci.y < y_min) y_min = ci.y;
+            if(ci.y > y_max) y_max = ci.y;
+            if(ci.z < z_min) z_min = ci.z;
+            if(ci.z > z_max) z_max = ci.z;
+          }
+          uint8_t hue = (uint8_t)(((uint32_t)ci.o + 180)*256/360);
+
+          log_write("xyz: %5d %5d %5d (x:%5d..%5d)(y:%5d..%5d)(z:%5d..%5d)= %5d° (%d°C) %d\n",
+                       ci.x,ci.y,ci.z, x_min,x_max, y_min,y_max, z_min,z_max, ci.o, tm, hue);
+
+          led_strip_fill_hsv( (colours_hsv){ hue,255,127 });
+          led_matrix_fill_hsv((colours_hsv){ hue,255, 63 });
+          led_strip_show(); led_matrix_show();
+
+          time_delay_ms(1000/20);
+        }
+      }
+#endif
       if(char_recvd=='b') boot_reset(true);
       if(char_recvd=='r') boot_reset(false);
 

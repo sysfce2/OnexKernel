@@ -40,6 +40,11 @@ extern "C" {
 #define SPIM_MODE      NRF_SPIM_MODE_0
 #define SPIM_FREQ      NRF_SPIM_FREQ_32M
 
+#define SCL_PIN         NRF_GPIO_PIN_MAP(0,11)
+#define SDA_PIN         NRF_GPIO_PIN_MAP(0,12)
+#define PROX_INTERRUPT  NRF_GPIO_PIN_MAP(1,00) // APDS proxim/light
+#define ACCL_INTERRUPT  NRF_GPIO_PIN_MAP(1,11) // LSM6 accel/gyro
+
 #define BATTERY_V    NRF_SAADC_INPUT_AIN5 // NRF_GPIO_PIN_MAP(0,29)
 
 #ifdef __cplusplus
