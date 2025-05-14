@@ -79,7 +79,9 @@ const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 #define DISPLAY_STATE_LED 0
 #endif
 
-#define ADC_CHANNEL 0
+#define BATT_ADC_CHANNEL 0
+#define POT1_ADC_CHANNEL 1
+#define POT2_ADC_CHANNEL 2
 static void set_up_gpio(void) {
 #if defined(BOARD_PCA10059) || defined(BOARD_ADAFRUIT_DONGLE) || defined(BOARD_ITSYBITSY) || defined(BOARD_FEATHER_SENSE)
   gpio_mode_cb(BUTTON_1, INPUT_PULLUP, RISING_AND_FALLING, button_changed);
@@ -89,7 +91,9 @@ static void set_up_gpio(void) {
   gpio_set(leds_list[READY_LED], LEDS_ACTIVE_STATE);
 #endif
 #if defined(BOARD_FEATHER_SENSE)
-  gpio_adc_init(BATTERY_V, ADC_CHANNEL);
+  gpio_adc_init(BATTERY_V, BATT_ADC_CHANNEL);
+  gpio_adc_init(GPIO_A0,   POT1_ADC_CHANNEL);
+  gpio_adc_init(GPIO_A1,   POT2_ADC_CHANNEL);
 #endif
 #elif defined(BOARD_MAGIC3)
   gpio_mode_cb(BUTTON_1, INPUT_PULLDOWN, RISING_AND_FALLING, button_changed);
@@ -98,7 +102,7 @@ static void set_up_gpio(void) {
   gpio_mode(LCD_BACKLIGHT, OUTPUT);
   gpio_set(LCD_BACKLIGHT, LEDS_ACTIVE_STATE);
   gpio_mode_cb(CHARGE_SENSE, INPUT, RISING_AND_FALLING, charging_changed);
-  gpio_adc_init(BATTERY_V, ADC_CHANNEL);
+  gpio_adc_init(BATTERY_V, BATT_ADC_CHANNEL);
 #endif
 }
 #endif
@@ -106,7 +110,7 @@ static void set_up_gpio(void) {
 #if defined(NRF5)
 void sprintf_battery(char* buf, uint16_t size) {
 
-  int16_t bv = gpio_read(ADC_CHANNEL);
+  int16_t bv = gpio_read(BATT_ADC_CHANNEL);
   int16_t mv = bv*2000/(1024/(33/10));
   int8_t  pc = ((mv-3520)*100/5200)*10;
 
@@ -591,10 +595,25 @@ int main() {
           continue;
         }
         log_write("found rotary encoder\n");
-        for(int x=0; x< 10; x++){
-          int32_t pos = seesaw_encoder_position(ROTARY_ENC_ADDRESS);
-          log_write("pos: %ld\n", pos);
-          time_delay_ms(400);
+        while(true){
+          int32_t rotn = seesaw_encoder_position(ROTARY_ENC_ADDRESS);
+          int16_t pot1 = gpio_read(POT1_ADC_CHANNEL);
+          int16_t pot2 = gpio_read(POT2_ADC_CHANNEL);
+          log_write("rotn: %ld pot1: %d pot2: %d\n", rotn, pot1, pot2);
+
+          if(pot1<0)pot1=0;
+          if(pot2<0)pot2=0;
+
+          uint8_t colour     = rotn*4;   // lo byte, 4 lsb per click
+          uint8_t contrast   = pot2/4;   // 0..1023
+          uint8_t brightness = pot1/4;   // 0..1023
+          log_write("colour: %d contrast: %d brightness: %d\n", colour, contrast, brightness);
+
+          led_strip_fill_hsv( (colours_hsv){ colour,contrast,brightness   });
+          led_matrix_fill_hsv((colours_hsv){ colour,contrast,brightness/8 });
+          led_strip_show(); led_matrix_show();
+
+          time_delay_ms(200);
         }
       }
 #endif

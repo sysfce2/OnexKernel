@@ -45,6 +45,8 @@ extern "C" {
 #define PROX_INTERRUPT  NRF_GPIO_PIN_MAP(1,00) // APDS proxim/light
 #define ACCL_INTERRUPT  NRF_GPIO_PIN_MAP(1,11) // LSM6 accel/gyro
 
+#define GPIO_A0      NRF_SAADC_INPUT_AIN2 // NRF_GPIO_PIN_MAP(0,4)
+#define GPIO_A1      NRF_SAADC_INPUT_AIN3 // NRF_GPIO_PIN_MAP(0,5)
 #define BATTERY_V    NRF_SAADC_INPUT_AIN5 // NRF_GPIO_PIN_MAP(0,29)
 
 #ifdef __cplusplus
