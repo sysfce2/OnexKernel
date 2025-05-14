@@ -10,7 +10,7 @@
 uint32_t onl_vk_width;
 uint32_t onl_vk_height;
 
-float onl_vk_aspect_ratio;
+float onl_vk_aspect_ratio; // REVISIT: float?
 
 VkShaderModule onl_vk_vert_shader_module;
 VkShaderModule onl_vk_frag_shader_module;

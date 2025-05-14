@@ -50,7 +50,7 @@
 
 extern uint32_t                             onl_vk_width;
 extern uint32_t                             onl_vk_height;
-extern float                                onl_vk_aspect_ratio;
+extern float                                onl_vk_aspect_ratio; // REVISIT: float?
 
 extern VkDevice                             onl_vk_device;
 extern VkFormat                             onl_vk_texture_format;

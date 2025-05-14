@@ -70,6 +70,7 @@ bool compass_init(){
 
 static int16_t heading_from_xyz(int16_t x, int16_t y, int16_t z){
 
+  // REVISIT: use of float?
   float fx = (float)x;
   float fy = (float)y;
   float fz = (float)z;

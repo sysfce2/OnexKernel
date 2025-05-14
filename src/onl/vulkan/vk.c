@@ -698,7 +698,7 @@ static void create_device() {
 
     VkResult err;
 
-    float queue_priorities[1] = {0.0};
+    float queue_priorities[1] = {0.0}; // REVISIT: why float?
     VkDeviceQueueCreateInfo queues_ci = {
       .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
       .pNext = NULL,

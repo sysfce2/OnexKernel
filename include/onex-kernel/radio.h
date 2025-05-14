@@ -16,7 +16,7 @@ uint16_t radio_write(char* band, char* buf, uint16_t size);
 int8_t   radio_last_rssi();
 uint16_t radio_available();
 
-//bool   radio_set_frequency(float freq);
+//bool   radio_set_frequency(uint32_t freq);
 //void   radio_set_encryption_key(uint8_t* key);
 
 #endif
