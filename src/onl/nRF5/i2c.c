@@ -89,6 +89,25 @@ uint8_t i2c_write_register_byte(void* twip, uint8_t address, uint8_t reg, uint8_
   return 0;
 }
 
+uint8_t i2c_read_register_hi_lo(void* twip, uint8_t address, uint8_t reg_hi,
+                                                             uint8_t reg_lo, uint8_t* buf, uint16_t len){
+  ret_code_t e;
+
+  i2c_wake();
+
+  uint8_t reg[] = { reg_hi, reg_lo };
+
+  e=nrfx_twi_tx((nrfx_twi_t*)twip, address, reg, 2, false); // REVISIT: why not ", true);"?
+  if(e) return 1;
+
+  time_delay_us(250);
+
+  e=nrfx_twi_rx((nrfx_twi_t*)twip, address, buf, len);
+  if(e) return 1;
+
+  return 0;
+}
+
 static bool sleeping=false;
 void i2c_sleep()
 {
