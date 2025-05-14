@@ -40,7 +40,7 @@
 #include <tests.h>
 
 static volatile int16_t run_tests= -1;
-static volatile char   char_recvd=  0;
+static volatile char    char_recvd= 0;
 
 extern void run_properties_tests();
 extern void run_list_tests();
