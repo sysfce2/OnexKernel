@@ -7,6 +7,7 @@
 
 #include <onex-kernel/boot.h>
 #include <onex-kernel/gpio.h>
+#include <onex-kernel/seesaw.h>
 #include <onex-kernel/radio.h>
 
 #if defined(BOARD_FEATHER_SENSE)
@@ -577,6 +578,23 @@ int main() {
           led_strip_show(); led_matrix_show();
 
           time_delay_ms(1000/20);
+        }
+      }
+      if(char_recvd=='h'){
+
+        #define ROTARY_ENC_ADDRESS 0x36
+
+        uint16_t version_hi = seesaw_status_version_hi(ROTARY_ENC_ADDRESS);
+        if(version_hi != 4991){
+          log_write("version: mismatch, should be 4991: %d\n", version_hi);
+          char_recvd=0;
+          continue;
+        }
+        log_write("found rotary encoder\n");
+        for(int x=0; x< 10; x++){
+          int32_t pos = seesaw_encoder_position(ROTARY_ENC_ADDRESS);
+          log_write("pos: %ld\n", pos);
+          time_delay_ms(400);
         }
       }
 #endif
