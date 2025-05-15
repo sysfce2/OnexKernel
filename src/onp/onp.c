@@ -254,7 +254,7 @@ void onp_send_observe(char* uid, char* devices) {
 // REVISIT device<s>?? and send for each channel in above and below
 void onp_send_object(object* o, char* devices) {
   if(object_is_remote(o)){
-    log_write("%sforwarding remote: %s\n", onp_channel_forward? "": "not ", object_property(o, "UID"));
+    // log_write("%sforwarding remote: %s\n", onp_channel_forward? "": "not ", object_property(o, "UID"));
     if(!onp_channel_forward) return;
   }
   object_to_text(o,send_buff,SEND_BUFF_SIZE,OBJECT_TO_TEXT_NETWORK);
