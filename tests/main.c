@@ -80,6 +80,7 @@ const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 #endif
 
 #define ROTARY_ENC_ADDRESS 0x36
+#define ROTARY_ENC_BUTTON  24
 
 #define BATT_ADC_CHANNEL 0
 #define POT1_ADC_CHANNEL 1
@@ -93,6 +94,7 @@ static void set_up_gpio(void) {
   gpio_set(leds_list[READY_LED], LEDS_ACTIVE_STATE);
 #endif
 #if defined(BOARD_FEATHER_SENSE)
+  seesaw_gpio_input_pullup(ROTARY_ENC_ADDRESS, ROTARY_ENC_BUTTON);
   gpio_adc_init(BATTERY_V, BATT_ADC_CHANNEL);
   gpio_adc_init(GPIO_A0,   POT1_ADC_CHANNEL);
   gpio_adc_init(GPIO_A1,   POT2_ADC_CHANNEL);
@@ -553,11 +555,12 @@ int main() {
         uint8_t      temp = compass_temperature();
         uint16_t     vers = seesaw_status_version_hi(ROTARY_ENC_ADDRESS);
         int32_t      rotn = seesaw_encoder_position(ROTARY_ENC_ADDRESS);
+        bool         butt = seesaw_gpio_read(ROTARY_ENC_ADDRESS, ROTARY_ENC_BUTTON);
         int16_t      pot1 = gpio_read(POT1_ADC_CHANNEL);
         int16_t      pot2 = gpio_read(POT2_ADC_CHANNEL);
         char batt[64]; sprintf_battery(batt, 64);
         log_write("compass data: %5d/%5d/%5d=%d° %d°C\n", ci.x, ci.y, ci.z, ci.o, temp);
-        log_write("rotary data: vers=%d rotn=%d pot1=%d pot2=%d\n", vers, rotn, pot1, pot2);
+        log_write("rotary data: vers=%d rotn=%d butt=%d pot1=%d pot2=%d\n", vers, rotn, butt, pot1, pot2);
         log_write("battery: %s\n", batt);
       }
 #endif
