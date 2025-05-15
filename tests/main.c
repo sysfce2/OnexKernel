@@ -79,6 +79,8 @@ const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 #define DISPLAY_STATE_LED 0
 #endif
 
+#define ROTARY_ENC_ADDRESS 0x36
+
 #define BATT_ADC_CHANNEL 0
 #define POT1_ADC_CHANNEL 1
 #define POT2_ADC_CHANNEL 2
@@ -201,7 +203,6 @@ void serial_cb(bool connect, char* tty){
 #else
   char_recvd='t';
 #endif
-  if(char_recvd=='t') run_tests++;
 }
 
 #if defined(BOARD_MAGIC3)
@@ -542,85 +543,30 @@ int main() {
 
     if(char_recvd){
       log_write(">%c<----------\n", char_recvd);
+      if(char_recvd=='t') run_tests++;
       if(char_recvd=='c') run_chunkbuf_tests();
       if(char_recvd=='l') run_colour_tests();
       if(char_recvd=='s') send_big_radio_data(true);
-      if(char_recvd=='p'){
-        static char b[64]; sprintf_battery(b, 64);
-        log_write("battery: %s\n", b);
-      }
 #if defined(BOARD_FEATHER_SENSE)
-      if(char_recvd=='x'){
-
-        int16_t x_min= 10000;
-        int16_t x_max=-10000;
-        int16_t y_min= 10000;
-        int16_t y_max=-10000;
-        int16_t z_min= 10000;
-        int16_t z_max=-10000;
-
-        for(uint32_t x=0; true; x++){
-
-          compass_info_t ci = compass_direction();
-          uint8_t        tm = compass_temperature();
-
-          if(x>60){
-            if(ci.x < x_min) x_min = ci.x;
-            if(ci.x > x_max) x_max = ci.x;
-            if(ci.y < y_min) y_min = ci.y;
-            if(ci.y > y_max) y_max = ci.y;
-            if(ci.z < z_min) z_min = ci.z;
-            if(ci.z > z_max) z_max = ci.z;
-          }
-          uint8_t hue = (uint8_t)(((uint32_t)ci.o + 180)*256/360);
-
-          log_write("xyz: %5d %5d %5d (x:%5d..%5d)(y:%5d..%5d)(z:%5d..%5d)= %5d° (%d°C) %d\n",
-                       ci.x,ci.y,ci.z, x_min,x_max, y_min,y_max, z_min,z_max, ci.o, tm, hue);
-
-          led_strip_fill_hsv( (colours_hsv){ hue,255,127 });
-          led_matrix_fill_hsv((colours_hsv){ hue,255, 63 });
-          led_strip_show(); led_matrix_show();
-
-          time_delay_ms(20);
-        }
-      }
-      if(char_recvd=='h'){
-
-        #define ROTARY_ENC_ADDRESS 0x36
-
-        uint16_t version_hi = seesaw_status_version_hi(ROTARY_ENC_ADDRESS);
-        if(version_hi != 4991){
-          log_write("version: mismatch, should be 4991: %d\n", version_hi);
-          char_recvd=0;
-          continue;
-        }
-        log_write("found rotary encoder\n");
-        while(true){
-          int32_t rotn = seesaw_encoder_position(ROTARY_ENC_ADDRESS);
-          int16_t pot1 = gpio_read(POT1_ADC_CHANNEL);
-          int16_t pot2 = gpio_read(POT2_ADC_CHANNEL);
-          log_write("rotn: %ld pot1: %d pot2: %d\n", rotn, pot1, pot2);
-
-          if(pot1<0)pot1=0;
-          if(pot2<0)pot2=0;
-
-          uint8_t colour     = rotn*4;   // lo byte, 4 lsb per click
-          uint8_t contrast   = pot2/4;   // 0..1023
-          uint8_t brightness = pot1/4;   // 0..1023
-          log_write("colour: %d contrast: %d brightness: %d\n", colour, contrast, brightness);
-
-          led_strip_fill_hsv( (colours_hsv){ colour,contrast,brightness   });
-          led_matrix_fill_hsv((colours_hsv){ colour,contrast,brightness/4 });
-          led_strip_show(); led_matrix_show();
-
-          time_delay_ms(20);
-        }
+      if(char_recvd=='i'){
+        compass_info_t ci = compass_direction();
+        uint8_t      temp = compass_temperature();
+        uint16_t     vers = seesaw_status_version_hi(ROTARY_ENC_ADDRESS);
+        int32_t      rotn = seesaw_encoder_position(ROTARY_ENC_ADDRESS);
+        int16_t      pot1 = gpio_read(POT1_ADC_CHANNEL);
+        int16_t      pot2 = gpio_read(POT2_ADC_CHANNEL);
+        char batt[64]; sprintf_battery(batt, 64);
+        log_write("compass data: %5d/%5d/%5d=%d° %d°C\n", ci.x, ci.y, ci.z, ci.o, temp);
+        log_write("rotary data: vers=%d rotn=%d pot1=%d pot2=%d\n", vers, rotn, pot1, pot2);
+        log_write("battery: %s\n", batt);
       }
 #endif
       if(char_recvd=='b') boot_reset(true);
       if(char_recvd=='r') boot_reset(false);
+      if(char_recvd=='h') log_write("t.ests c.hunkbuf co.l.our s.end-radio i.nputs b.ootloader r.eset\n");
 
-      char_recvd=0;
+      if(char_recvd=='i') time_delay_ms(100);
+      else char_recvd=0;
     }
 
     run_tests_maybe(config);

@@ -242,6 +242,10 @@ PCR_SOURCES = \
 PCR_LIGHT_SOURCES = \
 ./tests/main-pcr-light-nrf.c \
 
+
+MOON_SOURCES = \
+./tests/ont-examples/moon/moon.c \
+
 #-------------------------------------------------------------------------------
 
 SDK_INCLUDES_MAGIC3 = \
@@ -684,6 +688,17 @@ feather-pcr-light: libonex-kernel-feather-sense.a $(PCR_LIGHT_SOURCES:.c=.o)
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
+feather-moon: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_FEATHER_SENSE)
+feather-moon: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_FEATHER_SENSE) $(INCLUDES_FEATHER_SENSE)
+feather-moon: libonex-kernel-feather-sense.a $(MOON_SOURCES:.c=.o)
+	rm -rf oko
+	mkdir oko
+	ar x ./libonex-kernel-feather-sense.a --output oko
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M4_LD_FLAGS) $(LD_FILES_FEATHER_SENSE) -Wl,-Map=./feather-moon.map -o ./feather-moon.out $(MOON_SOURCES:.c=.o) oko/* -lm
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./feather-moon.out
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./feather-moon.out ./feather-moon.bin
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./feather-moon.out ./feather-moon.hex
+
 #-------------------------------:
 
 magic3-tests-flash: nrf.tests.magic3
@@ -713,6 +728,11 @@ feather-pcr-flash: feather-pcr
 
 feather-pcr-light-flash: feather-pcr-light
 	uf2conv.py onex-kernel.hex --family 0xada52840 --output onex-kernel.uf2
+
+#-------------------------------:
+
+feather-moon-flash: feather-moon
+	uf2conv.py feather-moon.hex --family 0xada52840 --output feather-moon.uf2
 
 #-------------------------------:
 
