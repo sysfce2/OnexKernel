@@ -443,32 +443,32 @@ void run_colour_tests(){
 
 #if defined(BOARD_FEATHER_SENSE)
   led_strip_fill_col( "#ff0");
-  led_matrix_fill_col("#ff0");  led_strip_show(); led_matrix_show(); time_delay_ms(350);
+  led_matrix_fill_col("#110");  led_strip_show(); led_matrix_show(); time_delay_ms(350);
   led_strip_fill_col( "#f0f");
-  led_matrix_fill_col("#f0f");  led_strip_show(); led_matrix_show(); time_delay_ms(350);
+  led_matrix_fill_col("#101");  led_strip_show(); led_matrix_show(); time_delay_ms(350);
   led_strip_fill_col( "#0ff");
-  led_matrix_fill_col("#0ff");  led_strip_show(); led_matrix_show(); time_delay_ms(350);
+  led_matrix_fill_col("#011");  led_strip_show(); led_matrix_show(); time_delay_ms(350);
 
   led_strip_fill_col( "red");
-  led_matrix_fill_col("red");   led_strip_show(); led_matrix_show(); time_delay_ms(350);
+  led_matrix_fill_col("#200");   led_strip_show(); led_matrix_show(); time_delay_ms(350);
   led_strip_fill_col( "green");
-  led_matrix_fill_col("green"); led_strip_show(); led_matrix_show(); time_delay_ms(350);
+  led_matrix_fill_col("#020"); led_strip_show(); led_matrix_show(); time_delay_ms(350);
   led_strip_fill_col( "blue");
-  led_matrix_fill_col("blue");  led_strip_show(); led_matrix_show(); time_delay_ms(350);
+  led_matrix_fill_col("#002");  led_strip_show(); led_matrix_show(); time_delay_ms(350);
 
   led_strip_fill_rgb( (colours_rgb){ 255,255,  0 });
-  led_matrix_fill_rgb((colours_rgb){ 255,255,  0 }); led_strip_show(); led_matrix_show(); time_delay_ms(350);
+  led_matrix_fill_rgb((colours_rgb){  64, 64,  0 }); led_strip_show(); led_matrix_show(); time_delay_ms(350);
   led_strip_fill_rgb( (colours_rgb){ 255,  0,255 });
-  led_matrix_fill_rgb((colours_rgb){ 255,  0,255 }); led_strip_show(); led_matrix_show(); time_delay_ms(350);
+  led_matrix_fill_rgb((colours_rgb){  64,  0, 64 }); led_strip_show(); led_matrix_show(); time_delay_ms(350);
   led_strip_fill_rgb( (colours_rgb){   0,255,255 });
-  led_matrix_fill_rgb((colours_rgb){   0,255,255 }); led_strip_show(); led_matrix_show(); time_delay_ms(350);
+  led_matrix_fill_rgb((colours_rgb){   0, 64, 64 }); led_strip_show(); led_matrix_show(); time_delay_ms(350);
 
   led_strip_fill_hsv( (colours_hsv){   0,255,127 });
-  led_matrix_fill_hsv((colours_hsv){   0,255,127 }); led_strip_show(); led_matrix_show(); time_delay_ms(350);
+  led_matrix_fill_hsv((colours_hsv){   0,255, 64 }); led_strip_show(); led_matrix_show(); time_delay_ms(350);
   led_strip_fill_hsv( (colours_hsv){  85,255,127 });
-  led_matrix_fill_hsv((colours_hsv){  85,255,127 }); led_strip_show(); led_matrix_show(); time_delay_ms(350);
+  led_matrix_fill_hsv((colours_hsv){  85,255, 64 }); led_strip_show(); led_matrix_show(); time_delay_ms(350);
   led_strip_fill_hsv( (colours_hsv){ 171,255,127 });
-  led_matrix_fill_hsv((colours_hsv){ 171,255,127 }); led_strip_show(); led_matrix_show(); time_delay_ms(350);
+  led_matrix_fill_hsv((colours_hsv){ 171,255, 64 }); led_strip_show(); led_matrix_show(); time_delay_ms(350);
 #endif
 }
 
@@ -581,7 +581,7 @@ int main() {
           led_matrix_fill_hsv((colours_hsv){ hue,255, 63 });
           led_strip_show(); led_matrix_show();
 
-          time_delay_ms(1000/20);
+          time_delay_ms(20);
         }
       }
       if(char_recvd=='h'){
@@ -610,10 +610,10 @@ int main() {
           log_write("colour: %d contrast: %d brightness: %d\n", colour, contrast, brightness);
 
           led_strip_fill_hsv( (colours_hsv){ colour,contrast,brightness   });
-          led_matrix_fill_hsv((colours_hsv){ colour,contrast,brightness/8 });
+          led_matrix_fill_hsv((colours_hsv){ colour,contrast,brightness/4 });
           led_strip_show(); led_matrix_show();
 
-          time_delay_ms(200);
+          time_delay_ms(20);
         }
       }
 #endif
