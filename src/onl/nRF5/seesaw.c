@@ -24,6 +24,18 @@
 #define SEESAW_LO_STATUS_TEMP    0x04
 #define SEESAW_LO_STATUS_SWRST   0x7F
 
+#define SEESAW_LO_GPIO_DIRSET_BULK 0x02
+#define SEESAW_LO_GPIO_DIRCLR_BULK 0x03
+#define SEESAW_LO_GPIO_BULK        0x04
+#define SEESAW_LO_GPIO_BULK_SET    0x05
+#define SEESAW_LO_GPIO_BULK_CLR    0x06
+#define SEESAW_LO_GPIO_BULK_TOGGLE 0x07
+#define SEESAW_LO_GPIO_INTENSET    0x08
+#define SEESAW_LO_GPIO_INTENCLR    0x09
+#define SEESAW_LO_GPIO_INTFLAG     0x0A
+#define SEESAW_LO_GPIO_PULLENSET   0x0B
+#define SEESAW_LO_GPIO_PULLENCLR   0x0C
+
 #define SEESAW_LO_ENCODER_STATUS   0x00
 #define SEESAW_LO_ENCODER_INTENSET 0x10
 #define SEESAW_LO_ENCODER_INTENCLR 0x20
@@ -59,6 +71,45 @@ uint16_t seesaw_status_version_lo(uint16_t i2c_address){
   uint32_t version = seesaw_status_version(i2c_address);
   uint16_t version_lo = (version & 0xFFFF);
   return version_lo;
+}
+
+void seesaw_gpio_input_pullup(uint16_t i2c_address, uint8_t pin){
+
+  if(!i2c) i2c=i2c_init(400);
+
+  uint8_t e;
+
+  uint32_t pins = 1ul << pin;
+  uint8_t pin_bytes[] = {
+    (uint8_t)(pins >> 24),
+    (uint8_t)(pins >> 16),
+    (uint8_t)(pins >>  8),
+    (uint8_t)(pins      )
+  };
+
+  e=i2c_write_register_hi_lo(i2c, i2c_address, SEESAW_HI_GPIO, SEESAW_LO_GPIO_DIRCLR_BULK, pin_bytes, 4);
+  e=i2c_write_register_hi_lo(i2c, i2c_address, SEESAW_HI_GPIO, SEESAW_LO_GPIO_PULLENSET,   pin_bytes, 4);
+  e=i2c_write_register_hi_lo(i2c, i2c_address, SEESAW_HI_GPIO, SEESAW_LO_GPIO_BULK_SET,    pin_bytes, 4);
+}
+
+bool seesaw_gpio_read(uint16_t i2c_address, uint8_t pin){
+
+  if(!i2c) i2c=i2c_init(400);
+
+  uint8_t e;
+
+  uint8_t data[4];
+  e=i2c_read_register_hi_lo(i2c, i2c_address, SEESAW_HI_GPIO, SEESAW_LO_GPIO_BULK, data, 4);
+  if(e) return 0;
+
+  uint32_t pin_bits = ((uint32_t)data[0] << 24) |
+                      ((uint32_t)data[1] << 16) |
+                      ((uint32_t)data[2] <<  8) |
+                      ((uint32_t)data[3]      );
+
+  uint32_t pins = 1ul << pin;
+
+  return pin_bits & pins;
 }
 
 int32_t seesaw_encoder_position(uint16_t i2c_address) {
