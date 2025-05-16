@@ -17,9 +17,9 @@ void led_matrix_fill_hsv(colours_hsv hsv){
 
 void led_matrix_fill_rgb(colours_rgb rgb){
   for(uint16_t i=0; i<num_leds; i++){
-    led_matrix_array[i][0]=rgb.r;
-    led_matrix_array[i][1]=rgb.g;
-    led_matrix_array[i][2]=rgb.b;
+    led_matrix_array[i][0]=rgb.r/4;
+    led_matrix_array[i][1]=rgb.g/4;
+    led_matrix_array[i][2]=rgb.b/4;
   }
 }
 
