@@ -42,23 +42,26 @@ void button_changed(uint8_t pin, uint8_t type) {
 const uint8_t leds_list[LEDS_NUMBER] = LEDS_LIST;
 
 static void set_up_gpio() {
-
+  gpio_init();
   gpio_mode_cb(BUTTON_1, INPUT_PULLUP, RISING_AND_FALLING, button_changed);
-
   for(uint8_t l=0; l< LEDS_NUMBER; l++){
     gpio_mode(leds_list[l], OUTPUT); gpio_set(leds_list[l], !LEDS_ACTIVE_STATE);
   }
   gpio_set(leds_list[DISPLAY_STATE_LED], display_state);
 
-  gpio_adc_init(GPIO_A0,   POT1_ADC_CHANNEL);
-  gpio_adc_init(GPIO_A1,   POT2_ADC_CHANNEL);
+  led_matrix_init();
+  compass_init();
 
+  time_delay_ms(50); // seesaw needs a minute to get its head straight
   uint16_t version_hi = seesaw_status_version_hi(ROTARY_ENC_ADDRESS);
   if(version_hi != 4991){
     log_write("rotary encoder id 4991 not found: %d\n", version_hi);
     do_rotary_encoder = false;
   }
   else{
+    log_write("rotary encoder found, doing rotaries\n");
+    gpio_adc_init(GPIO_A0, POT1_ADC_CHANNEL);
+    gpio_adc_init(GPIO_A1, POT2_ADC_CHANNEL);
     seesaw_gpio_input_pullup(ROTARY_ENC_ADDRESS, ROTARY_ENC_BUTTON);
   }
 }
@@ -71,14 +74,13 @@ int main() {
   properties_set(config, "flags", list_new_from("debug-on-serial log-to-led",2));
 
   time_init();
+  random_init();
 
   log_init(config);
   serial_ready_state();
   time_ticker(loop_serial, 0, 1);
 
-  random_init();
-
-  led_matrix_init();
+  set_up_gpio();
 
   if(serial_ready_state() == SERIAL_POWERED_NOT_READY){
     led_strip_fill_col( "#700");
@@ -88,10 +90,6 @@ int main() {
     time_delay_ms(500);
     boot_reset(false);
   }
-
-  gpio_init();
-  set_up_gpio();
-  compass_init();
 
   log_write("starting the moooon!\n");
 
