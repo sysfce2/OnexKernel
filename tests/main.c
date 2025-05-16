@@ -671,6 +671,7 @@ int main() {
 #endif // MAGIC3
 #else // NRF5
   serial_cb(false, "tty");
+  if(char_recvd=='t') run_tests++;
   run_tests_maybe(config);
   run_chunkbuf_tests();
   run_colour_tests();

@@ -22,8 +22,8 @@ bool evaluate_setup(object* n1, void* d)
   return true;
 }
 
-void test_object_set_up()
-{
+void test_object_set_up() {
+
   object* nr=object_new(0, 0, "random uid", 4);
   char* random_uid_1 = object_property(nr, "UID");
   nr=object_new(0, 0, "random uid", 4);
@@ -67,8 +67,27 @@ void test_object_set_up()
   onex_assert(     !object_property_is(            n1, "state", "good"),   "object_property_is says 'state' is not all 'good'");
   onex_assert(      object_property_contains(      n1, "state", "good"),   "object_property_contains says it is 'good'");
   onex_assert(      object_property_contains(      n1, "state", "mostly"), "object_property_contains says it is 'mostly'");
-  onex_assert(      object_property_length(        n1, "state")==2,        "property 'state' is now a list of two");
-  onex_assert(      object_property_size(          n1, "state")== -1,      "property 'state' is not a properties");
+
+                        object_property_set(   n1, "number", "2147483647");
+  onex_assert_equal_num(object_property_int32( n1, "number"), 2147483647, "object_property_int32() parses numbers: 2147483647");
+                        object_property_set(   n1, "number", "000");
+  onex_assert_equal_num(object_property_int32( n1, "number"), 000,        "object_property_int32() parses numbers: 000");
+                        object_property_set(   n1, "number", "-2147483648");
+  onex_assert_equal_num(object_property_int32( n1, "number"), -2147483648,"object_property_int32() parses numbers: -2147483648");
+                        object_property_set(   n1, "number", "-2147483648.0~%");
+  onex_assert_equal_num(object_property_int32( n1, "number"), -2147483648,"object_property_int32() parses numbers: -2147483648.0~%");
+                        object_property_set(   n1, "number", "2.87654321");
+  onex_assert_equal_num(object_property_int32( n1, "number"), 2,          "object_property_int32() parses numbers: '2.87654321'");
+
+                        object_property_set(   n1, "number", "!");
+  onex_assert_equal_num(object_property_int32( n1, "number"), 0,          "object_property_int32() parses numbers not '!'");
+                        object_property_set(   n1, "number", "876543218765432187654321");
+  onex_assert_equal_num(object_property_int32( n1, "number"), 0,          "object_property_int32() parses numbers not '876543218765432187654321'");
+                        object_property_set(   n1, "number", 0);
+  onex_assert_equal_num(object_property_int32( n1, "number"), 0,          "object_property_int32() parses numbers not nothing there");
+
+  onex_assert_equal_num(object_property_length(  n1, "state"), 2,   "property 'state' is now a list of two");
+  onex_assert_equal_num(object_property_size(    n1, "state"),  -1, "property 'state' is not a properties");
   // UID: uid-1  is: setup  state: good mostly
   onex_assert(          object_property_add(     n1, "1", "a"),  "can add new property");
   onex_assert_equal_num(object_property_length(  n1, "1"), 1,    "property '1' is a single value");

@@ -519,6 +519,14 @@ object* find_object(char* uid, char* nuid, bool observe) {
   return o;
 }
 
+int32_t object_property_int32(object* n, char* path){
+  char* val = object_property_observe(n, path, true);
+  if(!val) return 0;
+  char* e; int32_t r = strtoul(val, &e, 10);
+  if(errno==ERANGE) return 0;
+  return r;
+}
+
 uint16_t object_property_length(object* n, char* path)
 {
   item* i=property_item(n,path,n,true);
