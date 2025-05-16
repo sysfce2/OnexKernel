@@ -444,6 +444,27 @@ void run_colour_tests(){
   hsv = (colours_hsv){ 171, 255, 255 }; rgb = colours_hsv_to_rgb(hsv);
   log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
 
+  char* colour_chars;
+  colours_rgb from_chars;
+
+  colour_chars = "%ffffff"; from_chars = colours_parse_string(colour_chars);
+  log_write("%s = rgb: { %02x %02x %02x }\n", colour_chars, from_chars.r, from_chars.g, from_chars.b);
+  colour_chars = "%55ffff"; from_chars = colours_parse_string(colour_chars);
+  log_write("%s = rgb: { %02x %02x %02x }\n", colour_chars, from_chars.r, from_chars.g, from_chars.b);
+  colour_chars = "%abffff"; from_chars = colours_parse_string(colour_chars);
+  log_write("%s = rgb: { %02x %02x %02x }\n", colour_chars, from_chars.r, from_chars.g, from_chars.b);
+  colour_chars = "%557f7f"; from_chars = colours_parse_string(colour_chars);
+  log_write("%s = rgb: { %02x %02x %02x }\n", colour_chars, from_chars.r, from_chars.g, from_chars.b);
+
+  colour_chars = "#ffffff"; from_chars = colours_parse_string(colour_chars);
+  log_write("%s = rgb: { %02x %02x %02x }\n", colour_chars, from_chars.r, from_chars.g, from_chars.b);
+  colour_chars = "#55ffff"; from_chars = colours_parse_string(colour_chars);
+  log_write("%s = rgb: { %02x %02x %02x }\n", colour_chars, from_chars.r, from_chars.g, from_chars.b);
+  colour_chars = "#abffff"; from_chars = colours_parse_string(colour_chars);
+  log_write("%s = rgb: { %02x %02x %02x }\n", colour_chars, from_chars.r, from_chars.g, from_chars.b);
+  colour_chars = "#557f7f"; from_chars = colours_parse_string(colour_chars);
+  log_write("%s = rgb: { %02x %02x %02x }\n", colour_chars, from_chars.r, from_chars.g, from_chars.b);
+
 #if defined(BOARD_FEATHER_SENSE)
   led_strip_fill_col( "#ff0");
   led_matrix_fill_col("#110");  led_strip_show(); led_matrix_show(); time_delay_ms(350);

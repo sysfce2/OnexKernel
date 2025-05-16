@@ -60,9 +60,11 @@ colours_rgb colours_parse_string(char* cs) {
       }
   }
 
-  if (cs[0] != '#') return black;
+  if(!(cs[0]=='#' || cs[0]=='%')) return black;
 
-  colours_rgb color = black;
+  uint8_t rh=0;
+  uint8_t gs=0;
+  uint8_t bv=0;
 
   size_t len = strlen(cs);
   if (len == 7) { // e.g., "#ff0000"
@@ -72,12 +74,13 @@ colours_rgb colours_parse_string(char* cs) {
 
       if (val == -1) return black;
 
-      if (i <= 2) color.r = (color.r << 4) | val;
+      if (i <= 2) rh = (rh << 4) | val;
       else
-      if (i <= 4) color.g = (color.g << 4) | val;
-      else        color.b = (color.b << 4) | val;
+      if (i <= 4) gs = (gs << 4) | val;
+      else        bv = (bv << 4) | val;
     }
-  } else
+  }
+  else
   if (len == 4) { // e.g., "#f00"
     for (int i = 1; i <= 3; i++) {
 
@@ -85,13 +88,21 @@ colours_rgb colours_parse_string(char* cs) {
 
       if (val == -1) return black;
 
-      if (i == 1) color.r = (val << 4) | val;
+      if (i == 1) rh = (val << 4) | val;
       else
-      if (i == 2) color.g = (val << 4) | val;
-      else        color.b = (val << 4) | val;
+      if (i == 2) gs = (val << 4) | val;
+      else        bv = (val << 4) | val;
     }
   }
-  return color;
+  if(cs[0]=='#'){
+    colours_rgb rgb = { rh, gs, bv };
+    return rgb;
+  }
+  if(cs[0]=='%'){
+    colours_hsv hsv = { rh, gs, bv };
+    return colours_hsv_to_rgb(hsv);
+  }
+  return black;
 }
 
 
