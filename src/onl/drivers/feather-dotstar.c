@@ -24,7 +24,7 @@ void led_matrix_fill_rgb(colours_rgb rgb){
 }
 
 void led_matrix_fill_col(char* colour){
-  led_matrix_fill_rgb(colours_parse_colour_string(colour));
+  led_matrix_fill_rgb(colours_parse_string(colour));
 }
 
 void led_matrix_show(){

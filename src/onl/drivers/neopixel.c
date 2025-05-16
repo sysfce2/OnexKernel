@@ -27,7 +27,7 @@ void led_strip_fill_rgb(colours_rgb rgb){
 }
 
 void led_strip_fill_col(char* colour){
-  led_strip_fill_rgb(colours_parse_colour_string(colour));
+  led_strip_fill_rgb(colours_parse_string(colour));
 }
 
 #define ZERO_COUNTS       6 | 0x8000  // 0.3750 µs

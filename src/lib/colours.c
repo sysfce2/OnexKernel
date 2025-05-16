@@ -44,7 +44,7 @@ uint8_t colours_hex_to_int(char c) {
     return -1;
 }
 
-colours_rgb colours_parse_colour_string(char* cs) {
+colours_rgb colours_parse_string(char* cs) {
 
   colours_rgb black = {0, 0, 0};
 
