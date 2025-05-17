@@ -1139,13 +1139,13 @@ bool run_any_evaluators()
     switch(type){
       case(TO_NOTIFY_NONE): {
         to_notify[n].type=TO_NOTIFY_FREE;
-        run_evaluators(o, 0, 0, false);
+        run_evaluators(o, 0, 0, false); // REVISIT: same as TO_NOTIFY_DATA
         break;
       }
       case(TO_NOTIFY_DATA): {
         void* data = to_notify[n].details.data;
         to_notify[n].type=TO_NOTIFY_FREE;
-        run_evaluators(o, data, 0, false);
+        run_evaluators(o, data, 0, false); // REVISIT: same as TO_NOTIFY_NONE
         break;
       }
       case(TO_NOTIFY_ALERTED): {
@@ -1555,6 +1555,7 @@ void persist_pull_keep_active() {
 void onn_recv_observe(char* uid, char* dev) {
   object* o=find_object(uid, dev, true);
   if(o && !object_is_shell(o)) onp_send_object(o, dev);
+  // REVISIT: and call the evaluator!
 }
 
 void onn_recv_object(object* n) {

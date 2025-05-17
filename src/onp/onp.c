@@ -20,7 +20,7 @@ static void connect_time_cb(void* connected_channel);
 static bool handle_recv(uint16_t size, char* channel);
 static void send(char* channel);
 static void log_sent(char* prefix, uint16_t size, char* channel);
-static void log_recv(char* prefix, uint16_t size, char* channel);
+static void log_recv(char* prefix, uint16_t size, char* channel, object* o, char* uid);
 
 extern void onn_recv_observe(char* uid, char* dev);
 extern void onn_recv_object(object* n);
@@ -189,11 +189,11 @@ static bool recv_observe(uint16_t size, char* channel){
   dev=mem_strdup(dev);
 
   if(!strcmp(object_property(onex_device_object, "UID"), dev)){
-    // log_write("reject own OBS: %s\n", dev);
+    // log_write("Rejecting own OBS: %s\n", dev);
     mem_freestr(uid); mem_freestr(dev);
     return true;
   }
-  log_recv("ONP recv", size, channel);
+  log_recv("ONP recv", size, channel, 0, uid);
 
   set_channel_of_device(dev, channel);
 
@@ -213,14 +213,14 @@ static bool recv_object(uint16_t size, char* channel){
   char* uid = object_property(n, "UID");     if(!uid) return true;
   char* dev = object_property(n, "Devices"); if(!dev) return true;
 
-  log_recv("ONP recv", size, channel);
+  log_recv("ONP recv", size, channel, n, 0);
 
   if(!strcmp(object_property(onex_device_object, "UID"), dev)){
-    log_write("Rejecting own device, UID: %s\n", dev);
+    // log_write("Rejecting own device, UID: %s\n", dev);
     return true;
   }
   if(is_local(uid)){
-    log_write("Rejecting own object, UID: %s\n", uid);
+    // log_write("Rejecting own object, UID: %s\n", uid);
     return true;
   }
 
@@ -242,7 +242,7 @@ static bool handle_recv(uint16_t size, char* channel) {
   if(debug_on_serial && !strncmp(channel, "serial", 6)){
     if(log_debug_read(recv_buff, size)) return true;
   }
-  log_recv(">>>>>>>>", size, channel);
+  log_recv(">>>>>>>>", size, channel, 0, 0);
   return true;
 }
 
@@ -296,9 +296,10 @@ void log_sent(char* prefix, uint16_t size, char* channel) {
   }
 }
 
-void log_recv(char* prefix, uint16_t size, char* channel) {
+void log_recv(char* prefix, uint16_t size, char* channel, object* o, char* uid) {
   if(log_to_gfx){
-    log_write("< %d\n", size);
+    if(o)   log_write("U:%s\n", object_property(o, "is"));
+    if(uid) log_write("O:%s\n", uid);
   }
   else{
     log_write("%s '%s'", prefix, recv_buff);

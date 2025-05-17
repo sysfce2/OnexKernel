@@ -48,7 +48,7 @@ uint16_t chunkbuf_read(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
   if(delim>=0){
     bool found_delim=false;
     uint16_t cr=cb->current_read;
-    for(i=0; i<size && size_from_read_point(cb, cr) && !found_delim; i++){
+    for(i=0; i<size && size_from_read_point(cb,cr) && !found_delim; i++){
 
       char c=cb->buffer[cr++];
       if(cr==cb->buf_size) cr=0;
@@ -61,7 +61,10 @@ uint16_t chunkbuf_read(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
       }
     }
     if(!found_delim){
-      if(i==size) log_flash(1,0,0); // can fill whole buffer without seeing delim
+      if(i==size){
+        log_flash(1,0,0); // can fill whole buffer without seeing delim
+        log_write("cb_r: %d %d\n", size, chunkbuf_current_size(cb)); // not poss!
+      }
       return 0;
     }
   }
