@@ -135,8 +135,8 @@ int main() {
     uint8_t contrast   = pot2/4;   // 0..1023
     uint8_t brightness = pot1/4;   // 0..1023
 
-    led_strip_fill_hsv( (colours_hsv){ colour,contrast,brightness   });
-    led_matrix_fill_hsv((colours_hsv){ colour,contrast,brightness/4 });
+    led_strip_fill_hsv( (colours_hsv){ colour,contrast,brightness });
+    led_matrix_fill_hsv((colours_hsv){ colour,contrast,brightness });
     led_strip_show(); led_matrix_show();
 
     time_delay_ms(20);
