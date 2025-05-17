@@ -203,6 +203,9 @@ bool onex_loop();
 /** log out all the objects in the cache. */
 void onex_show_cache();
 
+/** log out all the notifies pending. */
+void onex_show_notify();
+
 /** remove object from the cache. */
 void onex_un_cache(char* uid);
 

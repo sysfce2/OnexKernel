@@ -1171,6 +1171,35 @@ bool run_any_evaluators()
   return keep_awake;
 }
 
+void onex_show_notify(){
+  log_write("onex_show_notify\n");
+  for(uint16_t n=0; n< MAX_TO_NOTIFY; n++){
+    char* uid=value_string(to_notify[n].uid);
+    uint8_t type=to_notify[n].type;
+    switch(type){
+      case(TO_NOTIFY_NONE): {
+        log_write("%s none\n", uid);
+        break;
+      }
+      case(TO_NOTIFY_DATA): {
+        void* data = to_notify[n].details.data;
+        log_write("%s data %x\n", uid, data);
+        break;
+      }
+      case(TO_NOTIFY_ALERTED): {
+        value* alerted = to_notify[n].details.alerted;
+        log_write("%s alerted %s\n", uid, value_string(alerted));
+        break;
+      }
+      case(TO_NOTIFY_TIMEOUT): {
+        uint64_t timeout = to_notify[n].details.timeout;
+        log_write("%s timeout %ld\n", uid, (uint32_t)timeout);
+        break;
+      }
+    }
+  }
+}
+
 bool add_notify(object* o, char* notify){
   // Persist?? // REVISIT Yess!!
   int i;
