@@ -24,6 +24,7 @@
 static char rx_buffer[256];
 
 static volatile bool initialised=false;
+static volatile bool sleeping=false;
 
 static volatile channel_recv_cb recv_cb = 0;
 
@@ -189,6 +190,7 @@ uint16_t radio_read(char* buf, uint16_t size){
 }
 
 uint16_t radio_write(char* band, char* buf, uint16_t size) {
+  radio_wake();
   if(!chunkbuf_write(radio_write_buf, buf, size) ||
      !chunkbuf_write(radio_write_buf, &nl_delim, 1)){
     log_flash(1,0,0);
@@ -241,6 +243,17 @@ void RADIO_IRQHandler(void){
     }
   }
 }
+
+void radio_sleep(){
+  if(sleeping) return;
+  sleeping=true;
+}
+
+void radio_wake(){
+  if(!sleeping) return;
+  sleeping=false;
+}
+
 
 
 
