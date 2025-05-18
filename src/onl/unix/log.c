@@ -17,11 +17,20 @@ bool log_loop() {
   return false;
 }
 
-int16_t log_write_current_file_line(char* file, uint32_t line, const char* fmt, ...) {
-  if(file) printf("%s:%d:", file, line);
+int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt, ...){
   va_list args;
   va_start(args, fmt);
-  int16_t r=vfprintf(stdout, fmt, args);
+
+  bool fl=(mode==1 || mode==3);
+  bool nw=(mode==2 || mode==3);
+
+  // if(!nw) return 0; // narrow down logging to only modes 2/3
+
+  int16_t r=0;
+
+  r+=fl? printf("[%d](%s:%d) ", (uint32_t)time_ms(), file, line): 0;
+  r+=  vfprintf(stdout, fmt, args);
+
   va_end(args);
   return r;
 }

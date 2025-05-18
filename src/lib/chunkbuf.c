@@ -63,7 +63,7 @@ uint16_t chunkbuf_read(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
     if(!found_delim){
       if(i==size){
         log_flash(1,0,0); // can fill whole buffer without seeing delim
-        log_write("cb_r: %d %d\n", size, chunkbuf_current_size(cb)); // not poss!
+        log_write("cb_r: %d %d\n", size, chunkbuf_current_size(cb));
       }
       return 0;
     }

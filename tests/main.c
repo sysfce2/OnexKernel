@@ -5,6 +5,7 @@
 
 #include <boards.h>
 
+#include <onex-kernel/mem.h>
 #include <onex-kernel/boot.h>
 #include <onex-kernel/gpio.h>
 #include <onex-kernel/seesaw.h>
@@ -328,9 +329,9 @@ static void send_big_radio_data(bool first_send){
 
 static void check_big_radio_data(){
   do{
-    static char buf[512];
+    static char buf[1024];
     uint16_t rm=radio_available();
-    uint16_t rn=radio_read(buf, 512);
+    uint16_t rn=radio_read(buf, 1024);
     if(!rn) return;
     log_write("radio available: %d %d (%s)\n", rm, rn, buf);
     if(strstr(buf, "UID: uid-ffff")){
@@ -670,7 +671,7 @@ int main() {
           char* msg = list_get_n(gfx_log_buffer, i);
           if(strlen(msg) > 40) msg[40]=0;
           gfx_text(msg);
-          free(msg);
+          mem_free(msg);
         }
         gfx_text_colour(GFX_BLUE);
         list_clear(gfx_log_buffer, false);
