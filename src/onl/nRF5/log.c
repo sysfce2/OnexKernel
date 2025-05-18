@@ -8,6 +8,7 @@
 #include <boards.h>
 
 #include <onex-kernel/boot.h>
+#include <onex-kernel/mem.h>
 #include <onex-kernel/serial.h>
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
@@ -81,22 +82,43 @@ void log_init(properties* config) {
 
 #define LOG_EARLY_MS 800
 
-static void flush_saved_messages(){
+#define FLUSH_TO_SERIAL 1
+#define FLUSH_TO_RTT    2
+#define FLUSH_TO_GFX    3
+
+static void flush_saved_messages(uint8_t to){
+
   if(time_ms() < LOG_EARLY_MS) return;
+
   for(uint8_t i=1; i<=list_size(saved_messages); i++){
+
     char* msg = list_get_n(saved_messages, i);
-    serial_printf("%s", msg);
-    free(msg);
+
+    if(to==FLUSH_TO_SERIAL){
+      serial_printf("%s", msg);
+      mem_free(msg);
+    }
+    if(to==FLUSH_TO_GFX){
+      list_add(gfx_log_buffer, msg);
+    }
+#if defined(NRF_LOG_ENABLED)
+    if(to==FLUSH_TO_RTT){
+      NRF_LOG_DEBUG("%s", msg);
+      mem_free(msg);
+    }
+#endif
   }
   list_clear(saved_messages, false);
+
+#if defined(NRF_LOG_ENABLED)
+  NRF_LOG_FLUSH();
+#endif
 }
 
 bool log_loop() {
 
   if(debug_on_serial){
-
-    flush_saved_messages();
-
+    flush_saved_messages(FLUSH_TO_SERIAL);
     if(char_recvd){
       log_write(">%c<----------\n", char_recvd);
       if(char_recvd=='r') boot_reset(false);
@@ -108,49 +130,58 @@ bool log_loop() {
       char_recvd=0;
     }
   }
-
+  if(log_to_gfx){
+    if(!gfx_log_buffer) gfx_log_buffer = list_new(20);
+    flush_saved_messages(FLUSH_TO_GFX);
+  }
 #if defined(NRF_LOG_ENABLED)
+  if(log_to_rtt){
+    flush_saved_messages(FLUSH_TO_RTT);
+  }
   return NRF_LOG_PROCESS();
 #else
   return false;
 #endif
 }
 
-#define LOGCHK if(ln >= LOG_BUF_SIZE){ log_flash(1,0,0); return 0; }
+#define LOGCHK if(r >= LOG_BUF_SIZE){ log_flash(1,0,0); return 0; }
+
 int16_t log_write_current_file_line(char* file, uint32_t line, const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
-  int16_t r=0;
-  if(debug_on_serial){
-    char* save_reason=0;
-    if(in_interrupt_context())   save_reason="LOG IN INT ";
-    if(time_ms() < LOG_EARLY_MS) save_reason="LOG EARLY ";
-    if(save_reason){
-      uint16_t ln=0;
-      ln+=      snprintf(log_buffer+ln, LOG_BUF_SIZE, save_reason);                                          LOGCHK
-      ln+=file? snprintf(log_buffer+ln, LOG_BUF_SIZE, "[%ld](%s:%ld) ", (uint32_t)time_ms(), file, line): 0; LOGCHK
-      ln+=     vsnprintf(log_buffer+ln, LOG_BUF_SIZE-ln, fmt, args);                                         LOGCHK
-      if(!saved_messages) saved_messages = list_new(20);
-      list_add(saved_messages, strdup(log_buffer));
-      return 0;
-    }
-    flush_saved_messages();
 
-    r+=file? serial_printf("[%ld](%s:%ld) ", (uint32_t)time_ms(), file, line): 0;
-    r+=serial_vprintf(fmt, args);
+  bool fl=!!file;
+  int16_t r=0;
+
+  char* save_reason=0;
+  if(in_interrupt_context())   save_reason="INT ";
+  if(time_ms() < LOG_EARLY_MS) save_reason="ERL ";
+  if(save_reason){
+    if(!saved_messages) saved_messages = list_new(20);
+    r+=    snprintf(log_buffer+r, LOG_BUF_SIZE-r, save_reason);                                          LOGCHK
+    r+=fl? snprintf(log_buffer+r, LOG_BUF_SIZE-r, "[%ld](%s:%ld) ", (uint32_t)time_ms(), file, line): 0; LOGCHK
+    r+=   vsnprintf(log_buffer+r, LOG_BUF_SIZE-r, fmt, args);                                            LOGCHK
+    list_add(saved_messages, mem_strdup(log_buffer));
+    return 0;
+  }
+  if(debug_on_serial){
+    flush_saved_messages(FLUSH_TO_SERIAL);
+    r+=fl? serial_printf(                         "[%ld](%s:%ld) ", (uint32_t)time_ms(), file, line): 0;
+    r+=    serial_vprintf(fmt, args);
     time_delay_ms(1);
   }
   if(log_to_gfx){
-    uint16_t ln=0;
-    ln+=file? snprintf(log_buffer+ln, LOG_BUF_SIZE, "%s:%ld:", file, line): 0; LOGCHK
-    ln+=     vsnprintf(log_buffer+ln, LOG_BUF_SIZE-ln, fmt, args);             LOGCHK
     if(!gfx_log_buffer) gfx_log_buffer = list_new(20);
-    list_add(gfx_log_buffer, strdup(log_buffer));
+    flush_saved_messages(FLUSH_TO_GFX);
+    r+=fl? snprintf(log_buffer+r, LOG_BUF_SIZE-r, "[%ld](%s:%ld) ", (uint32_t)time_ms(), file, line): 0; LOGCHK
+    r+=   vsnprintf(log_buffer+r, LOG_BUF_SIZE-r, fmt, args);                                            LOGCHK
+    list_add(gfx_log_buffer, mem_strdup(log_buffer));
   }
 #if defined(NRF_LOG_ENABLED)
   if(log_to_rtt){
-    uint16_t ln=vsnprintf(log_buffer, LOG_BUF_SIZE, fmt, args);
-    if(ln >= LOG_BUF_SIZE){ log_flash(1,0,0); return 0; }
+    flush_saved_messages(FLUSH_TO_RTT);
+    r+=fl? snprintf(log_buffer+r, LOG_BUF_SIZE-r, "[%ld](%s:%ld) ", (uint32_t)time_ms(), file, line): 0; LOGCHK
+    r+=   vsnprintf(log_buffer+r, LOG_BUF_SIZE-r, fmt, args);                                            LOGCHK
     NRF_LOG_DEBUG("%s", log_buffer);
     time_delay_ms(2);
     NRF_LOG_FLUSH();
