@@ -147,6 +147,7 @@ int16_t log_write_current_file_line(char* file, uint32_t line, const char* fmt, 
     if(!gfx_log_buffer) gfx_log_buffer = list_new(20);
     list_add(gfx_log_buffer, strdup(log_buffer));
   }
+#if defined(NRF_LOG_ENABLED)
   if(log_to_rtt){
     uint16_t ln=vsnprintf(log_buffer, LOG_BUF_SIZE, fmt, args);
     if(ln >= LOG_BUF_SIZE){ log_flash(1,0,0); return 0; }
@@ -155,6 +156,7 @@ int16_t log_write_current_file_line(char* file, uint32_t line, const char* fmt, 
     NRF_LOG_FLUSH();
     time_delay_ms(2);
   }
+#endif
   va_end(args);
   return r;
 }
@@ -188,8 +190,7 @@ void log_flash_current_file_line(char* file, uint32_t line, uint8_t r, uint8_t g
   time_start_timer(flash_id, 250);
 }
 
-void log_flush()
-{
+void log_flush() {
 #if defined(NRF_LOG_ENABLED)
   NRF_LOG_FLUSH();
   time_delay_ms(5);

@@ -58,8 +58,10 @@ char* Mem_strdup(char* func, int line, const char* s) {
     }
   }
   if(p) memcpy(p,s,n);
-  char b[20]; mem_strncpy(b, s, 18);
-  if(LOG_MEM) log_write("mem_strdup  %p %lu [%s] %s:%d\n", p, n, b, func, line);
+  if(LOG_MEM){
+    char b[20]; mem_strncpy(b, s, 19); b[19]=0;
+    log_write("mem_strdup  %p %lu [%s] %s:%d\n", p, n, b, func, line);
+  }
   return p;
 }
 
@@ -67,8 +69,10 @@ void Mem_freestr(char* func, int line, char* p) {
   if(!p) return;
   if(!initialized){ initialized=true; nrf_mem_init(); }
   size_t n=strlen(p)+1;
-  char b[20]; mem_strncpy(b, p, 18);
-  if(LOG_MEM) log_write("mem_freestr %p %lu [%s] %s:%d\n", p, n, b, func, line);
+  if(LOG_MEM){
+    char b[20]; mem_strncpy(b, p, 19); b[19]=0;
+    log_write("mem_freestr %p %lu [%s] %s:%d\n", p, n, b, func, line);
+  }
   if(nrf_free(p)){
     if(LOG_MEM) log_write("****** mem_freestr using free %p", p);
     free(p);
