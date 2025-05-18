@@ -20,11 +20,10 @@ bool log_to_rtt=false;
 bool log_to_led=false;
 bool debug_on_serial=false;
 
-volatile char* event_log_buffer=0;
-
 #define LOG_BUF_SIZE 1024
 static volatile char log_buffer[LOG_BUF_SIZE];
 static volatile list* saved_messages = 0;
+       volatile list* gfx_log_buffer = 0;
 static volatile char char_recvd=0;
 
 static void serial_cb(bool connect, char* tty){
@@ -94,9 +93,10 @@ static void flush_saved_messages(){
 
 bool log_loop() {
 
-  flush_saved_messages();
-
   if(debug_on_serial){
+
+    flush_saved_messages();
+
     if(char_recvd){
       log_write(">%c<----------\n", char_recvd);
       if(char_recvd=='r') boot_reset(false);
@@ -141,10 +141,11 @@ int16_t log_write_current_file_line(char* file, uint32_t line, const char* fmt, 
     time_delay_ms(1);
   }
   if(log_to_gfx){
-    uint16_t ln=file? snprintf(log_buffer, LOG_BUF_SIZE, "%s:%ld:", file, line): 0;
-    ln+=vsnprintf(log_buffer+ln, LOG_BUF_SIZE-ln, fmt, args);
-    if(ln >= LOG_BUF_SIZE){ log_flash(1,0,0); return 0; }
-    event_log_buffer=log_buffer;
+    uint16_t ln=0;
+    ln+=file? snprintf(log_buffer+ln, LOG_BUF_SIZE, "%s:%ld:", file, line): 0; LOGCHK
+    ln+=     vsnprintf(log_buffer+ln, LOG_BUF_SIZE-ln, fmt, args);             LOGCHK
+    if(!gfx_log_buffer) gfx_log_buffer = list_new(20);
+    list_add(gfx_log_buffer, strdup(log_buffer));
   }
   if(log_to_rtt){
     uint16_t ln=vsnprintf(log_buffer, LOG_BUF_SIZE, fmt, args);

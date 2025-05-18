@@ -161,17 +161,13 @@ void show_random()
   gfx_text(buf);
 }
 
-void show_touch()
-{
+void show_touch() {
   snprintf(buf, 64, "-%03d-%03d-", ti.x, ti.y);
   gfx_pos(10, 90);
   gfx_text(buf);
-
   snprintf(buf, 64, "-%s-%s-%d-", touch_actions[ti.action], touch_gestures[ti.gesture], irqs);
   gfx_pos(10, 110);
   gfx_text(buf);
-
-  run_tests++;
 }
 
 #if defined(DO_MOTION)
@@ -651,6 +647,8 @@ int main() {
       show_touch();
     //show_random();
       show_battery();
+
+      run_tests++;
     }
 #if defined(DO_MOTION)
     if(new_motion_info){
@@ -662,15 +660,20 @@ int main() {
 #endif
     if (display_state_prev != display_state){
       display_state_prev = display_state;
-      gpio_set(LCD_BACKLIGHT, display_state);
+      //gpio_set(LCD_BACKLIGHT, display_state);
     }
     if(log_to_gfx){
-      if(event_log_buffer){
+      if(gfx_log_buffer){
         gfx_pos(10, 10);
         gfx_text_colour(GFX_RED);
-        gfx_text((char*)event_log_buffer);
+        for(uint8_t i=1; i<=list_size(gfx_log_buffer); i++){
+          char* msg = list_get_n(gfx_log_buffer, i);
+          if(strlen(msg) > 40) msg[40]=0;
+          gfx_text(msg);
+          free(msg);
+        }
         gfx_text_colour(GFX_BLUE);
-        event_log_buffer=0;
+        list_clear(gfx_log_buffer, false);
       }
     }
 

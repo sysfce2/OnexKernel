@@ -286,6 +286,7 @@ void send(char* channel){
 }
 
 void log_sent(char* prefix, uint16_t size, char* channel) {
+#ifdef LOG_ONP
   if(log_to_gfx){
     log_write("> %d\n", size);
   }
@@ -294,11 +295,13 @@ void log_sent(char* prefix, uint16_t size, char* channel) {
     if(channel) log_write(" to channel %s ", channel);
     log_write(" (%d bytes)\n", size);
   }
+#endif
 }
 
 void log_recv(char* prefix, uint16_t size, char* channel, object* o, char* uid) {
+#ifdef LOG_ONP
   if(log_to_gfx){
-    if(o)   log_write("U:%s\n", object_property(o, "is"));
+    if(o)   log_write("U:%s\n", object_property_values(o, "is"));
     if(uid) log_write("O:%s\n", uid);
   }
   else{
@@ -306,6 +309,7 @@ void log_recv(char* prefix, uint16_t size, char* channel, object* o, char* uid) 
     if(channel) log_write(" from channel %s ", channel);
     log_write(" (%d bytes)\n", size);
   }
+#endif
 }
 
 // -----------------------------------------------------------------------
