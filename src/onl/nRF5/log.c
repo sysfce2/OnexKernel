@@ -146,11 +146,15 @@ bool log_loop() {
 
 #define LOGCHK if(r >= LOG_BUF_SIZE){ log_flash(1,0,0); return 0; }
 
-int16_t log_write_current_file_line(char* file, uint32_t line, const char* fmt, ...) {
+int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt, ...){
   va_list args;
   va_start(args, fmt);
 
-  bool fl=!!file;
+  bool fl=(mode==1 || mode==3);
+  bool nw=(mode==2 || mode==3);
+
+  // if(!nw) return 0; // narrow down logging to only modes 2/3
+
   int16_t r=0;
 
   char* save_reason=0;
@@ -207,7 +211,7 @@ void flash_time_cb(void*) {
 
 void log_flash_current_file_line(char* file, uint32_t line, uint8_t r, uint8_t g, uint8_t b){
   if(!strstr(file, "serial") && !strstr(file, "log")){
-    log_write_current_file_line(file, line, "log_flash\n");
+    log_write_mode(1, file, line, "log_flash\n");
   }
   if(!log_to_led || flash_on) return;
 #if defined(BOARD_PCA10059)
