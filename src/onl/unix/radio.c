@@ -19,5 +19,8 @@ uint16_t radio_write(char* band, char* buf, uint16_t size) {
   return true;
 }
 
+uint16_t radio_available(){
+  return 0;
+}
 
 

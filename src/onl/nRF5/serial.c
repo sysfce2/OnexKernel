@@ -78,6 +78,11 @@ static bool do_usb_write_block(bool first_write){
   return true;
 }
 
+uint16_t serial_available(){
+  if(!initialised) return 0;
+  return chunkbuf_current_size(serial_read_buf);
+}
+
 static void buffer_readable(char* buf, uint16_t size){
   if(!chunkbuf_write(serial_read_buf, buf, size)){
     log_flash(1,0,0);
@@ -313,6 +318,7 @@ static uint16_t serial_write_delim(char* tty, char* buf, uint16_t size, bool del
 
 bool     serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb){ return false; }
 uint8_t  serial_ready_state(){ return SERIAL_READY; }
+uint16_t serial_available(){ return 0; }
 uint16_t serial_read(char* buf, uint16_t size){ return 0; }
 uint16_t serial_write(char* tty, char* buf, uint16_t size){ return 0; }
 int16_t  serial_printf(const char* fmt, ...){ return 0; }

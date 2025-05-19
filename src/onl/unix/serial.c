@@ -113,6 +113,18 @@ static uint16_t ser_index[MAX_TTYS]={0,0,0};
 static char     ser_buff[MAX_TTYS][SERIAL_MAX_LENGTH];
 static uint8_t  nt=0;
 
+uint16_t serial_available(){
+  uint16_t available=0;
+  for(int n=0; n<MAX_TTYS; n++){
+    int fd=fds[nt];
+    if(fd== -1) continue;
+    int bytes_available_for_reading=0;
+    ioctl(fd, FIONREAD, &bytes_available_for_reading);
+    available+=bytes_available_for_reading;
+  }
+  return available;
+}
+
 uint16_t serial_read(char* buf, uint16_t size) {
   update_connected_serials();
   for(int n=0; n<MAX_TTYS; n++){

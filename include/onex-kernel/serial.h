@@ -19,6 +19,7 @@ bool     serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb);
 uint8_t  serial_ready_state();
 bool     serial_loop();
 
+uint16_t serial_available();
 uint16_t serial_read(char* buf, uint16_t size);
 uint16_t serial_write(char* tty, char* buf, uint16_t size);
 
