@@ -20,6 +20,7 @@ bool log_to_gfx=false;
 bool log_to_rtt=false;
 bool log_to_led=false;
 bool debug_on_serial=false;
+bool log_onp=false;
 
 #define LOG_BUF_SIZE 1024
 static volatile char log_buffer[LOG_BUF_SIZE];
@@ -53,6 +54,7 @@ void log_init(properties* config) {
   log_to_rtt      = list_has_value(properties_get(config, "flags"), "log-to-rtt");
   log_to_led      = list_has_value(properties_get(config, "flags"), "log-to-led");
   debug_on_serial = list_has_value(properties_get(config, "flags"), "debug-on-serial");
+  log_onp         = list_has_value(properties_get(config, "flags"), "log-onp");
 
   if(debug_on_serial) serial_init(0,0,serial_cb);
 

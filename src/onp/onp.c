@@ -143,7 +143,7 @@ bool onp_loop() {
     }
     list_clear(connected_channels, false);
   }
-  if(pkts) log_write("pkts=%d\n", pkts);
+  if(pkts>1 && log_onp) log_write("pkts=%d\n", pkts);
   return ka || num_waiting_on_connect > 0;
 }
 
@@ -154,7 +154,6 @@ void on_connect(char* channel) {
   // REVISIT: free timer once cb called!
   time_start_timer(time_timeout(connect_time_cb, mem_strdup(channel)), CONNECT_DELAY_MS);
   num_waiting_on_connect++;
-  log_write("===========================================================\n");
   time_delay_ms(10);
   log_write("%s%son_connect(%s) %d\n",
              test_uid_prefix? test_uid_prefix: "",
@@ -300,7 +299,7 @@ void send(char* channel){
 }
 
 void log_sent(char* prefix, uint16_t size, char* channel) {
-#ifdef LOG_ONP
+  if(!log_onp) return;
   if(log_to_gfx){
     log_write("> %d\n", size);
     if(size< 48) log_write(send_buff);
@@ -310,11 +309,10 @@ void log_sent(char* prefix, uint16_t size, char* channel) {
     if(channel) log_write(" to channel %s ", channel);
     log_write(" (%d bytes)\n", size);
   }
-#endif
 }
 
 void log_recv(char* prefix, uint16_t size, char* channel, object* o, char* uid) {
-#ifdef LOG_ONP
+  if(!log_onp) return;
   if(log_to_gfx){
     if(o)   log_write("U:%s\n", object_property_values(o, "is"));
     if(uid) log_write("O:%s\n", uid);
@@ -324,7 +322,6 @@ void log_recv(char* prefix, uint16_t size, char* channel, object* o, char* uid) 
     if(channel) log_write(" from channel %s ", channel);
     log_write(" (%d bytes)\n", size);
   }
-#endif
 }
 
 // -----------------------------------------------------------------------

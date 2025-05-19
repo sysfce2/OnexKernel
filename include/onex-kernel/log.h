@@ -15,6 +15,7 @@ extern bool log_to_gfx;
 extern bool log_to_rtt;
 extern bool log_to_led;
 extern bool debug_on_serial;
+extern bool log_onp;
 
 extern volatile list* gfx_log_buffer;
 
