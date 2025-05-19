@@ -561,6 +561,21 @@ libonex-kernel-magic3.a: $(LIB_SOURCES:.c=.o) $(MAGIC3_SOURCES:.c=.o) $(SDK_C_SO
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
 
 
+libonex-kernel-feather-sense.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_FEATHER_SENSE)
+libonex-kernel-feather-sense.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_FEATHER_SENSE) $(INCLUDES_FEATHER_SENSE)
+libonex-kernel-feather-sense.a: $(LIB_SOURCES:.c=.o) $(FEATHER_SENSE_SOURCES:.c=.o) $(SDK_C_SOURCES_FEATHER_SENSE:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
+	rm -f $@
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
+
+
+libonex-kernel-dongle.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_DONGLE)
+libonex-kernel-dongle.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_DONGLE) $(INCLUDES_DONGLE)
+libonex-kernel-dongle.a: $(LIB_SOURCES:.c=.o) $(DONGLE_SOURCES:.c=.o) $(SDK_C_SOURCES_DONGLE:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
+	rm -f $@
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
+
 libonex-kernel-adafruit-dongle.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_ADAFRUIT_DONGLE)
 libonex-kernel-adafruit-dongle.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_ADAFRUIT_DONGLE) $(INCLUDES_ADAFRUIT_DONGLE)
 libonex-kernel-adafruit-dongle.a: $(LIB_SOURCES:.c=.o) $(ADAFRUIT_DONGLE_SOURCES:.c=.o) $(SDK_C_SOURCES_ADAFRUIT_DONGLE:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
@@ -577,21 +592,6 @@ libonex-kernel-itsybitsy.a: $(LIB_SOURCES:.c=.o) $(ITSYBITSY_SOURCES:.c=.o) $(SD
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
 
 
-libonex-kernel-feather-sense.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_FEATHER_SENSE)
-libonex-kernel-feather-sense.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_FEATHER_SENSE) $(INCLUDES_FEATHER_SENSE)
-libonex-kernel-feather-sense.a: $(LIB_SOURCES:.c=.o) $(FEATHER_SENSE_SOURCES:.c=.o) $(SDK_C_SOURCES_FEATHER_SENSE:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
-	rm -f $@
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
-
-
-libonex-kernel-dongle.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_DONGLE)
-libonex-kernel-dongle.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_DONGLE) $(INCLUDES_DONGLE)
-libonex-kernel-dongle.a: $(LIB_SOURCES:.c=.o) $(DONGLE_SOURCES:.c=.o) $(SDK_C_SOURCES_DONGLE:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
-	rm -f $@
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
-
 #-------------------------------:
 
 nrf.tests.magic3: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_MAGIC3)
@@ -601,30 +601,6 @@ nrf.tests.magic3: libonex-kernel-magic3.a $(TESTS_SOURCES:.c=.o)
 	mkdir oko
 	ar x ./libonex-kernel-magic3.a --output oko
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M4_LD_FLAGS) $(LD_FILES_MAGIC3) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
-
-
-nrf.tests.adafruit-dongle: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_ADAFRUIT_DONGLE)
-nrf.tests.adafruit-dongle: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_ADAFRUIT_DONGLE) $(INCLUDES_ADAFRUIT_DONGLE)
-nrf.tests.adafruit-dongle: libonex-kernel-adafruit-dongle.a $(TESTS_SOURCES:.c=.o)
-	rm -rf oko
-	mkdir oko
-	ar x ./libonex-kernel-adafruit-dongle.a --output oko
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M4_LD_FLAGS) $(LD_FILES_ADAFRUIT_DONGLE) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
-
-
-nrf.tests.itsybitsy: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_ITSYBITSY)
-nrf.tests.itsybitsy: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_ITSYBITSY) $(INCLUDES_ITSYBITSY)
-nrf.tests.itsybitsy: libonex-kernel-itsybitsy.a $(TESTS_SOURCES:.c=.o)
-	rm -rf oko
-	mkdir oko
-	ar x ./libonex-kernel-itsybitsy.a --output oko
-	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M4_LD_FLAGS) $(LD_FILES_ITSYBITSY) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
@@ -652,6 +628,30 @@ nrf.tests.dongle: libonex-kernel-dongle.a $(TESTS_SOURCES:.c=.o)
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
+
+nrf.tests.adafruit-dongle: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_ADAFRUIT_DONGLE)
+nrf.tests.adafruit-dongle: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_ADAFRUIT_DONGLE) $(INCLUDES_ADAFRUIT_DONGLE)
+nrf.tests.adafruit-dongle: libonex-kernel-adafruit-dongle.a $(TESTS_SOURCES:.c=.o)
+	rm -rf oko
+	mkdir oko
+	ar x ./libonex-kernel-adafruit-dongle.a --output oko
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M4_LD_FLAGS) $(LD_FILES_ADAFRUIT_DONGLE) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
+
+
+nrf.tests.itsybitsy: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_ITSYBITSY)
+nrf.tests.itsybitsy: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_ITSYBITSY) $(INCLUDES_ITSYBITSY)
+nrf.tests.itsybitsy: libonex-kernel-itsybitsy.a $(TESTS_SOURCES:.c=.o)
+	rm -rf oko
+	mkdir oko
+	ar x ./libonex-kernel-itsybitsy.a --output oko
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M4_LD_FLAGS) $(LD_FILES_ITSYBITSY) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(TESTS_SOURCES:.c=.o) oko/* -lm
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
+
 
 #-------------------------------:
 
@@ -704,12 +704,6 @@ feather-moon: libonex-kernel-feather-sense.a $(MOON_SOURCES:.c=.o)
 magic3-tests-flash: nrf.tests.magic3
 	openocd -f ./doc/openocd-stlink.cfg -c init -c "reset halt" -c "program ./onex-kernel.hex" -c "reset run" -c exit
 
-adafruit-dongle-tests-flash: nrf.tests.adafruit-dongle
-	uf2conv.py onex-kernel.hex --family 0xada52840 --output onex-kernel.uf2
-
-itsybitsy-tests-flash: nrf.tests.itsybitsy
-	uf2conv.py onex-kernel.hex --family 0xada52840 --output onex-kernel.uf2
-
 feather-sense-tests-flash: nrf.tests.feather-sense
 	uf2conv.py onex-kernel.hex --family 0xada52840 --output onex-kernel.uf2
 
@@ -717,17 +711,23 @@ dongle-tests-flash: nrf.tests.dongle
 	nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application ./onex-kernel.hex --key-file $(PRIVATE_PEM) dfu.zip
 	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/`ls -l /dev/nordic_dongle_flash | sed 's/.*-> //'` -b 115200
 
-#-------------------------------:
+adafruit-dongle-tests-flash: nrf.tests.adafruit-dongle
+	uf2conv.py onex-kernel.hex --family 0xada52840 --output onex-kernel.uf2
 
-dongle-pcr-flash: dongle-pcr
-	nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application ./onex-kernel.hex --key-file $(PRIVATE_PEM) dfu.zip
-	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/`ls -l /dev/nordic_dongle_flash | sed 's/.*-> //'` -b 115200
+itsybitsy-tests-flash: nrf.tests.itsybitsy
+	uf2conv.py onex-kernel.hex --family 0xada52840 --output onex-kernel.uf2
+
+#-------------------------------:
 
 feather-pcr-flash: feather-pcr
 	uf2conv.py onex-kernel.hex --family 0xada52840 --output onex-kernel.uf2
 
 feather-pcr-light-flash: feather-pcr-light
 	uf2conv.py onex-kernel.hex --family 0xada52840 --output onex-kernel.uf2
+
+dongle-pcr-flash: dongle-pcr
+	nrfutil pkg generate --hw-version 52 --sd-req 0x00 --application-version 1 --application ./onex-kernel.hex --key-file $(PRIVATE_PEM) dfu.zip
+	nrfutil dfu usb-serial -pkg dfu.zip -p /dev/`ls -l /dev/nordic_dongle_flash | sed 's/.*-> //'` -b 115200
 
 #-------------------------------:
 
