@@ -3,6 +3,6 @@
 
 #include <items.h>
 
-properties* get_config(int argc, char *argv[], char* name);
+properties* get_config(int argc, char *argv[], char* name, char* flags);
 
 #endif

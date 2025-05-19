@@ -3,7 +3,7 @@
 #include <onex-kernel/config.h>
 #include <onex-kernel/log.h>
 
-properties* get_config(int argc, char *argv[], char* name){
+properties* get_config(int argc, char *argv[], char* name, char* flags){
 
   if(argc==1){
     log_write("Usage: %s <serial ttys: /dev/ttyACM0 /dev/ttyACM1\n", argv[0]);
@@ -39,6 +39,7 @@ properties* get_config(int argc, char *argv[], char* name){
   if(list_size(ttys  )) properties_set(config, "serial_ttys", ttys);
 
   properties_set(config, "test-uid-prefix", value_new(name));
+  properties_set(config, "flags", list_new_from_fixed(flags));
 
   return config;
 }

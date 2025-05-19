@@ -23,7 +23,7 @@ bool evaluate_button(object* button, void* pressed) {
 
 int main(int argc, char *argv[]) {
 
-  properties* config = get_config(argc, argv, "button");
+  properties* config = get_config(argc, argv, "button", "log-onp");
   if(!config) return -1;
 
   time_init();

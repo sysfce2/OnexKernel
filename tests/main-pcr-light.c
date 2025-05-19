@@ -25,7 +25,7 @@ bool evaluate_light(object* light, void* d) {
 
 int main(int argc, char *argv[]){
 
-  properties* config = get_config(argc, argv, "light");
+  properties* config = get_config(argc, argv, "light", "log-onp");
   if(!config) return -1;
 
   time_init();

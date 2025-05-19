@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
   properties_set(config, "flags", list_new_from_fixed("debug-on-serial log-to-led"));
   properties_set(config, "test-uid-prefix", value_new("pcr"));
 #else
-  properties* config = get_config(argc, argv, "pcr");
+  properties* config = get_config(argc, argv, "pcr", "log-onp");
   if(!config) return -1;
 #endif
 
