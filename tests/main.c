@@ -500,9 +500,9 @@ int main() {
   properties_set(config, "dbpath", value_new("tests.ondb"));
 #else
 #if !defined(BOARD_MAGIC3)
-  properties_set(config, "flags", list_new_from("debug-on-serial log-to-led",2));
+  properties_set(config, "flags", list_new_from_fixed("debug-on-serial log-to-led"));
 #else
-  properties_set(config, "flags", list_new_from("log-to-gfx", 2));
+  properties_set(config, "flags", list_new_from_fixed("log-to-gfx"));
 #endif
 #endif
   properties_set(config, "test-uid-prefix", value_new("tests"));

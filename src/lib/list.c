@@ -4,6 +4,7 @@
 #include <items.h>
 
 #include <onex-kernel/mem.h>
+#include <onex-kernel/lib.h>
 #include <onex-kernel/log.h>
 
 /*
@@ -36,8 +37,7 @@ list* list_new(uint16_t max_size)
   return li;
 }
 
-list* list_new_from(char* text, uint16_t max_size)
-{
+list* list_new_from(char* text, uint16_t max_size) {
   if(!text || !(*text) || !max_size) return 0;
   list* li=list_new(max_size);
   size_t m=strlen(text)+1;
@@ -48,6 +48,10 @@ list* list_new_from(char* text, uint16_t max_size)
     t=strtok(0, " \n");
   }
   return li;
+}
+
+list* list_new_from_fixed(char* text) {
+  return list_new_from(text, num_tokens(text));
 }
 
 bool list_add(list* li, void* val)

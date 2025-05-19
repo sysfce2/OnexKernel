@@ -622,6 +622,16 @@ void test_from_text() {
 
   char banana_pre[32]; memcpy(banana_pre, "banana", strlen("banana")+1);
   onex_assert_equal(prefix_char_in_place(banana_pre, 'a', 'n'), "baanaana", "can prefix all of a given char");
+  onex_assert_equal_num(num_tokens("   aaaa b\t c\n"), 3, "found 3 tokens");
+  onex_assert_equal_num(num_tokens("a bbbb c"),        3, "found 3 tokens");
+  onex_assert_equal_num(num_tokens("a   ccc"),         2, "found 2 tokens");
+  onex_assert_equal_num(num_tokens("a b "),            2, "found 2 tokens");
+  onex_assert_equal_num(num_tokens(" a b"),            2, "found 2 tokens");
+  onex_assert_equal_num(num_tokens("a  "),             1, "found 1 tokens");
+  onex_assert_equal_num(num_tokens("  "),              0, "found 0 tokens");
+  onex_assert_equal_num(num_tokens(" "),               0, "found 0 tokens");
+  onex_assert_equal_num(num_tokens(""),                0, "found 0 tokens");
+  onex_assert_equal_num(num_tokens(0),                 0, "found 0 tokens");
 
   object* n1=onex_get_from_cache("uid-1");
   object* n2=onex_get_from_cache("uid-2");

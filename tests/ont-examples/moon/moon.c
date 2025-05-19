@@ -71,7 +71,7 @@ static void loop_serial(void*){ serial_loop(); }
 int main() {
 
   properties* config = properties_new(32);
-  properties_set(config, "flags", list_new_from("debug-on-serial log-to-led",2));
+  properties_set(config, "flags", list_new_from_fixed("debug-on-serial log-to-led"));
 
   time_init();
   random_init();

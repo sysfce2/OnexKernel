@@ -1,5 +1,7 @@
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <tests.h>
 #include <onex-kernel/log.h>
 #include <items.h>
@@ -104,6 +106,26 @@ void test_list()
 
   list_free(li, false);
   li=list_new_from(" one\n two  three  \n ", 3);
+  onex_assert(         list_size(li)==3,                        "size should be 3");
+  onex_assert_equal(item_to_text(li, buf, 32), "one two three", "can parse whitespace separated lists");
+
+  list_free(li, false);
+  li=list_new_from_fixed(" one\n");
+  onex_assert(         list_size(li)==1,              "size should be 1");
+  onex_assert_equal(item_to_text(li, buf, 32), "one", "can parse whitespace separated lists");
+
+  list_free(li, false);
+  li=list_new_from_fixed(" one\n ");
+  onex_assert(         list_size(li)==1,              "size should be 1");
+  onex_assert_equal(item_to_text(li, buf, 32), "one", "can parse whitespace separated lists");
+
+  list_free(li, false);
+  li=list_new_from_fixed(" one\n two");
+  onex_assert(         list_size(li)==2,                  "size should be 2");
+  onex_assert_equal(item_to_text(li, buf, 32), "one two", "can parse whitespace separated lists");
+
+  list_free(li, false);
+  li=list_new_from_fixed(" one\n two  three  \n ");
   onex_assert(         list_size(li)==3,                        "size should be 3");
   onex_assert_equal(item_to_text(li, buf, 32), "one two three", "can parse whitespace separated lists");
 

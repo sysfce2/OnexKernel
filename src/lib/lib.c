@@ -2,7 +2,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <onex-kernel/mem.h>
 #include <onex-kernel/lib.h>
@@ -35,5 +38,22 @@ char* prefix_char_in_place(char* s, char prefix, char target){
   *pw=0;
   return s;
 }
+
+uint16_t num_tokens(char* s) {
+  if(!s || !(*s)) return 0;
+  uint16_t n=0;
+  bool in_token = false;
+  while(*s){
+    if(isspace(*s)) in_token = false;
+    else
+    if(!in_token) {
+      in_token = true;
+      n++;
+    }
+    s++;
+  }
+  return n;
+}
+
 
 
