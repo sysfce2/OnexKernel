@@ -214,7 +214,8 @@ uint16_t radio_available(){
 static void buffer_readable(char* buf, uint16_t size, int8_t rssi){
   last_rssi=rssi;
   if(!chunkbuf_write(radio_read_buf, buf, size)){
-    log_flash(1,0,0);
+    log_write("rrb full %d %d\n", size, chunkbuf_current_size(radio_read_buf));
+    //log_flash(1,0,0);
     return;
   }
   if(recv_cb) recv_cb(false, "radio");

@@ -1172,7 +1172,6 @@ bool run_any_evaluators()
 }
 
 void onex_show_notify(){
-  log_write("onex_show_notify\n");
   for(uint16_t n=0; n< MAX_TO_NOTIFY; n++){
     char* uid=value_string(to_notify[n].uid);
     uint8_t type=to_notify[n].type;
@@ -1345,17 +1344,40 @@ void onex_init(properties* config) {
   onp_init(config);
 }
 
-bool onex_loop()
-{
+#define lOG_ONEX_LOOP
+bool onex_loop() {
   bool ska=false, lka=false, pka=false, oka=false, eka=false;
+#if defined(LOG_ONEX_LOOP)
+  uint32_t zt=time_ms();
+#endif
 #if defined(NRF5)
   ska = serial_loop();
+#if defined(LOG_ONEX_LOOP)
+  uint32_t st=time_ms();
+#endif
+
   lka = log_loop();
+#if defined(LOG_ONEX_LOOP)
+  uint32_t lt=time_ms();
+#endif
 #endif
   pka = persist_loop();
+#if defined(LOG_ONEX_LOOP)
+  uint32_t pt=time_ms();
+#endif
+
   oka = onp_loop();
+#if defined(LOG_ONEX_LOOP)
+  uint32_t ot=time_ms();
+#endif
+
   eka = run_any_evaluators();
-#if defined(LOG_KEEP_AWAKE)
+#if defined(LOG_ONEX_LOOP)
+  uint32_t et=time_ms();
+#endif
+
+#if defined(LOG_ONEX_LOOP)
+  log_write("s=%ld l=%ld p=%ld o=%ld e=%ld\n", st-zt, lt-st, pt-lt, ot-pt, et-ot);
   if(ska) log_write("keep awake by serial_loop\n");
   if(lka) log_write("keep awake by log_loop\n");
   if(pka) log_write("keep awake by persist_loop\n");
