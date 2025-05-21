@@ -48,9 +48,12 @@
 
 static void* i2c;
 
+static bool initialised=false;
 static compass_info_t ci={0};
 
 bool compass_init(){
+
+  if(initialised) return true;
 
   i2c=i2c_init(400);
 
@@ -64,6 +67,8 @@ bool compass_init(){
   ERRCHK(i2c_write_register_byte(i2c, COMPASS_ADDRESS, LIS3MDL_REG_INT_CFG,   INT_CFG_NO_INTERRUPT_ENABLE), false);
 
   time_delay_ms(10);
+
+  initialised=true;
 
   return true;
 }
@@ -92,6 +97,8 @@ static int16_t heading_from_xyz(int16_t x, int16_t y, int16_t z){
 }
 
 compass_info_t compass_direction(){
+
+  if(!initialised) return ci;
 
   uint8_t status;
   ERRCHK(i2c_read_register(i2c, COMPASS_ADDRESS, LIS3MDL_REG_STATUS_REG, &status, 1), ci);
@@ -140,6 +147,7 @@ compass_info_t compass_direction(){
 }
 
 uint8_t compass_temperature(){
+  if(!initialised) return -127;
   uint16_t data;
   ERRCHK(i2c_read_register(i2c, COMPASS_ADDRESS, LIS3MDL_REG_TEMP_OUT_L, (uint8_t*)&data, 2), -127);
   return data/8+25; // "8 LSB/°C and 0 output means T=25 °C"
