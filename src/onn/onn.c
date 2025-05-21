@@ -1612,7 +1612,7 @@ void onn_recv_observe(char* uid, char* dev) {
 void onn_recv_object(object* n) {
   object* o=onex_get_from_cache(value_string(n->uid));
   if(!o){
-    if(!add_to_cache(n)) return;
+    if(!add_to_cache(n)){ object_free(n); return; }
     o=n;
   }
   else{

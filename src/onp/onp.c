@@ -223,17 +223,19 @@ static bool recv_object(uint16_t size, char* channel){
 
   object* n=object_from_text(recv_buff, MAX_OBJECT_SIZE); if(!n) return false;
 
-  char* uid = object_property(n, "UID");     if(!uid) return false;
-  char* dev = object_property(n, "Devices"); if(!dev) return false;
+  char* uid = object_property(n, "UID");     if(!uid){ object_free(n); return false; }
+  char* dev = object_property(n, "Devices"); if(!dev){ object_free(n); return false; }
 
   log_recv("ONP recv", size, channel, n, 0);
 
   if(!strcmp(object_property(onex_device_object, "UID"), dev)){
     // log_write("Rejecting own device, UID: %s\n", dev);
+    object_free(n);
     return false;
   }
   if(is_local(uid)){
     // log_write("Rejecting own object, UID: %s\n", uid);
+    object_free(n);
     return false;
   }
 
