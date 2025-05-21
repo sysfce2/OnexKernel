@@ -44,11 +44,12 @@ bool log_debug_read(char* buf, uint16_t size){
 
 uint16_t    flash_id=0;
 static void flash_time_cb(void*);
+
 static volatile bool initialised=false;
 
 void log_init(properties* config) {
 
-  if(initialised) return; initialised=true;
+  if(initialised) return;
 
   log_to_gfx      = list_has_value(properties_get(config, "flags"), "log-to-gfx");
   log_to_rtt      = list_has_value(properties_get(config, "flags"), "log-to-rtt");
@@ -80,6 +81,8 @@ void log_init(properties* config) {
   NRF_LOG_INIT(NULL);
   NRF_LOG_DEFAULT_BACKENDS_INIT();
 #endif
+
+  initialised=true;
 }
 
 #define LOG_EARLY_MS 800
@@ -119,6 +122,8 @@ static void flush_saved_messages(uint8_t to){
 
 bool log_loop() {
 
+  if(!initialised) return true;
+
   if(debug_on_serial){
     flush_saved_messages(FLUSH_TO_SERIAL);
     if(char_recvd){
@@ -149,6 +154,9 @@ bool log_loop() {
 #define LOGCHK if(r >= LOG_BUF_SIZE){ log_flash(1,0,0); return 0; }
 
 int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt, ...){
+
+  if(!initialised) return 0;
+
   va_list args;
   va_start(args, fmt);
 
@@ -214,6 +222,7 @@ void flash_time_cb(void*) {
 }
 
 void log_flash_current_file_line(char* file, uint32_t line, uint8_t r, uint8_t g, uint8_t b){
+  if(!initialised) return;
   if(!strstr(file, "serial") && !strstr(file, "log")){
     log_write_mode(1, file, line, "log_flash\n");
   }
@@ -230,6 +239,7 @@ void log_flash_current_file_line(char* file, uint32_t line, uint8_t r, uint8_t g
 }
 
 void log_flush() {
+  if(!initialised) return;
 #if defined(NRF_LOG_ENABLED)
   NRF_LOG_FLUSH();
   time_delay_ms(5);
