@@ -171,12 +171,14 @@ int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt,
   if(in_interrupt_context())   save_reason="INT ";
   if(time_ms() < LOG_EARLY_MS) save_reason="ERL ";
   if(save_reason){
+#ifndef LOG_MEM
     if(!saved_messages) saved_messages = list_new(32);
     r+=    snprintf(log_buffer+r, LOG_BUF_SIZE-r, save_reason);                                          LOGCHK
     r+=fl? snprintf(log_buffer+r, LOG_BUF_SIZE-r, "[%ld](%s:%ld) ", (uint32_t)time_ms(), file, line): 0; LOGCHK
     r+=   vsnprintf(log_buffer+r, LOG_BUF_SIZE-r, fmt, args);                                            LOGCHK
     char* lb=mem_strdup(log_buffer);
     if(!list_add(saved_messages, lb)) mem_freestr(lb);
+#endif
     return 0;
   }
   if(debug_on_serial){

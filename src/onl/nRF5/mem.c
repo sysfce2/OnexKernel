@@ -4,7 +4,9 @@
 #include <onex-kernel/mem.h>
 #include <onex-kernel/log.h>
 
+#ifndef LOG_MEM
 #define LOG_MEM 0
+#endif
 
 static bool initialized=false;
 
@@ -16,7 +18,7 @@ void* Mem_alloc(char* func, int line, size_t n) {
   void* p=nrf_calloc(1,n);
   if(!p){
     p=calloc(1,n);
-    if(LOG_MEM) log_write("****** mem_alloc using calloc %p", p);
+    if(LOG_MEM) log_write("****** mem_alloc using calloc %p\n", p);
     if((char*)p > top_alloc){
       top_alloc=p;
       if(log_to_gfx){
@@ -35,7 +37,7 @@ void Mem_free(char* func, int line, void* p) {
   if(!initialized){ initialized=true; nrf_mem_init(); }
   if(LOG_MEM) log_write("mem_free    %p %lu %s:%d\n", p, (size_t)0, func, line);
   if(nrf_free(p)){
-    if(LOG_MEM) log_write("****** mem_free using free %p", p);
+    if(LOG_MEM) log_write("****** mem_free using free %p\n", p);
     free(p);
   }
 }
@@ -47,7 +49,7 @@ char* Mem_strdup(char* func, int line, const char* s) {
   char* p=nrf_malloc(n);
   if(!p){
     p=malloc(n);
-    if(LOG_MEM) log_write("****** mem_strdup using malloc %p", p);
+    if(LOG_MEM) log_write("****** mem_strdup using malloc %p\n", p);
     if((char*)p > top_alloc){
       top_alloc=p;
       if(log_to_gfx){
@@ -74,7 +76,7 @@ void Mem_freestr(char* func, int line, char* p) {
     log_write("mem_freestr %p %lu [%s] %s:%d\n", p, n, b, func, line);
   }
   if(nrf_free(p)){
-    if(LOG_MEM) log_write("****** mem_freestr using free %p", p);
+    if(LOG_MEM) log_write("****** mem_freestr using free %p\n", p);
     free(p);
   }
 }
