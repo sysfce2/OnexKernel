@@ -6,8 +6,40 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/boot.h>
 
-void boot_init()
-{
+void boot_init() {
+
+  uint32_t reset_reason = NRF_POWER->RESETREAS;
+  NRF_POWER->RESETREAS = reset_reason;  // clear by writing back
+
+  if(reset_reason & POWER_RESETREAS_DOG_Msk) {
+    log_write("\n"); log_write("\n");
+    log_write("Watchdog reset!\n");
+  }
+  if(reset_reason & POWER_RESETREAS_LOCKUP_Msk) {
+    log_write("\n"); log_write("\n");
+    log_write("CPU lock-up reset!\n");
+  }
+  if(reset_reason & POWER_RESETREAS_SREQ_Msk) {
+    log_write("\n"); log_write("\n");
+    log_write("Soft reset\n");
+  }
+  if(reset_reason & POWER_RESETREAS_OFF_Msk) {
+    log_write("\n"); log_write("\n");
+    log_write("System OFF reset\n");
+  }
+  if(reset_reason & POWER_RESETREAS_LPCOMP_Msk) {
+    log_write("\n"); log_write("\n");
+    log_write("LPCOMP reset\n");
+  }
+  if(reset_reason & POWER_RESETREAS_NFC_Msk) {
+    log_write("\n"); log_write("\n");
+    log_write("NFC field detected reset\n");
+  }
+  if(reset_reason & POWER_RESETREAS_DIF_Msk) {
+    log_write("\n"); log_write("\n");
+    log_write("Debug reset\n");
+  }
+
   // see errata [88] WDT: Increased current consumption when configured to pause in System ON idle
   NRF_WDT->CONFIG = NRF_WDT->CONFIG = (WDT_CONFIG_SLEEP_Run  << WDT_CONFIG_SLEEP_Pos) |
                                       (WDT_CONFIG_HALT_Pause << WDT_CONFIG_HALT_Pos );
