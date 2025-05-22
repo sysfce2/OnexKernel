@@ -56,6 +56,7 @@ void mem_show_allocated(bool clear){
   for(uint16_t i=0; i<memgrind_top; i++){
     if(memgrind_pntr[i]){
       bool suppress = (!strcmp(memgrind_file[i], "new_object"))     ||
+                      (!strcmp(memgrind_file[i], "new_shell"))      ||
                       (!strcmp(memgrind_file[i], "onex_un_cache"))  ||
                       (!strcmp(memgrind_file[i], "properties_new")) ||
                       (!strcmp(memgrind_file[i], "properties_set")) ||
@@ -69,7 +70,7 @@ void mem_show_allocated(bool clear){
                                  memgrind_line[i],
                                  memgrind_size[i]);
     }
-    if(clear) memgrind_pntr[i]=0;
+    if(clear) memgrind_pntr[i]=0; // REVISIT: may warn about freeing unalloc'd
   }
   log_write("\nmemgrind_top=%d tot=%ld\n", memgrind_top, memgrind_tot);
 }

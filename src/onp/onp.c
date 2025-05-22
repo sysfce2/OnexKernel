@@ -143,7 +143,7 @@ bool onp_loop() {
     }
     list_clear(connected_channels, false);
   }
-  if(pkts>1 && log_onp) log_write("pkts=%d\n", pkts);
+  if(pkts>6) log_write("onp_loop pkts=%d\n", pkts);
   return ka || num_waiting_on_connect > 0;
 }
 
