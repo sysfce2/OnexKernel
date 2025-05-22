@@ -23,7 +23,7 @@ static void log_sent(char* prefix, uint16_t size, char* channel);
 static void log_recv(char* prefix, uint16_t size, char* channel, object* o, char* uid);
 
 extern void onn_recv_observe(char* uid, char* dev);
-extern void onn_recv_object(object* n);
+extern bool onn_recv_object(object* n);
 
 static list* channels=0;
 static list* ipv6_groups=0;
@@ -241,7 +241,7 @@ static bool recv_object(uint16_t size, char* channel){
 
   set_channel_of_device(dev, channel);
 
-  onn_recv_object(n);
+  if(!onn_recv_object(n)) object_free(n);
 
   return true;
 }

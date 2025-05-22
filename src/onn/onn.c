@@ -165,7 +165,7 @@ object* object_new_from(char* text, uint8_t max_size)
     log_write("Attempt to create an object with UID %s that already exists\n", uid);
     return 0;
   }
-  if(!add_to_cache_and_persist(n)) return 0;
+  if(!add_to_cache_and_persist(n)){ object_free(n); return 0; }
   return n;
 }
 
@@ -176,7 +176,7 @@ object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size)
     return 0;
   }
   object* n=new_object(value_new(uid), evaluator, is, max_size);
-  if(!add_to_cache_and_persist(n)) return 0;
+  if(!add_to_cache_and_persist(n)){ object_free(n); return 0; }
   return n;
 }
 
@@ -259,8 +259,7 @@ object* new_shell(value* uid){
   return n;
 }
 
-void object_free(object* o)
-{
+void object_free(object* o) {
   if(!o) return;
   value_free(o->uid);
   value_free(o->evaluator);
@@ -502,7 +501,7 @@ object* find_object(char* uid, char* nuid, bool observe) {
 
   if(!o){
     o=new_shell(value_new(uid));
-    add_to_cache_and_persist(o);
+    if(!add_to_cache_and_persist(o)){ object_free(o); return 0; }
   }
   if(observe){
 
@@ -1389,10 +1388,10 @@ bool onex_loop() {
 
 static properties* objects_cache=0;
 
-bool add_to_cache(object* n)
-{
+bool add_to_cache(object* n) {
   if(!objects_cache) objects_cache=properties_new(MAX_OBJECTS);
   if(!properties_set(objects_cache, value_string(n->uid), n)){
+    log_flash(1,0,0);
     log_write("No more room for objects!!\n");
     return false;
   }
@@ -1412,15 +1411,15 @@ object* onex_get_from_cache(char* uid) {
 
   o=object_from_text(text, MAX_OBJECT_SIZE);
 
-  if(o && add_to_cache(o)){
-    mem_freestr(properties_delete(persistence_objects_text, uid));
-    return o;
+  if(!o || !add_to_cache(o)){
+    object_free(o);
+    return 0;
   }
-  return 0;
+  mem_freestr(properties_delete(persistence_objects_text, uid));
+  return o;
 }
 
 bool add_to_cache_and_persist(object* n) {
-
   if(!add_to_cache(n)) return false;
   persist_put(n, true);
   return true;
@@ -1609,10 +1608,10 @@ void onn_recv_observe(char* uid, char* dev) {
   // REVISIT: and call the evaluator!
 }
 
-void onn_recv_object(object* n) {
+bool onn_recv_object(object* n) {
   object* o=onex_get_from_cache(value_string(n->uid));
   if(!o){
-    if(!add_to_cache(n)){ object_free(n); return; }
+    if(!add_to_cache(n)) return false;
     o=n;
   }
   else{
@@ -1630,6 +1629,7 @@ void onn_recv_object(object* n) {
     add_notify(onex_device_object, value_string(o->uid));
   }
   save_and_notify(o);
+  return true;
 }
 
 // -----------------------------------------------------------------------
