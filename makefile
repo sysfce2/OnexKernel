@@ -554,7 +554,7 @@ SDK_C_SOURCES = \
 # Targets
 
 libonex-kernel-magic3.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_MAGIC3)
-libonex-kernel-magic3.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_MAGIC3) $(INCLUDES_MAGIC3)
+libonex-kernel-magic3.a: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_MAGIC3) $(INCLUDES_MAGIC3)
 libonex-kernel-magic3.a: $(LIB_SOURCES:.c=.o) $(MAGIC3_SOURCES:.c=.o) $(SDK_C_SOURCES_MAGIC3:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
 	rm -f $@
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
@@ -562,7 +562,7 @@ libonex-kernel-magic3.a: $(LIB_SOURCES:.c=.o) $(MAGIC3_SOURCES:.c=.o) $(SDK_C_SO
 
 
 libonex-kernel-feather-sense.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_FEATHER_SENSE)
-libonex-kernel-feather-sense.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_FEATHER_SENSE) $(INCLUDES_FEATHER_SENSE)
+libonex-kernel-feather-sense.a: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_FEATHER_SENSE) $(INCLUDES_FEATHER_SENSE)
 libonex-kernel-feather-sense.a: $(LIB_SOURCES:.c=.o) $(FEATHER_SENSE_SOURCES:.c=.o) $(SDK_C_SOURCES_FEATHER_SENSE:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
 	rm -f $@
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
@@ -570,14 +570,14 @@ libonex-kernel-feather-sense.a: $(LIB_SOURCES:.c=.o) $(FEATHER_SENSE_SOURCES:.c=
 
 
 libonex-kernel-dongle.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_DONGLE)
-libonex-kernel-dongle.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_DONGLE) $(INCLUDES_DONGLE)
+libonex-kernel-dongle.a: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_DONGLE) $(INCLUDES_DONGLE)
 libonex-kernel-dongle.a: $(LIB_SOURCES:.c=.o) $(DONGLE_SOURCES:.c=.o) $(SDK_C_SOURCES_DONGLE:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
 	rm -f $@
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-strip -g $@
 
 libonex-kernel-adafruit-dongle.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_ADAFRUIT_DONGLE)
-libonex-kernel-adafruit-dongle.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_ADAFRUIT_DONGLE) $(INCLUDES_ADAFRUIT_DONGLE)
+libonex-kernel-adafruit-dongle.a: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_ADAFRUIT_DONGLE) $(INCLUDES_ADAFRUIT_DONGLE)
 libonex-kernel-adafruit-dongle.a: $(LIB_SOURCES:.c=.o) $(ADAFRUIT_DONGLE_SOURCES:.c=.o) $(SDK_C_SOURCES_ADAFRUIT_DONGLE:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
 	rm -f $@
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
@@ -585,7 +585,7 @@ libonex-kernel-adafruit-dongle.a: $(LIB_SOURCES:.c=.o) $(ADAFRUIT_DONGLE_SOURCES
 
 
 libonex-kernel-itsybitsy.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_ITSYBITSY)
-libonex-kernel-itsybitsy.a: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_ITSYBITSY) $(INCLUDES_ITSYBITSY)
+libonex-kernel-itsybitsy.a: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_ITSYBITSY) $(INCLUDES_ITSYBITSY)
 libonex-kernel-itsybitsy.a: $(LIB_SOURCES:.c=.o) $(ITSYBITSY_SOURCES:.c=.o) $(SDK_C_SOURCES_ITSYBITSY:.c=.o) $(SDK_ASSEMBLER_SOURCES_52840:.S=.o)
 	rm -f $@
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-ar rcs $@ $^
@@ -595,7 +595,7 @@ libonex-kernel-itsybitsy.a: $(LIB_SOURCES:.c=.o) $(ITSYBITSY_SOURCES:.c=.o) $(SD
 #-------------------------------:
 
 nrf.tests.magic3: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_MAGIC3)
-nrf.tests.magic3: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_MAGIC3) $(INCLUDES_MAGIC3)
+nrf.tests.magic3: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_MAGIC3) $(INCLUDES_MAGIC3)
 nrf.tests.magic3: libonex-kernel-magic3.a $(TESTS_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
@@ -607,7 +607,7 @@ nrf.tests.magic3: libonex-kernel-magic3.a $(TESTS_SOURCES:.c=.o)
 
 
 nrf.tests.feather-sense: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_FEATHER_SENSE)
-nrf.tests.feather-sense: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_FEATHER_SENSE) $(INCLUDES_FEATHER_SENSE)
+nrf.tests.feather-sense: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_FEATHER_SENSE) $(INCLUDES_FEATHER_SENSE)
 nrf.tests.feather-sense: libonex-kernel-feather-sense.a $(TESTS_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
@@ -619,7 +619,7 @@ nrf.tests.feather-sense: libonex-kernel-feather-sense.a $(TESTS_SOURCES:.c=.o)
 
 
 nrf.tests.dongle: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_DONGLE)
-nrf.tests.dongle: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_DONGLE) $(INCLUDES_DONGLE)
+nrf.tests.dongle: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_DONGLE) $(INCLUDES_DONGLE)
 nrf.tests.dongle: libonex-kernel-dongle.a $(TESTS_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
@@ -630,7 +630,7 @@ nrf.tests.dongle: libonex-kernel-dongle.a $(TESTS_SOURCES:.c=.o)
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
 nrf.tests.adafruit-dongle: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_ADAFRUIT_DONGLE)
-nrf.tests.adafruit-dongle: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_ADAFRUIT_DONGLE) $(INCLUDES_ADAFRUIT_DONGLE)
+nrf.tests.adafruit-dongle: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_ADAFRUIT_DONGLE) $(INCLUDES_ADAFRUIT_DONGLE)
 nrf.tests.adafruit-dongle: libonex-kernel-adafruit-dongle.a $(TESTS_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
@@ -642,7 +642,7 @@ nrf.tests.adafruit-dongle: libonex-kernel-adafruit-dongle.a $(TESTS_SOURCES:.c=.
 
 
 nrf.tests.itsybitsy: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_ITSYBITSY)
-nrf.tests.itsybitsy: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_ITSYBITSY) $(INCLUDES_ITSYBITSY)
+nrf.tests.itsybitsy: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_ITSYBITSY) $(INCLUDES_ITSYBITSY)
 nrf.tests.itsybitsy: libonex-kernel-itsybitsy.a $(TESTS_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
@@ -656,7 +656,7 @@ nrf.tests.itsybitsy: libonex-kernel-itsybitsy.a $(TESTS_SOURCES:.c=.o)
 #-------------------------------:
 
 dongle-pcr: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_DONGLE)
-dongle-pcr: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_DONGLE) $(INCLUDES_DONGLE)
+dongle-pcr: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_DONGLE) $(INCLUDES_DONGLE)
 dongle-pcr: libonex-kernel-dongle.a $(PCR_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
@@ -667,7 +667,7 @@ dongle-pcr: libonex-kernel-dongle.a $(PCR_SOURCES:.c=.o)
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
 feather-pcr: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_FEATHER_SENSE)
-feather-pcr: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_FEATHER_SENSE) $(INCLUDES_FEATHER_SENSE)
+feather-pcr: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_FEATHER_SENSE) $(INCLUDES_FEATHER_SENSE)
 feather-pcr: libonex-kernel-feather-sense.a $(PCR_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
@@ -678,7 +678,7 @@ feather-pcr: libonex-kernel-feather-sense.a $(PCR_SOURCES:.c=.o)
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
 feather-pcr-light: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_FEATHER_SENSE)
-feather-pcr-light: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_FEATHER_SENSE) $(INCLUDES_FEATHER_SENSE)
+feather-pcr-light: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_FEATHER_SENSE) $(INCLUDES_FEATHER_SENSE)
 feather-pcr-light: libonex-kernel-feather-sense.a $(PCR_LIGHT_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
@@ -689,7 +689,7 @@ feather-pcr-light: libonex-kernel-feather-sense.a $(PCR_LIGHT_SOURCES:.c=.o)
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
 feather-moon: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_FEATHER_SENSE)
-feather-moon: COMPILE_LINE=${M4_CPU} $(M4_CC_FLAGS) $(COMPILER_DEFINES_FEATHER_SENSE) $(INCLUDES_FEATHER_SENSE)
+feather-moon: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_FEATHER_SENSE) $(INCLUDES_FEATHER_SENSE)
 feather-moon: libonex-kernel-feather-sense.a $(MOON_SOURCES:.c=.o)
 	rm -rf oko
 	mkdir oko
@@ -747,9 +747,18 @@ device-erase:
 
 #-------------------------------:
 
-M4_CPU = -O3 -g3 -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mabi=aapcs
+DEBUG_FLAGS = -g -O0
+OPTIM_FLAGS = -g3 -O3
 
-M4_CC_FLAGS = -std=gnu17  -Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin -fshort-enums
+#-------------------------------:
+
+M4_CPU = $(OPTIM_FLAGS) -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -mabi=aapcs
+
+# REVISIT: is it OK to leave -fno-omit-frame-pointer on?
+M4_CC_FLAGS = ${M4_CPU} -std=gnu17
+M4_CC_FLAGS += -Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable
+M4_CC_FLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-builtin -fshort-enums
+M4_CC_FLAGS += -fno-omit-frame-pointer
 
 # do these for thorough linting:
 #M4_CC_FLAGS += -Wextra
