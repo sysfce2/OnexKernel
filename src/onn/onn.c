@@ -223,13 +223,13 @@ object* object_from_text(char* text, uint8_t max_size){
     else
     if(!strcmp(key,"Eval")) evaluator=value_new(val);
     else
-    if(!strcmp(key,"Devices")) devices=mem_strdup(val);
+    if(!strcmp(key,"Devices") && !devices) devices=mem_strdup(val);
     else
     if(!strcmp(key,"Cache")) cache=value_new(val);
     else
     if(!strcmp(key,"Persist")) persist=value_new(val);
     else
-    if(!strcmp(key,"Notify")) notify=mem_strdup(val);
+    if(!strcmp(key,"Notify") && !notify) notify=mem_strdup(val);
     else
     if(isupper((unsigned char)(*key)));
     else {
@@ -238,19 +238,20 @@ object* object_from_text(char* text, uint8_t max_size){
         if(evaluator) n->evaluator=evaluator;
         if(cache)     n->cache=cache;
         if(persist)   n->persist=persist;
-        if(devices){  n->devices = list_new_from(devices, OBJECT_MAX_DEVICES); mem_freestr(devices); }
-        if(notify){   set_notifies(n, notify); mem_freestr(notify); }
+        if(devices)   n->devices = list_new_from(devices, OBJECT_MAX_DEVICES);
+        if(notify)    set_notifies(n, notify);
       }
       if(!property_edit(n, key, val, LIST_EDIT_MODE_SET)) break;
     }
     mem_freestr(key);
     mem_freestr(val);
   }
+  mem_freestr(devices);
+  mem_freestr(notify);
   return n;
 }
 
 object* new_shell(value* uid){
-
   object* n=(object*)mem_alloc(sizeof(object));
   n->uid=uid;
   n->properties=properties_new(MAX_OBJECT_SIZE);
