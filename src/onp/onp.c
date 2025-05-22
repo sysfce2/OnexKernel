@@ -13,8 +13,6 @@
 #include "onn.h"
 #include "onp.h"
 
-#define VERBOSE_ONP_LOGGING_REMOVE_ME_LATER true
-
 static void on_connect(char* channel);
 static void connect_time_cb(void* connected_channel);
 static bool handle_recv(uint16_t size, char* channel);
