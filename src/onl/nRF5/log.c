@@ -57,6 +57,13 @@ void log_init(properties* config) {
   debug_on_serial = list_has_value(properties_get(config, "flags"), "debug-on-serial");
   log_onp         = list_has_value(properties_get(config, "flags"), "log-onp");
 
+#if defined(NRF_LOG_ENABLED)
+  if(log_to_rtt){
+    NRF_LOG_INIT(NULL);
+    NRF_LOG_DEFAULT_BACKENDS_INIT();
+  }
+#endif
+
   if(debug_on_serial) serial_init(0,0,serial_cb);
 
   if(log_to_led){
@@ -76,11 +83,6 @@ void log_init(properties* config) {
     flash_id=time_timeout(flash_time_cb,0);
     log_flash(1,1,1);
   }
-
-#if defined(NRF_LOG_ENABLED)
-  NRF_LOG_INIT(NULL);
-  NRF_LOG_DEFAULT_BACKENDS_INIT();
-#endif
 
   initialised=true;
 }
@@ -116,7 +118,9 @@ static void flush_saved_messages(uint8_t to){
   list_clear(saved_messages, false);
 
 #if defined(NRF_LOG_ENABLED)
-  NRF_LOG_FLUSH();
+  if(to==FLUSH_TO_RTT){
+    NRF_LOG_FLUSH();
+  }
 #endif
 }
 
@@ -155,8 +159,6 @@ bool log_loop() {
 
 int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt, ...){
 
-  if(!initialised) return 0;
-
   va_list args;
   va_start(args, fmt);
 
@@ -181,6 +183,7 @@ int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt,
 #endif
     return 0;
   }
+  if(!initialised) return 0;
   if(debug_on_serial){
     flush_saved_messages(FLUSH_TO_SERIAL);
     r+=fl? serial_printf(                         "[%ld](%s:%ld) ", (uint32_t)time_ms(), file, line): 0;
@@ -243,7 +246,9 @@ void log_flash_current_file_line(char* file, uint32_t line, uint8_t r, uint8_t g
 void log_flush() {
   if(!initialised) return;
 #if defined(NRF_LOG_ENABLED)
-  NRF_LOG_FLUSH();
+  if(log_to_rtt){
+    NRF_LOG_FLUSH();
+  }
   time_delay_ms(5);
 #endif
 }
