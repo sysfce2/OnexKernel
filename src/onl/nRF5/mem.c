@@ -12,6 +12,7 @@ static bool initialized=false;
 
 static char* top_alloc=0;
 
+#ifdef GRIND_THE_MEM
 #define MEMGRIND_ENTRIES 2048
 static void*    memgrind_pntr[MEMGRIND_ENTRIES];
 static char*    memgrind_file[MEMGRIND_ENTRIES];
@@ -19,8 +20,10 @@ static uint16_t memgrind_line[MEMGRIND_ENTRIES];
 static uint16_t memgrind_size[MEMGRIND_ENTRIES];
 static uint16_t memgrind_top=0;
 static uint32_t memgrind_tot=0;
+#endif
 
 static void memgrind_alloc(void* pntr, char* file, uint16_t line, uint16_t size){
+#ifdef GRIND_THE_MEM
   if(memgrind_top==MEMGRIND_ENTRIES) return;
   uint16_t i=0;
   while(i<memgrind_top && memgrind_pntr[i]) i++;
@@ -37,9 +40,11 @@ static void memgrind_alloc(void* pntr, char* file, uint16_t line, uint16_t size)
   memgrind_size[i]=size;
 
   memgrind_tot += memgrind_size[i];
+#endif
 }
 
 static void memgrind_free(void* pntr){
+#ifdef GRIND_THE_MEM
   for(uint16_t i=0; i<memgrind_top; i++){
     if(memgrind_pntr[i]==pntr){
       memgrind_tot -= memgrind_size[i];
@@ -50,9 +55,11 @@ static void memgrind_free(void* pntr){
   if(memgrind_top!=MEMGRIND_ENTRIES){
     log_write("***** freeing but not allocated? %p %s\n", pntr, pntr);
   }
+#endif
 }
 
 void mem_show_allocated(bool clear){
+#ifdef GRIND_THE_MEM
   for(uint16_t i=0; i<memgrind_top; i++){
     if(memgrind_pntr[i]){
       bool suppress = (!strcmp(memgrind_file[i], "new_object"))     ||
@@ -73,6 +80,7 @@ void mem_show_allocated(bool clear){
     if(clear) memgrind_pntr[i]=0; // REVISIT: may warn about freeing unalloc'd
   }
   log_write("\nmemgrind_top=%d tot=%ld\n", memgrind_top, memgrind_tot);
+#endif
 }
 
 // --------------------
