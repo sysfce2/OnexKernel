@@ -567,6 +567,7 @@ int main() {
       if(char_recvd=='c') run_chunkbuf_tests();
       if(char_recvd=='l') run_colour_tests();
       if(char_recvd=='s') send_big_radio_data(true);
+      if(char_recvd=='m') mem_show_allocated(true);
 #if defined(BOARD_FEATHER_SENSE)
       if(char_recvd=='i'){
         compass_info_t ci = compass_direction();
@@ -584,7 +585,7 @@ int main() {
 #endif
       if(char_recvd=='b') boot_reset(true);
       if(char_recvd=='r') boot_reset(false);
-      if(char_recvd=='h') log_write("t.ests c.hunkbuf co.l.our s.end-radio i.nputs b.ootloader r.eset\n");
+      if(char_recvd=='h') log_write("t.ests c.hunkbuf co.l.our s.end-radio i.nputs m.em b.ootloader r.eset\n");
 
       if(char_recvd=='i') time_delay_ms(100);
       else char_recvd=0;

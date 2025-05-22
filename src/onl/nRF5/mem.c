@@ -12,6 +12,70 @@ static bool initialized=false;
 
 static char* top_alloc=0;
 
+#define MEMGRIND_ENTRIES 2048
+static void*    memgrind_pntr[MEMGRIND_ENTRIES];
+static char*    memgrind_file[MEMGRIND_ENTRIES];
+static uint16_t memgrind_line[MEMGRIND_ENTRIES];
+static uint16_t memgrind_size[MEMGRIND_ENTRIES];
+static uint16_t memgrind_top=0;
+static uint32_t memgrind_tot=0;
+
+static void memgrind_alloc(void* pntr, char* file, uint16_t line, uint16_t size){
+  if(memgrind_top==MEMGRIND_ENTRIES) return;
+  uint16_t i=0;
+  while(i<memgrind_top && memgrind_pntr[i]) i++;
+  if(i==memgrind_top){
+    memgrind_top++;
+    if(memgrind_top==MEMGRIND_ENTRIES){
+      log_write("***** memgrind full!\n");
+      return;
+    }
+  }
+  memgrind_pntr[i]=pntr;
+  memgrind_file[i]=file;
+  memgrind_line[i]=line;
+  memgrind_size[i]=size;
+
+  memgrind_tot += memgrind_size[i];
+}
+
+static void memgrind_free(void* pntr){
+  for(uint16_t i=0; i<memgrind_top; i++){
+    if(memgrind_pntr[i]==pntr){
+      memgrind_tot -= memgrind_size[i];
+      memgrind_pntr[i]=0;
+      return;
+    }
+  }
+  if(memgrind_top!=MEMGRIND_ENTRIES){
+    log_write("***** freeing but not allocated? %p %s\n", pntr, pntr);
+  }
+}
+
+void mem_show_allocated(bool clear){
+  for(uint16_t i=0; i<memgrind_top; i++){
+    if(memgrind_pntr[i]){
+      bool suppress = (!strcmp(memgrind_file[i], "new_object"))     ||
+                      (!strcmp(memgrind_file[i], "onex_un_cache"))  ||
+                      (!strcmp(memgrind_file[i], "properties_new")) ||
+                      (!strcmp(memgrind_file[i], "properties_set")) ||
+                      (!strcmp(memgrind_file[i], "list_new"      )) ||
+                      (!strcmp(memgrind_file[i], "value_new"     )) ||
+                      (!strcmp(memgrind_file[i], "chunkbuf_new"  )) ||
+                      (!strcmp(memgrind_file[i], "log_write_mode"  ));
+      if(suppress) continue;
+      log_write("%p@%s:%ld=%d ", memgrind_pntr[i],
+                                 memgrind_file[i],
+                                 memgrind_line[i],
+                                 memgrind_size[i]);
+    }
+    if(clear) memgrind_pntr[i]=0;
+  }
+  log_write("\nmemgrind_top=%d tot=%ld\n", memgrind_top, memgrind_tot);
+}
+
+// --------------------
+
 void* Mem_alloc(char* func, int line, size_t n) {
   if(!n) return 0;
   if(!initialized){ initialized=true; nrf_mem_init(); }
@@ -29,6 +93,7 @@ void* Mem_alloc(char* func, int line, size_t n) {
     }
   }
   if(LOG_MEM) log_write("mem_alloc   %p %lu %s:%d\n", p, n, func, line);
+  memgrind_alloc(p, func, line, n);
   return p;
 }
 
@@ -40,6 +105,7 @@ void Mem_free(char* func, int line, void* p) {
     if(LOG_MEM) log_write("****** mem_free using free %p\n", p);
     free(p);
   }
+  memgrind_free(p);
 }
 
 char* Mem_strdup(char* func, int line, const char* s) {
@@ -64,6 +130,7 @@ char* Mem_strdup(char* func, int line, const char* s) {
     char b[20]; mem_strncpy(b, s, 20);
     log_write("mem_strdup  %p %lu [%s] %s:%d\n", p, n, b, func, line);
   }
+  memgrind_alloc(p, func, line, n);
   return p;
 }
 
@@ -79,6 +146,7 @@ void Mem_freestr(char* func, int line, char* p) {
     if(LOG_MEM) log_write("****** mem_freestr using free %p\n", p);
     free(p);
   }
+  memgrind_free(p);
 }
 
 void mem_strncpy(char* dst, const char* src, size_t count) {
