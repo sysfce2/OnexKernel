@@ -132,13 +132,13 @@ bool log_loop() {
     flush_saved_messages(FLUSH_TO_SERIAL);
     if(char_recvd){
       log_write(">%c<----------\n", char_recvd);
-      if(char_recvd=='r') boot_reset(false);
-      if(char_recvd=='b') boot_reset(true);
       if(char_recvd=='c') onex_show_cache();
       if(char_recvd=='n') onex_show_notify();
       if(char_recvd=='v') value_dump();
       if(char_recvd=='m') mem_show_allocated(true);
-      if(char_recvd=='h') log_write("r: reset; b: bootloader; c: object cache; v: values\n");
+      if(char_recvd=='r') boot_reset(false);
+      if(char_recvd=='b') boot_reset(true);
+      if(char_recvd=='h') log_write("object c.ache n.otifies v.alues m.em r.eset b.ootloader\n");
       char_recvd=0;
     }
   }
