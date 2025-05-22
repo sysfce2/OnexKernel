@@ -179,7 +179,7 @@ LIB_SOURCES = \
 ./src/lib/list.c \
 ./src/lib/value.c \
 ./src/lib/tests.c \
-./src/lib/properties-lite.c \
+./src/lib/properties.c \
 ./src/onp/onp.c \
 ./src/onn/onn.c \
 

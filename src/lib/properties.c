@@ -12,13 +12,10 @@ typedef struct hash_item hash_item;
 typedef struct properties{
   item_type          type;
   uint16_t           max_size;
-  struct properties* next;
-  char*              name;
   int                buckets;
   uint16_t           size;
   hash_item**        lists;
   char**             keys;
-  uint8_t            i;
 } properties;
 
 struct hash_item{
@@ -34,9 +31,14 @@ unsigned int string_hash(char* p)
   return h;
 }
 
-#define BX 256
-#define WARN_SIZE(h) if((h)->size && !((h)->size % BX)) log_write("%s# %d\n", (h)->name, (h)->size);
-#define WARN_SZLG(h) if((h)->size && !((h)->size % BX)) properties_log(h)
+#if defined(NRF5)
+#define NUM_BUX 64
+#else
+#define NUM_BUX 256
+#endif
+
+#define WARN_SIZE(h) if((h)->size && !((h)->size % NUM_BUX)) log_write("%s# %d\n", (h)->name, (h)->size);
+#define WARN_SZLG(h) if((h)->size && !((h)->size % NUM_BUX)) properties_log(h)
 
 properties* properties_new(uint16_t max_size)
 {
@@ -45,13 +47,11 @@ properties* properties_new(uint16_t max_size)
   if(!op) return 0;
   op->type=ITEM_PROPERTIES;
   op->max_size=max_size;
-  op->name=name;
-  op->buckets=BX;
+  op->buckets=NUM_BUX;
   op->size=0;
   op->lists=mem_alloc((op->buckets)*sizeof(hash_item*));
   op->keys=(char**)mem_alloc(max_size*sizeof(char*));
   if(!op->lists || !op->keys) return 0;
-  op->next=0;
   int i; for(i=0; i< op->buckets; i++) op->lists[i]=0;
   return op;
 }
