@@ -3,7 +3,9 @@
 #include <onex-kernel/mem.h>
 #include <onex-kernel/log.h>
 
+#ifndef LOG_MEM
 #define LOG_MEM 0
+#endif
 
 void* Mem_alloc(char* func, int line, size_t n) {
   if(!n) return 0;
@@ -24,7 +26,7 @@ char* Mem_strdup(char* func, int line, const char* s) {
   char* p=malloc(n);
   if(p) memcpy(p,s,n);
   if(LOG_MEM){
-    char b[20]; mem_strncpy(b, s, 18);
+    char b[20]; mem_strncpy(b, s, 20);
     log_write("mem_strdup  %p %lu [%s] %s:%d\n", p, n, b, func, line);
   }
   return p;
@@ -34,7 +36,7 @@ void Mem_freestr(char* func, int line, char* p) {
   if(!p) return;
   if(LOG_MEM){
     size_t n=strlen(p)+1;
-    char b[20]; mem_strncpy(b, p, 18);
+    char b[20]; mem_strncpy(b, p, 20);
     log_write("mem_freestr %p %lu [%s] %s:%d\n", p, n, b, func, line);
   }
   free(p);

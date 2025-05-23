@@ -1606,7 +1606,8 @@ void persist_pull_keep_active() {
 void onn_recv_observe(char* uid, char* dev) {
   object* o=find_object(uid, dev, true);
   if(o && !object_is_shell(o)) onp_send_object(o, dev);
-  // REVISIT: and call the evaluator!
+  // REVISIT: and call the evaluator! fetching from ONP should run evaluator for
+  // freshness as well as returning current state
 }
 
 bool onn_recv_object(object* n) {
