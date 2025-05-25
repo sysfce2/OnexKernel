@@ -61,6 +61,14 @@ touch_info_t touch_get_info()
   return ti;
 }
 
+void touch_disable(){
+  NVIC_DisableIRQ(GPIOTE_IRQn);
+}
+
+void touch_enable(){
+  NVIC_EnableIRQ(GPIOTE_IRQn);
+}
+
 void touch_reset(uint8_t delay)
 {
   nrf_gpio_pin_clear(TOUCH_RESET_PIN);
