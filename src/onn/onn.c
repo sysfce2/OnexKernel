@@ -525,6 +525,12 @@ int32_t object_property_int32(object* n, char* path){
   return r;
 }
 
+int32_t object_pathpair_int32(object* n, char* path1, char* path2){
+  char pathbuf[MAX_TEXT_LEN];
+  snprintf(pathbuf, MAX_TEXT_LEN, "%s:%s", path1, path2);
+  return object_property_int32(n, pathbuf);
+}
+
 uint16_t object_property_length(object* n, char* path)
 {
   item* i=property_item(n,path,n,true);

@@ -124,6 +124,9 @@ bool  object_property_contains_peek(object* n, char* path, char* expected);
 /** return 32-bit signed integer parsed from string; returns 0 for all failure cases. */
 int32_t object_property_int32(object* n, char* path);
 
+/** return 32-bit signed integer parsed from string; returns 0 for all failure cases; two-part path list */
+int32_t object_pathpair_int32(object* n, char* path1, char* path2);
+
 /** return how many items there are at a path. */
 uint16_t object_property_length(object* n, char* path);
 
