@@ -375,8 +375,14 @@ void run_colour_tests(){
 
   log_write("-------- colour tests ---------\n");
 
+  colours_bcs bcs;
   colours_hsv hsv;
   colours_rgb rgb;
+
+  bcs = (colours_bcs){ 255,  85,  64 }; rgb = colours_bcs_to_rgb(bcs);
+  log_write("bcs=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", bcs.b, bcs.c, bcs.s, rgb.r, rgb.g, rgb.b);
+  hsv = (colours_hsv){  85, 191, 255 }; rgb = colours_hsv_to_rgb(hsv);
+  log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
 
   hsv = (colours_hsv){   0,   0,   0 }; rgb = colours_hsv_to_rgb(hsv);
   log_write("hsv=(%3d,%3d,%3d): rgb=(%3d,%3d,%3d)\n", hsv.h, hsv.s, hsv.v, rgb.r, rgb.g, rgb.b);
@@ -444,13 +450,13 @@ void run_colour_tests(){
   char* colour_chars;
   colours_rgb from_chars;
 
-  colour_chars = "%ffffff"; from_chars = colours_parse_string(colour_chars);
+  colour_chars = "%ffff00"; from_chars = colours_parse_string(colour_chars);
   log_write("%s = rgb: { %02x %02x %02x }\n", colour_chars, from_chars.r, from_chars.g, from_chars.b);
-  colour_chars = "%55ffff"; from_chars = colours_parse_string(colour_chars);
+  colour_chars = "%ff5500"; from_chars = colours_parse_string(colour_chars);
   log_write("%s = rgb: { %02x %02x %02x }\n", colour_chars, from_chars.r, from_chars.g, from_chars.b);
-  colour_chars = "%abffff"; from_chars = colours_parse_string(colour_chars);
+  colour_chars = "%ffab00"; from_chars = colours_parse_string(colour_chars);
   log_write("%s = rgb: { %02x %02x %02x }\n", colour_chars, from_chars.r, from_chars.g, from_chars.b);
-  colour_chars = "%557f7f"; from_chars = colours_parse_string(colour_chars);
+  colour_chars = "%7f557f"; from_chars = colours_parse_string(colour_chars);
   log_write("%s = rgb: { %02x %02x %02x }\n", colour_chars, from_chars.r, from_chars.g, from_chars.b);
 
   colour_chars = "#ffffff"; from_chars = colours_parse_string(colour_chars);

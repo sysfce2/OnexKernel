@@ -6,6 +6,10 @@
 
 #include <onex-kernel/colours.h>
 
+colours_rgb colours_bcs_to_rgb(colours_bcs bcs) {
+  return colours_hsv_to_rgb((colours_hsv){ bcs.c, 255-bcs.s, bcs.b });
+}
+
 colours_rgb colours_hsv_to_rgb(colours_hsv hsv) {
 
   uint8_t v = hsv.v;
@@ -62,9 +66,9 @@ colours_rgb colours_parse_string(char* cs) {
 
   if(!(cs[0]=='#' || cs[0]=='%')) return black;
 
-  uint8_t rh=0;
-  uint8_t gs=0;
-  uint8_t bv=0;
+  uint8_t rb=0;
+  uint8_t gc=0;
+  uint8_t bs=0;
 
   size_t len = strlen(cs);
   if (len == 7) { // e.g., "#ff0000"
@@ -74,10 +78,10 @@ colours_rgb colours_parse_string(char* cs) {
 
       if (val == -1) return black;
 
-      if (i <= 2) rh = (rh << 4) | val;
+      if (i <= 2) rb = (rb << 4) | val;
       else
-      if (i <= 4) gs = (gs << 4) | val;
-      else        bv = (bv << 4) | val;
+      if (i <= 4) gc = (gc << 4) | val;
+      else        bs = (bs << 4) | val;
     }
   }
   else
@@ -88,19 +92,19 @@ colours_rgb colours_parse_string(char* cs) {
 
       if (val == -1) return black;
 
-      if (i == 1) rh = (val << 4) | val;
+      if (i == 1) rb = (val << 4) | val;
       else
-      if (i == 2) gs = (val << 4) | val;
-      else        bv = (val << 4) | val;
+      if (i == 2) gc = (val << 4) | val;
+      else        bs = (val << 4) | val;
     }
   }
   if(cs[0]=='#'){
-    colours_rgb rgb = { rh, gs, bv };
+    colours_rgb rgb = { rb, gc, bs };
     return rgb;
   }
   if(cs[0]=='%'){
-    colours_hsv hsv = { rh, gs, bv };
-    return colours_hsv_to_rgb(hsv);
+    colours_bcs bcs = { rb, gc, bs };
+    return colours_bcs_to_rgb(bcs);
   }
   return black;
 }
