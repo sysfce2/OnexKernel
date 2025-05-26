@@ -97,7 +97,7 @@ bool  object_property_add_list(object* n, char* path, ... /* char* val, ..., 0 *
 /** return single property value or nothing if it's a list. */
 char* object_property(object* n, char* path);
 
-/** return single property value or nothing if it's a list. two-part path list */
+/** return single property value or nothing if it's a list; two-part path list */
 char* object_pathpair(object* n, char* path1, char* path2);
 
 /** return property value or nothing if it's a list; don't observe any sub-objects on the path. */
@@ -106,7 +106,7 @@ char* object_property_peek(object* n, char* path);
 /** return whether property at path is a single value and it matches supplied string. */
 bool  object_property_is(object* n, char* path, char* expected);
 
-/** return whether property at path is a single value and it matches supplied string. two-part path list */
+/** return whether property at path is a single value and it matches supplied string; two-part path list */
 bool  object_pathpair_is(object* n, char* path1, char* path2, char* expected);
 
 /** return whether property at path is a single value and it matches supplied string; don't observe any sub-objects on the path. */
@@ -115,7 +115,7 @@ bool  object_property_is_peek(object* n, char* path, char* expected);
 /** return whether property at path is a single value or a list and supplied string found. */
 bool  object_property_contains(object* n, char* path, char* expected);
 
-/** return whether property at path is a single value or a list and supplied string found. two-part path list */
+/** return whether property at path is a single value or a list and supplied string found; two-part path list */
 bool  object_pathpair_contains(object* n, char* path1, char* path2, char* expected);
 
 /** return whether property at path is a single value or a list and supplied string found; don't observe any sub-objects on the path. */
@@ -127,13 +127,13 @@ int32_t object_property_int32(object* n, char* path);
 /** return how many items there are at a path. */
 uint16_t object_property_length(object* n, char* path);
 
-/** return how many items there are at a path. two-part path list*/
+/** return how many items there are at a path; two-part path list */
 uint16_t object_pathpair_length(object* n, char* path1, char* path2);
 
 /** return property value at path and index into list. */
 char* object_property_get_n(object* n, char* path, uint16_t index);
 
-/** return property value at path and index into list. two-part path list*/
+/** return property value at path and index into list; two-part path list */
 char* object_pathpair_get_n(object* n, char* path1, char* path2, uint16_t index);
 
 /** return how many properties there are at a path, or -1 if it's not a properties there. */

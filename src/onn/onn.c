@@ -388,10 +388,8 @@ char* object_property(object* n, char* path) {
 }
 
 char* object_pathpair(object* n, char* path1, char* path2){
-
   char pathbuf[MAX_TEXT_LEN];
   snprintf(pathbuf, MAX_TEXT_LEN, "%s:%s", path1, path2);
-
   return object_property_observe(n, pathbuf, true);
 }
 
@@ -540,10 +538,8 @@ uint16_t object_property_length(object* n, char* path)
 }
 
 uint16_t object_pathpair_length(object* n, char* path1, char* path2){
-
   char pathbuf[MAX_TEXT_LEN];
   snprintf(pathbuf, MAX_TEXT_LEN, "%s:%s", path1, path2);
-
   return object_property_length(n, pathbuf);
 }
 
@@ -562,10 +558,8 @@ char* object_property_get_n(object* n, char* path, uint16_t index)
 }
 
 char* object_pathpair_get_n(object* n, char* path1, char* path2, uint16_t index){
-
   char pathbuf[MAX_TEXT_LEN];
   snprintf(pathbuf, MAX_TEXT_LEN, "%s:%s", path1, path2);
-
   return object_property_get_n(n, pathbuf, index);
 }
 
@@ -662,10 +656,8 @@ bool object_property_is_peek(object* n, char* path, char* expected)
 }
 
 bool object_pathpair_is(object* n, char* path1, char* path2, char* expected){
-
   char pathbuf[MAX_TEXT_LEN];
   snprintf(pathbuf, MAX_TEXT_LEN, "%s:%s", path1, path2);
-
   return object_property_is_observe(n, pathbuf, expected, true);
 }
 
@@ -695,10 +687,8 @@ bool object_property_contains(object* n, char* path, char* expected)
 }
 
 bool object_pathpair_contains(object* n, char* path1, char* path2, char* expected){
-
   char pathbuf[MAX_TEXT_LEN];
   snprintf(pathbuf, MAX_TEXT_LEN, "%s:%s", path1, path2);
-
   return object_property_contains_observe(n, pathbuf, expected, true);
 }
 
