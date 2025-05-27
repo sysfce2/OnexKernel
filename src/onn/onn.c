@@ -380,6 +380,10 @@ static char* object_property_observe(object* n, char* path, bool observe)
 
   item* i=property_item(n,path,n,observe);
   if(i && i->type==ITEM_VALUE) return value_string((value*)i);
+  if(i && i->type==ITEM_LIST){
+    item* j=list_get_n((list*)i,1);
+    if(j && j->type==ITEM_VALUE) return value_string((value*)j);
+  }
   return 0;
 }
 
@@ -431,8 +435,8 @@ char* object_property_values(object* n, char* path) {
   return 0;
 }
 
-item* property_item(object* n, char* path, object* t, bool observe)
-{
+item* property_item(object* n, char* path, object* t, bool observe) {
+  // REVISIT: why dupe these here? can't go "x:y:Alerted|Obstime|Timer", or can u?
   if(!strcmp(path, "UID"))     return (item*)n->uid;
   if(!strcmp(path, "Timer"))   return (item*)n->timer;
   if(!strcmp(path, "Obstime")) return (item*)format_obstime(n);

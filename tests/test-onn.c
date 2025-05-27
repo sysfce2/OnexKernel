@@ -34,7 +34,7 @@ void test_object_set_up() {
   onex_assert(      strcmp(random_uid_1, random_uid_2),      "UID generation creates unique UIDs");
 
   onex_assert(      object_property_length(  nr, "is")==2,           "property 'is' is a list of 2 items");
-  onex_assert(     !object_property(         nr, "is"),              "'is' isn't a value" );
+  onex_assert_equal(object_property(         nr, "is"), "random",    "pull off 1st value in list" );
   onex_assert(      object_property_contains(nr, "is",    "random"), "object_new parses 'is' first list item" );
   onex_assert(      object_property_contains(nr, "is",    "uid"   ), "object_new parses 'is' first list item" );
   onex_assert_equal(object_property(         nr, "is:1"), "random",  "object_new parses 'is' first list item" );
@@ -324,6 +324,7 @@ uint8_t evaluate_local_state_n3_called=0;
 bool evaluate_local_state_n3(object* n3, void* d)
 {
   evaluate_local_state_n3_called++;
+  // UID: uid-1  is: setup  state: good mostly  1: a c  2: ok m8
   // UID: uid-2  is: local-state  state: good
   // UID: uid-3  is: local-state  n2: uid-2  self: uid-3  n*: uid-1 uid-2 uid-3 uid-4 uid-5
   onex_assert(     !object_property(         n3, "is:foo"),                     "can't find is:foo");
@@ -371,9 +372,16 @@ bool evaluate_local_state_n3(object* n3, void* d)
   onex_assert_equal(object_property_val(     n3, "self:n2:", 2), "good",        "val of 2nd item in n2 is 'good', via self");
   onex_assert_equal(object_property(         n3, "self"), "uid-3",              "can see self as string when it's all uids");
   onex_assert_equal(object_property(         n3, "n2"), "uid-2",                "can see n2 as string when it's all uids");
-  onex_assert(     !object_property(         n3, "n*"),                         "can't see n* as string cos it's a list");
+  onex_assert_equal(object_property(         n3, "n*"), "uid-1",                "can see n* as 1st val, even though it's a list");
+//onex_assert_equal(object_property(         n3, "n*:is"), "setup",             "can see n*:is as 1st link's val");
+  onex_assert_equal(object_property(         n3, "n*:1:is"), "setup",           "can see n*:1:is anyway");
+//onex_assert_equal(object_property(         n3, "n*:state"), "good",           "can see n*:state as 1st link's val");
+  onex_assert_equal(object_property(         n3, "n*:1:state"), "good",         "can see n*:1:state anyway");
+  onex_assert_equal(object_property(         n3, "n*:1:state:2"), "mostly",     "can see n* as 1st val, even though it's a list");
+  onex_assert_equal(object_property(         n3, "n2:n1:state"), "good",        "can see through n2 to n1, getting 1st in list");
   onex_assert_equal(object_property(         n3, "n2:n1:state:1"), "good",      "can see through n2 to n1");
   onex_assert_equal(object_property(         n3, "n2:n1:state:2"), "mostly",    "can see through n2 to n1");
+
 /*
 { UID: uid-3 is: local-state   n2: uid-2   self: uid-3   n*: uid-1 uid-2 uid-3 uid-4 uid-5 }
 { UID: uid-2 is: local-state   state: good          n1: uid-1 }
