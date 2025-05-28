@@ -113,11 +113,23 @@ static void set_up_gpio(void) {
 #endif
 
 #if defined(NRF5)
+
+// this is for Feather Sense
+#define ADC_TOP_V        3600
+#define ADC_BITS_RANGE   1024
+#if defined(BOARD_FEATHER_SENSE)
+#define ADC_RESISTOR_DIV    2
+#elif defined(BOARD_MAGIC3)
+#define ADC_RESISTOR_DIV    7 / 4
+#endif
+#define BATT_LOWEST      3400
+#define BATT_HIGHEST     3750
+
 void sprintf_battery(char* buf, uint16_t size) {
 
   int16_t bv = gpio_read(BATT_ADC_CHANNEL);
-  int16_t mv = bv*2000/(1024/(33/10));
-  int8_t  pc = ((mv-3520)*100/5200)*10;
+  int16_t mv = bv * ADC_TOP_V / ADC_BITS_RANGE * ADC_RESISTOR_DIV;
+  int16_t pc = (mv-BATT_LOWEST)*100/(BATT_HIGHEST - BATT_LOWEST);
 
   snprintf(buf, size, "%d/%dmv/%d%%", bv, mv, pc);
 }

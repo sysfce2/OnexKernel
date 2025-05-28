@@ -206,8 +206,10 @@ void gpio_adc_init(uint8_t pin, uint8_t channel) {
   nrf_saadc_channel_config_t adc_channel_config = {
           .resistor_p = NRF_SAADC_RESISTOR_DISABLED,
           .resistor_n = NRF_SAADC_RESISTOR_DISABLED,
-          .gain       = NRF_SAADC_GAIN1_4,        //  \__ ADC Vin = 0..VDD/4*4!
-          .reference  = NRF_SAADC_REFERENCE_VDD4, //  /
+          .gain       = NRF_SAADC_GAIN1_6,            //  \__ ADC Vin = 0..0.6V*6= 0..3.6V
+          .reference  = NRF_SAADC_REFERENCE_INTERNAL, //  /   0.6V
+  //      .gain       = NRF_SAADC_GAIN1_4,            //  \__ ADC Vin = 0..VDD/4*4 = 0..VDD
+  //      .reference  = NRF_SAADC_REFERENCE_VDD4,     //  /
           .acq_time   = NRF_SAADC_ACQTIME_3US,
           .mode       = NRF_SAADC_MODE_SINGLE_ENDED,
           .burst      = NRF_SAADC_BURST_DISABLED,
@@ -215,6 +217,8 @@ void gpio_adc_init(uint8_t pin, uint8_t channel) {
           .pin_n      = NRF_SAADC_INPUT_DISABLED
   };
   nrfx_saadc_channel_init(channel, &adc_channel_config);
+
+  NRF_SAADC->RESOLUTION = SAADC_RESOLUTION_VAL_10bit;
 
   // See https://github.com/adafruit/Adafruit_nRF52_Arduino/blob/master/cores/nRF5/wiring_analog_nRF52.c
   // for bare metal code and above Vref stuff
