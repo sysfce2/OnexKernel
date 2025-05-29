@@ -27,6 +27,7 @@ void    gpio_toggle(    uint8_t pin);
 int     gpio_touch_read(uint8_t pin);
 void    gpio_enable_interrupts();
 void    gpio_disable_interrupts();
+bool    gpio_usb_powered();
 void    gpio_sleep();
 void    gpio_wake();
 

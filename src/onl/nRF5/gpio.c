@@ -231,6 +231,10 @@ int16_t gpio_read(uint8_t channel) {
   return value;
 }
 
+bool gpio_usb_powered(){
+  return NRF_POWER->USBREGSTATUS & POWER_USBREGSTATUS_VBUSDETECT_Msk;
+}
+
 static bool sleeping=false;
 void gpio_sleep()
 {
