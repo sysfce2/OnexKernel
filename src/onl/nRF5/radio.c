@@ -120,7 +120,7 @@ static bool write_a_packet(uint16_t size){
   return true;
 }
 
-bool radio_init(channel_recv_cb cb){
+bool radio_init(list* bands, channel_recv_cb cb){
 
   recv_cb = cb;
 
@@ -133,7 +133,7 @@ bool radio_init(channel_recv_cb cb){
                         (RADIO_MODECNF0_RU_Fast << RADIO_MODECNF0_RU_Pos);
 
   NRF_RADIO->TXPOWER   = RADIO_TXPOWER;
-  NRF_RADIO->FREQUENCY = RADIO_CHANNEL;
+  NRF_RADIO->FREQUENCY = RADIO_CHANNEL; // REVISIT read list* bands
 
   NRF_RADIO->MODE  = RADIO_MODE_MODE_Nrf_1Mbit;  // 2Mbit?!
 

@@ -26,6 +26,7 @@ extern bool onn_recv_object(object* n);
 static list* channels=0;
 static list* ipv6_groups=0;
 static list* serial_ttys=0;
+static list* radio_bands=0;
 static char* test_uid_prefix=0;
 
 static properties*    device_to_channel = 0;
@@ -60,12 +61,13 @@ void onp_init(properties* config) {
   channels    = properties_get(config, "channels");
   ipv6_groups = properties_get(config, "ipv6_groups");
   serial_ttys = properties_get(config, "serial_ttys");
+  radio_bands = properties_get(config, "radio_bands");
 
   test_uid_prefix=value_string(properties_get(config, "test-uid-prefix"));
 
+  onp_channel_ipv6   = list_has_value(channels,"ipv6");
   onp_channel_serial = list_has_value(channels,"serial");
   onp_channel_radio  = list_has_value(channels,"radio");
-  onp_channel_ipv6   = list_has_value(channels,"ipv6");
 
   onp_channel_forward = (onp_channel_radio && onp_channel_serial)          ||
                         (onp_channel_ipv6  && onp_channel_serial)          ||
@@ -75,7 +77,7 @@ void onp_init(properties* config) {
   connected_channels = list_new(MAX_PEERS);
 
   if(onp_channel_serial) serial_init(serial_ttys, 9600, channel_on_recv);
-  if(onp_channel_radio)  radio_init(channel_on_recv);
+  if(onp_channel_radio)  radio_init(radio_bands, channel_on_recv);
   if(onp_channel_ipv6)   ipv6_init(ipv6_groups, channel_on_recv);
 
   if(onp_channel_serial)  log_write("ONP channel serial\n");
