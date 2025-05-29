@@ -811,7 +811,7 @@ LD_FILES_DONGLE          = -L./sdk/modules/nrfx/mdk -T./src/onl/nRF5/dongle/onex
 
 clean:
 	find src tests mod-sdk -name '*.o' -o -name '*.d' | xargs rm -f
-	rm -f *.bin *.elf *.hex
+	rm -f *.bin *.elf *.hex *.map *.out *.uf2
 	find . -name onex.ondb | xargs rm -f
 	find ./sdk/ -name '*.o' | xargs -r rm
 	rm -rf onex-kernel*.??? dfu.zip core oko
