@@ -235,6 +235,10 @@ DONGLE_SOURCES = \
 $(NRF5_SOURCES) \
 
 
+PCR_BUTTON_SOURCES = \
+./tests/main-pcr-button-nrf.c \
+
+
 PCR_SOURCES = \
 ./tests/main-pcr.c \
 
@@ -688,6 +692,17 @@ feather-pcr-light: libonex-kernel-feather-sense.a $(PCR_LIGHT_SOURCES:.c=.o)
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
 	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
 
+feather-pcr-button: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_FEATHER_SENSE)
+feather-pcr-button: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_FEATHER_SENSE) $(INCLUDES_FEATHER_SENSE)
+feather-pcr-button: libonex-kernel-feather-sense.a $(PCR_BUTTON_SOURCES:.c=.o)
+	rm -rf oko
+	mkdir oko
+	ar x ./libonex-kernel-feather-sense.a --output oko
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-gcc $(M4_LD_FLAGS) $(LD_FILES_FEATHER_SENSE) -Wl,-Map=./onex-kernel.map -o ./onex-kernel.out $(PCR_BUTTON_SOURCES:.c=.o) oko/* -lm
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-size ./onex-kernel.out
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O binary ./onex-kernel.out ./onex-kernel.bin
+	$(GCC_ARM_TOOLCHAIN)$(GCC_ARM_PREFIX)-objcopy -O ihex   ./onex-kernel.out ./onex-kernel.hex
+
 feather-moon: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_FEATHER_SENSE)
 feather-moon: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_FEATHER_SENSE) $(INCLUDES_FEATHER_SENSE)
 feather-moon: libonex-kernel-feather-sense.a $(MOON_SOURCES:.c=.o)
@@ -718,6 +733,9 @@ itsybitsy-tests-flash: nrf.tests.itsybitsy
 	uf2conv.py onex-kernel.hex --family 0xada52840 --output onex-kernel.uf2
 
 #-------------------------------:
+
+feather-pcr-button-flash: feather-pcr-button
+	uf2conv.py onex-kernel.hex --family 0xada52840 --output onex-kernel.uf2
 
 feather-pcr-flash: feather-pcr
 	uf2conv.py onex-kernel.hex --family 0xada52840 --output onex-kernel.uf2
