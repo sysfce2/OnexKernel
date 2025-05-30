@@ -231,6 +231,17 @@ int16_t gpio_read(uint8_t channel) {
   return value;
 }
 
+void gpio_show_power_status(){
+
+  bool vddh = (NRF_POWER->MAINREGSTATUS &
+                             (POWER_MAINREGSTATUS_MAINREGSTATUS_High << POWER_MAINREGSTATUS_MAINREGSTATUS_Pos));
+  bool usb  = (NRF_POWER->USBREGSTATUS & POWER_USBREGSTATUS_VBUSDETECT_Msk);
+
+  log_write("DCDCEN: %lu, DCDCEN0: %lu\n", NRF_POWER->DCDCEN, NRF_POWER->DCDCEN0);
+  log_write("MAINREGSTATUS: %s (%x)\n", vddh? "VDDH" : "VDD", NRF_POWER->MAINREGSTATUS);
+  log_write("USB power: %s\n", usb? "yes" : "no");
+}
+
 bool gpio_usb_powered(){
   return NRF_POWER->USBREGSTATUS & POWER_USBREGSTATUS_VBUSDETECT_Msk;
 }
