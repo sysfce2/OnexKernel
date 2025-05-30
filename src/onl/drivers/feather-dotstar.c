@@ -17,14 +17,20 @@ void led_matrix_fill_hsv(colours_hsv hsv){
 
 void led_matrix_fill_rgb(colours_rgb rgb){
   for(uint16_t i=0; i<num_leds; i++){
-    led_matrix_array[i][0]=rgb.r/4;
-    led_matrix_array[i][1]=rgb.g/4;
-    led_matrix_array[i][2]=rgb.b/4;
+    led_matrix_array[i][0]=rgb.r;
+    led_matrix_array[i][1]=rgb.g;
+    led_matrix_array[i][2]=rgb.b;
   }
 }
 
 void led_matrix_fill_col(char* colour){
   led_matrix_fill_rgb(colours_parse_string(colour));
+}
+
+static uint8_t scale=10;
+
+void led_matrix_set_scale(uint8_t scale_){
+  scale = scale_;
 }
 
 void led_matrix_show(){
@@ -39,9 +45,9 @@ void led_matrix_show(){
   // BGR not RGB!
   for(uint16_t i=0; i<num_leds; i++){
     d=0xFF; spi_fast_write(&d, 1);
-    d=led_matrix_array[i][2]; spi_fast_write(&d, 1);
-    d=led_matrix_array[i][1]; spi_fast_write(&d, 1);
-    d=led_matrix_array[i][0]; spi_fast_write(&d, 1);
+    d=led_matrix_array[i][2]/scale; spi_fast_write(&d, 1);
+    d=led_matrix_array[i][1]/scale; spi_fast_write(&d, 1);
+    d=led_matrix_array[i][0]/scale; spi_fast_write(&d, 1);
   }
 
   // https://cpldcpu.wordpress.com/2014/11/30/understanding-the-apa102-superled/
