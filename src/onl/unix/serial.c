@@ -86,7 +86,11 @@ bool serial_init(list* ttys, uint32_t br, channel_recv_cb cb) {
   return true;
 }
 
+static bool connected=false;
+
 uint8_t serial_ready_state(){ return SERIAL_READY; }
+uint8_t serial_status(){      return SERIAL_READY; }
+bool    serial_connected(){   return connected; }
 
 #define MAX_TTYS 3
 int fds[MAX_TTYS]  = {-1,-1,-1};
@@ -101,7 +105,10 @@ void update_connected_serials() {
     char* tty = value_string(list_get_n(serial_ttys, t+1));
     fds[t]=init_serial(tty, baudrate);
     char channel[256]; snprintf(channel, 256, "serial-%s", tty+strlen("/dev/"));
-    if(fds[t]!= -1 && recv_cb) recv_cb(true, channel);
+    if(fds[t]!= -1){
+      connected=true;
+      if(recv_cb) recv_cb(true, channel);
+    }
   }
 }
 

@@ -17,6 +17,8 @@
 
 bool     serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb);
 uint8_t  serial_ready_state();
+uint8_t  serial_status();
+bool     serial_connected();
 bool     serial_loop();
 
 uint16_t serial_available();

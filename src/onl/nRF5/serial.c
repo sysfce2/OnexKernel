@@ -22,9 +22,10 @@
 #define SERIAL_WRITE_BUFFER_SIZE 4096
 
 static volatile bool initialised=false;
+static volatile bool connected=false;
 
 static volatile channel_recv_cb recv_cb = 0;
-static volatile bool            pending_connect=false;
+static volatile bool            port_opened=false;
 
 #ifndef USBD_POWER_DETECTION
 #define USBD_POWER_DETECTION true // REVISIT
@@ -107,15 +108,12 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
                                                    m_cdc_data_array,
                                                    1);
             UNUSED_VARIABLE(ret);
-            chunkbuf_clear(serial_write_buf);
-            if(recv_cb) recv_cb(true, "serial");
-            else        pending_connect = true;
+            port_opened = true;
             NRF_LOG_INFO("CDC ACM port opened");
             break;
         }
         case APP_USBD_CDC_ACM_USER_EVT_PORT_CLOSE:
         {
-            chunkbuf_clear(serial_write_buf);
             break;
         }
         case APP_USBD_CDC_ACM_USER_EVT_TX_DONE:
@@ -246,6 +244,8 @@ static uint8_t get_ready_state(){
   return 99; // not powered but still somehow ready!
 }
 
+uint8_t serial_status(){ return get_ready_state(); }
+
 uint8_t serial_ready_state(){
   uint32_t start=time_ms();
   while(get_ready_state()!=SERIAL_READY && time_ms()-start < 100){
@@ -255,10 +255,35 @@ uint8_t serial_ready_state(){
   return get_ready_state();
 }
 
+bool serial_connected(){
+  if(get_ready_state() != SERIAL_READY){
+    connected = false;
+  }
+  return connected;
+}
+
 bool serial_loop() {
-  if(pending_connect && recv_cb){
-    recv_cb(true, "serial");
-    pending_connect = false;
+  static uint32_t port_opened_at = 0;
+  if(port_opened){
+    port_opened_at = time_ms();
+    port_opened = false;
+  }
+  else
+  if(port_opened_at && time_ms() > port_opened_at + 1000){
+    if(recv_cb){
+      port_opened_at = 0;
+      connected = true;
+      recv_cb(true, "serial");
+    }
+    else{
+      if(time_ms() > port_opened_at + 5000){
+        port_opened_at = 0;
+        connected = true;
+      }
+    }
+  }
+  if(get_ready_state() != SERIAL_READY){
+    connected = false;
   }
   return app_usbd_event_queue_process();
 }
@@ -317,7 +342,9 @@ static uint16_t serial_write_delim(char* tty, char* buf, uint16_t size, bool del
 #else // BOARD_MAGIC3
 
 bool     serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb){ return false; }
-uint8_t  serial_ready_state(){ return SERIAL_READY; }
+uint8_t  serial_ready_state(){ return SERIAL_NOT_POWERED_OR_READY; }
+uint8_t  serial_status(){      return SERIAL_NOT_POWERED_OR_READY; }
+bool     serial_connected(){   return false; }
 uint16_t serial_available(){ return 0; }
 uint16_t serial_read(char* buf, uint16_t size){ return 0; }
 uint16_t serial_write(char* tty, char* buf, uint16_t size){ return 0; }
