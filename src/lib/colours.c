@@ -16,7 +16,7 @@ colours_rgb colours_hsv_to_rgb(colours_hsv hsv) {
   colours_rgb rgb;
 
   if (hsv.s == 0) {
-    rgb.r = rgb.g = rgb.b = v;
+    rgb.r = rgb.g = rgb.b = v / 3;
     return rgb;
   }
 
@@ -37,6 +37,12 @@ colours_rgb colours_hsv_to_rgb(colours_hsv hsv) {
     case 3: rgb.r = w;  rgb.g = x; rgb.b = v; break;
     case 4: rgb.r = y;  rgb.g = w; rgb.b = v; break;
     case 5: rgb.r = v;  rgb.g = w; rgb.b = x; break;
+  }
+  uint16_t sum = rgb.r + rgb.g + rgb.b;
+  if(sum){
+    rgb.r = rgb.r * v / sum;
+    rgb.g = rgb.g * v / sum;
+    rgb.b = rgb.b * v / sum;
   }
   return rgb;
 }
