@@ -27,10 +27,6 @@ static volatile bool connected=false;
 static volatile channel_recv_cb recv_cb = 0;
 static volatile bool            port_opened=false;
 
-#ifndef USBD_POWER_DETECTION
-#define USBD_POWER_DETECTION true // REVISIT
-#endif
-
 static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
                                     app_usbd_cdc_acm_user_event_t event);
 
@@ -220,15 +216,8 @@ bool serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb) {
     ret = app_usbd_class_append(class_cdc_acm);
     if(ret != NRF_SUCCESS){ log_flash(1,0,0); return false; }
 
-    if (USBD_POWER_DETECTION) {
-        ret = app_usbd_power_events_enable();
-        if(ret != NRF_SUCCESS){ log_flash(1,0,0); return false; }
-    } else {
-        NRF_LOG_INFO("No USB power detection enabled\r\nStarting USB now");
-
-        app_usbd_enable();
-        app_usbd_start();
-    }
+    app_usbd_enable();
+    app_usbd_start();
 
     initialised=true;
 
