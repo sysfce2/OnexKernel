@@ -81,7 +81,7 @@ void log_init(properties* config) {
 #endif
     time_init();
     flash_id=time_timeout(flash_time_cb,0);
-    log_flash(1,1,1);
+    log_flash(0,1,0);
   }
 
   initialised=true;
@@ -93,9 +93,16 @@ void log_init(properties* config) {
 #define FLUSH_TO_RTT    2
 #define FLUSH_TO_GFX    3
 
+static char* get_reason_to_save_logs(){
+  if(time_ms() < LOG_EARLY_MS)               return "ERL ";
+  if(in_interrupt_context())                 return "INT ";
+  if(debug_on_serial && !serial_connected()) return "SER ";
+  return 0;
+}
+
 static void flush_saved_messages(uint8_t to){
 
-  if(time_ms() < LOG_EARLY_MS) return;
+  if(get_reason_to_save_logs()) return;
 
   for(uint8_t i=1; i<=list_size(saved_messages); i++){
 
@@ -170,9 +177,7 @@ int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt,
 
   int16_t r=0;
 
-  char* save_reason=0;
-  if(in_interrupt_context())   save_reason="INT ";
-  if(time_ms() < LOG_EARLY_MS) save_reason="ERL ";
+  char* save_reason=get_reason_to_save_logs();
   if(save_reason){
 #ifndef LOG_MEM
     if(!saved_messages) saved_messages = list_new(32);
