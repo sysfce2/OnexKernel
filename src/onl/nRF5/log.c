@@ -233,6 +233,9 @@ void flash_time_cb(void*) {
 }
 
 void log_flash_current_file_line(char* file, uint32_t line, uint8_t r, uint8_t g, uint8_t b){
+#ifdef ONLY_FLASH_111
+  if(r+g+b != 3) return;
+#endif
   if(!initialised) return;
   if(!strstr(file, "serial") && !strstr(file, "log")){
     log_write_mode(1, file, line, "log_flash\n");

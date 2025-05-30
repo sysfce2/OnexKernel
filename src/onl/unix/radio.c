@@ -7,7 +7,7 @@
 
 #include <onex-kernel/radio.h>
 
-bool radio_init(channel_recv_cb cb){
+bool radio_init(list* bands, channel_recv_cb cb){
   return true;
 }
 
