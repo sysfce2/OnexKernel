@@ -121,6 +121,8 @@ static void set_up_gpio(void) {
 #define ADC_RESISTOR_DIV    2
 #elif defined(BOARD_MAGIC3)
 #define ADC_RESISTOR_DIV    7 / 4
+#else
+#define ADC_RESISTOR_DIV    1
 #endif
 #define BATT_LOWEST      3400
 #define BATT_HIGHEST     3750
@@ -567,7 +569,7 @@ int main() {
   }
 #endif
 
-  radio_init(radio_cb);
+  radio_init(0, radio_cb);
 
 #if defined(BOARD_FEATHER_SENSE)
   compass_init();
@@ -646,7 +648,7 @@ int main() {
   gfx_rect_fill(195,210,  20, 20, GFX_CYAN);
   gfx_text_colour(GFX_BLUE);
 
-  radio_init(radio_cb);
+  radio_init(0, radio_cb);
   send_big_radio_data(true);
 
   touch_init(touched);

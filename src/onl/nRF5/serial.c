@@ -13,6 +13,7 @@
 #include "app_usbd_serial_num.h"
 
 #include <onex-kernel/serial.h>
+#include <onex-kernel/gpio.h>
 #include <onex-kernel/log.h>
 #include <onex-kernel/chunkbuf.h>
 
@@ -217,7 +218,7 @@ bool serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb) {
     if(ret != NRF_SUCCESS){ log_flash(1,0,0); return false; }
 
     app_usbd_enable();
-    app_usbd_start();
+    app_usbd_start(); // crashes after flashes
 
     initialised=true;
 
