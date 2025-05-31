@@ -18,10 +18,7 @@ static void connect_time_cb(void* connected_channel);
 static bool handle_recv(uint16_t size, char* channel);
 static void send(char* channel);
 static void log_sent(char* prefix, uint16_t size, char* channel);
-static void log_recv(char* prefix, uint16_t size, char* channel, object* o, char* uid);
-
-extern void onn_recv_observe(char* uid, char* dev);
-extern bool onn_recv_object(object* n);
+static void log_recv(char* prefix, uint16_t size, char* channel, object* o, observe* obs);
 
 static list* channels=0;
 static list* ipv6_groups=0;
@@ -241,51 +238,15 @@ void connect_time_cb(void* connected_channel) {
 
 static bool recv_observe(uint16_t size, char* channel){
 
-  char* u=recv_buff;
+  observe* obs = observe_from_text(recv_buff);
 
-  char* obs=u;
-  while(*u > ' ') u++;
-  if(!*u) return false;
-  *u=0;
-  if(strcmp(obs, "OBS:")) return false;
-  *u=' ';
-  u++;
+  if(!obs) return false;
 
-  char* uid=u;
-  while(*u > ' ') u++;
-  if(!*u) return false;
-  *u=0;
-  if(!strlen(uid)) return false;
-  uid=mem_strdup(uid);
-  *u=' ';
-  u++;
+  log_recv("ONP recv", size, channel, 0, obs);
 
-  char* dvp=u;
-  while(*u > ' ') u++;
-  if(!*u){ mem_freestr(uid); return false; }
-  *u=0;
-  if(strcmp(dvp, "Devices:")){ mem_freestr(uid); return false; }
-  *u=' ';
-  u++;
+  set_channel_of_device(obs->dev, channel);
 
-  char* dev=u;
-  while(*u > ' ') u++;
-  *u=0;
-  if(!strlen(dev)){ mem_freestr(uid); return false; }
-  dev=mem_strdup(dev);
-
-  if(!strcmp(object_property(onex_device_object, "UID"), dev)){
-    // log_write("Rejecting own OBS: %s\n", dev);
-    mem_freestr(uid); mem_freestr(dev);
-    return false;
-  }
-  log_recv("ONP recv", size, channel, 0, uid);
-
-  set_channel_of_device(dev, channel);
-
-  onn_recv_observe(uid,dev);
-
-  mem_freestr(uid); mem_freestr(dev);
+  onn_recv_observe(obs);
 
   return true;
 }
@@ -314,7 +275,7 @@ static bool recv_object(uint16_t size, char* channel){
 
   set_channel_of_device(dev, channel);
 
-  if(!onn_recv_object(n)) object_free(n);
+  onn_recv_object(n);
 
   return true;
 }
@@ -395,11 +356,11 @@ void log_sent(char* prefix, uint16_t size, char* channel) {
   }
 }
 
-void log_recv(char* prefix, uint16_t size, char* channel, object* o, char* uid) {
+void log_recv(char* prefix, uint16_t size, char* channel, object* o, observe* obs) {
   if(!log_onp) return;
   if(log_to_gfx){
     if(o)   log_write("U:%s\n", object_property_values(o, "is"));
-    if(uid) log_write("O:%s\n", uid);
+    if(obs) log_write("O:%s\n", obs->uid);
   }
   else{
     log_write("%s '%s'", prefix, recv_buff);
