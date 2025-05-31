@@ -181,17 +181,28 @@ void send_all_entries(properties* p, bool obs){
   properties_clear(p, false);
 }
 
+#define SERIAL_SEND_RATE 800
+#define RADIO_SEND_RATE  800
+#define IPV6_SEND_RATE   50
+
+static uint32_t serial_lt = 0;
+static uint32_t radio_lt = 0;
+static uint32_t ipv6_lt = 0;
+
 bool handle_all_send(){
   uint32_t ct = time_ms();
-  if(onp_channel_serial){
+  if(onp_channel_serial && ct > serial_lt + SERIAL_SEND_RATE){
+    serial_lt = ct;
     send_all_entries(serial_pending_obs,true);
     send_all_entries(serial_pending_obj,false);
   }
-  if(onp_channel_radio){
+  if(onp_channel_radio && ct > radio_lt + RADIO_SEND_RATE){
+    radio_lt = ct;
     send_all_entries(radio_pending_obs,true);
     send_all_entries(radio_pending_obj,false);
   }
-  if(onp_channel_ipv6){
+  if(onp_channel_ipv6 && ct > ipv6_lt + IPV6_SEND_RATE){
+    ipv6_lt = ct;
     send_all_entries(ipv6_pending_obs,true);
     send_all_entries(ipv6_pending_obj,false);
   }
