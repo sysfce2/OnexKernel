@@ -29,6 +29,13 @@ static list* serial_ttys=0;
 static list* radio_bands=0;
 static char* test_uid_prefix=0;
 
+static properties*    serial_pending_obs = 0;
+static properties*    serial_pending_obj = 0;
+static properties*    radio_pending_obs = 0;
+static properties*    radio_pending_obj = 0;
+static properties*    ipv6_pending_obs = 0;
+static properties*    ipv6_pending_obj = 0;
+
 static properties*    device_to_channel = 0;
 static volatile list* connected_channels = 0;
 static volatile int   num_waiting_on_connect=0;
@@ -50,11 +57,13 @@ static bool onp_channel_radio   = false;
 static bool onp_channel_ipv6    = false;
 static bool onp_channel_forward = false;
 
-#define MAX_PEERS 32
-
 void channel_on_recv(bool connect, char* channel) {
   if(connect) on_connect(channel);
 }
+
+#define MAX_OBS_PENDING 32
+#define MAX_OBJ_PENDING 32
+#define MAX_PEERS 32
 
 void onp_init(properties* config) {
 
@@ -73,6 +82,18 @@ void onp_init(properties* config) {
                         (onp_channel_ipv6  && onp_channel_serial)          ||
                         (list_size(ipv6_groups)+list_size(serial_ttys) >=2);
 
+  if(onp_channel_serial){
+    serial_pending_obs = properties_new(MAX_OBS_PENDING);
+    serial_pending_obj = properties_new(MAX_OBJ_PENDING);
+  }
+  if(onp_channel_radio){
+    radio_pending_obs = properties_new(MAX_OBS_PENDING);
+    radio_pending_obj = properties_new(MAX_OBJ_PENDING);
+  }
+  if(onp_channel_ipv6){
+    ipv6_pending_obs = properties_new(MAX_OBS_PENDING);
+    ipv6_pending_obj = properties_new(MAX_OBJ_PENDING);
+  }
   device_to_channel  = properties_new(MAX_PEERS);
   connected_channels = list_new(MAX_PEERS);
 
@@ -97,10 +118,12 @@ void onp_init(properties* config) {
 static char recv_buff[RECV_BUFF_SIZE];
 static char send_buff[SEND_BUFF_SIZE];
 
-bool onp_loop() {
+bool handle_all_recv(){
+
   bool ka=true;
   uint16_t size=0;
   uint8_t pkts=0;
+
   if(onp_channel_serial){
     if(serial_available() >1500) log_write("avail=%d!\n", serial_available());
     while(true){
@@ -128,23 +151,62 @@ bool onp_loop() {
       ka = handle_recv(size,channel) || ka;
     }
   }
-  if(list_size(connected_channels)){
-
-    object_to_text(onex_device_object, send_buff,SEND_BUFF_SIZE, OBJECT_TO_TEXT_NETWORK);
-
-    for(int n=1; n<=list_size(connected_channels); n++){
-
-      char* connected_channel = list_get_n(connected_channels, n);
-      log_write("connected: %s %d\n", connected_channel, num_waiting_on_connect);
-      send(connected_channel);
-
-      num_waiting_on_connect--;
-      mem_freestr(connected_channel);
-    }
-    list_clear(connected_channels, false);
-  }
   if(pkts>15) log_write("onp_loop pkts=%d\n", pkts);
-  return ka || num_waiting_on_connect > 0;
+  return ka;
+}
+
+bool handle_connected(){
+  if(!list_size(connected_channels)) return num_waiting_on_connect > 0;
+  object_to_text(onex_device_object, send_buff,SEND_BUFF_SIZE, OBJECT_TO_TEXT_NETWORK);
+  for(int n=1; n<=list_size(connected_channels); n++){
+    char* connected_channel = list_get_n(connected_channels, n);
+    log_write("connected: %s %d\n", connected_channel, num_waiting_on_connect);
+    send(connected_channel);
+    num_waiting_on_connect--;
+    mem_freestr(connected_channel);
+  }
+  list_clear(connected_channels, false);
+  return num_waiting_on_connect > 0;
+}
+
+void send_all_entries(properties* p, bool obs){
+  char* deviceuid = object_property(onex_device_object, "UID");
+  for(uint16_t i=1; i<=properties_size(p); i++){
+    char* uid     = properties_key_n(p,i);
+    char* channel = properties_get_n(p,i);
+    if(obs) snprintf(send_buff,SEND_BUFF_SIZE, "OBS: %s Devices: %s", uid, deviceuid);
+    else object_to_text(onex_get_from_cache(uid),send_buff,SEND_BUFF_SIZE,OBJECT_TO_TEXT_NETWORK);
+    send(channel);             // sets Devices - OBJ vs UID? also parsing OBS!
+  }
+  properties_clear(p, false);
+}
+
+bool handle_all_send(){
+  uint32_t ct = time_ms();
+  if(onp_channel_serial){
+    send_all_entries(serial_pending_obs,true);
+    send_all_entries(serial_pending_obj,false);
+  }
+  if(onp_channel_radio){
+    send_all_entries(radio_pending_obs,true);
+    send_all_entries(radio_pending_obj,false);
+  }
+  if(onp_channel_ipv6){
+    send_all_entries(ipv6_pending_obs,true);
+    send_all_entries(ipv6_pending_obj,false);
+  }
+  return false;
+}
+
+bool onp_loop() {
+
+  bool ka=false;
+
+  ka = handle_all_recv()  || ka;
+  ka = handle_connected() || ka;
+  ka = handle_all_send()  || ka;
+
+  return ka;
 }
 
 #define CONNECT_DELAY_MS 1000
@@ -261,19 +323,28 @@ static bool handle_recv(uint16_t size, char* channel) {
   return false;
 }
 
+void set_pending(char* propchan, properties* p, char* uid, char* channel){
+  if(strncmp(channel, propchan, strlen(propchan)) && strcmp(channel, "all")) return;
+  char* ch=(char*)properties_get(p, uid);
+  if(!ch) properties_set(p, uid, channel);
+  else
+  if(strcmp(channel, ch)) log_write("** %s over %s\n", channel, ch);
+}
+
 void onp_send_observe(char* uid, char* devices) {
-  sprintf(send_buff,"OBS: %s Devices: %s", uid, object_property(onex_device_object, "UID"));
-  send(channel_of_device(devices));
+  char* channel = channel_of_device(devices);
+  set_pending("serial", serial_pending_obs, uid, channel);
+  set_pending("radio",  radio_pending_obs,  uid, channel);
+  set_pending("ipv6",   ipv6_pending_obs,   uid, channel);
 }
 
 // REVISIT device<s>?? and send for each channel in above and below
-void onp_send_object(object* o, char* devices) {
-  if(object_is_remote(o)){
-    // log_write("%sforwarding remote: %s\n", onp_channel_forward? "": "not ", object_property(o, "UID"));
-    if(!onp_channel_forward) return;
-  }
-  object_to_text(o,send_buff,SEND_BUFF_SIZE,OBJECT_TO_TEXT_NETWORK);
-  send(channel_of_device(devices));
+void onp_send_object(char* uid, char* devices) {
+  if(!onp_channel_forward && !is_local(uid)) return;
+  char* channel = channel_of_device(devices);
+  set_pending("serial", serial_pending_obj, uid, channel);
+  set_pending("radio",  radio_pending_obj,  uid, channel);
+  set_pending("ipv6",   ipv6_pending_obj,   uid, channel);
 }
 
 void send(char* channel){

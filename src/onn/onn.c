@@ -1155,8 +1155,7 @@ bool run_any_evaluators()
           run_evaluators(o, 0, alerted, false);
         }
         else{ // REVISIT: remote if !o
-          object* a=onex_get_from_cache(value_string(alerted));
-          onp_send_object(a, o? value_string(list_get_n(o->devices, 1)): "all");
+          onp_send_object(value_string(alerted), o? value_string(list_get_n(o->devices, 1)): "all");
         }
         break;
       }
@@ -1605,7 +1604,7 @@ void persist_pull_keep_active() {
 
 void onn_recv_observe(char* uid, char* dev) {
   object* o=find_object(uid, dev, true);
-  if(o && !object_is_shell(o)) onp_send_object(o, dev);
+  if(o && !object_is_shell(o)) onp_send_object(uid, dev);
   // REVISIT: and call the evaluator! fetching from ONP should run evaluator for
   // freshness as well as returning current state
 }
