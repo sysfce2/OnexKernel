@@ -1373,6 +1373,16 @@ char* object_to_text(object* n, char* b, uint16_t s, int target) {
   return b;
 }
 
+char* object_uid_to_text(char* uid, char* b, uint16_t s, int style){
+  return object_to_text(onex_get_from_cache(uid), b, s, style);
+}
+
+char* observe_uid_to_text(char* uid, char* b, uint16_t s){
+  char* deviceuid = object_property(onex_device_object, "UID");
+  snprintf(b, s, "OBS: %s Devices: %s", uid, deviceuid);
+  return b;
+}
+
 void object_log(object* o)
 {
   char buff[MAX_TEXT_LEN];

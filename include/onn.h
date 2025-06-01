@@ -159,6 +159,12 @@ char* object_property_key_esc(object* n, char* path, uint16_t index, char* keyes
 /** object to text; supply your own buffer, b, of length s. */
 char* object_to_text(object* n, char* b, uint16_t s, int style);
 
+/** object uid to text; supply your own buffer, b, of length s. */
+char* object_uid_to_text(char* uid, char* b, uint16_t s, int style);
+
+/** make an OBS: string in this buffer. */
+char* observe_uid_to_text(char* uid, char* b, uint16_t s);
+
 /** object from text; no cache/persist. */
 object* object_from_text(char* text, uint8_t max_size);
 
