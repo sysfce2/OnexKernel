@@ -251,55 +251,45 @@ object* object_from_text(char* text, uint8_t max_size){
   return n;
 }
 
-observe* observe_from_text(char* u){
+observe observe_from_text(char* u){
 
   char* o=u;
   while(*u > ' ') u++;
-  if(!*u) return 0;
+  if(!*u) return (observe){0,0};
   *u=0;
-  if(strcmp(o, "OBS:")) return 0;
+  if(strcmp(o, "OBS:")) return (observe){0,0};
   *u=' ';
   u++;
 
   char* uid=u;
   while(*u > ' ') u++;
-  if(!*u) return 0;
+  if(!*u) return (observe){0,0};
   *u=0;
-  if(!strlen(uid)) return 0;
+  if(!strlen(uid)) return (observe){0,0};
   uid=mem_strdup(uid);
   *u=' ';
   u++;
 
   char* dvp=u;
   while(*u > ' ') u++;
-  if(!*u){ mem_freestr(uid); return 0; }
+  if(!*u){ mem_freestr(uid); return (observe){0,0}; }
   *u=0;
-  if(strcmp(dvp, "Devices:")){ mem_freestr(uid); return 0; }
+  if(strcmp(dvp, "Devices:")){ mem_freestr(uid); return (observe){0,0}; }
   *u=' ';
   u++;
 
   char* dev=u;
   while(*u > ' ') u++;
   *u=0;
-  if(!strlen(dev)){ mem_freestr(uid); return 0; }
+  if(!strlen(dev)){ mem_freestr(uid); return (observe){0,0}; }
   dev=mem_strdup(dev);
 
   if(!strcmp(object_property(onex_device_object, "UID"), dev)){
     mem_freestr(uid); mem_freestr(dev);
-    return 0;
+    return (observe){0,0};
   }
 
-  observe* obs = mem_alloc(sizeof(observe));
-  obs->uid = uid;
-  obs->dev = dev;
-
-  return obs;
-}
-
-void observe_free(observe* obs){
-  mem_freestr(obs->uid);
-  mem_freestr(obs->dev);
-  mem_free(obs);
+  return (observe){ uid, dev };
 }
 
 object* new_shell(value* uid){
@@ -1663,12 +1653,13 @@ void persist_pull_keep_active() {
 
 // -----------------------------------------------------------------------
 
-void onn_recv_observe(observe* obs){
-  object* o=find_object(obs->uid, obs->dev, true);
-  if(o && !object_is_shell(o)) onp_send_object(obs->uid, obs->dev);
+void onn_recv_observe(observe obs){
+  object* o=find_object(obs.uid, obs.dev, true);
+  if(o && !object_is_shell(o)) onp_send_object(obs.uid, obs.dev);
+  mem_freestr(obs.uid);
+  mem_freestr(obs.dev);
   // REVISIT: and call the evaluator! fetching from ONP should run evaluator for
   // freshness as well as returning current state
-  observe_free(obs);
 }
 
 void onn_recv_object(object* n) {

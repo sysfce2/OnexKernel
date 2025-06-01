@@ -37,6 +37,12 @@ typedef struct object object;
 /** this is the sig for your object evaluator callback. */
 typedef bool (*onex_evaluator)(struct object* n, void* data);
 
+/** value object for passing around OBS: message data. */
+typedef struct {
+  char* uid;
+  char* dev;
+} observe;
+
 // --------------------------------------------------------------------
 
 /** create a new Object.
@@ -167,6 +173,9 @@ char* observe_uid_to_text(char* uid, char* b, uint16_t s);
 
 /** object from text; no cache/persist. */
 object* object_from_text(char* text, uint8_t max_size);
+
+/** OBS from text. */
+observe observe_from_text(char* u);
 
 /** log out the object */
 void object_log(object* n);

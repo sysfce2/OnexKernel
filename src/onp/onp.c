@@ -18,7 +18,7 @@ static void connect_time_cb(void* connected_channel);
 static bool handle_recv(uint16_t size, char* channel);
 static void send(char* channel);
 static void log_sent(char* prefix, uint16_t size, char* channel);
-static void log_recv(char* prefix, uint16_t size, char* channel, object* o, observe* obs);
+static void log_recv(char* prefix, uint16_t size, char* channel, object* o, observe obs);
 
 static list* channels=0;
 static list* ipv6_groups=0;
@@ -238,13 +238,13 @@ void connect_time_cb(void* connected_channel) {
 
 static bool recv_observe(uint16_t size, char* channel){
 
-  observe* obs = observe_from_text(recv_buff);
+  observe obs = observe_from_text(recv_buff);
 
-  if(!obs) return false;
+  if(!obs.uid) return false;
 
   log_recv("ONP recv", size, channel, 0, obs);
 
-  set_channel_of_device(obs->dev, channel);
+  set_channel_of_device(obs.dev, channel);
 
   onn_recv_observe(obs);
 
@@ -260,7 +260,7 @@ static bool recv_object(uint16_t size, char* channel){
   char* uid = object_property(n, "UID");     if(!uid){ object_free(n); return false; }
   char* dev = object_property(n, "Devices"); if(!dev){ object_free(n); return false; }
 
-  log_recv("ONP recv", size, channel, n, 0);
+  log_recv("ONP recv", size, channel, n, (observe){0,0});
 
   if(!strcmp(object_property(onex_device_object, "UID"), dev)){
     // log_write("Rejecting own device, UID: %s\n", dev);
@@ -291,7 +291,7 @@ static bool handle_recv(uint16_t size, char* channel) {
   if(debug_on_serial && !strncmp(channel, "serial", 6)){
     if(log_debug_read(recv_buff, size)) return true;
   }
-  log_recv(">>>>>>>>", size, channel, 0, 0);
+  log_recv(">>>>>>>>", size, channel, 0, (observe){0,0});
   return false;
 }
 
@@ -356,11 +356,11 @@ void log_sent(char* prefix, uint16_t size, char* channel) {
   }
 }
 
-void log_recv(char* prefix, uint16_t size, char* channel, object* o, observe* obs) {
+void log_recv(char* prefix, uint16_t size, char* channel, object* o, observe obs) {
   if(!log_onp) return;
   if(log_to_gfx){
-    if(o)   log_write("U:%s\n", object_property_values(o, "is"));
-    if(obs) log_write("O:%s\n", obs->uid);
+    if(o)       log_write("U:%s\n", object_property_values(o, "is"));
+    if(obs.uid) log_write("O:%s\n", obs.uid);
   }
   else{
     log_write("%s '%s'", prefix, recv_buff);
