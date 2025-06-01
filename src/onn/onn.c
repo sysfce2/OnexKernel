@@ -51,9 +51,9 @@ static char*   get_key(char** p);
 static char*   get_val(char** p);
 static bool    add_to_cache(object* n);
 static bool    add_to_cache_and_persist(object* n);
-static object* find_object(char* uid, char* nuid, bool observe);
-static item*   property_item(object* n, char* path, object* t, bool observe);
-static item*   nested_property_item(object* n, char* path, object* t, bool observe);
+static object* find_object(char* uid, char* nuid, bool notify);
+static item*   property_item(object* n, char* path, object* t, bool notify);
+static item*   nested_property_item(object* n, char* path, object* t, bool notify);
 static bool    object_property_edit(object* n, char* path, char* val, uint8_t mode);
 static bool    nested_property_edit(object* n, char* path, uint16_t index, char* val, uint8_t mode);
 static bool    property_edit(object* n, char* key, char* val, uint8_t mode);
@@ -410,7 +410,7 @@ static value* format_obstime(object* n){
   return value_new(obstime);
 }
 
-static char* object_property_observe(object* n, char* path, bool observe)
+static char* object_property_observe(object* n, char* path, bool notify)
 {
   if(!n) return 0;
   if(!strcmp(path, "UID"))     return value_string(n->uid);
@@ -419,7 +419,7 @@ static char* object_property_observe(object* n, char* path, bool observe)
   if(!strcmp(path, "Devices")) return value_string(list_get_n(n->devices, 1));
                      // REVISIT Device<s> but only returns the first!!
 
-  item* i=property_item(n,path,n,observe);
+  item* i=property_item(n,path,n,notify);
   if(i && i->type==ITEM_VALUE) return value_string((value*)i);
   if(i && i->type==ITEM_LIST){
     item* j=list_get_n((list*)i,1);
@@ -476,7 +476,7 @@ char* object_property_values(object* n, char* path) {
   return 0;
 }
 
-item* property_item(object* n, char* path, object* t, bool observe) {
+item* property_item(object* n, char* path, object* t, bool notify) {
   // REVISIT: why dupe these here? can't go "x:y:Alerted|Obstime|Timer", or can u?
   if(!strcmp(path, "UID"))     return (item*)n->uid;
   if(!strcmp(path, "Timer"))   return (item*)n->timer;
@@ -485,7 +485,7 @@ item* property_item(object* n, char* path, object* t, bool observe) {
   if(!strcmp(path, ":"))       return (item*)n->properties;
   if(!strcmp(path, "Alerted")) return (item*)n->alerted;
   if(find_unescaped_colon(path)){
-    return nested_property_item(n, path, t, observe);
+    return nested_property_item(n, path, t, notify);
   }
   size_t m=strlen(path)+1;
   char key[m]; memcpy(key, path, m);
@@ -494,14 +494,14 @@ item* property_item(object* n, char* path, object* t, bool observe) {
   return properties_get(n->properties, key);
 }
 
-item* nested_property_item(object* n, char* path, object* t, bool observe)
+item* nested_property_item(object* n, char* path, object* t, bool notify)
 {
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
   char* c=find_unescaped_colon(p);
   *c=0; c++;
-  bool observe2=observe && !isupper((unsigned char)(*p));
-  item* i=property_item(n,p,t,observe2);
+  bool notify2=notify && !isupper((unsigned char)(*p));
+  item* i=property_item(n,p,t,notify2);
   if(!i) return 0;
   if(i->type==ITEM_VALUE){
     char* uid=value_string((value*)i);
@@ -511,8 +511,8 @@ item* nested_property_item(object* n, char* path, object* t, bool observe)
       c+=2; // skip '1:' to next bit
     }
     if(is_uid(uid)){
-      object* o=find_object(uid,value_string(t->uid),observe2);
-      return o? property_item(o,c,t,observe2): 0;
+      object* o=find_object(uid,value_string(t->uid),notify2);
+      return o? property_item(o,c,t,notify2): 0;
     }
     return 0;
   }
@@ -522,14 +522,13 @@ item* nested_property_item(object* n, char* path, object* t, bool observe)
     item* r=list_get_n((list*)i,in);
     if(!(r && r->type==ITEM_VALUE && *e==':')) return r;
     char* uid=value_string((value*)r);
-    object* o=find_object(uid,value_string(t->uid),observe2);
-    return o? property_item(o,e+1,t,observe2): 0;
+    object* o=find_object(uid,value_string(t->uid),notify2);
+    return o? property_item(o,e+1,t,notify2): 0;
   }
   return 0;
 }
 
-void obs_or_refresh(char* uid, object* o, uint32_t timeout)
-{
+void obs_or_refresh(char* uid, object* o, uint32_t timeout) {
   uint64_t curtime = time_ms();
   if(!o->last_observe || curtime > o->last_observe + timeout){
     o->last_observe = curtime + 1;
@@ -537,7 +536,7 @@ void obs_or_refresh(char* uid, object* o, uint32_t timeout)
   }
 }
 
-object* find_object(char* uid, char* nuid, bool observe) {
+object* find_object(char* uid, char* nuid, bool notify) {
 
   if(!(is_uid(uid) && is_uid(nuid))) return 0;
 
@@ -547,7 +546,7 @@ object* find_object(char* uid, char* nuid, bool observe) {
     o=new_shell(value_new(uid));
     if(!add_to_cache_and_persist(o)){ object_free(o); return 0; }
   }
-  if(observe){
+  if(notify){
 
     add_notify(o, nuid);
 
@@ -685,10 +684,10 @@ char* object_property_val(object* n, char* path, uint16_t index)
   return value_string((value*)v);
 }
 
-static bool object_property_is_observe(object* n, char* path, char* expected, bool observe)
+static bool object_property_is_observe(object* n, char* path, char* expected, bool notify)
 {
   if(!n) return false;
-  item* i=property_item(n,path,n,observe);
+  item* i=property_item(n,path,n,notify);
   if(!i) return (!expected || !*expected);
   if(i->type==ITEM_VALUE){
     return expected && value_is((value*)i, expected);
@@ -712,10 +711,10 @@ bool object_pathpair_is(object* n, char* path1, char* path2, char* expected){
   return object_property_is_observe(n, pathbuf, expected, true);
 }
 
-static bool object_property_contains_observe(object* n, char* path, char* expected, bool observe)
+static bool object_property_contains_observe(object* n, char* path, char* expected, bool notify)
 {
   if(!n) return false;
-  item* i=property_item(n,path,n,observe);
+  item* i=property_item(n,path,n,notify);
   if(!i) return (!expected || !*expected);
   if(i->type==ITEM_VALUE){
     return expected && value_is((value*)i, expected);
