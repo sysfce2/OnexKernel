@@ -167,13 +167,12 @@ bool handle_connected(){
 }
 
 void send_all_entries(properties* p, bool obs){
-  char* deviceuid = object_property(onex_device_object, "UID");
   for(uint16_t i=1; i<=properties_size(p); i++){
     char* uid     = properties_key_n(p,i);
     char* channel = properties_get_n(p,i);
-    if(obs) snprintf(send_buff,SEND_BUFF_SIZE, "OBS: %s Devices: %s", uid, deviceuid);
-    else object_to_text(onex_get_from_cache(uid),send_buff,SEND_BUFF_SIZE,OBJECT_TO_TEXT_NETWORK);
-    send(channel);             // sets Devices - OBJ vs UID? also parsing OBS!
+    if(obs) observe_uid_to_text(uid, send_buff, SEND_BUFF_SIZE);
+    else    object_uid_to_text( uid, send_buff, SEND_BUFF_SIZE, OBJECT_TO_TEXT_NETWORK);
+    send(channel);
   }
   properties_clear(p, false);
 }
