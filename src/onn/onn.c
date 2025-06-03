@@ -155,7 +155,7 @@ bool object_is_remote_device(object* o){
 // ----------------------------------------------------------
 
 object* object_new_from(char* text, uint8_t max_size) {
-  object* n=object_from_text(text, max_size);
+  object* n=object_from_text(text, false, max_size);
   if(!n) return 0;
   char* uid=value_string(n->uid);
   if(onex_get_from_cache(uid)){
@@ -182,15 +182,15 @@ object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size) {
 
 object* new_object(value* uid, value* version, char* evaluator, char* is, uint8_t max_size) {
   object* n=(object*)mem_alloc(sizeof(object));
-  n->uid=uid? uid: generate_uid();
-  n->version=version? version: value_new("0");
+  n->uid    =uid?     uid: generate_uid();
+  n->version=version? version: value_new("1");
   n->properties=properties_new(max_size);
   if(evaluator) n->evaluator=value_new(evaluator);
   if(is) property_edit(n, "is", is, LIST_EDIT_MODE_SET);
   return n;
 }
 
-object* object_from_text(char* text, uint8_t max_size){
+object* object_from_text(char* text, bool need_uid_ver, uint8_t max_size){
 
   object* n=0;
 
@@ -230,7 +230,7 @@ object* object_from_text(char* text, uint8_t max_size){
     if(isupper((unsigned char)(*key)));
     else {
       if(!n){
-     // if(!uid || !version) FREE_BREAK_1; // REVISIT
+        if(need_uid_ver && (!uid || !version)) FREE_BREAK_1;
         n=new_object(uid, version, 0, 0, max_size);
         if(devices)   n->devices  = list_new_from(devices,  OBJECT_MAX_DEVICES);
         ;             n->notifies = list_new_from(notifies, OBJECT_MAX_NOTIFIES);
@@ -1419,7 +1419,7 @@ object* onex_get_from_cache(char* uid) {
   char* text=properties_get(persistence_objects_text, uid);
   if(!text) return 0; // <-- now pull from persistence!
 
-  o=object_from_text(text, MAX_OBJECT_SIZE);
+  o=object_from_text(text, true, MAX_OBJECT_SIZE);
 
   if(!o || !add_to_cache(o)){
     object_free(o);

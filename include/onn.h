@@ -171,9 +171,6 @@ char* object_uid_to_text(char* uid, char* b, uint16_t s, int style);
 /** make an OBS: string in this buffer. */
 char* observe_uid_to_text(char* uid, char* b, uint16_t s);
 
-/** Object from text; no cache/persist; only used by ONP. */
-object* object_from_text(char* text, uint8_t max_size);
-
 /** OBS from text. */
 observe observe_from_text(char* u);
 

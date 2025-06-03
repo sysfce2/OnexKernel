@@ -684,7 +684,7 @@ void test_from_text() {
                     object_property_set(   n3, "is", "local state");
 
   text="UID: uid-nx Ver: 543 Devices: uid-x Cache: keep-active Notify: uid-1 uid-2 is: remote state n3: uid-3";
-  object* nx=object_new_from(text, 4);
+  object* nx=object_new_from(text, 4);  // note object_new_from isn't meant for parsing remote object text!
 
   onex_assert(!!nx, "input text was parsed into an object 2");
   if(!nx) return;
@@ -697,11 +697,17 @@ void test_from_text() {
 
   onex_assert_equal(object_to_text(nx,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), text, "gives same text back from reconstruction 2");
 
+  text="is: remote state n3: uid-3";
+  object* nb=object_new_from(text, 4);
+  char* nbuid=object_property(nb, "UID");
+  char fulltext[256]; snprintf(fulltext, 256, "UID: %s Ver: 1 %s", nbuid, text);
+  onex_assert_equal(object_to_text(nb,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), fulltext, "gives same text back from reconstruction 3");
+
   text="is: messed up  : --";
   object* nm=object_new_from(text, 4);
   onex_assert(!nm, "does not parse messed up text");
 
-  text="UID: uid-1--2-3 is: messed up name: mangoUID: uid-1-2-3 is: messed up name: mango";
+  text="UID: uid-1--2-3 Ver: 2 is: messed up name: mangoUID: uid-1-2-3 Ver: 2 is: messed up name: mango";
   nm=object_new_from(text, 4);
   onex_assert(!nm, "does not parse messed up text");
 }

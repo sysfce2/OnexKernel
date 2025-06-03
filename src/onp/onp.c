@@ -254,7 +254,7 @@ static bool recv_observe(uint16_t size, char* channel){
 
 static bool recv_object(uint16_t size, char* channel){
 
-  object* n=object_from_text(recv_buff, MAX_OBJECT_SIZE); if(!n) return false;
+  object* n=object_from_text(recv_buff, true, MAX_OBJECT_SIZE); if(!n) return false;
 
   char* uid = object_property(n, "UID");     if(!uid){ object_free(n); return false; }
   char* dev = object_property(n, "Devices"); if(!dev){ object_free(n); return false; }
