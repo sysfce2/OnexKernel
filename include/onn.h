@@ -53,7 +53,7 @@ typedef struct {
  */
 object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size);
 
-/** create a new Object from text, could be local (via persistence) or remote (off network). */
+/** create a new local Object from text. */
 object* object_new_from(char* text, uint8_t max_size);
 
 /** re-set evaluator callback. */

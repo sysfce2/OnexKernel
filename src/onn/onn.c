@@ -160,6 +160,7 @@ object* object_new_from(char* text, uint8_t max_size) {
   char* uid=value_string(n->uid);
   if(onex_get_from_cache(uid)){
     log_write("Attempt to create an object with UID %s that already exists\n", uid);
+    object_free(n);
     return 0;
   }
   if(!add_to_cache_and_persist(n)){ object_free(n); return 0; }
@@ -172,6 +173,7 @@ object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size) {
     return 0;
   }
   object* n=new_object(value_new(uid), value_new("1"), evaluator, is, max_size);
+  if(!n) return 0;
   n->devices  = 0;  // none for new locals: only when off net/remote
   n->notifies = list_new(OBJECT_MAX_NOTIFIES);
   if(!add_to_cache_and_persist(n)){ object_free(n); return 0; }
@@ -193,7 +195,7 @@ object* object_from_text(char* text, uint8_t max_size){
   object* n=0;
 
   value* uid=0;
-  char*  version=0;
+  value* version=0;
   char*  devices=0;
   char*  notifies=0;
   value* evaluator=0;
@@ -1612,7 +1614,7 @@ void onn_recv_object(object* n) {
   }
   else{
     item_free(o->properties); o->properties = n->properties; n->properties=0;
-    list_del_item(o->devices, value_new("shell"));
+    list_del_item(o->devices, (item*)value_new("shell"));
     list_add_all_setwise(o->devices,  n->devices);  list_free(n->devices,  false); n->devices=0;
     list_add_all_setwise(o->notifies, n->notifies); list_free(n->notifies, false); n->notifies=0;
     object_free(n);
