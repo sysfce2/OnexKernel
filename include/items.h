@@ -80,12 +80,14 @@ list*    list_new_from(char* text, uint16_t max_size);
 list*    list_new_from_fixed(char* text);
 bool     list_add(list* li, void* val);
 bool     list_add_setwise(list* li, char* v);
+bool     list_add_all_setwise(list* li, list* lj);
 bool     list_add_value(list* li, char* v); // REVISIT list_add_string
 bool     list_ins(list* li, uint16_t index, void* val);
 bool     list_ins_setwise(list* li, char* v);
 bool     list_set_n(list* li, uint16_t index, void* val);
 void*    list_get_n(list* li, uint16_t index);
 void*    list_del_n(list* li, uint16_t index);
+void*    list_del_item(list* li, item* it);
 uint16_t list_size(list* li);
 uint16_t list_has_value(list* li, char* v); // REVISIT list_has_string
 uint16_t list_find(list* li, item* it);     // REVISIT list_find_item

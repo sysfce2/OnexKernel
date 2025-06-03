@@ -69,6 +69,17 @@ bool list_add_setwise(list* li, char* v){
   return list_add(li,value_new(v));
 }
 
+bool list_add_all_setwise(list* li, list* lj){
+  if(!li) return false;
+  if(!lj || !lj->size) return true;
+  for(uint16_t j=0; j<lj->size; j++){
+    value* v=lj->vals[j];
+    if(list_has_value(li,value_string(v))) continue;
+    if(!list_add(li,v)) break;
+  }
+  return true; // may have partially added
+}
+
 bool list_add_value(list* li, char* v){
   if(!li) return false;
   return list_add(li,value_new(v));
@@ -121,6 +132,10 @@ void* list_del_n(list* li, uint16_t index) {
   }
   li->size--;
   return v;
+}
+
+void* list_del_item(list* li, item* it){
+  return list_del_n(li, list_find(li, it));
 }
 
 uint16_t list_size(list* li) {
