@@ -538,7 +538,7 @@ void test_remote_object()
   onex_assert(     !object_property(n3, "n*:5:x"), "n3: n*:5:x is null");
 
   object* n5=onex_get_from_cache("uid-5");
-  char* n5text="UID: uid-5 Devices: shell Notify: uid-2 uid-3";
+  char* n5text="UID: uid-5 Ver: 0 Devices: shell Notify: uid-2 uid-3";
 
   onex_assert_equal(object_to_text(n5,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), n5text, "converts remote shell uid-5 to correct text");
 }
@@ -575,10 +575,10 @@ void test_to_text()
   object* n3=onex_get_from_cache("uid-3");
   object* n4=onex_get_from_cache("uid-4");
 
-  char* n1text="UID: uid-1 Eval: evaluate_remote_notify_n1 Notify: uid-3 is: setup state: good mostly 1: a c 2: ok m8";
-  char* n2text="UID: uid-2 Eval: evaluate_remote_notify_n2 Notify: uid-3 is: local-state state: better\\: n1: uid-1";
-  char* n3text="UID: uid-3 Eval: evaluate_local_notify_n3 Notify: uid-3 uid-2 uid-4 is: local state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5 state: changed";
-  char* n4text="UID: uid-4 Eval: evaluate_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 x:y: a :z:q\\: b last: one state: good";
+  char* n1text="UID: uid-1 Ver: 1 Eval: evaluate_remote_notify_n1 Notify: uid-3 is: setup state: good mostly 1: a c 2: ok m8";
+  char* n2text="UID: uid-2 Ver: 1 Eval: evaluate_remote_notify_n2 Notify: uid-3 is: local-state state: better\\: n1: uid-1";
+  char* n3text="UID: uid-3 Ver: 1 Eval: evaluate_local_notify_n3 Notify: uid-3 uid-2 uid-4 is: local state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5 state: changed";
+  char* n4text="UID: uid-4 Ver: 321 Eval: evaluate_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 x:y: a :z:q\\: b last: one state: good";
 
   onex_assert_equal(object_to_text(n1,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), n1text, "converts uid-1 to correct text");
   onex_assert_equal(object_to_text(n2,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), n2text, "converts uid-2 to correct text");
@@ -650,13 +650,13 @@ void test_from_text() {
   object_set_evaluator(n1, "evaluate_remote_notify_n1");
   object_set_evaluator(n2, "evaluate_remote_notify_n2");
 
-  char* text=" UID:   uid-4   Eval:  evaluate_remote_notify_n4 Notify: uid-1   uid-2   is: remote  state ab: m\\: :c:d\\:  n n3: uid-3 x:y:  a :z:q\\:  b  last: one\n";
+  char* text=" UID:   uid-4 Ver: 321  Eval:  evaluate_remote_notify_n4 Notify: uid-1   uid-2   is: remote  state ab: m\\: :c:d\\:  n n3: uid-3 x:y:  a :z:q\\:  b  last: one\n";
   object* n4=object_new_from(text, 6);
   onex_assert(!!n4, "input text was parsed into an object 1");
   if(!n4) return;
-  char* totext="UID: uid-4 Eval: evaluate_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 x:y: a :z:q\\: b last: one";
 
   onex_assert_equal(    object_property(         n4, "UID"), "uid-4",     "object_new_from parses uid");
+  onex_assert_equal_num(object_property_int32(   n4, "Ver"), 321,         "object_new_from parses version");
   onex_assert(          object_property_contains(n4, "is", "remote"),     "object_new_from parses is");
   onex_assert(          object_property_contains(n4, "is", "state"),      "object_new_from parses is");
   onex_assert_equal(    object_property(         n4, "is:1"), "remote",   "object_new_from parses 'is' first list item" );
@@ -675,6 +675,7 @@ void test_from_text() {
 
   onex_assert_equal(object_property(         n4, "last"), "one",      "object_new_from parses last one as single value without newline");
 
+  char* totext="UID: uid-4 Ver: 321 Eval: evaluate_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 x:y: a :z:q\\: b last: one";
   onex_assert_equal(object_to_text(        n4,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), totext, "gives same text back from reconstruction 1");
 
                     object_property_set(   n4, "state", "good");
@@ -682,9 +683,7 @@ void test_from_text() {
   onex_assert_equal(object_property(       n4, "state"), "good",          "object_new_from creates usable object");
                     object_property_set(   n3, "is", "local state");
 
-  char fulltext[256];
-
-  text="Devices: uid-x Cache: keep-active Notify: uid-1 uid-2 is: remote state n3: uid-3";
+  text="UID: uid-nx Ver: 543 Devices: uid-x Cache: keep-active Notify: uid-1 uid-2 is: remote state n3: uid-3";
   object* nx=object_new_from(text, 4);
 
   onex_assert(!!nx, "input text was parsed into an object 2");
@@ -696,8 +695,7 @@ void test_from_text() {
   onex_assert(     !is_local(nxuid),                     "nx is remote");
   onex_assert_equal(object_get_cache(nx), "keep-active", "nx is Cache: keep-active");
 
-  snprintf(fulltext, 256, "UID: %s %s", nxuid, text);
-  onex_assert_equal(object_to_text(nx,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), fulltext, "gives same text back from reconstruction");
+  onex_assert_equal(object_to_text(nx,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), text, "gives same text back from reconstruction 2");
 
   text="is: messed up  : --";
   object* nm=object_new_from(text, 4);

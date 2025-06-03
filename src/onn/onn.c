@@ -60,7 +60,7 @@ static bool    property_edit(object* n, char* key, char* val, uint8_t mode);
 static bool    add_notify(object* o, char* notifyuid);
 static void    save_and_notify(object* n);
 static void    show_notifies(object* o);
-static object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size);
+static object* new_object(value* uid, value* version, char* evaluator, char* is, uint8_t max_size);
 static object* new_shell(value* uid);
 static bool    object_is_shell(object* o);
 static void    run_evaluators(object* o, void* data, value* alerted, bool timedout);
@@ -80,6 +80,7 @@ static void    device_init(char* prefix);
 
 typedef struct object {
   value*      uid;
+  value*      version;
   list*       devices;
   list*       notifies;
   properties* properties;
@@ -170,16 +171,17 @@ object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size) {
     log_write("Attempt to create an object with UID %s that already exists\n", uid);
     return 0;
   }
-  object* n=new_object(value_new(uid), evaluator, is, max_size);
+  object* n=new_object(value_new(uid), value_new("1"), evaluator, is, max_size);
   n->devices  = 0;  // none for new locals: only when off net/remote
   n->notifies = list_new(OBJECT_MAX_NOTIFIES);
   if(!add_to_cache_and_persist(n)){ object_free(n); return 0; }
   return n;
 }
 
-object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size) {
+object* new_object(value* uid, value* version, char* evaluator, char* is, uint8_t max_size) {
   object* n=(object*)mem_alloc(sizeof(object));
   n->uid=uid? uid: generate_uid();
+  n->version=version? version: value_new("0");
   n->properties=properties_new(max_size);
   if(evaluator) n->evaluator=value_new(evaluator);
   if(is) property_edit(n, "is", is, LIST_EDIT_MODE_SET);
@@ -191,6 +193,7 @@ object* object_from_text(char* text, uint8_t max_size){
   object* n=0;
 
   value* uid=0;
+  char*  version=0;
   char*  devices=0;
   char*  notifies=0;
   value* evaluator=0;
@@ -210,6 +213,8 @@ object* object_from_text(char* text, uint8_t max_size){
 
     if(!strcmp(key,"UID")) uid=value_new(val);
     else
+    if(!strcmp(key,"Ver")) version=value_new(val);
+    else
     if(!strcmp(key,"Devices") && !devices) devices=mem_strdup(val);
     else
     if(!strcmp(key,"Notify") && !notifies) notifies=mem_strdup(val);
@@ -223,7 +228,7 @@ object* object_from_text(char* text, uint8_t max_size){
     if(isupper((unsigned char)(*key)));
     else {
       if(!n){
-        n=new_object(uid, 0, 0, max_size);
+        n=new_object(uid, version, 0, 0, max_size);
         if(devices)   n->devices  = list_new_from(devices,  OBJECT_MAX_DEVICES);
         ;             n->notifies = list_new_from(notifies, OBJECT_MAX_NOTIFIES);
         if(evaluator) n->evaluator=evaluator;
@@ -284,6 +289,7 @@ observe observe_from_text(char* u){
 object* new_shell(value* uid){
   object* n=(object*)mem_alloc(sizeof(object));
   n->uid=uid;
+  n->version=value_new("0");
   n->devices  = list_new_from("shell", OBJECT_MAX_DEVICES);
   n->notifies = list_new(OBJECT_MAX_NOTIFIES);
   n->properties=properties_new(MAX_OBJECT_SIZE);
@@ -293,6 +299,7 @@ object* new_shell(value* uid){
 void object_free(object* o) {
   if(!o) return;
   value_free(o->uid);
+  value_free(o->version);
   list_free(o->devices, true);
   list_free(o->notifies, true);
   properties_free(o->properties, true);
@@ -400,6 +407,7 @@ static value* format_obstime(uint64_t lo){
 static char* object_property_observe(object* n, char* path, bool notify) {
   if(!n) return 0;
   if(!strcmp(path, "UID"))     return value_string(n->uid);
+  if(!strcmp(path, "Ver"))     return value_string(n->version);
   if(!strcmp(path, "Timer"))   return value_string(n->timer);
   if(!strcmp(path, "Obstime")) return value_string(format_obstime(n->last_observe));
   if(!strcmp(path, "Devices")) return value_string(list_get_n(n->devices, 1));
@@ -465,6 +473,7 @@ char* object_property_values(object* n, char* path) {
 item* property_item(object* n, char* path, object* t, bool notify) {
   // REVISIT: why dupe these here? can't go "x:y:Alerted|Obstime|Timer", or can u?
   if(!strcmp(path, "UID"))     return (item*)n->uid;
+  if(!strcmp(path, "Ver"))     return (item*)n->version;
   if(!strcmp(path, "Timer"))   return (item*)n->timer;
   if(!strcmp(path, "Obstime")) return (item*)format_obstime(n->last_observe);
   if(!strcmp(path, ""))        return (item*)n->properties;
@@ -1262,6 +1271,7 @@ char* object_to_text(object* n, char* b, uint16_t s, int target) {
   int ln=0;
 
   ln+=snprintf(b+ln, s-ln, "UID: %s", value_string(n->uid)); BUFCHK
+  ln+=snprintf(b+ln, s-ln, " Ver: %s", value_string(n->version)); BUFCHK
 
   if(target==OBJECT_TO_TEXT_NETWORK){
     ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(onex_device_object->uid)); BUFCHK
