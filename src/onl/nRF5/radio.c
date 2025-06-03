@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #include <onex-kernel/log.h>
+#include <onex-kernel/mem.h>
 #include <onex-kernel/radio.h>
 #include <onex-kernel/chunkbuf.h>
 
@@ -237,11 +238,17 @@ void RADIO_IRQHandler(void){
     NRF_RADIO->EVENTS_END = 0;
     NRF_RADIO->TASKS_START = 1;
 
+    uint8_t size;
     if(NRF_RADIO->CRCSTATUS == 1) {
-      uint8_t size = rx_buffer[0];
-      int8_t rssi = -NRF_RADIO->RSSISAMPLE;
-      buffer_readable(rx_buffer+1, size, rssi);
+      size = rx_buffer[0];
     }
+    else{
+      #define CORRUPTION_MAGIC " 🍌 banana!\n"
+      size = strlen(CORRUPTION_MAGIC);
+      mem_strncpy(rx_buffer+1, CORRUPTION_MAGIC, size);
+    }
+    int8_t rssi = -NRF_RADIO->RSSISAMPLE;
+    buffer_readable(rx_buffer+1, size, rssi);
   }
 }
 
