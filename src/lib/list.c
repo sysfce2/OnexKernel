@@ -38,8 +38,8 @@ list* list_new(uint16_t max_size) {
 }
 
 list* list_new_from(char* text, uint16_t max_size) {
-  if(!text || !(*text) || !max_size) return 0;
   list* li=list_new(max_size);
+  if(!text || !(*text)) return li;
   size_t m=strlen(text)+1;
   char textcopy[m]; memcpy(textcopy, text, m); // REVISIT: why copy?
   char* t=strtok(textcopy, " \n");             // REVISIT cos not reentrant?!
@@ -62,10 +62,10 @@ bool list_add(list* li, void* val) {
   return true;
 }
 
-/** Append v as value if it's not already there. Returns true if so. */
+/** Append v as value if it's not already there. */
 bool list_add_setwise(list* li, char* v){
   if(!li) return false;
-  if(list_has_value(li,v)) return false;
+  if(list_has_value(li,v)) return true;
   return list_add(li,value_new(v));
 }
 
@@ -75,9 +75,9 @@ bool list_add_all_setwise(list* li, list* lj){
   for(uint16_t j=0; j<lj->size; j++){
     value* v=lj->vals[j];
     if(list_has_value(li,value_string(v))) continue;
-    if(!list_add(li,v)) break;
+    if(!list_add(li,v)) return false;
   }
-  return true; // may have partially added
+  return true;
 }
 
 bool list_add_value(list* li, char* v){
@@ -101,10 +101,10 @@ bool list_ins(list* li, uint16_t index, void* val){
   return true;
 }
 
-/** Insert v as value at front if it's not already there. Returns true if so. */
+/** Insert v as value at front if it's not already there. */
 bool list_ins_setwise(list* li, char* v){
   if(!li) return false;
-  if(list_has_value(li,v)) return false;
+  if(list_has_value(li,v)) return true;
   return list_ins(li,1,value_new(v));
 }
 
