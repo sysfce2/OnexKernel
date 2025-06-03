@@ -57,10 +57,8 @@ static item*   nested_property_item(object* n, char* path, object* t, bool notif
 static bool    object_property_edit(object* n, char* path, char* val, uint8_t mode);
 static bool    nested_property_edit(object* n, char* path, uint16_t index, char* val, uint8_t mode);
 static bool    property_edit(object* n, char* key, char* val, uint8_t mode);
-static bool    add_notify(object* o, char* notify);
-static void    set_notifies(object* o, char* notify);
+static bool    add_notify(object* o, char* notifyuid);
 static void    save_and_notify(object* n);
-static bool    has_notifies(object* o);
 static void    show_notifies(object* o);
 static object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size);
 static object* new_shell(value* uid);
@@ -82,13 +80,13 @@ static void    device_init(char* prefix);
 
 typedef struct object {
   value*      uid;
+  list*       devices;
+  list*       notifies;
   properties* properties;
   value*      evaluator;
   value*      alerted;
   value*      cache;
   value*      persist;
-  value*      notify[OBJECT_MAX_NOTIFIES]; // REVISIT list!
-  list*       devices;
   value*      timer;
   bool        running_evals;
   uint64_t    last_observe;
@@ -173,6 +171,8 @@ object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size) {
     return 0;
   }
   object* n=new_object(value_new(uid), evaluator, is, max_size);
+  n->devices  = 0;  // none for new locals: only when off net/remote
+  n->notifies = list_new(OBJECT_MAX_NOTIFIES);
   if(!add_to_cache_and_persist(n)){ object_free(n); return 0; }
   return n;
 }
@@ -181,8 +181,8 @@ object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size) {
   object* n=(object*)mem_alloc(sizeof(object));
   n->uid=uid? uid: generate_uid();
   n->properties=properties_new(max_size);
+  if(evaluator) n->evaluator=value_new(evaluator);
   if(is) property_edit(n, "is", is, LIST_EDIT_MODE_SET);
-  n->evaluator=value_new(evaluator);
   return n;
 }
 
@@ -193,10 +193,10 @@ object* object_from_text(char* text, uint8_t max_size){
   object* n=0;
   value* uid=0;
   char* devices=0;
+  char* notifies=0;
   value* evaluator=0;
   value* cache=0;
   value* persist=0;
-  char* notify=0;
   char* p=t;
   while(true){
     char* key=get_key(&p);
@@ -219,23 +219,23 @@ object* object_from_text(char* text, uint8_t max_size){
     else
     if(!strcmp(key,"Devices") && !devices) devices=mem_strdup(val);
     else
+    if(!strcmp(key,"Notify") && !notifies) notifies=mem_strdup(val);
+    else
     if(!strcmp(key,"Eval")) evaluator=value_new(val);
     else
     if(!strcmp(key,"Cache")) cache=value_new(val);
     else
     if(!strcmp(key,"Persist")) persist=value_new(val);
     else
-    if(!strcmp(key,"Notify") && !notify) notify=mem_strdup(val);
-    else
     if(isupper((unsigned char)(*key)));
     else {
       if(!n){
         n=new_object(uid, 0, 0, max_size);
+        if(devices)   n->devices  = list_new_from(devices,  OBJECT_MAX_DEVICES);
+        ;             n->notifies = list_new_from(notifies, OBJECT_MAX_NOTIFIES);
         if(evaluator) n->evaluator=evaluator;
         if(cache)     n->cache=cache;
         if(persist)   n->persist=persist;
-        if(devices)   n->devices = list_new_from(devices, OBJECT_MAX_DEVICES);
-        if(notify)    set_notifies(n, notify);
       }
       if(!property_edit(n, key, val, LIST_EDIT_MODE_SET)) break;
     }
@@ -243,7 +243,7 @@ object* object_from_text(char* text, uint8_t max_size){
     mem_freestr(val);
   }
   mem_freestr(devices);
-  mem_freestr(notify);
+  mem_freestr(notifies);
   return n;
 }
 
@@ -291,8 +291,9 @@ observe observe_from_text(char* u){
 object* new_shell(value* uid){
   object* n=(object*)mem_alloc(sizeof(object));
   n->uid=uid;
+  n->devices  = list_new_from("shell", OBJECT_MAX_DEVICES);
+  n->notifies = list_new(OBJECT_MAX_NOTIFIES);
   n->properties=properties_new(MAX_OBJECT_SIZE);
-  n->devices=list_new_from("shell", OBJECT_MAX_DEVICES);
   n->last_observe = 0;
   return n;
 }
@@ -300,13 +301,13 @@ object* new_shell(value* uid){
 void object_free(object* o) {
   if(!o) return;
   value_free(o->uid);
+  list_free(o->devices, true);
+  list_free(o->notifies, true);
   properties_free(o->properties, true);
   value_free(o->alerted);
   value_free(o->evaluator);
   value_free(o->cache);
   value_free(o->persist);
-  for(uint8_t i=0; i< OBJECT_MAX_NOTIFIES; i++) value_free(o->notify[i]);
-  list_free(o->devices, true);
   value_free(o->timer);
   mem_free(o);
 }
@@ -835,7 +836,7 @@ bool object_property_set(object* n, char* path, char* val) {
 
 bool object_property_set_n(object* n, char* path, uint16_t index, char* val){
 
-  if(!n->running_evals && has_notifies(n)){
+  if(!n->running_evals && list_size(n->notifies)){
     NOT_IN_EVAL(n, "Editing", "E!")
   }
   if(!strcmp(path, "Timer")) return false;
@@ -857,7 +858,7 @@ bool object_property_insert(object* n, char* path, char* val) {
 
 bool object_property_edit(object* n, char* path, char* val, uint8_t mode) {
 
-  if(!n->running_evals && has_notifies(n)){
+  if(!n->running_evals && list_size(n->notifies)){
     NOT_IN_EVAL(n, "Editing", "E!");
   }
   if(mode!=LIST_EDIT_MODE_DELETE && (!val || !*val)) return false;
@@ -1233,52 +1234,24 @@ void onex_show_notify(){
   }
 }
 
-bool add_notify(object* o, char* notify){
-  // Persist?? // REVISIT Yess!!
-  int i;
-  for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    if(o->notify[i] && value_is(o->notify[i], notify)) return true;
-  }
-  for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    if(!o->notify[i]){ o->notify[i]=value_new(notify); return true; }
-  }
-  log_write("can't add notify %s to %s\n", notify, value_string(o->uid));
-  show_notifies(o);
+bool add_notify(object* o, char* notifyuid){ // Persist?? // REVISIT Yess!!
+  if(list_add_setwise(o->notifies, notifyuid)) return true;
+  log_write("****** can't add notify uid %s to %s\n", notifyuid, value_string(o->uid));
+  show_notifies(o); // REVISIT: drop all this and bool return with expanding lists
   return false;
-}
-
-void set_notifies(object* o, char* notify){
-
-  list* li=list_new_from(notify, OBJECT_MAX_NOTIFIES);
-  if(!li) return;
-  for(int i=0; i < list_size(li); i++){
-    o->notify[i]=(value*)list_get_n(li, i+1);
-  }
-  list_free(li, false);
 }
 
 void save_and_notify(object* o){
-
   persist_put(o, false);
-
-  for(int i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    if(o->notify[i]) set_to_notify(o->notify[i], 0, o->uid, 0);
-  }
-}
-
-bool has_notifies(object* o){
-
-  for(int i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    if(o->notify[i]) return true;
-  }
-  return false;
-}
+  for(int i=1; i<=list_size(o->notifies); i++){
+    set_to_notify(list_get_n(o->notifies,i), 0, o->uid, 0);
+  }//
+}//
 
 void show_notifies(object* o) {
   log_write("notifies of %s\n", value_string(o->uid));
-  int i;
-  for(i=0; i< OBJECT_MAX_NOTIFIES; i++){
-    if(o->notify[i]){ log_write("%s ", value_string(o->notify[i])); }
+  for(int i=1; i<=list_size(o->notifies); i++){
+    log_write("%s ", value_string(list_get_n(o->notifies,i)));
   }
   log_write("\n--------------\n");
 }
@@ -1320,15 +1293,13 @@ char* object_to_text(object* n, char* b, uint16_t s, int target) {
   }
 
   int j;
-  for(j=0; j< OBJECT_MAX_NOTIFIES; j++){
-    if(n->notify[j]){
-      if(j==0) ln+=snprintf(b+ln, s-ln, " Notify:");
-      if(ln>=s){ *(b+s-1) = 0; return b; }
-      ln+=snprintf(b+ln, s-ln, " ");
-      if(ln>=s){ *(b+s-1) = 0; return b; }
-      ln+=strlen(value_to_text(n->notify[j], b+ln, s-ln));
-      if(ln>=s){ *(b+s-1) = 0; return b; }
-    }
+  for(j=1; j<=list_size(n->notifies); j++){ // REVISIT list_to_text()
+    if(j==1) ln+=snprintf(b+ln, s-ln, " Notify:");
+    if(ln>=s){ *(b+s-1) = 0; return b; }
+    ln+=snprintf(b+ln, s-ln, " ");
+    if(ln>=s){ *(b+s-1) = 0; return b; }
+    ln+=strlen(value_to_text(list_get_n(n->notifies,j), b+ln, s-ln));
+    if(ln>=s){ *(b+s-1) = 0; return b; }
   }
 
   if(n->alerted && target==OBJECT_TO_TEXT_LOG){
@@ -1662,13 +1633,10 @@ void onn_recv_object(object* n) {
     o=n;
   }
   else{
-    item_free(o->properties);
-    list_free(o->devices, true);
-    o->properties = n->properties; n->properties=0;
-    o->devices    = n->devices;    n->devices=0;
-    // REVISIT:
-    // list_free!! and append devices if not there list_as_set_add(o->devices, n->devices)
-    // additional notifies: for(i=0; i< OBJECT_MAX_NOTIFIES; i++) n->notify[i];
+    item_free(o->properties); o->properties = n->properties; n->properties=0;
+    list_del_item(o->devices, value_new("shell"));
+    list_add_all_setwise(o->devices,  n->devices);  list_free(n->devices,  false); n->devices=0;
+    list_add_all_setwise(o->notifies, n->notifies); list_free(n->notifies, false); n->notifies=0;
     object_free(n);
   }
   if(object_is_remote_device(o)){

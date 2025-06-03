@@ -212,7 +212,11 @@ DRM_CC_SYMBOLS = -D$(TARGET) $(CHANNELS) -DVK_USE_PLATFORM_DISPLAY_KHR
 CC_FLAGS = -std=gnu17 -Wall -Werror -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -fno-strict-aliasing -fno-builtin-memcmp -Wimplicit-fallthrough=0 -fvisibility=hidden -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-result -Wno-switch
 
 # remove these for thorough linting:
-CC_FLAGS += -Wno-incompatible-pointer-types -Wno-discarded-qualifiers -Wno-misleading-indentation
+CC_FLAGS += -Wno-incompatible-pointer-types
+CC_FLAGS += -Wno-discarded-qualifiers
+CC_FLAGS += -Wno-array-bounds
+CC_FLAGS += -Wno-char-subscripts
+CC_FLAGS += -Wno-misleading-indentation
 
 %.o: %.c
 	@echo ================
