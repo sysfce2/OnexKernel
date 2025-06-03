@@ -41,11 +41,11 @@ list* list_new_from(char* text, uint16_t max_size) {
   list* li=list_new(max_size);
   if(!text || !(*text)) return li;
   size_t m=strlen(text)+1;
-  char textcopy[m]; memcpy(textcopy, text, m); // REVISIT: why copy?
+  char textcopy[m]; memcpy(textcopy, text, m); // REVISIT why copy?
   char* t=strtok(textcopy, " \n");             // REVISIT cos not reentrant?!
   while(t) {
     if(!list_add(li,value_new(t))) break;
-    t=strtok(0, " \n");
+    t=strtok(0, " \n");                        // REVISIT so use strtok_r
   }
   return li;
 }

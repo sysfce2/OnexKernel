@@ -59,7 +59,7 @@ void persistence_init(char* filename) {
 
   long n=fread(alldbtext, sizeof(char), len, db);
   alldbtext[n] = '\0';
-  char* text=strtok(alldbtext, "\n"); // REVISIT not re-entrant!?
+  char* text=strtok(alldbtext, "\n"); // REVISIT use strtok_r
   while(text){
     if(!strncmp(text, "UID: ", 5)){
       char* u=text+5;
@@ -72,7 +72,7 @@ void persistence_init(char* filename) {
         properties_set(persistence_objects_text, uid, mem_strdup(text));
       }
     }
-    text=strtok(0, "\n");
+    text=strtok(0, "\n"); // REVISIT use strtok_r
   }
   mem_free(alldbtext);
 }

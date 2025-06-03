@@ -228,6 +228,7 @@ object* object_from_text(char* text, uint8_t max_size){
     if(isupper((unsigned char)(*key)));
     else {
       if(!n){
+     // if(!uid || !version) FREE_BREAK_1; // REVISIT
         n=new_object(uid, version, 0, 0, max_size);
         if(devices)   n->devices  = list_new_from(devices,  OBJECT_MAX_DEVICES);
         ;             n->notifies = list_new_from(notifies, OBJECT_MAX_NOTIFIES);
