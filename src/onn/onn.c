@@ -188,33 +188,26 @@ object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size) {
 
 object* object_from_text(char* text, uint8_t max_size){
 
-  size_t m=strlen(text)+1;
-  char t[m]; memcpy(t, text, m); // TODO: presumably to allow read-only strings, but seems expensive and risky
   object* n=0;
+
   value* uid=0;
-  char* devices=0;
-  char* notifies=0;
+  char*  devices=0;
+  char*  notifies=0;
   value* evaluator=0;
   value* cache=0;
   value* persist=0;
+
+  // REVISIT: presumably to allow read-only strings, but seems expensive and risky
+  size_t m=strlen(text)+1; char t[m]; memcpy(t, text, m);
   char* p=t;
+
+  char* key=0; char* val=0;
+  #define FREE_BREAK_1 { log_write_1("%s\n",p); mem_freestr(key); mem_freestr(val); object_free(n); n=0; break; }
   while(true){
-    char* key=get_key(&p);
-    if(!key) break;
-    if(!*key){
-      mem_freestr(key);
-      object_free(n);
-      n=0;
-      break;
-    }
-    char* val=get_val(&p);
-    if(!val || !*val){
-      mem_freestr(key);
-      if(val) mem_freestr(val);
-      object_free(n);
-      n=0;
-      break;
-    }
+
+    key=get_key(&p); if(!key) break; if(!*key) FREE_BREAK_1;
+    val=get_val(&p); if(!val     ||     !*val) FREE_BREAK_1;
+
     if(!strcmp(key,"UID")) uid=value_new(val);
     else
     if(!strcmp(key,"Devices") && !devices) devices=mem_strdup(val);
@@ -237,10 +230,10 @@ object* object_from_text(char* text, uint8_t max_size){
         if(cache)     n->cache=cache;
         if(persist)   n->persist=persist;
       }
-      if(!property_edit(n, key, val, LIST_EDIT_MODE_SET)) break;
+      if(!property_edit(n, key, val, LIST_EDIT_MODE_SET)) FREE_BREAK_1;
     }
-    mem_freestr(key);
-    mem_freestr(val);
+    mem_freestr(key); key=0;
+    mem_freestr(val); val=0;
   }
   mem_freestr(devices);
   mem_freestr(notifies);
@@ -294,7 +287,6 @@ object* new_shell(value* uid){
   n->devices  = list_new_from("shell", OBJECT_MAX_DEVICES);
   n->notifies = list_new(OBJECT_MAX_NOTIFIES);
   n->properties=properties_new(MAX_OBJECT_SIZE);
-  n->last_observe = 0;
   return n;
 }
 
@@ -312,8 +304,7 @@ void object_free(object* o) {
   mem_free(o);
 }
 
-char* get_key(char** p)
-{
+char* get_key(char** p) {
   while(isspace(**p)) (*p)++;
   if(!**p) return 0;
   char* s=strchr(*p, ' ');
@@ -399,19 +390,18 @@ char* object_get_persist(object* n){
 // ------------------------------------------------------
 
 static char obstime[64];
-static value* format_obstime(object* n){
-  if(!n->last_observe) return value_new("-");
-  uint32_t t = ((uint32_t)(time_ms() - n->last_observe)/1000);
+static value* format_obstime(uint64_t lo){
+  if(!lo) return value_new("-");
+  uint32_t t = ((uint32_t)(time_ms() - lo)/1000);
   snprintf(obstime, 64, "%d", (uint16_t)t);
-  return value_new(obstime);
+  return value_new(obstime); // REVISIT: value not freed: hopefully not called much, with larger numbers
 }
 
-static char* object_property_observe(object* n, char* path, bool notify)
-{
+static char* object_property_observe(object* n, char* path, bool notify) {
   if(!n) return 0;
   if(!strcmp(path, "UID"))     return value_string(n->uid);
   if(!strcmp(path, "Timer"))   return value_string(n->timer);
-  if(!strcmp(path, "Obstime")) return value_string(format_obstime(n));
+  if(!strcmp(path, "Obstime")) return value_string(format_obstime(n->last_observe));
   if(!strcmp(path, "Devices")) return value_string(list_get_n(n->devices, 1));
                      // REVISIT Device<s> but only returns the first!!
 
@@ -476,7 +466,7 @@ item* property_item(object* n, char* path, object* t, bool notify) {
   // REVISIT: why dupe these here? can't go "x:y:Alerted|Obstime|Timer", or can u?
   if(!strcmp(path, "UID"))     return (item*)n->uid;
   if(!strcmp(path, "Timer"))   return (item*)n->timer;
-  if(!strcmp(path, "Obstime")) return (item*)format_obstime(n);
+  if(!strcmp(path, "Obstime")) return (item*)format_obstime(n->last_observe);
   if(!strcmp(path, ""))        return (item*)n->properties;
   if(!strcmp(path, ":"))       return (item*)n->properties;
   if(!strcmp(path, "Alerted")) return (item*)n->alerted;
@@ -557,12 +547,17 @@ object* find_object(char* uid, char* nuid, bool notify) {
   return o;
 }
 
+int32_t strto_int32(char* val){
+  if(!val || !*val) return 0;
+  errno=0; char* e;
+  int32_t r=strtoul(val, &e, 10);
+  if(errno == ERANGE) return 0;
+  return r;
+}
+
 int32_t object_property_int32(object* n, char* path){
   char* val = object_property_observe(n, path, true);
-  if(!val) return 0;
-  char* e; int32_t r = strtoul(val, &e, 10);
-  if(errno==ERANGE) return 0;
-  return r;
+  return strto_int32(val);
 }
 
 int32_t object_pathpair_int32(object* n, char* path1, char* path2){
@@ -1245,8 +1240,8 @@ void save_and_notify(object* o){
   persist_put(o, false);
   for(int i=1; i<=list_size(o->notifies); i++){
     set_to_notify(list_get_n(o->notifies,i), 0, o->uid, 0);
-  }//
-}//
+  }
+}
 
 void show_notifies(object* o) {
   log_write("notifies of %s\n", value_string(o->uid));
@@ -1258,70 +1253,57 @@ void show_notifies(object* o) {
 
 // ------------------------------------------------------
 
+#define BUFCHK if(ln>=s){ *(b+s-1) = 0; return b; }
+
 char* object_to_text(object* n, char* b, uint16_t s, int target) {
 
   if(!n){ *b = 0; return b; }
 
   int ln=0;
 
-  ln+=snprintf(b+ln, s-ln, "UID: %s", value_string(n->uid));
-  if(ln>=s){ *(b+s-1) = 0; return b; }
+  ln+=snprintf(b+ln, s-ln, "UID: %s", value_string(n->uid)); BUFCHK
 
   if(target==OBJECT_TO_TEXT_NETWORK){
-    ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(onex_device_object->uid));
-    if(ln>=s){ *(b+s-1) = 0; return b; }
+    ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(onex_device_object->uid)); BUFCHK
   }
 
   if(n->evaluator && target!=OBJECT_TO_TEXT_NETWORK){
-    ln+=snprintf(b+ln, s-ln, " Eval: %s", value_string(n->evaluator));
-    if(ln>=s){ *(b+s-1) = 0; return b; }
+    ln+=snprintf(b+ln, s-ln, " Eval: %s", value_string(n->evaluator)); BUFCHK
   }
 
   if(n->devices && list_size(n->devices) && target!=OBJECT_TO_TEXT_NETWORK){
-    ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(list_get_n(n->devices, 1))); // REVISIT list_to_text()
-    if(ln>=s){ *(b+s-1) = 0; return b; }
-  }
+    ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(list_get_n(n->devices, 1))); BUFCHK
+  } // REVISIT list_to_text()
 
   if(n->cache && target!=OBJECT_TO_TEXT_NETWORK){
-    ln+=snprintf(b+ln, s-ln, " Cache: %s", value_string(n->cache));
-    if(ln>=s){ *(b+s-1) = 0; return b; }
+    ln+=snprintf(b+ln, s-ln, " Cache: %s", value_string(n->cache)); BUFCHK
   }
 
   if(n->persist && target!=OBJECT_TO_TEXT_NETWORK){
-    ln+=snprintf(b+ln, s-ln, " Persist: %s", value_string(n->persist));
-    if(ln>=s){ *(b+s-1) = 0; return b; }
+    ln+=snprintf(b+ln, s-ln, " Persist: %s", value_string(n->persist)); BUFCHK
   }
 
   int j;
-  for(j=1; j<=list_size(n->notifies); j++){ // REVISIT list_to_text()
-    if(j==1) ln+=snprintf(b+ln, s-ln, " Notify:");
-    if(ln>=s){ *(b+s-1) = 0; return b; }
-    ln+=snprintf(b+ln, s-ln, " ");
-    if(ln>=s){ *(b+s-1) = 0; return b; }
-    ln+=strlen(value_to_text(list_get_n(n->notifies,j), b+ln, s-ln));
-    if(ln>=s){ *(b+s-1) = 0; return b; }
-  }
+  for(j=1; j<=list_size(n->notifies); j++){
+    if(j==1) ln+=snprintf(b+ln, s-ln, " Notify:"); BUFCHK
+    ln+=snprintf(b+ln, s-ln, " "); BUFCHK
+    ln+=strlen(value_to_text(list_get_n(n->notifies,j), b+ln, s-ln)); BUFCHK
+  } // REVISIT list_to_text()
 
   if(n->alerted && target==OBJECT_TO_TEXT_LOG){
-    ln+=snprintf(b+ln, s-ln, " Alerted: %s", value_string(n->alerted));
-    if(ln>=s){ *(b+s-1) = 0; return b; }
+    ln+=snprintf(b+ln, s-ln, " Alerted: %s", value_string(n->alerted)); BUFCHK
   }
 
   if(n->timer && target==OBJECT_TO_TEXT_LOG){
-    ln+=snprintf(b+ln, s-ln, " Timer: %s", value_string(n->timer));
-    if(ln>=s){ *(b+s-1) = 0; return b; }
+    ln+=snprintf(b+ln, s-ln, " Timer: %s", value_string(n->timer)); BUFCHK
   }
 
   properties* p=n->properties;
   for(j=1; j<=properties_size(p); j++){
-    ln+=snprintf(b+ln, s-ln, " ");
-    if(ln>=s){ *(b+s-1) = 0; return b; }
-    ln+=snprintf(b+ln, s-ln, "%s", properties_key_n(p,j));
-    if(ln>=s){ *(b+s-1) = 0; return b; }
-    ln+=snprintf(b+ln, s-ln, ": ");
-    if(ln>=s){ *(b+s-1) = 0; return b; }
-    ln+=strlen(item_to_text(properties_get_n(p,j), b+ln, s-ln));
-    if(ln>=s){ *(b+s-1) = 0; return b; }
+    ln+=snprintf(b+ln, s-ln, " "); BUFCHK
+    ln+=snprintf(b+ln, s-ln, "%s", properties_key_n(p,j)); BUFCHK
+    ln+=snprintf(b+ln, s-ln, ": "); BUFCHK
+    ln+=strlen(item_to_text(properties_get_n(p,j), b+ln, s-ln)); BUFCHK
   }
 
   return b;
@@ -1575,37 +1557,22 @@ void persist_flush() {
 }
 
 void persist_pull_keep_active() {
-
   if(!persistence_objects_text) return;
   for(int n=1; n<=properties_size(persistence_objects_text); n++){
     char* uid=0;
     char* p=properties_get_n(persistence_objects_text, n);
+    char* key=0; char* val=0;
+    #define FREE_BREAK_2 { mem_freestr(key); mem_freestr(val); break; }
     while(true){
-      char* key=get_key(&p);
-      if(!key) break;
-      if(!*key){
-        mem_freestr(key);
-        break;
-      }
-      char* val=get_val(&p);
-      if(!val || !*val){
-        mem_freestr(key);
-        if(val) mem_freestr(val);
-        break;
-      }
-      if(!isupper((unsigned char)(*key))){
-        mem_freestr(key);
-        mem_freestr(val);
-        break;
-      }
+      key=get_key(&p); if(!key) break; if(!*key) FREE_BREAK_2;
+      val=get_val(&p); if(!val     ||     !*val) FREE_BREAK_2;
+      if(!isupper((unsigned char)(*key)))        FREE_BREAK_2;
       if(!strcmp(key,"Cache") && !strcmp(val,"keep-active")){
         uid=properties_key_n(persistence_objects_text, n);
-        mem_freestr(key);
-        mem_freestr(val);
-        break;
+        FREE_BREAK_2;
       }
-      mem_freestr(key);
-      mem_freestr(val);
+      mem_freestr(key); key=0;
+      mem_freestr(val); val=0;
     }
     if(uid){
       object* o=onex_get_from_cache(uid);
