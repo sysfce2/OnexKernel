@@ -82,12 +82,12 @@ static void    device_init(char* prefix);
 
 typedef struct object {
   value*      uid;
-  value*      evaluator;
   properties* properties;
+  value*      evaluator;
+  value*      alerted;
   value*      cache;
   value*      persist;
   value*      notify[OBJECT_MAX_NOTIFIES]; // REVISIT list!
-  value*      alerted;
   list*       devices;
   value*      timer;
   bool        running_evals;
@@ -100,8 +100,7 @@ object* onex_device_object=0;
 
 // ---------------------------------
 
-value* generate_uid()
-{
+value* generate_uid() {
   char b[24];
   snprintf(b, 24, "uid-%02x%02x-%02x%02x-%02x%02x-%02x%02x",
     random_ish_byte(), random_ish_byte(),
@@ -156,8 +155,7 @@ bool object_is_remote_device(object* o){
 
 // ----------------------------------------------------------
 
-object* object_new_from(char* text, uint8_t max_size)
-{
+object* object_new_from(char* text, uint8_t max_size) {
   object* n=object_from_text(text, max_size);
   if(!n) return 0;
   char* uid=value_string(n->uid);
@@ -169,8 +167,7 @@ object* object_new_from(char* text, uint8_t max_size)
   return n;
 }
 
-object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size)
-{
+object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size) {
   if(onex_get_from_cache(uid)){
     log_write("Attempt to create an object with UID %s that already exists\n", uid);
     return 0;
@@ -180,8 +177,7 @@ object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size)
   return n;
 }
 
-object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size)
-{
+object* new_object(value* uid, char* evaluator, char* is, uint8_t max_size) {
   object* n=(object*)mem_alloc(sizeof(object));
   n->uid=uid? uid: generate_uid();
   n->properties=properties_new(max_size);
@@ -196,8 +192,8 @@ object* object_from_text(char* text, uint8_t max_size){
   char t[m]; memcpy(t, text, m); // TODO: presumably to allow read-only strings, but seems expensive and risky
   object* n=0;
   value* uid=0;
-  value* evaluator=0;
   char* devices=0;
+  value* evaluator=0;
   value* cache=0;
   value* persist=0;
   char* notify=0;
@@ -221,9 +217,9 @@ object* object_from_text(char* text, uint8_t max_size){
     }
     if(!strcmp(key,"UID")) uid=value_new(val);
     else
-    if(!strcmp(key,"Eval")) evaluator=value_new(val);
-    else
     if(!strcmp(key,"Devices") && !devices) devices=mem_strdup(val);
+    else
+    if(!strcmp(key,"Eval")) evaluator=value_new(val);
     else
     if(!strcmp(key,"Cache")) cache=value_new(val);
     else
@@ -304,12 +300,12 @@ object* new_shell(value* uid){
 void object_free(object* o) {
   if(!o) return;
   value_free(o->uid);
-  value_free(o->evaluator);
   properties_free(o->properties, true);
+  value_free(o->alerted);
+  value_free(o->evaluator);
   value_free(o->cache);
   value_free(o->persist);
   for(uint8_t i=0; i< OBJECT_MAX_NOTIFIES; i++) value_free(o->notify[i]);
-  value_free(o->alerted);
   list_free(o->devices, true);
   value_free(o->timer);
   mem_free(o);
@@ -364,8 +360,7 @@ char* get_val(char** p)
   return r;
 }
 
-void object_set_evaluator(object* n, char* evaluator)
-{
+void object_set_evaluator(object* n, char* evaluator) {
   n->evaluator=value_new(evaluator);
   persist_put(n, true);
 }
@@ -1279,8 +1274,7 @@ bool has_notifies(object* o){
   return false;
 }
 
-void show_notifies(object* o)
-{
+void show_notifies(object* o) {
   log_write("notifies of %s\n", value_string(o->uid));
   int i;
   for(i=0; i< OBJECT_MAX_NOTIFIES; i++){

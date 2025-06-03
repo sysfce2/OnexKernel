@@ -8,7 +8,7 @@
 #include <onex-kernel/log.h>
 
 /*
-  lists for MCUs, not Linux, so move to src/onl/nrf51
+  REVISIT: lists for MCUs, not Linux, so move to src/onl/nrf51
   and do a proper list for Linux in src/onl/unix
 */
 
@@ -25,8 +25,8 @@ typedef struct list {
   uint16_t size;
 } list;
 
-list* list_new(uint16_t max_size)
-{
+list* list_new(uint16_t max_size) {
+  if(!max_size) return 0;
   list* li=(list*)mem_alloc(sizeof(list));
   if(!li) return 0;
   li->type=ITEM_LIST;
@@ -42,7 +42,7 @@ list* list_new_from(char* text, uint16_t max_size) {
   list* li=list_new(max_size);
   size_t m=strlen(text)+1;
   char textcopy[m]; memcpy(textcopy, text, m); // REVISIT: why copy?
-  char* t=strtok(textcopy, " \n"); // REVISIT not reentrant?!
+  char* t=strtok(textcopy, " \n");             // REVISIT cos not reentrant?!
   while(t) {
     if(!list_add(li,value_new(t))) break;
     t=strtok(0, " \n");
@@ -54,8 +54,7 @@ list* list_new_from_fixed(char* text) {
   return list_new_from(text, num_tokens(text));
 }
 
-bool list_add(list* li, void* val)
-{
+bool list_add(list* li, void* val) {
   if(!li) return false;
   if(li->size==li->max_size) return false;
   li->vals[li->size]=val;
@@ -98,16 +97,14 @@ bool list_ins_setwise(list* li, char* v){
   return list_ins(li,1,value_new(v));
 }
 
-bool list_set_n(list* li, uint16_t index, void* val)
-{
+bool list_set_n(list* li, uint16_t index, void* val) {
   if(!li) return false;
   if(index<=0 || index>li->size) return false;
   li->vals[index-1]=val;
   return true;
 }
 
-void* list_get_n(list* li, uint16_t index)
-{
+void* list_get_n(list* li, uint16_t index) {
   if(!li) return 0;
   if(index<=0 || index>li->size) return 0;
   return li->vals[index-1];
@@ -126,8 +123,7 @@ void* list_del_n(list* li, uint16_t index) {
   return v;
 }
 
-uint16_t list_size(list* li)
-{
+uint16_t list_size(list* li) {
   if(!li) return 0;
   return li->size;
 }
@@ -141,8 +137,7 @@ uint16_t list_has_value(list* li, char* v){
   return 0;
 }
 
-uint16_t list_find(list* li, item* it)
-{
+uint16_t list_find(list* li, item* it) {
   if(!li) return 0;
   for(uint16_t j=0; j<li->size; j++){
     if(item_equal((item*)li->vals[j], it)) return j+1;
@@ -150,23 +145,20 @@ uint16_t list_find(list* li, item* it)
   return 0;
 }
 
-void list_clear(list* li, bool free_items)
-{
+void list_clear(list* li, bool free_items) {
   if(!li || !li->size) return;
   if(free_items) for(uint16_t j=0; j<li->size; j++) item_free((item*)li->vals[j]);
   li->size=0;
 }
 
-void list_free(list* li, bool free_items)
-{
+void list_free(list* li, bool free_items) {
   if(!li) return;
   list_clear(li, free_items);
   mem_free(li->vals);
   mem_free(li);
 }
 
-char* list_to_text(list* li, char* b, uint16_t s)
-{
+char* list_to_text(list* li, char* b, uint16_t s) {
   if(!li){ *b = 0; return b; }
   *b=0;
   if(!li || !li->size) return b;
@@ -180,8 +172,7 @@ char* list_to_text(list* li, char* b, uint16_t s)
   return b;
 }
 
-void list_log(list* li)
-{
+void list_log(list* li) {
   if(!li) return;
   char buf[MAX_TEXT_LEN];
   log_write("%s\n", list_to_text(li,buf,MAX_TEXT_LEN));

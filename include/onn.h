@@ -34,10 +34,10 @@
 /** The actual Object. */
 typedef struct object object;
 
-/** this is the sig for your object evaluator callback. */
+/** this is the sig for your Object evaluator callback. */
 typedef bool (*onex_evaluator)(struct object* n, void* data);
 
-/** value object for passing around OBS: message data. */
+/** value struct for passing around OBS: message data. */
 typedef struct {
   char* uid;
   char* dev;
@@ -45,21 +45,21 @@ typedef struct {
 
 // --------------------------------------------------------------------
 
-/** create a new Object.
+/** create a new local Object.
     uid:       if any (will generate one otherwise)
     evaluator: name of callback function, set in onex_set_evaluators(), to get and set values on this Object
     is:        string type name (e.g. "light", "button")
-    max_size:  max number of properties - for embedded use
+    max_size:  max number of properties
  */
 object* object_new(char* uid, char* evaluator, char* is, uint8_t max_size);
 
-/** create a new Object from text. */
+/** create a new Object from text, could be local (via persistence) or remote (off network). */
 object* object_new_from(char* text, uint8_t max_size);
 
 /** re-set evaluator callback. */
 void object_set_evaluator(object* n, char* evaluator);
 
-/** set/unset flag to kick the object on restart.
+/** set/unset flag to kick the Object on restart.
   * Cache: keep-active */
 void object_set_cache(object* n, char* cache);
 
@@ -162,39 +162,39 @@ char* object_property_key_esc(object* n, char* path, uint16_t index, char* keyes
 #define OBJECT_TO_TEXT_PERSIST 2
 #define OBJECT_TO_TEXT_LOG     3
 
-/** object to text; supply your own buffer, b, of length s. */
+/** Object to text; supply your own buffer, b, of length s. */
 char* object_to_text(object* n, char* b, uint16_t s, int style);
 
-/** object uid to text; supply your own buffer, b, of length s. */
+/** Object uid to text; supply your own buffer, b, of length s. */
 char* object_uid_to_text(char* uid, char* b, uint16_t s, int style);
 
 /** make an OBS: string in this buffer. */
 char* observe_uid_to_text(char* uid, char* b, uint16_t s);
 
-/** object from text; no cache/persist. */
+/** Object from text; no cache/persist; only used by ONP. */
 object* object_from_text(char* text, uint8_t max_size);
 
 /** OBS from text. */
 observe observe_from_text(char* u);
 
-/** log out the object */
+/** log out the Object */
 void object_log(object* n);
 
 /** true if it's a UID. */
 bool is_uid(char* uid);
 
-/** true if it's a local object (hosted/animated in this Onex). */
+/** true if it's a local Object (hosted/animated in this Onex). */
 bool is_local(char* uid);
 
-/** true if it's a remote object. */
+/** true if it's a remote Object. */
 bool object_is_remote(object* o);
 
-/** free object and properties */
+/** free Object and properties */
 void object_free(object* n);
 
 // --------------------------------------------------------------------
 
-/** the device object for this device. */
+/** the device Object for this device. */
 extern object* onex_device_object;
 
 /** set things up. example config:
@@ -224,7 +224,7 @@ void onex_show_cache();
 /** log out all the notifies pending. */
 void onex_show_notify();
 
-/** remove object from the cache. */
+/** remove Object from the cache. */
 void onex_un_cache(char* uid);
 
 // --------------------------------------------------------------------
