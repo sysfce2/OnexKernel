@@ -81,11 +81,14 @@ uint16_t serial_available(){
   return chunkbuf_current_size(serial_read_buf);
 }
 
-static void buffer_readable(char* buf, uint16_t size){
-  if(!chunkbuf_write(serial_read_buf, buf, size)){
-    log_flash(1,0,0);
+static void received(char* buf, uint16_t size){
+  uint16_t w=chunkbuf_writable(serial_read_buf);
+  if(size > w){
+    log_write("srb full %d %d\n", size, chunkbuf_current_size(serial_read_buf));
+    //log_flash(1,0,0);
     return;
   }
+  chunkbuf_write(serial_read_buf, buf, size, -1);
   if(recv_cb) recv_cb(false, "serial");
 }
 
@@ -133,7 +136,7 @@ static void cdc_acm_user_ev_handler(app_usbd_class_inst_t const * p_inst,
                     if (index > 1)
                     {
                         uint16_t size = index;
-                        buffer_readable((char*)m_cdc_data_array, size);
+                        received((char*)m_cdc_data_array, size);
                     }
                     index = 0;
                 }
@@ -278,11 +281,19 @@ bool serial_loop() {
   return app_usbd_event_queue_process();
 }
 
-static char nl_delim = '\n';
+#define NL_DELIM '\n'
 
 uint16_t serial_read(char* buf, uint16_t size) {
-  if(!initialised || !chunkbuf_current_size(serial_read_buf)) return 0;
-  return chunkbuf_read(serial_read_buf, buf, size, nl_delim);
+  if(!initialised) return 0;
+  if(!chunkbuf_current_size(serial_read_buf)) return 0;
+  uint16_t r=chunkbuf_readable(serial_read_buf, NL_DELIM);
+  if(!r) return 0;
+  if(r > size){
+    log_flash(1,0,0); // can fill whole buffer without seeing delim
+    log_write("**** %d > %d\n", r, size);
+    return 0;
+  }
+  return chunkbuf_read(serial_read_buf, buf, size, NL_DELIM);
 }
 
 static uint16_t serial_write_delim(char* tty, char* buf, uint16_t size, bool delim);
@@ -312,18 +323,14 @@ int16_t serial_vprintf(const char* fmt, va_list args) {
 }
 
 static uint16_t serial_write_delim(char* tty, char* buf, uint16_t size, bool delim) {
-  if(!chunkbuf_write(serial_write_buf, buf, size)){
-    log_flash(1,0,0);
+  uint16_t w=chunkbuf_writable(serial_write_buf);
+  if(size + (delim? 1: 0) > w){
+    log_flash(1,0,0); // no room for this size
     return 0;
   }
-  if(delim){
-    if(!chunkbuf_write(serial_write_buf, &nl_delim, 1)){
-      log_flash(1,0,0);
-      return 0;
-    }
-  }
+  chunkbuf_write(serial_write_buf, buf, size, delim? NL_DELIM: -1);
+
   if(!do_usb_write_block(true)){
-    // do_usb_write_block already flashed
     return 0;
   }
   return size;

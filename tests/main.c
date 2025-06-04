@@ -363,24 +363,35 @@ void run_chunkbuf_tests(){
   log_write("-------- chunkbuf tests ---------\n");
   chunkbuf* wside = chunkbuf_new(100);
   chunkbuf* rside = chunkbuf_new(100);
-  chunkbuf_write(wside, "111111111111111111.\n", strlen("111111111111111111.\n"));
-  chunkbuf_write(wside, "222222222222222222.\n", strlen("222222222222222222.\n"));
-  chunkbuf_write(wside, "333333333333333333.\n", strlen("333333333333333333.\n"));
-  chunkbuf_write(wside, "444444444444444444.\n", strlen("444444444444444444.\n"));
+  log_write("wside writable %d\n", chunkbuf_writable(wside));
+  chunkbuf_write(wside, "1234567890123456789", strlen("1234567890123456789"), '\n');
+  log_write("wside writable %d\n", chunkbuf_writable(wside));
+  chunkbuf_write(wside, "2222222222222222222", strlen("2222222222222222222"), '\n');
+  log_write("wside writable %d\n", chunkbuf_writable(wside));
+  chunkbuf_write(wside, "3333333333333333333", strlen("3333333333333333333"), '\n');
+  log_write("wside writable %d\n", chunkbuf_writable(wside));
+  chunkbuf_write(wside, "4444444444444444444", strlen("4444444444444444444"), '\n');
+  log_write("wside writable %d\n", chunkbuf_writable(wside));
+  log_write("-------- chunkbuf written -------\n");
   while(true){
     char pkt[7];
+    log_write("wside readable %d\n", chunkbuf_readable(wside, -1));
     uint16_t rn = chunkbuf_read(wside, pkt, 7, -1);
   ; if(!rn) break;
-    chunkbuf_write(rside, pkt, rn);
+    log_write("---- rside writable %d\n", chunkbuf_writable(rside));
+    chunkbuf_write(rside, pkt, rn, -1);
   }
+  log_write("---- rside writable %d\n", chunkbuf_writable(rside));
+  log_write("-------- chunkbuf transferred ---\n");
   while(true){
     char line[32];
+    log_write("---- rside readable %d\n", chunkbuf_readable(rside, '\n'));
     uint16_t rn = chunkbuf_read(rside, line, 32, '\n');
   ; if(!rn) break;
-    line[rn-1]=0;
     log_write("line: \"%s\" len: %d\n", line, strlen(line));
     if(!rn) break;
   }
+  log_write("-------- chunkbuf done ----------\n");
   chunkbuf_free(rside);
   chunkbuf_free(wside);
 }
