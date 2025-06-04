@@ -166,20 +166,21 @@ bool handle_connected(){
   return num_waiting_on_connect > 0;
 }
 
-void send_all_entries(properties* p, bool obs){
-  for(uint16_t i=1; i<=properties_size(p); i++){
-    char* uid     = properties_key_n(p,i);
-    char* channel = properties_get_n(p,i);
-    if(obs) observe_uid_to_text(uid, send_buff, SEND_BUFF_SIZE);
-    else    object_uid_to_text( uid, send_buff, SEND_BUFF_SIZE, OBJECT_TO_TEXT_NETWORK);
-    send(channel);
-  }
-  properties_clear(p, false);
+bool send_one_entry(properties* pending_obs, properties* pending_obj, bool send_obs){
+  properties* p = send_obs? pending_obs: pending_obj;
+  if(!properties_size(p)) return false;
+  char* uid     = properties_key_n(p,1); // REVISIT: that's a very inefficent queue!
+  char* channel = properties_get_n(p,1);
+  if(send_obs) observe_uid_to_text(uid, send_buff, SEND_BUFF_SIZE);
+  else         object_uid_to_text( uid, send_buff, SEND_BUFF_SIZE, OBJECT_TO_TEXT_NETWORK);
+  send(channel);
+  properties_del_n(p,1);                 // REVISIT: that's a very inefficent queue!
+  return true;
 }
 
-#define SERIAL_SEND_RATE 800
-#define RADIO_SEND_RATE  800
-#define IPV6_SEND_RATE   50
+#define SERIAL_SEND_RATE 100
+#define RADIO_SEND_RATE  100
+#define IPV6_SEND_RATE     5
 
 static uint32_t serial_lt = 0;
 static uint32_t radio_lt = 0;
@@ -187,22 +188,23 @@ static uint32_t ipv6_lt = 0;
 
 bool handle_all_send(){
   uint32_t ct = time_ms();
+  bool ka=false;
   if(onp_channel_serial && ct > serial_lt + SERIAL_SEND_RATE){
     serial_lt = ct;
-    send_all_entries(serial_pending_obs, true);
-    send_all_entries(serial_pending_obj, false);
+    static bool send_obs=false; send_obs=!send_obs;
+    ka = send_one_entry(serial_pending_obs, serial_pending_obj, send_obs)  || ka;
   }
   if(onp_channel_radio && ct > radio_lt + RADIO_SEND_RATE){
     radio_lt = ct;
-    send_all_entries(radio_pending_obs, true);
-    send_all_entries(radio_pending_obj, false);
+    static bool send_obs=false; send_obs=!send_obs;
+    ka = send_one_entry(radio_pending_obs, radio_pending_obj, send_obs)  || ka;
   }
   if(onp_channel_ipv6 && ct > ipv6_lt + IPV6_SEND_RATE){
     ipv6_lt = ct;
-    send_all_entries(ipv6_pending_obs, true);
-    send_all_entries(ipv6_pending_obj, false);
+    static bool send_obs=false; send_obs=!send_obs;
+    ka = send_one_entry(ipv6_pending_obs, ipv6_pending_obj, send_obs)  || ka;
   }
-  return false;
+  return ka;
 }
 
 bool onp_loop() {
@@ -318,7 +320,7 @@ void onp_send_object(char* uid, char* device) {
   set_pending("ipv6",   ipv6_pending_obj,   uid, channel);
 }
 
-void send(char* channel){
+void send(char* channel){ // return false if *_write() couldn't fit data in, etc
   if(onp_channel_serial){
     if(!strncmp(channel, "serial", 6) || !strcmp(channel, "all")){
       char* tty = (!strcmp(channel, "all") || !strcmp(channel, "serial"))? "all": channel + 7;
