@@ -178,9 +178,9 @@ bool send_one_entry(properties* pending_obs, properties* pending_obj, bool send_
   return true;
 }
 
-#define SERIAL_SEND_RATE 100
-#define RADIO_SEND_RATE  100
-#define IPV6_SEND_RATE     5
+#define SERIAL_SEND_RATE 30
+#define RADIO_SEND_RATE  30
+#define IPV6_SEND_RATE    5
 
 static uint32_t serial_lt = 0;
 static uint32_t radio_lt = 0;

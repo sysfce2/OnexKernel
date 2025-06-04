@@ -167,8 +167,7 @@ uint16_t properties_size(properties* op)
   return op->size;
 }
 
-char* properties_to_text(properties* op, char* b, uint16_t s)
-{
+char* properties_to_text(properties* op, char* b, uint16_t s) {
   if(!op){ *b = 0; return b; }
   int ln=0;
   int j;
@@ -191,8 +190,7 @@ char* properties_to_text(properties* op, char* b, uint16_t s)
   return b;
 }
 
-void properties_log(properties* op)
-{
+void properties_log(properties* op) {
   if(!op) return;
   char buf[4096];
   log_write("%s\n", properties_to_text(op,buf,4096));
