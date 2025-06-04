@@ -62,6 +62,7 @@ bool        properties_set(properties* op, char* key, void* i);
 void*       properties_get(properties* op, char* key);
 char*       properties_key_n(properties* op, uint16_t index);
 void*       properties_get_n(properties* op, uint16_t index);
+void*       properties_del_n(properties* op, uint16_t index);
 void        properties_ins_setwise(properties* op, char* k, char* v);
 uint16_t    properties_size(properties* op);
 char*       properties_to_text(properties* op, char* b, uint16_t s);

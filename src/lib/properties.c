@@ -92,18 +92,22 @@ void* properties_get(properties* op, char* key)
   return list? list->item: 0;
 }
 
-char* properties_key_n(properties* op, uint16_t index)
-{
+char* properties_key_n(properties* op, uint16_t index) {
   if(!op) return 0;
   if(index<=0 || index>op->size) return 0;
   return op->keys[index-1];
 }
 
-void* properties_get_n(properties* op, uint16_t index)
-{
+void* properties_get_n(properties* op, uint16_t index) {
   if(!op) return 0;
   if(index<=0 || index>op->size) return 0;
   return properties_get(op, op->keys[index-1]);
+}
+
+void* properties_del_n(properties* op, uint16_t index) {
+  if(!op) return 0;
+  if(index<=0 || index>op->size) return 0;
+  return properties_delete(op, op->keys[index-1]);
 }
 
 /** Use list_ins_setwise() on this property key. */
