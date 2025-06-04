@@ -43,10 +43,10 @@ static void set_channel_of_device(char* device, char* channel){
 }
 
 // REVISIT device<s>?? channel<s>? do each channel not #1!
-static char* channel_of_device(char* device){
+static value* channel_of_device(char* device){
   list* channels = (list*)properties_get(device_to_channel, device);
-  char* channel = value_string(list_get_n(channels, 1));
-  return channel? channel: "all";
+  value* channel = list_get_n(channels, 1);
+  return channel? channel: value_new("all");
 }
 
 static bool onp_channel_serial  = false;
@@ -169,11 +169,11 @@ bool handle_connected(){
 bool send_one_entry(properties* pending_obs, properties* pending_obj, bool send_obs){
   properties* p = send_obs? pending_obs: pending_obj;
   if(!properties_size(p)) return false;
-  char* uid     = properties_key_n(p,1); // REVISIT: that's a very inefficent queue!
-  char* channel = properties_get_n(p,1);
+  char*  uid     = properties_key_n(p,1); // REVISIT: that's a very inefficent queue!
+  value* channel = properties_get_n(p,1);
   if(send_obs) observe_uid_to_text(uid, send_buff, SEND_BUFF_SIZE);
   else         object_uid_to_text( uid, send_buff, SEND_BUFF_SIZE, OBJECT_TO_TEXT_NETWORK);
-  send(channel);
+  send(value_string(channel));
   properties_del_n(p,1);                 // REVISIT: that's a very inefficent queue!
   return true;
 }
@@ -296,16 +296,16 @@ static bool handle_recv(uint16_t size, char* channel) {
   return false;
 }
 
-void set_pending(char* propchan, properties* p, char* uid, char* channel){
-  if(strncmp(channel, propchan, strlen(propchan)) && strcmp(channel, "all")) return;
-  char* ch=(char*)properties_get(p, uid);
+void set_pending(char* propchan, properties* p, char* uid, value* channel){
+  if(strncmp(value_string(channel), propchan, strlen(propchan)) && !value_is(channel, "all")) return;
+  value* ch=(value*)properties_get(p, uid);
   if(!ch) properties_set(p, uid, channel);
   else
-  if(strcmp(channel, ch)) log_write("** %s over %s\n", channel, ch);
+  if(!value_equal(channel, ch)) log_write("** %s over %s\n", value_string(channel), value_string(ch));
 }
 
 void onp_send_observe(char* uid, char* device) {
-  char* channel = channel_of_device(device);
+  value* channel = channel_of_device(device);
   set_pending("serial", serial_pending_obs, uid, channel);
   set_pending("radio",  radio_pending_obs,  uid, channel);
   set_pending("ipv6",   ipv6_pending_obs,   uid, channel);
@@ -314,7 +314,7 @@ void onp_send_observe(char* uid, char* device) {
 // REVISIT device<s>?? and send for each channel in above and below
 void onp_send_object(char* uid, char* device) {
   if(!onp_channel_forward && !is_local(uid)) return;
-  char* channel = channel_of_device(device);
+  value* channel = channel_of_device(device);
   set_pending("serial", serial_pending_obj, uid, channel);
   set_pending("radio",  radio_pending_obj,  uid, channel);
   set_pending("ipv6",   ipv6_pending_obj,   uid, channel);
