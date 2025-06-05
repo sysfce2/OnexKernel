@@ -12,8 +12,8 @@ int main(int argc, char *argv[]) {
 
 #if defined(NRF5)
   properties* config = properties_new(32);
-  properties_set(config, "channels", list_new_from_fixed("radio serial"));
-  properties_set(config, "flags", list_new_from_fixed("debug-on-serial log-to-led"));
+  properties_set(config, "channels", list_vals_new_from_fixed("radio serial"));
+  properties_set(config, "flags", list_vals_new_from_fixed("debug-on-serial log-to-led"));
   properties_set(config, "test-uid-prefix", value_new("pcr"));
 #else
   properties* config = get_config(argc, argv, "pcr", "log-onp");

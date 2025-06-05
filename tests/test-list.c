@@ -50,6 +50,7 @@ void test_list()
   list_free(lj, true);
   lj = list_vals_new_from("y 5 + N", 5);
   onex_assert(                   list_vals_equal(li, lj),         "lists equal");
+  list_free(lj, true);
 
   onex_assert_equal_num(         list_items_find( li, (item*)value_new("y")), 1, "y is found at location 1");
   onex_assert_equal_num(         list_items_find( li, (item*)value_new("5")), 2, "5 is found at location 2");

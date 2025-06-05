@@ -37,8 +37,8 @@ bool evaluate_light(object* light, void* d) {
 int main(){
 
   properties* config = properties_new(32);
-  properties_set(config, "channels", list_new_from_fixed("radio"));
-  properties_set(config, "flags", list_new_from_fixed("debug-on-serial log-to-led"));
+  properties_set(config, "channels", list_vals_new_from_fixed("radio"));
+  properties_set(config, "flags", list_vals_new_from_fixed("debug-on-serial log-to-led"));
   properties_set(config, "test-uid-prefix", value_new("light"));
 
   time_init();
