@@ -190,6 +190,13 @@ object* new_object(value* uid, value* version, char* evaluator, char* is, uint8_
   return n;
 }
 
+void log_syntax_fl(char* fi, int li, char* t, char* p){
+  uint8_t charsback = p-t < 4? p-t: 4;
+  log_write("%s:%d %.8s..%.4s>>%.4s<<%.4s\n", fi,li, t, p-charsback, p, p+charsback);
+}
+
+#define log_syntax(t,p) log_syntax_fl(__FILE__,__LINE__, t,p)
+
 object* object_from_text(char* text, bool need_uid_ver, uint8_t max_size){
 
   object* n=0;
@@ -207,7 +214,7 @@ object* object_from_text(char* text, bool need_uid_ver, uint8_t max_size){
   char* p=t;
 
   char* key=0; char* val=0;
-  #define FREE_BREAK_1 { log_write_1("%s\n",p); mem_freestr(key); mem_freestr(val); object_free(n); n=0; break; }
+  #define FREE_BREAK_1 { log_syntax(t,p); mem_freestr(key); mem_freestr(val); object_free(n); n=0; break; }
   while(true){
 
     key=get_key(&p); if(!key) break; if(!*key) FREE_BREAK_1;
