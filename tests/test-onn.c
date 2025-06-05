@@ -407,7 +407,11 @@ void test_local_state()
   onex_assert(      onex_get_from_cache("uid-2")==n2,   "onex_get_from_cache can find uid-2");
   onex_assert(      onex_get_from_cache("uid-3")==n3,   "onex_get_from_cache can find uid-3");
   // UID: uid-2  is: local-state  state: ok
-  onex_assert(      object_property_set(    n2, "state", "ok"),    "can add 'state'");
+  onex_assert(      object_property_set(    n2, "state", "OK"),    "can add 'state' = OK");
+  onex_assert(     !object_property_set(    n2, "state", "OK"),    "can't re-set 'state' to same val");
+  onex_assert(      object_property_set(    n2, "state", "OK OK"), "can add 'state' = OK OK");
+  onex_assert(     !object_property_set(    n2, "state", "OK OK"), "can't re-set 'state' to same list");
+  onex_assert(      object_property_set(    n2, "state", "ok"),    "can change 'state' to 'ok'");
   onex_assert(      object_property_set(    n2, "n1",    "uid-1"), "can add 'n1'");
   // UID: uid-3  is: local-state  n2: uid-2  self: uid-3
   onex_assert(      object_property_set(    n3, "n2",    "uid-2"), "can add 'n2'");

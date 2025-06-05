@@ -899,11 +899,14 @@ bool property_edit(object* n, char* key, char* val, uint8_t mode){
 
   if(mode==LIST_EDIT_MODE_SET){
     item* i=properties_get(n->properties, key);
-    if(i) item_free(i);
     if(!(strchr(val, ' ') || strchr(val, '\n'))){
+      if(i && i->type==ITEM_VALUE && value_is((value*)i, val)) return false;
+      item_free(i);
       return properties_set(n->properties, key, value_new(val));
     }
     list* l=list_vals_new_from(val, MAX_LIST_SIZE);
+    if(i && i->type==ITEM_LIST && list_vals_equal((list*)i, l)){ list_free(l, true); return false; }
+    item_free(i);
     bool ok=properties_set(n->properties, key, l);
     if(!ok) list_free(l, true);
     return ok;
