@@ -12,7 +12,7 @@ bool debug_on_serial=false;
 bool log_onp=false;
 
 void log_init(properties* config) {
-  log_onp = list_has_value(properties_get(config, "flags"), "log-onp");
+  log_onp = list_vals_has(properties_get(config, "flags"), "log-onp");
 }
 
 bool log_loop() {

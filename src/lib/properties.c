@@ -110,12 +110,12 @@ void* properties_del_n(properties* op, uint16_t index) {
   return properties_delete(op, op->keys[index-1]);
 }
 
-/** Use list_ins_setwise() on this property key. */
-void properties_ins_setwise(properties* op, char* k, char* v){
+/** Use list_set_ins() on this property key. */
+void properties_set_ins(properties* op, char* k, char* v){
   if(!op) return;
   list* li = (list*)properties_get(op,k);
-  if(!li) properties_set(op,k,list_new_from(v,16));
-  else    list_ins_setwise(li,v);
+  if(!li) properties_set(op,k,list_vals_new_from(v,16));
+  else    list_vals_set_ins(li,v);
 }
 
 void* properties_delete(properties* op, char* key)

@@ -232,8 +232,8 @@ object* object_from_text(char* text, bool need_uid_ver, uint8_t max_size){
       if(!n){
         if(need_uid_ver && (!uid || !version)) FREE_BREAK_1;
         n=new_object(uid, version, 0, 0, max_size);
-        if(devices)   n->devices  = list_new_from(devices,  OBJECT_MAX_DEVICES);
-        ;             n->notifies = list_new_from(notifies, OBJECT_MAX_NOTIFIES);
+        if(devices)   n->devices  = list_vals_new_from(devices,  OBJECT_MAX_DEVICES);
+        ;             n->notifies = list_vals_new_from(notifies, OBJECT_MAX_NOTIFIES);
         if(evaluator) n->evaluator=evaluator;
         if(cache)     n->cache=cache;
         if(persist)   n->persist=persist;
@@ -293,7 +293,7 @@ object* new_shell(value* uid){
   object* n=(object*)mem_alloc(sizeof(object));
   n->uid=uid;
   n->version=value_new("0");
-  n->devices  = list_new_from("shell", OBJECT_MAX_DEVICES);
+  n->devices  = list_vals_new_from("shell", OBJECT_MAX_DEVICES);
   n->notifies = list_new(OBJECT_MAX_NOTIFIES);
   n->properties=properties_new(MAX_OBJECT_SIZE);
   return n;
@@ -903,7 +903,7 @@ bool property_edit(object* n, char* key, char* val, uint8_t mode){
     if(!(strchr(val, ' ') || strchr(val, '\n'))){
       return properties_set(n->properties, key, value_new(val));
     }
-    list* l=list_new_from(val, MAX_LIST_SIZE);
+    list* l=list_vals_new_from(val, MAX_LIST_SIZE);
     bool ok=properties_set(n->properties, key, l);
     if(!ok) list_free(l, true);
     return ok;
@@ -1241,7 +1241,7 @@ void onex_show_notify(){
 }
 
 bool add_notify(object* o, char* notifyuid){ // Persist?? // REVISIT Yess!!
-  if(list_add_setwise(o->notifies, notifyuid)) return true;
+  if(list_vals_set_add(o->notifies, notifyuid)) return true;
   log_write("****** can't add notify uid %s to %s\n", notifyuid, value_string(o->uid));
   show_notifies(o); // REVISIT: drop all this and bool return with expanding lists
   return false;
@@ -1613,9 +1613,9 @@ void onn_recv_object(object* n) {
   }
   else{
     item_free(o->properties); o->properties = n->properties; n->properties=0;
-    list_del_item(o->devices, (item*)value_new("shell"));
-    list_add_all_setwise(o->devices,  n->devices);  list_free(n->devices,  false); n->devices=0;
-    list_add_all_setwise(o->notifies, n->notifies); list_free(n->notifies, false); n->notifies=0;
+    list_items_del(o->devices, (item*)value_new("shell"));
+    list_vals_set_add_all(o->devices,  n->devices);  list_free(n->devices,  false); n->devices=0;
+    list_vals_set_add_all(o->notifies, n->notifies); list_free(n->notifies, false); n->notifies=0;
     object_free(n);
   }
   if(object_is_remote_device(o)){

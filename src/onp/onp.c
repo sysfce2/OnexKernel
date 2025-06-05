@@ -39,7 +39,7 @@ static volatile int   num_waiting_on_connect=0;
 
 
 static void set_chansub_of_device(char* device, char* chansub){
-  properties_ins_setwise(device_to_chansub, device, chansub);
+  properties_set_ins(device_to_chansub, device, chansub);
 }
 
 // REVISIT device<s>?? chansub<s>? do each chansub not #1!
@@ -71,9 +71,9 @@ void onp_init(properties* config) {
 
   test_uid_prefix=value_string(properties_get(config, "test-uid-prefix"));
 
-  onp_channel_ipv6   = list_has_value(channels,"ipv6");
-  onp_channel_serial = list_has_value(channels,"serial");
-  onp_channel_radio  = list_has_value(channels,"radio");
+  onp_channel_ipv6   = list_vals_has(channels,"ipv6");
+  onp_channel_serial = list_vals_has(channels,"serial");
+  onp_channel_radio  = list_vals_has(channels,"radio");
 
   onp_channel_forward = (onp_channel_radio && onp_channel_serial)          ||
                         (onp_channel_ipv6  && onp_channel_serial)          ||

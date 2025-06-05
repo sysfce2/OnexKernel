@@ -24,14 +24,14 @@ properties* get_config(int argc, char *argv[], char* name, char* flags){
     char* arg = argv[a];
     if(strchr(arg, ':')){
       if(!groups) groups=list_new(4);
-      list_add_value(groups, arg);
-      list_add_setwise(chans, "ipv6");
+      list_vals_add(groups, arg);
+      list_vals_set_add(chans, "ipv6");
     }
     else
     if(strchr(arg, '/')){
       if(!ttys) ttys=list_new(4);
-      list_add_value(ttys, arg);
-      list_add_setwise(chans, "serial");
+      list_vals_add(ttys, arg);
+      list_vals_set_add(chans, "serial");
     }
   }
   if(list_size(chans))  properties_set(config, "channels",    chans);
@@ -39,7 +39,7 @@ properties* get_config(int argc, char *argv[], char* name, char* flags){
   if(list_size(ttys  )) properties_set(config, "serial_ttys", ttys);
 
   properties_set(config, "test-uid-prefix", value_new(name));
-  properties_set(config, "flags", list_new_from_fixed(flags));
+  properties_set(config, "flags", list_vals_new_from_fixed(flags));
 
   return config;
 }

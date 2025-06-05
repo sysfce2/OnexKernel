@@ -63,7 +63,7 @@ void*       properties_get(properties* op, char* key);
 char*       properties_key_n(properties* op, uint16_t index);
 void*       properties_get_n(properties* op, uint16_t index);
 void*       properties_del_n(properties* op, uint16_t index);
-void        properties_ins_setwise(properties* op, char* k, char* v);
+void        properties_set_ins(properties* op, char* k, char* v);
 uint16_t    properties_size(properties* op);
 char*       properties_to_text(properties* op, char* b, uint16_t s);
 void        properties_log(properties* op);
@@ -77,21 +77,21 @@ void        properties_free(properties* op, bool free_items);
 /* List. */
 
 list*    list_new(uint16_t max_size);
-list*    list_new_from(char* text, uint16_t max_size);
-list*    list_new_from_fixed(char* text);
+list*    list_vals_new_from(char* text, uint16_t max_size);
+list*    list_vals_new_from_fixed(char* text);
 bool     list_add(list* li, void* val);
-bool     list_add_setwise(list* li, char* v);
-bool     list_add_all_setwise(list* li, list* lj);
-bool     list_add_value(list* li, char* v); // REVISIT list_add_string
+bool     list_vals_add(list* li, char* v);
+bool     list_vals_set_add(list* li, char* v);
+bool     list_vals_set_add_all(list* li, list* lj);
 bool     list_ins(list* li, uint16_t index, void* val);
-bool     list_ins_setwise(list* li, char* v);
+bool     list_vals_set_ins(list* li, char* v);
 bool     list_set_n(list* li, uint16_t index, void* val);
 void*    list_get_n(list* li, uint16_t index);
 void*    list_del_n(list* li, uint16_t index);
-void*    list_del_item(list* li, item* it);
+void*    list_items_del(list* li, item* it);
 uint16_t list_size(list* li);
-uint16_t list_has_value(list* li, char* v); // REVISIT list_has_string
-uint16_t list_find(list* li, item* it);     // REVISIT list_find_item
+uint16_t list_vals_has(list* li, char* v);
+uint16_t list_items_find(list* li, item* it);
 char*    list_to_text(list* li, char* b, uint16_t s);
 void     list_log(list* li);
 void     list_clear(list* li, bool free_items);

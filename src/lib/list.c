@@ -37,7 +37,7 @@ list* list_new(uint16_t max_size) {
   return li;
 }
 
-list* list_new_from(char* text, uint16_t max_size) {
+list* list_vals_new_from(char* text, uint16_t max_size) {
   list* li=list_new(max_size);
   if(!text || !(*text)) return li;
   size_t m=strlen(text)+1;
@@ -50,8 +50,8 @@ list* list_new_from(char* text, uint16_t max_size) {
   return li;
 }
 
-list* list_new_from_fixed(char* text) {
-  return list_new_from(text, num_tokens(text));
+list* list_vals_new_from_fixed(char* text) {
+  return list_vals_new_from(text, num_tokens(text));
 }
 
 bool list_add(list* li, void* val) {
@@ -63,24 +63,24 @@ bool list_add(list* li, void* val) {
 }
 
 /** Append v as value if it's not already there. */
-bool list_add_setwise(list* li, char* v){
+bool list_vals_set_add(list* li, char* v){
   if(!li) return false;
-  if(list_has_value(li,v)) return true;
+  if(list_vals_has(li,v)) return true;
   return list_add(li,value_new(v));
 }
 
-bool list_add_all_setwise(list* li, list* lj){
+bool list_vals_set_add_all(list* li, list* lj){
   if(!li) return false;
   if(!lj || !lj->size) return true;
   for(uint16_t j=0; j<lj->size; j++){
     value* v=lj->vals[j];
-    if(list_has_value(li,value_string(v))) continue;
+    if(list_vals_has(li,value_string(v))) continue;
     if(!list_add(li,v)) return false;
   }
   return true;
 }
 
-bool list_add_value(list* li, char* v){
+bool list_vals_add(list* li, char* v){
   if(!li) return false;
   return list_add(li,value_new(v));
 }
@@ -102,9 +102,9 @@ bool list_ins(list* li, uint16_t index, void* val){
 }
 
 /** Insert v as value at front if it's not already there. */
-bool list_ins_setwise(list* li, char* v){
+bool list_vals_set_ins(list* li, char* v){
   if(!li) return false;
-  if(list_has_value(li,v)) return true;
+  if(list_vals_has(li,v)) return true;
   return list_ins(li,1,value_new(v));
 }
 
@@ -134,8 +134,8 @@ void* list_del_n(list* li, uint16_t index) {
   return v;
 }
 
-void* list_del_item(list* li, item* it){
-  return list_del_n(li, list_find(li, it));
+void* list_items_del(list* li, item* it){
+  return list_del_n(li, list_items_find(li, it));
 }
 
 uint16_t list_size(list* li) {
@@ -144,7 +144,7 @@ uint16_t list_size(list* li) {
 }
 
 /** Return index if list has v as a value. */
-uint16_t list_has_value(list* li, char* v){
+uint16_t list_vals_has(list* li, char* v){
   if(!li) return 0;
   for(uint16_t j=0; j<li->size; j++){
     if(value_is(li->vals[j], v)) return j+1;
@@ -152,7 +152,7 @@ uint16_t list_has_value(list* li, char* v){
   return 0;
 }
 
-uint16_t list_find(list* li, item* it) {
+uint16_t list_items_find(list* li, item* it) {
   if(!li) return 0;
   for(uint16_t j=0; j<li->size; j++){
     if(item_equal((item*)li->vals[j], it)) return j+1;

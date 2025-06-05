@@ -43,10 +43,10 @@ void test_list()
   onex_assert(                  !list_add(  li,value_new("X")),   "shouldn't be able to add a fifth item");
   onex_assert(                   list_size( li)==4,               "size should still be 4");
 
-  onex_assert_equal_num(         list_find( li, (item*)value_new("y")), 1,          "y is found at location 1");
-  onex_assert_equal_num(         list_find( li, (item*)value_new("5")), 2,          "5 is found at location 2");
-  onex_assert_equal_num(         list_find( li, (item*)value_new("+")), 3,          "+ is found at location 3");
-  onex_assert_equal_num(         list_find( li, (item*)value_new("X")), 0,          "X is not found ");
+  onex_assert_equal_num(         list_items_find( li, (item*)value_new("y")), 1, "y is found at location 1");
+  onex_assert_equal_num(         list_items_find( li, (item*)value_new("5")), 2, "5 is found at location 2");
+  onex_assert_equal_num(         list_items_find( li, (item*)value_new("+")), 3, "+ is found at location 3");
+  onex_assert_equal_num(         list_items_find( li, (item*)value_new("X")), 0, "X is not found ");
 
   onex_assert_equal(item_to_text(li, buf, 32), "y 5 + N", "serialise to string works");
 
@@ -88,42 +88,42 @@ void test_list()
   onex_assert_equal_num(         list_size( li), 0,               "can clear the list");
 
   list_free(li, false);
-  li=list_new_from(" one\n", 1);
+  li=list_vals_new_from(" one\n", 1);
   onex_assert(         list_size(li)==1,              "size should be 1");
   onex_assert_equal(item_to_text(li, buf, 32), "one", "can parse whitespace separated lists");
 
   list_free(li, false);
-  li=list_new_from(" one\n ", 1);
+  li=list_vals_new_from(" one\n ", 1);
   onex_assert(         list_size(li)==1,              "size should be 1");
   onex_assert_equal(item_to_text(li, buf, 32), "one", "can parse whitespace separated lists");
 
   list_free(li, false);
-  li=list_new_from(" one\n two", 2);
+  li=list_vals_new_from(" one\n two", 2);
   onex_assert(         list_size(li)==2,                  "size should be 2");
   onex_assert_equal(item_to_text(li, buf, 32), "one two", "can parse whitespace separated lists");
 
   list_free(li, false);
-  li=list_new_from(" one\n two  three  \n ", 3);
+  li=list_vals_new_from(" one\n two  three  \n ", 3);
   onex_assert(         list_size(li)==3,                        "size should be 3");
   onex_assert_equal(item_to_text(li, buf, 32), "one two three", "can parse whitespace separated lists");
 
   list_free(li, false);
-  li=list_new_from_fixed(" one\n");
+  li=list_vals_new_from_fixed(" one\n");
   onex_assert(         list_size(li)==1,              "size should be 1");
   onex_assert_equal(item_to_text(li, buf, 32), "one", "can parse whitespace separated lists");
 
   list_free(li, false);
-  li=list_new_from_fixed(" one\n ");
+  li=list_vals_new_from_fixed(" one\n ");
   onex_assert(         list_size(li)==1,              "size should be 1");
   onex_assert_equal(item_to_text(li, buf, 32), "one", "can parse whitespace separated lists");
 
   list_free(li, false);
-  li=list_new_from_fixed(" one\n two");
+  li=list_vals_new_from_fixed(" one\n two");
   onex_assert(         list_size(li)==2,                  "size should be 2");
   onex_assert_equal(item_to_text(li, buf, 32), "one two", "can parse whitespace separated lists");
 
   list_free(li, false);
-  li=list_new_from_fixed(" one\n two  three  \n ");
+  li=list_vals_new_from_fixed(" one\n two  three  \n ");
   onex_assert(         list_size(li)==3,                        "size should be 3");
   onex_assert_equal(item_to_text(li, buf, 32), "one two three", "can parse whitespace separated lists");
 

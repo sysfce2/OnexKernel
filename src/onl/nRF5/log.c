@@ -51,11 +51,11 @@ void log_init(properties* config) {
 
   if(initialised) return;
 
-  log_to_gfx      = list_has_value(properties_get(config, "flags"), "log-to-gfx");
-  log_to_rtt      = list_has_value(properties_get(config, "flags"), "log-to-rtt");
-  log_to_led      = list_has_value(properties_get(config, "flags"), "log-to-led");
-  debug_on_serial = list_has_value(properties_get(config, "flags"), "debug-on-serial");
-  log_onp         = list_has_value(properties_get(config, "flags"), "log-onp");
+  log_to_gfx      = list_vals_has(properties_get(config, "flags"), "log-to-gfx");
+  log_to_rtt      = list_vals_has(properties_get(config, "flags"), "log-to-rtt");
+  log_to_led      = list_vals_has(properties_get(config, "flags"), "log-to-led");
+  debug_on_serial = list_vals_has(properties_get(config, "flags"), "debug-on-serial");
+  log_onp         = list_vals_has(properties_get(config, "flags"), "log-onp");
 
 #if defined(NRF_LOG_ENABLED)
   if(log_to_rtt){
