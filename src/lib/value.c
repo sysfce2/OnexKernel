@@ -1,6 +1,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <errno.h>
+#include <ctype.h>
 
 #if defined(NRF5)
 #include <app_util_platform.h>
@@ -49,8 +53,7 @@ static pthread_mutex_t value_lock;
 
 #endif
 
-value* value_new(char* val)
-{
+value* value_new(char* val) {
   if(!val) return 0;
   if(!all_values) all_values=properties_new(MAX_VALUES);
   ENTER_LOCKING;
@@ -85,6 +88,17 @@ value* value_new(char* val)
     RETURN_UNLOCKING(0);
   }
   RETURN_UNLOCKING(ours);
+}
+
+value* value_fmt(char* fmt, ...){
+
+  char valbuf[MAX_TEXT_LEN];
+  va_list args;
+  va_start(args, fmt);
+  vsnprintf(valbuf, MAX_TEXT_LEN, fmt, args);
+  va_end(args);
+
+  return value_new(valbuf);
 }
 
 value* value_ref(value* v)
