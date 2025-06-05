@@ -900,7 +900,7 @@ bool property_edit(object* n, char* key, char* val, uint8_t mode){
   if(mode==LIST_EDIT_MODE_SET){
     item* i=properties_get(n->properties, key);
     if(i) item_free(i);
-    if(!strchr(val, ' ') && !strchr(val, '\n')){
+    if(!(strchr(val, ' ') || strchr(val, '\n'))){
       return properties_set(n->properties, key, value_new(val));
     }
     list* l=list_new_from(val, MAX_LIST_SIZE);
@@ -915,8 +915,7 @@ bool property_edit(object* n, char* key, char* val, uint8_t mode){
     return !!i;
   }
 
-  if(strchr(val, ' ') && strchr(val, '\n')) return false;
-  // don't do space-sept val yet REVISIT: && not || ??
+  if(strchr(val, ' ') || strchr(val, '\n')) return false; // don't do space-sept val yet
 
   item* i=properties_get(n->properties, key);
   if(!i){
@@ -963,8 +962,8 @@ bool property_edit(object* n, char* key, char* val, uint8_t mode){
 
 bool nested_property_edit(object* n, char* path, uint16_t index, char* val, uint8_t mode){
 
-  if(mode!=LIST_EDIT_MODE_DELETE && strchr(val, ' ') && strchr(val, '\n')) return false;
-  // don't do space-sept val yet REVISIT: && not || ??
+  if(mode!=LIST_EDIT_MODE_DELETE && (strchr(val, ' ') || strchr(val, '\n'))) return false;
+  // don't do space-sept val yet
 
   size_t m=strlen(path)+1;
   char key[m]; memcpy(key, path, m);
