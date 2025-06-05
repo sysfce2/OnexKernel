@@ -28,11 +28,12 @@ char* unknown_to_text(char* b);
   item_is_type(i,ITEM_VALUE)     ? value_to_text((value*)i,b,n): unknown_to_text(b) \
 )))
 
+// REVISIT: properties_equal
 #define item_equal(i,j) (\
   !i? !j: (\
   !j? false: (\
   item_is_type(i,ITEM_VALUE)      && item_is_type(j,ITEM_VALUE)?      value_equal((value*)i,(value*)j): (\
-  item_is_type(i,ITEM_LIST)       && item_is_type(j,ITEM_LIST)?       false: (\
+  item_is_type(i,ITEM_LIST)       && item_is_type(j,ITEM_LIST)?       list_vals_equal((list*)i,(list*)j): (\
   item_is_type(i,ITEM_PROPERTIES) && item_is_type(j,ITEM_PROPERTIES)? false: false \
 )))))
 
@@ -90,6 +91,7 @@ void*    list_get_n(list* li, uint16_t index);
 void*    list_del_n(list* li, uint16_t index);
 void*    list_items_del(list* li, item* it);
 uint16_t list_size(list* li);
+bool     list_vals_equal(list* l1, list* l2);
 uint16_t list_vals_has(list* li, char* v);
 uint16_t list_items_find(list* li, item* it);
 char*    list_to_text(list* li, char* b, uint16_t s);

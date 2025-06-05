@@ -43,6 +43,14 @@ void test_list()
   onex_assert(                  !list_add(  li,value_new("X")),   "shouldn't be able to add a fifth item");
   onex_assert(                   list_size( li)==4,               "size should still be 4");
 
+  list* lj=list_new(4);
+  list_add(lj, value_new("z"));
+  onex_assert(                  !list_vals_equal(li, lj),         "lists not equal");
+
+  list_free(lj, true);
+  lj = list_vals_new_from("y 5 + N", 5);
+  onex_assert(                   list_vals_equal(li, lj),         "lists equal");
+
   onex_assert_equal_num(         list_items_find( li, (item*)value_new("y")), 1, "y is found at location 1");
   onex_assert_equal_num(         list_items_find( li, (item*)value_new("5")), 2, "5 is found at location 2");
   onex_assert_equal_num(         list_items_find( li, (item*)value_new("+")), 3, "+ is found at location 3");

@@ -143,6 +143,17 @@ uint16_t list_size(list* li) {
   return li->size;
 }
 
+bool list_vals_equal(list* l1, list* l2){
+  if(!l1) return !l2;
+  if(!l2) return false;
+  if(l1==l2) return true;
+  if(l1->size != l2->size) return false;
+  for(uint16_t i=0; i<l1->size; i++){
+    if(!value_equal(l1->vals[i], l2->vals[i])) return false;
+  }
+  return true;
+}
+
 /** Return index if list has v as a value. */
 uint16_t list_vals_has(list* li, char* v){
   if(!li) return 0;
