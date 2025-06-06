@@ -79,11 +79,13 @@ static void    device_init(char* prefix);
 // ---------------------------------
 
 typedef struct object {
+  // --------- on-wire props ---------
   value*      uid;
   value*      version;
   list*       devices;
   list*       notifies;
   properties* properties;
+  // --------- local props ---------
   value*      evaluator;
   value*      alerted;
   value*      cache;
@@ -1262,13 +1264,13 @@ char* object_to_text(object* n, char* b, uint16_t s, int target) {
     ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(onex_device_object->uid)); BUFCHK
   }
 
-  if(n->evaluator && target!=OBJECT_TO_TEXT_NETWORK){
-    ln+=snprintf(b+ln, s-ln, " Eval: %s", value_string(n->evaluator)); BUFCHK
-  }
-
   if(n->devices && list_size(n->devices) && target!=OBJECT_TO_TEXT_NETWORK){
     ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(list_get_n(n->devices, 1))); BUFCHK
   } // REVISIT list_to_text()
+
+  if(n->evaluator && target!=OBJECT_TO_TEXT_NETWORK){
+    ln+=snprintf(b+ln, s-ln, " Eval: %s", value_string(n->evaluator)); BUFCHK
+  }
 
   if(n->cache && target!=OBJECT_TO_TEXT_NETWORK){
     ln+=snprintf(b+ln, s-ln, " Cache: %s", value_string(n->cache)); BUFCHK
@@ -1593,6 +1595,7 @@ void onn_recv_object(object* n) {
   }
   else{
     if(value_equal(o->version, n->version) || value_num_greater(o->version, n->version)){
+      log_write("Ver %s <= %s\n", value_string(n->uid), value_string(n->version));
       object_free(n);
       return;
     }
