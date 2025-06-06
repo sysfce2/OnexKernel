@@ -113,17 +113,14 @@ value* generate_uid() {
 // ----------------------------------------------------------
 
 bool is_uid(char* uid){
-
   return uid && !strncmp(uid,"uid-",4);
 }
 
 bool object_is_local(object* o){
-
   return o && !list_size(o->devices);  // REVISIT: implied remote when !o
 }
 
 bool is_local(char* uid){
-
   object* o=onex_get_from_cache(uid);
   return object_is_local(o);
 }
@@ -334,8 +331,7 @@ char* get_key(char** p) {
   return r;
 }
 
-char* get_val(char** p)
-{
+char* get_val(char** p) {
   while(isspace(**p)) (*p)++;
   if(!**p) return 0;
   char* c=strstr(*p, ": ");
@@ -442,8 +438,7 @@ char* object_pathpair(object* n, char* path1, char* path2){
   return object_property_observe(n, pathbuf, true);
 }
 
-char* object_property_peek(object* n, char* path)
-{
+char* object_property_peek(object* n, char* path) {
   return object_property_observe(n, path, false);
 }
 
@@ -499,8 +494,7 @@ item* property_item(object* n, char* path, object* t, bool notify) {
   return properties_get(n->properties, key);
 }
 
-item* nested_property_item(object* n, char* path, object* t, bool notify)
-{
+item* nested_property_item(object* n, char* path, object* t, bool notify) {
   size_t m=strlen(path)+1;
   char p[m]; memcpy(p, path, m);
   char* c=find_unescaped_colon(p);
@@ -585,8 +579,7 @@ int32_t object_pathpair_int32(object* n, char* path1, char* path2){
   return object_property_int32(n, pathbuf);
 }
 
-uint16_t object_property_length(object* n, char* path)
-{
+uint16_t object_property_length(object* n, char* path) {
   item* i=property_item(n,path,n,true);
   if(!i) return 0;
   switch(i->type){
@@ -603,8 +596,7 @@ uint16_t object_pathpair_length(object* n, char* path1, char* path2){
   return object_property_length(n, pathbuf);
 }
 
-char* object_property_get_n(object* n, char* path, uint16_t index)
-{
+char* object_property_get_n(object* n, char* path, uint16_t index) {
   item* v=0;
   item* i=property_item(n,path,n,true);
   if(!i) return 0;
@@ -623,8 +615,7 @@ char* object_pathpair_get_n(object* n, char* path1, char* path2, uint16_t index)
   return object_property_get_n(n, pathbuf, index);
 }
 
-int16_t object_property_size(object* n, char* path)
-{
+int16_t object_property_size(object* n, char* path) {
   item* i=property_item(n,path,n,true);
   if(!i) return -1;
   switch(i->type){
@@ -641,8 +632,7 @@ int16_t object_property_size(object* n, char* path)
   return -1;
 }
 
-char* object_property_key(object* n, char* path, uint16_t index)
-{
+char* object_property_key(object* n, char* path, uint16_t index) {
   char* key=0;
   item* i=property_item(n,path,n,true);
   if(!i) return 0;
@@ -673,8 +663,7 @@ char* object_property_key_esc(object* n, char* path, uint16_t index,
   return prefix_char_in_place(keyesc, '\\', ':');
 }
 
-char* object_property_val(object* n, char* path, uint16_t index)
-{
+char* object_property_val(object* n, char* path, uint16_t index) {
   item* v=0;
   item* i=property_item(n,path,n,true);
   if(!i) return 0;
@@ -694,8 +683,7 @@ char* object_property_val(object* n, char* path, uint16_t index)
   return value_string((value*)v);
 }
 
-static bool object_property_is_observe(object* n, char* path, char* expected, bool notify)
-{
+static bool object_property_is_observe(object* n, char* path, char* expected, bool notify) {
   if(!n) return false;
   item* i=property_item(n,path,n,notify);
   if(!i) return (!expected || !*expected);
@@ -705,13 +693,11 @@ static bool object_property_is_observe(object* n, char* path, char* expected, bo
   return false;
 }
 
-bool object_property_is(object* n, char* path, char* expected)
-{
+bool object_property_is(object* n, char* path, char* expected) {
   return object_property_is_observe(n, path, expected, true);
 }
 
-bool object_property_is_peek(object* n, char* path, char* expected)
-{
+bool object_property_is_peek(object* n, char* path, char* expected) {
   return object_property_is_observe(n, path, expected, false);
 }
 
@@ -721,8 +707,7 @@ bool object_pathpair_is(object* n, char* path1, char* path2, char* expected){
   return object_property_is_observe(n, pathbuf, expected, true);
 }
 
-static bool object_property_contains_observe(object* n, char* path, char* expected, bool notify)
-{
+static bool object_property_contains_observe(object* n, char* path, char* expected, bool notify) {
   if(!n) return false;
   item* i=property_item(n,path,n,notify);
   if(!i) return (!expected || !*expected);
@@ -741,8 +726,7 @@ static bool object_property_contains_observe(object* n, char* path, char* expect
   return false;
 }
 
-bool object_property_contains(object* n, char* path, char* expected)
-{
+bool object_property_contains(object* n, char* path, char* expected) {
   return object_property_contains_observe(n, path, expected, true);
 }
 
@@ -752,8 +736,7 @@ bool object_pathpair_contains(object* n, char* path1, char* path2, char* expecte
   return object_property_contains_observe(n, pathbuf, expected, true);
 }
 
-bool object_property_contains_peek(object* n, char* path, char* expected)
-{
+bool object_property_contains_peek(object* n, char* path, char* expected) {
   return object_property_contains_observe(n, path, expected, false);
 }
 
@@ -764,13 +747,11 @@ static uint16_t timer_id;
 
 void just_wake_up(void*){}
 
-void timer_init()
-{
+void timer_init() {
   timer_id=time_timeout(just_wake_up, 0);
 }
 
-bool set_timer(object* n, char* timer)
-{
+bool set_timer(object* n, char* timer) {
   value_free(n->timer);
   n->timer=value_new(timer);
   char* e; uint32_t tm=strtol(timer,&e,10);
@@ -779,16 +760,14 @@ bool set_timer(object* n, char* timer)
   return true;
 }
 
-bool zero_timer(object* n)
-{
+bool zero_timer(object* n) {
   value_free(n->timer);
   n->timer=value_new("0");
   save_and_notify(n);
   return true;
 }
 
-bool stop_timer(object* n)
-{
+bool stop_timer(object* n) {
   value_free(n->timer);
   n->timer=0;
   save_and_notify(n);
@@ -1096,8 +1075,7 @@ typedef struct notification {
 static volatile notification to_notify[MAX_TO_NOTIFY];
 static volatile int highest_to_notify=0;
 
-void start_timer_for_soonest_timeout_if_in_future()
-{
+void start_timer_for_soonest_timeout_if_in_future() {
   uint64_t soonest=0;
   for(uint16_t n=0; n<MAX_TO_NOTIFY; n++){
     if(to_notify[n].type!=TO_NOTIFY_TIMEOUT) continue;
@@ -1168,8 +1146,7 @@ void set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout){
 #endif
 }
 
-bool run_any_evaluators()
-{
+bool run_any_evaluators() {
 //if(highest_to_notify < 0) return false;
 
   bool keep_awake=false;
@@ -1341,8 +1318,7 @@ char* observe_uid_to_text(char* uid, char* b, uint16_t s){
   return b;
 }
 
-void object_log(object* o)
-{
+void object_log(object* o) {
   char buff[MAX_TEXT_LEN];
   log_write("{ %s }\n", object_to_text(o,buff,MAX_TEXT_LEN,OBJECT_TO_TEXT_LOG));
 }
@@ -1444,8 +1420,7 @@ bool add_to_cache_and_persist(object* n) {
   return true;
 }
 
-void onex_show_cache()
-{
+void onex_show_cache() {
   log_write("+-----------cache dump------------\n");
   char buff[MAX_TEXT_LEN*8];
   for(int n=1; n<=properties_size(objects_cache); n++){
@@ -1477,8 +1452,7 @@ void onex_un_cache(char* uid) {
 
 static properties* evaluators=0;
 
-void onex_set_evaluators(char* name, ...)
-{
+void onex_set_evaluators(char* name, ...) {
   if(!evaluators) evaluators = properties_new(32);
   list* evals = (list*)properties_get(evaluators, name);
   if(!evals){

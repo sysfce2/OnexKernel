@@ -77,6 +77,9 @@ char* object_get_persist(object* n);
 /** set property value. only use inside an evaluator for 'n' */
 bool  object_property_set(object* n, char* path, char* val);
 
+// REVISIT: object_property_add to ensure in the set
+// object_property_append to add to end of list
+
 /** append property value onto end of any list. only use inside an evaluator for 'n' */
 bool  object_property_add(object* n, char* path, char* val);
 #define object_property_append(n, path, val) object_property_add(n, path, val)
@@ -91,14 +94,13 @@ bool  object_property_set_list(object* n, char* path, ... /* char* val, ..., 0 *
 /** set property values into list from printf format. only use inside an evaluator for 'n'. */
 bool  object_property_set_fmt(object* n, char* path, char* fmt, ... /* <any> val, ... */);
 
-/** set property value at path and index into list. */
+/** set property value at path and index into list. only use inside an evaluator for 'n'. */
 bool object_property_set_n(object* n, char* path, uint16_t index, char* val);
 
 /** add property values to list, or make a list. only use inside an evaluator for 'n'. must finish list with 0! */
 bool  object_property_add_list(object* n, char* path, ... /* char* val, ..., 0 */);
 
-// object_property_add to ensure in the set
-// object_property_append to add to end of list
+/** ---------------------- */
 
 /** return single property value or nothing if it's a list. */
 char* object_property(object* n, char* path);
