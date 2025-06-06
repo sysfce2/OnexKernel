@@ -560,14 +560,6 @@ object* find_object(char* uid, char* nuid, bool notify) {
   return o;
 }
 
-int32_t strto_int32(char* val){
-  if(!val || !*val) return 0;
-  errno=0; char* e;
-  int32_t r=strtoul(val, &e, 10);
-  if(errno == ERANGE) return 0;
-  return r;
-}
-
 int32_t object_property_int32(object* n, char* path){
   char* val = object_property_observe(n, path, true);
   return strto_int32(val);

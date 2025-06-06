@@ -55,5 +55,13 @@ uint16_t num_tokens(char* s) {
   return n;
 }
 
+int32_t strto_int32(char* val){
+  if(!val || !*val) return 0;
+  errno=0; char* e;
+  int32_t r=strtoul(val, &e, 10);
+  if(errno == ERANGE) return 0;
+  return r;
+}
+
 
 
