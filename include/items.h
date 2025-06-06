@@ -114,6 +114,7 @@ void   value_log(value* v);
 char*  value_to_text(value* v, char* b, uint16_t s);
 void   value_free(value* v);
 void   value_dump();
+void   value_dump_small();
 
 // --------------------------------------------------------------------
 

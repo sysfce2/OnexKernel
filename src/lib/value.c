@@ -29,7 +29,7 @@ typedef struct value {
 static properties* all_values=0;
 
 #if defined(NRF5)
-#define MAX_VALUES 256
+#define MAX_VALUES 1024
 #define MAX_TEXT_LEN 64
 #else
 #define MAX_VALUES 4096
@@ -84,6 +84,7 @@ value* value_new(char* val) {
   }
   if(!properties_set(all_values, ours->val, ours)){
     log_write("!!VALS\n"); // this is serious
+    value_dump_small();
     mem_freestr(ours->val);
     mem_free(ours);
     RETURN_UNLOCKING(0);
@@ -181,4 +182,23 @@ void value_dump() {
   }
   log_write("#vals=%d\n", s);
 }
+
+void value_dump_small() {
+  uint16_t num_nums=0;
+  char b[128];
+  uint8_t ln=0; b[0]=0;
+  uint16_t num_vals=properties_size(all_values);
+  for(uint16_t i=1; i<=num_vals; i++){
+    char* key=properties_key_n(all_values, i);
+    if(strto_int32(key)) num_nums++;
+    ln+=snprintf(b+ln,128-ln,"%d=%.8s ", i, key);
+    if(ln>=128){
+      log_write("%s\n", b);
+      ln=0; b[0]=0;
+    }
+  }
+  log_write("%s\n#vals=%d #nums=%d\n", b, num_vals, num_nums);
+}
+
+
 

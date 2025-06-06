@@ -39,6 +39,8 @@
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 
+#include <onn.h>
+
 #include <tests.h>
 
 static volatile int16_t run_tests= -1;
@@ -595,10 +597,9 @@ int main() {
     if(char_recvd){
       log_write(">%c<----------\n", char_recvd);
       if(char_recvd=='t') run_tests++;
-      if(char_recvd=='c') run_chunkbuf_tests();
+      if(char_recvd=='k') run_chunkbuf_tests();
       if(char_recvd=='l') run_colour_tests();
       if(char_recvd=='s') send_big_radio_data(true);
-      if(char_recvd=='m') mem_show_allocated(true);
 #if defined(BOARD_FEATHER_SENSE)
       if(char_recvd=='i'){
         compass_info_t ci = compass_direction();
@@ -614,9 +615,15 @@ int main() {
         log_write("battery: %s\n", batt);
       }
 #endif
-      if(char_recvd=='b') boot_reset(true);
+      if(char_recvd=='c') onex_show_cache();
+      if(char_recvd=='n') onex_show_notify();
+      if(char_recvd=='v') value_dump_small();
+      if(char_recvd=='V') value_dump();
+      if(char_recvd=='m') mem_show_allocated(true);
+      if(char_recvd=='p') gpio_show_power_status();
       if(char_recvd=='r') boot_reset(false);
-      if(char_recvd=='h') log_write("t.ests c.hunkbuf co.l.our s.end-radio i.nputs m.em b.ootloader r.eset\n");
+      if(char_recvd=='b') boot_reset(true);
+      if(char_recvd=='h') log_write("t.ests chun.k.buf co.l.our s.end-radio i.nputs | object c.ache n.otifies Vv.alues m.em p.ower r.eset b.ootloader\n");
 
       if(char_recvd=='i') time_delay_ms(100);
       else char_recvd=0;
