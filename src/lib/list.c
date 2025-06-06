@@ -190,10 +190,8 @@ char* list_to_text(list* li, char* b, uint16_t s) {
   if(!li || !li->size) return b;
   uint16_t ln=0;
   for(uint16_t j=0; j<li->size; j++){
-    ln+=strlen(item_to_text(li->vals[j], b+ln, s-ln));
-    if(ln>=s){ *b = 0; return b; }
-    if(j!=li->size-1) ln+=snprintf(b+ln, s-ln, " ");
-    if(ln>=s){ *b = 0; return b; }
+    ln+=strlen(item_to_text(li->vals[j], b+ln, s-ln)); if(ln>=s){ *b = 0; return b; }
+    if(j!=li->size-1) ln+=snprintf(b+ln, s-ln, " ");   if(ln>=s){ *b = 0; return b; }
   }
   return b;
 }

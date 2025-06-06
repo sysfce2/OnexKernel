@@ -12,6 +12,7 @@ static bool initialized=false;
 
 static char* top_alloc=0;
 
+#define xGRIND_THE_MEM
 #ifdef GRIND_THE_MEM
 #define MEMGRIND_ENTRIES 2048
 static void*    memgrind_pntr[MEMGRIND_ENTRIES];
@@ -62,15 +63,15 @@ void mem_show_allocated(bool clear){
 #ifdef GRIND_THE_MEM
   for(uint16_t i=0; i<memgrind_top; i++){
     if(memgrind_pntr[i]){
-      bool suppress = (!strcmp(memgrind_file[i], "new_object"))     ||
-                      (!strcmp(memgrind_file[i], "new_shell"))      ||
-                      (!strcmp(memgrind_file[i], "onex_un_cache"))  ||
+      bool suppress = (!strcmp(memgrind_file[i], "new_object"    )) ||
+                      (!strcmp(memgrind_file[i], "new_shell"     )) ||
+                      (!strcmp(memgrind_file[i], "onex_un_cache" )) ||
                       (!strcmp(memgrind_file[i], "properties_new")) ||
                       (!strcmp(memgrind_file[i], "properties_set")) ||
                       (!strcmp(memgrind_file[i], "list_new"      )) ||
                       (!strcmp(memgrind_file[i], "value_new"     )) ||
                       (!strcmp(memgrind_file[i], "chunkbuf_new"  )) ||
-                      (!strcmp(memgrind_file[i], "log_write_mode"  ));
+                      (!strcmp(memgrind_file[i], "log_write_mode"));
       if(suppress) continue;
       log_write("%p@%s:%ld=%d ", memgrind_pntr[i],
                                  memgrind_file[i],

@@ -1595,7 +1595,9 @@ void onn_recv_object(object* n) {
   }
   else{
     if(value_equal(o->version, n->version) || value_num_greater(o->version, n->version)){
+#ifdef LOG_VER_TEST
       log_write("Ver %s <= %s\n", value_string(n->uid), value_string(n->version));
+#endif
       object_free(n);
       return;
     }
