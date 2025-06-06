@@ -108,6 +108,7 @@ value* value_fmt(char* fmt, ...);
 value* value_ref(value* v);
 char*  value_string(value* v);
 bool   value_equal(value* v1, value* v2);
+bool   value_num_greater(value* v1, value* v2);
 bool   value_is(value* v, char* s);
 void   value_log(value* v);
 char*  value_to_text(value* v, char* b, uint16_t s);

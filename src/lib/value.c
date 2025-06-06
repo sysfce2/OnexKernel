@@ -15,6 +15,7 @@
 #include <items.h>
 
 #include <onex-kernel/mem.h>
+#include <onex-kernel/lib.h>
 #include <onex-kernel/log.h>
 
 char* unknown_to_text(char* b){ *b='?'; *(b+1)=0; return b; }
@@ -135,6 +136,12 @@ bool value_equal(value* v1, value* v2)
   if(!v2) return false;
   if(v1==v2) return true;
   return v1->val == v2->val;
+}
+
+bool value_num_greater(value* v1, value* v2){
+  int32_t i1 = strto_int32(value_string(v1));
+  int32_t i2 = strto_int32(value_string(v2));
+  return i1 > i2;
 }
 
 bool value_is(value* v, char* s)
