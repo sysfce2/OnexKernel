@@ -405,14 +405,19 @@ void test_local_state()
   object* n2=object_new("uid-2", "evaluate_local_state_n2", "local-state", 5);
   object* n3=object_new("uid-3", "evaluate_local_state_n3", "local-state", 5);
   onex_assert(      onex_get_from_cache("uid-2")==n2,   "onex_get_from_cache can find uid-2");
+  onex_assert_equal_num(object_property_int32(  n2, "Ver"), 1,     "version 1");
   onex_assert(      onex_get_from_cache("uid-3")==n3,   "onex_get_from_cache can find uid-3");
   // UID: uid-2  is: local-state  state: ok
-  onex_assert(      object_property_set(    n2, "state", "OK"),    "can add 'state' = OK");
-  onex_assert(     !object_property_set(    n2, "state", "OK"),    "can't re-set 'state' to same val");
-  onex_assert(      object_property_set(    n2, "state", "OK OK"), "can add 'state' = OK OK");
-  onex_assert(     !object_property_set(    n2, "state", "OK OK"), "can't re-set 'state' to same list");
-  onex_assert(      object_property_set(    n2, "state", "ok"),    "can change 'state' to 'ok'");
-  onex_assert(      object_property_set(    n2, "n1",    "uid-1"), "can add 'n1'");
+  onex_assert(          object_property_set(    n2, "state", "OK"),    "can add 'state' = OK");
+  onex_assert_equal_num(object_property_int32(  n2, "Ver"), 2,         "version 2");
+  onex_assert(         !object_property_set(    n2, "state", "OK"),    "can't re-set 'state' to same val");
+  onex_assert(          object_property_set(    n2, "state", "OK OK"), "can add 'state' = OK OK");
+  onex_assert_equal_num(object_property_int32(  n2, "Ver"), 3,         "version 3");
+  onex_assert(         !object_property_set(    n2, "state", "OK OK"), "can't re-set 'state' to same list");
+  onex_assert(          object_property_set(    n2, "state", "ok"),    "can change 'state' to 'ok'");
+  onex_assert_equal_num(object_property_int32(  n2, "Ver"), 4,         "version 4");
+  onex_assert(          object_property_set(    n2, "n1",    "uid-1"), "can add 'n1'");
+  onex_assert_equal_num(object_property_int32(  n2, "Ver"), 5,         "version 5");
   // UID: uid-3  is: local-state  n2: uid-2  self: uid-3
   onex_assert(      object_property_set(    n3, "n2",    "uid-2"), "can add 'n2'");
   onex_assert(      object_property_set(    n3, "self",  "uid-3"), "can add 'self'");
@@ -579,10 +584,10 @@ void test_to_text()
   object* n3=onex_get_from_cache("uid-3");
   object* n4=onex_get_from_cache("uid-4");
 
-  char* n1text="UID: uid-1 Ver: 1 Eval: evaluate_remote_notify_n1 Notify: uid-3 is: setup state: good mostly 1: a c 2: ok m8";
-  char* n2text="UID: uid-2 Ver: 1 Eval: evaluate_remote_notify_n2 Notify: uid-3 is: local-state state: better\\: n1: uid-1";
-  char* n3text="UID: uid-3 Ver: 1 Eval: evaluate_local_notify_n3 Notify: uid-3 uid-2 uid-4 is: local state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5 state: changed";
-  char* n4text="UID: uid-4 Ver: 321 Eval: evaluate_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 x:y: a :z:q\\: b last: one state: good";
+  char* n1text="UID: uid-1 Ver: 37 Eval: evaluate_remote_notify_n1 Notify: uid-3 is: setup state: good mostly 1: a c 2: ok m8";
+  char* n2text="UID: uid-2 Ver: 7 Eval: evaluate_remote_notify_n2 Notify: uid-3 is: local-state state: better\\: n1: uid-1";
+  char* n3text="UID: uid-3 Ver: 10 Eval: evaluate_local_notify_n3 Notify: uid-3 uid-2 uid-4 is: local state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5 state: changed";
+  char* n4text="UID: uid-4 Ver: 322 Eval: evaluate_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 x:y: a :z:q\\: b last: one state: good";
 
   onex_assert_equal(object_to_text(n1,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), n1text, "converts uid-1 to correct text");
   onex_assert_equal(object_to_text(n2,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), n2text, "converts uid-2 to correct text");
