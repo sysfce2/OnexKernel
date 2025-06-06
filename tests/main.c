@@ -368,18 +368,19 @@ void run_chunkbuf_tests(){
   log_write("wside writable %d\n", chunkbuf_writable(wside));
   chunkbuf_write(wside, "1234567890123456789", strlen("1234567890123456789"), '\n');
   log_write("wside writable %d\n", chunkbuf_writable(wside));
-  chunkbuf_write(wside, "2222222222222222222", strlen("2222222222222222222"), '\n');
+  chunkbuf_write(wside, "5678901234567891234", strlen("5678901234567891234"), '\n');
   log_write("wside writable %d\n", chunkbuf_writable(wside));
-  chunkbuf_write(wside, "3333333333333333333", strlen("3333333333333333333"), '\n');
+  chunkbuf_write(wside, "1234567890123456789", strlen("1234567890123456789"), '\n');
   log_write("wside writable %d\n", chunkbuf_writable(wside));
-  chunkbuf_write(wside, "4444444444444444444", strlen("4444444444444444444"), '\n');
+  chunkbuf_write(wside, "5678901234567891234", strlen("5678901234567891234"), '\n');
   log_write("wside writable %d\n", chunkbuf_writable(wside));
   log_write("-------- chunkbuf written -------\n");
-  while(true){
+  for(int i=0; ; i++){
     char pkt[7];
     log_write("wside readable %d\n", chunkbuf_readable(wside, -1));
     uint16_t rn = chunkbuf_read(wside, pkt, 7, -1);
   ; if(!rn) break;
+    if(i==7){ log_write("ohh nooo! corruption\n"); continue; }
     log_write("---- rside writable %d\n", chunkbuf_writable(rside));
     chunkbuf_write(rside, pkt, rn, -1);
   }
