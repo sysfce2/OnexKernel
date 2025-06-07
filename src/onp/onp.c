@@ -167,21 +167,25 @@ bool handle_connected(){
   return num_waiting_on_connect > 0;
 }
 
-bool send_one_entry(properties* pending_obs, properties* pending_obj, bool send_obs){
-  properties* p = send_obs? pending_obs: pending_obj;
-  if(!properties_size(p)) return false;
-  char*  uid     = properties_key_n(p,1); // REVISIT: that's a very inefficent queue!
-  value* chansub = properties_get_n(p,1);
-  if(send_obs) observe_uid_to_text(uid, send_buff, SEND_BUFF_SIZE);
-  else         object_uid_to_text( uid, send_buff, SEND_BUFF_SIZE, OBJECT_TO_TEXT_NETWORK);
-  send(value_string(chansub));
-  properties_del_n(p,1);                 // REVISIT: that's a very inefficent queue!
-  return true;
+void send_pending_obs(properties* pending_obs){
+  for(uint16_t i=1; i<=properties_size(pending_obs); i++){
+    char*  uid     = properties_key_n(pending_obs,i);
+    value* chansub = properties_get_n(pending_obs,i);
+    observe_uid_to_text(uid, send_buff, SEND_BUFF_SIZE);
+    send(value_string(chansub));
+  }
+  properties_clear(pending_obs, false);
 }
 
-#define SERIAL_SEND_RATE 10
-#define RADIO_SEND_RATE  10
-#define IPV6_SEND_RATE    1
+void send_pending_obj(properties* pending_obj){
+  for(uint16_t i=1; i<=properties_size(pending_obj); i++){
+    char*  uid     = properties_key_n(pending_obj,i);
+    value* chansub = properties_get_n(pending_obj,i);
+    object_uid_to_text( uid, send_buff, SEND_BUFF_SIZE, OBJECT_TO_TEXT_NETWORK);
+    send(value_string(chansub));
+  }
+  properties_clear(pending_obj, false);
+}
 
 static uint32_t serial_lt = 0;
 static uint32_t radio_lt = 0;
@@ -190,20 +194,20 @@ static uint32_t ipv6_lt = 0;
 bool handle_all_send(){
   uint32_t ct = time_ms();
   bool ka=false;
-  if(onp_channel_serial && ct > serial_lt + SERIAL_SEND_RATE){
+  if(onp_channel_serial && ct > serial_lt + 1){
     serial_lt = ct;
-    static bool send_obs=false; send_obs=!send_obs;
-    ka = send_one_entry(serial_pending_obs, serial_pending_obj, send_obs)  || ka;
+    send_pending_obs(serial_pending_obs);
+    send_pending_obj(serial_pending_obj);
   }
-  if(onp_channel_radio && ct > radio_lt + RADIO_SEND_RATE){
+  if(onp_channel_radio && ct > radio_lt + 1){
     radio_lt = ct;
-    static bool send_obs=false; send_obs=!send_obs;
-    ka = send_one_entry(radio_pending_obs, radio_pending_obj, send_obs)  || ka;
+    send_pending_obs(radio_pending_obs);
+    send_pending_obj(radio_pending_obj);
   }
-  if(onp_channel_ipv6 && ct > ipv6_lt + IPV6_SEND_RATE){
+  if(onp_channel_ipv6 && ct > ipv6_lt + 1){
     ipv6_lt = ct;
-    static bool send_obs=false; send_obs=!send_obs;
-    ka = send_one_entry(ipv6_pending_obs, ipv6_pending_obj, send_obs)  || ka;
+    send_pending_obs(ipv6_pending_obs);
+    send_pending_obj(ipv6_pending_obj);
   }
   return ka;
 }
