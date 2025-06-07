@@ -4,6 +4,7 @@
 #include <nrf_drv_clock.h>
 
 #include <onex-kernel/time.h>
+#include <onex-kernel/log.h>
 
 static volatile bool initialised=false;
 
@@ -27,6 +28,9 @@ APP_TIMER_DEF(m_timer_3);
 APP_TIMER_DEF(m_timer_4);
 APP_TIMER_DEF(m_timer_5);
 APP_TIMER_DEF(m_timer_6);
+APP_TIMER_DEF(m_timer_7);
+APP_TIMER_DEF(m_timer_8);
+APP_TIMER_DEF(m_timer_9);
 
 static app_timer_id_t timer_ids[7];
 
@@ -59,6 +63,9 @@ void time_init() {
   timer_ids[4]=m_timer_4;
   timer_ids[5]=m_timer_5;
   timer_ids[6]=m_timer_6;
+  timer_ids[7]=m_timer_7;
+  timer_ids[8]=m_timer_8;
+  timer_ids[9]=m_timer_9;
 
   initialised=true;
 }
@@ -102,6 +109,9 @@ static time_up_cb up_cb_3=0;
 static time_up_cb up_cb_4=0;
 static time_up_cb up_cb_5=0;
 static time_up_cb up_cb_6=0;
+static time_up_cb up_cb_7=0;
+static time_up_cb up_cb_8=0;
+static time_up_cb up_cb_9=0;
 
 static void* up_arg_1=0;
 static void* up_arg_2=0;
@@ -109,6 +119,9 @@ static void* up_arg_3=0;
 static void* up_arg_4=0;
 static void* up_arg_5=0;
 static void* up_arg_6=0;
+static void* up_arg_7=0;
+static void* up_arg_8=0;
+static void* up_arg_9=0;
 
 static void time_up_1(void*) { if(up_cb_1) up_cb_1(up_arg_1); }
 static void time_up_2(void*) { if(up_cb_2) up_cb_2(up_arg_2); }
@@ -116,6 +129,9 @@ static void time_up_3(void*) { if(up_cb_3) up_cb_3(up_arg_3); }
 static void time_up_4(void*) { if(up_cb_4) up_cb_4(up_arg_4); }
 static void time_up_5(void*) { if(up_cb_5) up_cb_5(up_arg_5); }
 static void time_up_6(void*) { if(up_cb_6) up_cb_6(up_arg_6); }
+static void time_up_7(void*) { if(up_cb_7) up_cb_7(up_arg_7); }
+static void time_up_8(void*) { if(up_cb_8) up_cb_8(up_arg_8); }
+static void time_up_9(void*) { if(up_cb_9) up_cb_9(up_arg_9); }
 
 static uint8_t volatile topid=1;
 
@@ -164,6 +180,30 @@ uint16_t time_ticker(time_up_cb cb, void* arg, uint32_t every) {
       e = app_timer_start(m_timer_6, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
+    case 7: {
+      up_cb_7=cb;
+      up_arg_7=arg;
+      e = app_timer_create(&m_timer_7, APP_TIMER_MODE_REPEATED, time_up_7); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_7, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 8: {
+      up_cb_8=cb;
+      up_arg_8=arg;
+      e = app_timer_create(&m_timer_8, APP_TIMER_MODE_REPEATED, time_up_8); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_8, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 9: {
+      up_cb_9=cb;
+      up_arg_9=arg;
+      e = app_timer_create(&m_timer_9, APP_TIMER_MODE_REPEATED, time_up_9); APP_ERROR_CHECK(e);
+      e = app_timer_start(m_timer_9, every? APP_TIMER_TICKS(every): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    default: {
+      log_write("no more timers!\n");
+    }
   }
   return topid++;
 }
@@ -207,6 +247,27 @@ uint16_t time_timeout(time_up_cb cb, void* arg) {
       e = app_timer_create(&m_timer_6, APP_TIMER_MODE_SINGLE_SHOT, time_up_6); APP_ERROR_CHECK(e);
       break;
     }
+    case 7: {
+      up_cb_7=cb;
+      up_arg_7=arg;
+      e = app_timer_create(&m_timer_7, APP_TIMER_MODE_SINGLE_SHOT, time_up_7); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 8: {
+      up_cb_8=cb;
+      up_arg_8=arg;
+      e = app_timer_create(&m_timer_8, APP_TIMER_MODE_SINGLE_SHOT, time_up_8); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 9: {
+      up_cb_9=cb;
+      up_arg_9=arg;
+      e = app_timer_create(&m_timer_9, APP_TIMER_MODE_SINGLE_SHOT, time_up_9); APP_ERROR_CHECK(e);
+      break;
+    }
+    default: {
+      log_write("no more timers!\n");
+    }
   }
   return topid++;
 }
@@ -238,12 +299,24 @@ void time_start_timer(uint16_t id, uint32_t timeout) {
       e = app_timer_start(m_timer_6, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
       break;
     }
+    case 7: {
+      e = app_timer_start(m_timer_7, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 8: {
+      e = app_timer_start(m_timer_8, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
+    case 9: {
+      e = app_timer_start(m_timer_9, timeout? APP_TIMER_TICKS(timeout): 1, NULL); APP_ERROR_CHECK(e);
+      break;
+    }
   }
 }
 
 void time_stop_timer(uint16_t id)
 {
-  if(id<1 || id>6) return;
+  if(id<1 || id>9) return;
   app_timer_stop(timer_ids[id]);
 }
 
