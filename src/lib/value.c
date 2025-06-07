@@ -61,7 +61,8 @@ value* value_new(char* val) {
   value* ours=(value*)properties_get(all_values, val);
   if(ours){
     ours->refs++;
-    if(ours->refs==0) log_write("V0%s\n", ours->val); // 65536 references so more likely not being freed
+    // prob not being freed if getting big: 65536 refs
+    if(ours->refs==0){  log_write("V00!%s\n", ours->val); ours->refs++; }
     RETURN_UNLOCKING(ours);
   }
   ours=(value*)mem_alloc(sizeof(value));
@@ -103,8 +104,7 @@ value* value_fmt(char* fmt, ...){
   return value_new(valbuf);
 }
 
-value* value_ref(value* v)
-{
+value* value_ref(value* v) {
   if(!v) return 0;
   ENTER_LOCKING;
   v->refs++;

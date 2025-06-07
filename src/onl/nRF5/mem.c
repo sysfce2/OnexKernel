@@ -10,7 +10,7 @@
 
 static bool initialized=false;
 
-static char* top_alloc=0;
+static uint8_t* top_alloc=0;
 
 #define xGRIND_THE_MEM
 #ifdef GRIND_THE_MEM
@@ -93,7 +93,7 @@ void* Mem_alloc(char* func, int line, size_t n) {
   if(!p){
     p=calloc(1,n);
     if(LOG_MEM) log_write("****** mem_alloc using calloc %p\n", p);
-    if((char*)p > top_alloc){
+    if((uint8_t*)p > top_alloc){
       top_alloc=p;
       if(log_to_gfx){
         if(LOG_MEM) log_write("clc %lu %s:%d %p\n", n, func, line, p);
@@ -126,7 +126,7 @@ char* Mem_strdup(char* func, int line, const char* s) {
   if(!p){
     p=malloc(n);
     if(LOG_MEM) log_write("****** mem_strdup using malloc %p\n", p);
-    if((char*)p > top_alloc){
+    if((uint8_t*)p > top_alloc){
       top_alloc=p;
       if(log_to_gfx){
         if(LOG_MEM) log_write("mlc %lu %s:%d %p\n", n, func, line, p);

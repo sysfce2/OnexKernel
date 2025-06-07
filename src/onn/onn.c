@@ -409,7 +409,7 @@ static value* format_obstime(uint64_t lo){
   if(!lo) return value_new("-");
   uint32_t t = ((uint32_t)(time_ms() - lo)/1000);
   snprintf(obstime, 64, "%d", (uint16_t)t);
-  return value_new(obstime); // REVISIT: value not freed: hopefully not called much, with larger numbers
+  return value_new(obstime); // REVISIT: value not freed; hopefully not called much, with larger numbers
 }
 
 static char* object_property_observe(object* n, char* path, bool notify) {

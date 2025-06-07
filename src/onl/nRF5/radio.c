@@ -194,7 +194,8 @@ uint16_t radio_read(char* buf, uint16_t size){
     log_write("**** %d > %d\n", r, size);
     return 0;
   }
-  return chunkbuf_read(radio_read_buf, buf, size, NL_DELIM);
+  uint16_t rr=chunkbuf_read(radio_read_buf, buf, size, NL_DELIM);
+  return rr;
 }
 
 uint16_t radio_write(char* band, char* buf, uint16_t size) {

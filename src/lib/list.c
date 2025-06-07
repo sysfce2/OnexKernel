@@ -164,7 +164,7 @@ uint16_t list_vals_has(list* li, char* v){
 }
 
 uint16_t list_items_find(list* li, item* it) {
-  if(!li) return 0;
+  if(!li || !it) return 0;
   for(uint16_t j=0; j<li->size; j++){
     if(item_equal((item*)li->vals[j], it)) return j+1;
   }

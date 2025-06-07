@@ -347,9 +347,9 @@ static void check_big_radio_data(){
   do{
     static char buf[1024];
     uint16_t rm=radio_available();
-    uint16_t rn=radio_read(buf, 1024);
-    if(!rn) return;
-    log_write("radio available: %d %d (%s)\n", rm, rn, buf);
+    int16_t  rn=radio_read(buf, 1024);
+    if(rn==0) return;
+    log_write("radio available/read: %d %d (%s)\n", rm, rn, buf);
     if(strstr(buf, "UID: uid-ffff")){
       send_big_radio_data(false);
     }
@@ -392,11 +392,11 @@ void run_chunkbuf_tests(){
   log_write("-------- chunkbuf transferred ---\n");
   while(true){
     char line[32];
-    log_write("---- rside readable %d\n", chunkbuf_readable(rside, '\n'));
+    uint16_t rd = chunkbuf_readable(rside, '\n');
+    log_write("---- rside readable %d\n", rd);
+  ; if(!rd) break;
     uint16_t rn = chunkbuf_read(rside, line, 32, '\n');
-  ; if(!rn) break;
-    log_write("line: \"%s\" len: %d\n", line, strlen(line));
-    if(!rn) break;
+    log_write("rn=%d line: \"%s\" len: %d\n", rn, line, strlen(line));
   }
   log_write("-------- chunkbuf done ----------\n");
   chunkbuf_free(rside);

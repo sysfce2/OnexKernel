@@ -45,7 +45,7 @@ static void set_chansub_of_device(char* device, char* chansub){
 static value* chansub_of_device(char* device){
   list* chansubs = (list*)properties_get(device_to_chansub, device);
   value* chansub = list_get_n(chansubs, 1);
-  return chansub? chansub: value_new("all-all");
+  return chansub? chansub: value_new("all-all"); // REVISIT all-all not freed
 }
 
 static bool onp_channel_serial  = false;
@@ -117,14 +117,13 @@ static char send_buff[SEND_BUFF_SIZE];
 bool handle_all_recv(){
 
   bool ka=true;
-  uint16_t size=0;
   uint8_t pkts=0;
 
   if(onp_channel_serial){
     if(serial_available() >1500) log_write("avail=%d!\n", serial_available());
     while(true){
-      size = serial_read(recv_buff, RECV_BUFF_SIZE-1);
-    ; if(!size) break;
+      int16_t size = serial_read(recv_buff, RECV_BUFF_SIZE);
+    ; if(size==0) break;
       pkts++;
       ka = handle_recv(size,"serial") || ka;
     }
@@ -132,8 +131,8 @@ bool handle_all_recv(){
   if(onp_channel_radio){
     if(radio_available() >1500) log_write("avail=%d!\n", radio_available());
     while(true){
-      size = radio_read(recv_buff, RECV_BUFF_SIZE-1);
-    ; if(!size) break;
+      int16_t size = radio_read(recv_buff, RECV_BUFF_SIZE);
+    ; if(size==0) break;
       pkts++;
       ka = handle_recv(size,"radio") || ka;
     }
@@ -143,8 +142,8 @@ bool handle_all_recv(){
     // and doesn't make ONP aware of the sub-channel/chansub of that tty
     for(int i=1; i<=list_size(ipv6_groups); i++){
       char* group = value_string(list_get_n(ipv6_groups, i));
-      size = ipv6_read(group, recv_buff, RECV_BUFF_SIZE-1);
-    ; if(!size) continue;
+      int16_t size = ipv6_read(group, recv_buff, RECV_BUFF_SIZE);
+    ; if(size==0) continue;
       char chansub[256]; snprintf(chansub, 256, "ipv6-%s", group);
       ka = handle_recv(size,chansub) || ka;
     }
@@ -309,9 +308,9 @@ void set_pending(char* channel, properties* p, char* uid, value* chansub){
 
   if(!(prefix_of_chansub_is_channel || prefix_of_chansub_is_all)) return;
 
-  value* channel_all = value_fmt("%s-all", channel);
+  value* channel_all = value_fmt("%s-all", channel); // REVISIT: no value_free/ref count
 
-  if(prefix_of_chansub_is_all) chansub = channel_all;
+  if(prefix_of_chansub_is_all) chansub = channel_all; // REVISIT: "all-all" not freed
 
   value* cs=(value*)properties_get(p, uid);
 

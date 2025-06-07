@@ -291,7 +291,8 @@ uint16_t serial_read(char* buf, uint16_t size) {
     log_write("**** %d > %d\n", r, size);
     return 0;
   }
-  return chunkbuf_read(serial_read_buf, buf, size, NL_DELIM);
+  uint16_t rr=chunkbuf_read(serial_read_buf, buf, size, NL_DELIM);
+  return rr;
 }
 
 static uint16_t serial_write_delim(char* tty, char* buf, uint16_t size, bool delim);

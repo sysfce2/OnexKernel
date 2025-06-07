@@ -32,15 +32,17 @@ bool chunkbuf_writable(chunkbuf* cb, uint16_t size, int8_t delim){
   return (delim < 0? size: size+1) <= ((cb->buf_size-1) - chunkbuf_current_size(cb));
 }
 
+#define INC_CURRENT_WRITE cb->current_write++; if(cb->current_write==cb->buf_size) cb->current_write=0
+
 void chunkbuf_write(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
+
   if(!chunkbuf_writable(cb, size, delim)) return; // shoulda checked with chunkbuf_writable()!
+
   for(uint16_t i=0; i<size; i++){
-    cb->buffer[cb->current_write++]=buf[i];
-    if(cb->current_write==cb->buf_size) cb->current_write=0;
+    cb->buffer[cb->current_write]=buf[i]; INC_CURRENT_WRITE;
   }
   if(delim>=0){
-    cb->buffer[cb->current_write++]=delim;
-    if(cb->current_write==cb->buf_size) cb->current_write=0;
+    cb->buffer[cb->current_write]=delim;    INC_CURRENT_WRITE;
   }
 }
 
@@ -53,10 +55,7 @@ uint16_t chunkbuf_readable(chunkbuf* cb, int8_t delim){
   uint16_t cr=cb->current_read;
   uint16_t s;
   for(s=0; size_from_read_point(cb,cr); s++){
-
-    char c=cb->buffer[cr++];
-    if(cr==cb->buf_size) cr=0;
-
+    char c=cb->buffer[cr++]; if(cr==cb->buf_size) cr=0;
     if(c==delim || IS_NL(c)){
       if(size_from_read_point(cb,cr) && IS_NL(cb->buffer[cr])){
         continue;
@@ -67,16 +66,19 @@ uint16_t chunkbuf_readable(chunkbuf* cb, int8_t delim){
   return 0; // either nothing to read or delim not found in readable
 }
 
+#define INC_CURRENT_READ cb->current_read++; if(cb->current_read==cb->buf_size) cb->current_read=0
+
 uint16_t chunkbuf_read(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
+  if(!size) return 0;
+  if(!chunkbuf_current_size(cb)){ buf[0]=0; return 0; }
   uint16_t i;
   bool newline_delim = (delim=='\r' || delim=='\n');
   uint8_t num_delims=0;
   for(i=0; i<size && chunkbuf_current_size(cb); i++){
 
-    buf[i]=cb->buffer[cb->current_read++];
-    if(cb->current_read==cb->buf_size) cb->current_read=0;
+    buf[i]=cb->buffer[cb->current_read]; INC_CURRENT_READ;
 
-    if(delim<0) continue;
+    if(delim < 0) continue;
 
     if(buf[i]==delim || IS_NL(buf[i])){
       buf[i]=0; num_delims++;
@@ -87,8 +89,11 @@ uint16_t chunkbuf_read(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
       break;
     }
   }
-  if(delim >= 0 && !num_delims){
-    // consumed whole buffer but no delim! shoulda checked 1st with chunkbuf_readable()
+  if(delim < 0) return i;
+
+  if(!num_delims){
+    // consumed whole chunkbuf or filled whole buf but no delim! shoulda checked 1st with chunkbuf_readable()
+    buf[i-1]=0;
     return 0;
   }
   return i-num_delims;  // delims consumed but zero'd out, so buffer needs to be big enough for zeroes
