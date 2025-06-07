@@ -364,8 +364,14 @@ void send(char* chansub){ // return false if *_write() couldn't fit data in, etc
 void log_sent(char* prefix, uint16_t size, char* chansub) {
   if(!log_onp) return;
   if(log_to_gfx){
-    log_write("> %d\n", size);
-    if(size< 48) log_write(send_buff);
+    if(size>=5 && !strncmp(send_buff,"OBS: ",5)){
+      log_write("[%s]%d\n", send_buff, size);
+    }
+    if(size>=5 && !strncmp(send_buff,"UID: ",5)){
+      char* isp=strstr(send_buff, "is:"); if(!isp) return;
+      isp[60]=0;
+      log_write("[%s]%d\n", isp, size);
+    }
   }
   else{
     log_write("%s '%s'", prefix, send_buff);
