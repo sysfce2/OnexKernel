@@ -37,7 +37,6 @@ static properties*    device_to_chansub = 0;
 static volatile list* connected_channels = 0;
 static volatile int   num_waiting_on_connect=0;
 
-
 static void set_chansub_of_device(char* device, char* chansub){
   properties_set_ins(device_to_chansub, device, chansub);
 }
@@ -224,10 +223,11 @@ bool onp_loop() {
 
 void on_connect(char* channel) {
 
-  // REVISIT: free timer once cb called!
-  time_start_timer(time_timeout(connect_time_cb, mem_strdup(channel)), CONNECT_DELAY_MS);
+  // REVISIT: using up a timer for every channel; free timer once cb called!
+  uint16_t tid = time_timeout(connect_time_cb, mem_strdup(channel));
+  time_start_timer(tid, CONNECT_DELAY_MS);
   num_waiting_on_connect++;
-  time_delay_ms(10);
+  time_delay_ms(10); // REVISIT
   log_write("%s%son_connect(%s) %d\n",
              test_uid_prefix? test_uid_prefix: "",
              test_uid_prefix? " ":             "",

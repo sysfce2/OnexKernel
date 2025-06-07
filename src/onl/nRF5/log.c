@@ -196,7 +196,7 @@ int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt,
     flush_saved_messages(FLUSH_TO_SERIAL);
     r+=fl? serial_printf(                         "[%ld](%s:%ld) ", (uint32_t)time_ms(), file, line): 0;
     r+=    serial_vprintf(fmt, args);
-    time_delay_ms(1);
+    time_delay_ms(1); // REVISIT
   }
   if(log_to_gfx){
     if(!gfx_log_buffer) gfx_log_buffer = list_new(32);
@@ -214,7 +214,7 @@ int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt,
     NRF_LOG_DEBUG("%s", log_buffer);
     time_delay_ms(2);
     NRF_LOG_FLUSH();
-    time_delay_ms(2);
+    time_delay_ms(2); // REVISIT
   }
 #endif
   va_end(args);
@@ -260,7 +260,7 @@ void log_flush() {
   if(log_to_rtt){
     NRF_LOG_FLUSH();
   }
-  time_delay_ms(5);
+  time_delay_ms(5); // REVISIT
 #endif
 }
 

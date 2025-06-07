@@ -211,8 +211,7 @@ uint16_t time_timeout(time_up_cb cb, void* arg) {
   return topid++;
 }
 
-void time_start_timer(uint16_t id, uint32_t timeout)
-{
+void time_start_timer(uint16_t id, uint32_t timeout) {
   ret_code_t e;
   switch(id){
     case 1: {
