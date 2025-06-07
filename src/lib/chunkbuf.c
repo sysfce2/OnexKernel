@@ -28,12 +28,12 @@ uint16_t chunkbuf_current_size(chunkbuf* cb){
   return size_from_read_point(cb, cb->current_read);
 }
 
-uint16_t chunkbuf_writable(chunkbuf* cb){
-  return (cb->buf_size-1) - chunkbuf_current_size(cb);
+bool chunkbuf_writable(chunkbuf* cb, uint16_t size, int8_t delim){
+  return (delim < 0? size: size+1) <= ((cb->buf_size-1) - chunkbuf_current_size(cb));
 }
 
 void chunkbuf_write(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
-  if((delim<0? size: size+1) > chunkbuf_writable(cb)) return; // shoulda checked with chunkbuf_writable()!
+  if(!chunkbuf_writable(cb, size, delim)) return; // shoulda checked with chunkbuf_writable()!
   for(uint16_t i=0; i<size; i++){
     cb->buffer[cb->current_write++]=buf[i];
     if(cb->current_write==cb->buf_size) cb->current_write=0;
@@ -47,6 +47,7 @@ void chunkbuf_write(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
 #define IS_NL(c) (newline_delim && ((c)=='\r' || (c)=='\n'))
 
 uint16_t chunkbuf_readable(chunkbuf* cb, int8_t delim){
+  if(!chunkbuf_current_size(cb)) return 0;
   if(delim < 0) return chunkbuf_current_size(cb);
   bool newline_delim = (delim=='\r' || delim=='\n');
   uint16_t cr=cb->current_read;

@@ -365,26 +365,30 @@ void run_chunkbuf_tests(){
   log_write("-------- chunkbuf tests ---------\n");
   chunkbuf* wside = chunkbuf_new(100);
   chunkbuf* rside = chunkbuf_new(100);
-  log_write("wside writable %d\n", chunkbuf_writable(wside));
+  log_write("wside writable %s\n", chunkbuf_writable(wside, strlen("1234567890123456789"), '\n')? "yes": "no");
   chunkbuf_write(wside, "1234567890123456789", strlen("1234567890123456789"), '\n');
-  log_write("wside writable %d\n", chunkbuf_writable(wside));
+  log_write("wside writable %s\n", chunkbuf_writable(wside, strlen("5678901234567891234"), '\n')? "yes": "no");
   chunkbuf_write(wside, "5678901234567891234", strlen("5678901234567891234"), '\n');
-  log_write("wside writable %d\n", chunkbuf_writable(wside));
+  log_write("wside writable %s\n", chunkbuf_writable(wside, strlen("1234567890123456789"), '\n')? "yes": "no");
   chunkbuf_write(wside, "1234567890123456789", strlen("1234567890123456789"), '\n');
-  log_write("wside writable %d\n", chunkbuf_writable(wside));
+  log_write("wside writable %s\n", chunkbuf_writable(wside, strlen("5678901234567891234"), '\n')? "yes": "no");
   chunkbuf_write(wside, "5678901234567891234", strlen("5678901234567891234"), '\n');
-  log_write("wside writable %d\n", chunkbuf_writable(wside));
+  log_write("wside writable for 19 more no delim? %s\n", chunkbuf_writable(wside, 19,   -1)? "yes": "no");
+  log_write("wside writable for 19 more delim?    %s\n", chunkbuf_writable(wside, 19, '\n')? "yes": "no");
   log_write("-------- chunkbuf written -------\n");
   for(int i=0; ; i++){
     char pkt[7];
     log_write("wside readable %d\n", chunkbuf_readable(wside, -1));
     uint16_t rn = chunkbuf_read(wside, pkt, 7, -1);
   ; if(!rn) break;
-    if(i==7){ log_write("ohh nooo! corruption\n"); continue; }
-    log_write("---- rside writable %d\n", chunkbuf_writable(rside));
+    if(i==3){ log_write("ohh nooo! packet loossss!! %^#!&*~ (%.7s)\n", pkt); continue; }
+//  if(i==5){ log_write("ohh nooo! packet loossss!! %^#!&*~ (%.7s)\n", pkt); continue; } // has NL
+    if(i==7){ log_write("ohh nooo! corrupptiooion!! %^#!&*~\n"); pkt[1]='#'; }
+    log_write("---- rside writable %s\n", chunkbuf_writable(rside, rn, -1)? "yes": "no");
     chunkbuf_write(rside, pkt, rn, -1);
   }
-  log_write("---- rside writable %d\n", chunkbuf_writable(rside));
+  log_write("---- rside writable 19+7 more %s\n", chunkbuf_writable(rside, 19+7, -1)? "yes": "no");
+  log_write("---- rside writable 19+8 more %s\n", chunkbuf_writable(rside, 19+8, -1)? "yes": "no");
   log_write("-------- chunkbuf transferred ---\n");
   while(true){
     char line[32];

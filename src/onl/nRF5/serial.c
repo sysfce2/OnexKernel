@@ -82,8 +82,7 @@ uint16_t serial_available(){
 }
 
 static void received(char* buf, uint16_t size){
-  uint16_t w=chunkbuf_writable(serial_read_buf);
-  if(size > w){
+  if(!chunkbuf_writable(serial_read_buf, size, -1)){
     log_write("srb full %d %d\n", size, chunkbuf_current_size(serial_read_buf));
     //log_flash(1,0,0);
     return;
@@ -285,7 +284,6 @@ bool serial_loop() {
 
 uint16_t serial_read(char* buf, uint16_t size) {
   if(!initialised) return 0;
-  if(!chunkbuf_current_size(serial_read_buf)) return 0;
   uint16_t r=chunkbuf_readable(serial_read_buf, NL_DELIM);
   if(!r) return 0;
   if(r > size){
@@ -323,8 +321,7 @@ int16_t serial_vprintf(const char* fmt, va_list args) {
 }
 
 static uint16_t serial_write_delim(char* tty, char* buf, uint16_t size, bool delim) {
-  uint16_t w=chunkbuf_writable(serial_write_buf);
-  if(size + (delim? 1: 0) > w){
+  if(!chunkbuf_writable(serial_write_buf, size, delim? NL_DELIM: -1)){
     log_flash(1,0,0); // no room for this size
     return 0;
   }

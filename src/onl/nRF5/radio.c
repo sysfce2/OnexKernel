@@ -187,7 +187,6 @@ bool radio_init(list* bands, channel_recv_cb cb){
 
 uint16_t radio_read(char* buf, uint16_t size){
   if(!initialised) return 0;
-  if(!chunkbuf_current_size(radio_read_buf)) return 0;
   uint16_t r=chunkbuf_readable(radio_read_buf, NL_DELIM);
   if(!r) return 0;
   if(r > size){
@@ -200,8 +199,7 @@ uint16_t radio_read(char* buf, uint16_t size){
 
 uint16_t radio_write(char* band, char* buf, uint16_t size) {
   radio_wake();
-  uint16_t w=chunkbuf_writable(radio_write_buf);
-  if(size + 1 > w){
+  if(!chunkbuf_writable(radio_write_buf, size, NL_DELIM)){
     log_flash(1,0,0); // no room for this size
     return 0;
   }
@@ -223,8 +221,7 @@ uint16_t radio_available(){
 
 static void received(char* buf, uint16_t size, int8_t rssi){
   last_rssi=rssi;
-  uint16_t w=chunkbuf_writable(radio_read_buf);
-  if(size > w){
+  if(!chunkbuf_writable(radio_read_buf, size, -1)){
     log_write("rrb full %d %d\n", size, chunkbuf_current_size(radio_read_buf));
     //log_flash(1,0,0);
     return;
