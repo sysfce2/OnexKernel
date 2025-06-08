@@ -122,7 +122,7 @@ char* Mem_strdup(char* func, int line, const char* s) {
   if(!s) return 0;
   if(!initialized){ initialized=true; nrf_mem_init(); }
   size_t n=strlen(s)+1;
-  char* p=nrf_malloc(n);
+  void* p=nrf_malloc(n);
   if(!p){
     p=malloc(n);
     if(LOG_MEM) log_write("****** mem_strdup using malloc %p\n", p);
@@ -141,7 +141,7 @@ char* Mem_strdup(char* func, int line, const char* s) {
     log_write("mem_strdup  %p %lu [%s] %s:%d\n", p, n, b, func, line);
   }
   memgrind_alloc(p, func, line, n);
-  return p;
+  return (char*)p;
 }
 
 void Mem_freestr(char* func, int line, char* p) {

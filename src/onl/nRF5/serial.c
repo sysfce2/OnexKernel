@@ -200,8 +200,8 @@ bool serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb) {
 
     if(initialised) return true;
 
-    serial_read_buf  = chunkbuf_new(SERIAL_READ_BUFFER_SIZE);
-    serial_write_buf = chunkbuf_new(SERIAL_WRITE_BUFFER_SIZE);
+    serial_read_buf  = chunkbuf_new(SERIAL_READ_BUFFER_SIZE, false);
+    serial_write_buf = chunkbuf_new(SERIAL_WRITE_BUFFER_SIZE, false);
 
     app_usbd_serial_num_generate();
 
@@ -282,7 +282,7 @@ bool serial_loop() {
 
 #define NL_DELIM '\n'
 
-uint16_t serial_read(char* buf, uint16_t size) {
+int16_t serial_read(char* buf, uint16_t size) {
   if(!initialised) return 0;
   uint16_t r=chunkbuf_readable(serial_read_buf, NL_DELIM);
   if(!r) return 0;
@@ -341,7 +341,7 @@ uint8_t  serial_ready_state(){ return SERIAL_NOT_POWERED_OR_READY; }
 uint8_t  serial_status(){      return SERIAL_NOT_POWERED_OR_READY; }
 bool     serial_connected(){   return false; }
 uint16_t serial_available(){ return 0; }
-uint16_t serial_read(char* buf, uint16_t size){ return 0; }
+int16_t  serial_read(char* buf, uint16_t size){ return 0; }
 uint16_t serial_write(char* tty, char* buf, uint16_t size){ return 0; }
 int16_t  serial_printf(const char* fmt, ...){ return 0; }
 int16_t  serial_vprintf(const char* fmt, va_list args){ return 0; }

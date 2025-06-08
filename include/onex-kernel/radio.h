@@ -11,7 +11,7 @@
 #include <onex-kernel/channels.h>
 
 bool     radio_init(list* bands, channel_recv_cb cb);
-uint16_t radio_read(char* buf, uint16_t size);
+int16_t  radio_read(char* buf, uint16_t size);
 uint16_t radio_write(char* band, char* buf, uint16_t size);
 int8_t   radio_last_rssi();
 uint16_t radio_available();

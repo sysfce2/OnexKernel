@@ -133,6 +133,7 @@ bool handle_all_recv(){
     while(true){
       int16_t size = radio_read(recv_buff, RECV_BUFF_SIZE);
     ; if(size==0) break;
+      if(size<0){ log_write("** radio data corrupt %s\n", recv_buff); continue; }
       pkts++;
       ka = handle_recv(size,"radio") || ka;
     }

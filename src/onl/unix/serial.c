@@ -132,7 +132,7 @@ uint16_t serial_available(){
   return available;
 }
 
-uint16_t serial_read(char* buf, uint16_t size) {
+int16_t serial_read(char* buf, uint16_t size) {
   update_connected_serials();
   for(int n=0; n<MAX_TTYS; n++){
     int fd=fds[nt];

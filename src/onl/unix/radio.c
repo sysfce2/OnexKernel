@@ -11,7 +11,7 @@ bool radio_init(list* bands, channel_recv_cb cb){
   return true;
 }
 
-uint16_t radio_read(char* buf, uint16_t size){
+int16_t radio_read(char* buf, uint16_t size){
     return 0;
 }
 

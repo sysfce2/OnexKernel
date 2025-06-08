@@ -127,8 +127,8 @@ bool radio_init(list* bands, channel_recv_cb cb){
 
   if(initialised) return true;
 
-  radio_read_buf  = chunkbuf_new(RADIO_READ_BUFFER_SIZE);
-  radio_write_buf = chunkbuf_new(RADIO_WRITE_BUFFER_SIZE);
+  radio_read_buf  = chunkbuf_new(RADIO_READ_BUFFER_SIZE, true);
+  radio_write_buf = chunkbuf_new(RADIO_WRITE_BUFFER_SIZE, true);
 
   NRF_RADIO->MODECNF0 = (RADIO_MODECNF0_DTX_B0 << RADIO_MODECNF0_DTX_Pos) |
                         (RADIO_MODECNF0_RU_Fast << RADIO_MODECNF0_RU_Pos);
@@ -185,7 +185,7 @@ bool radio_init(list* bands, channel_recv_cb cb){
 
 #define NL_DELIM '\n'
 
-uint16_t radio_read(char* buf, uint16_t size){
+int16_t radio_read(char* buf, uint16_t size){
   if(!initialised) return 0;
   uint16_t r=chunkbuf_readable(radio_read_buf, NL_DELIM);
   if(!r) return 0;
@@ -195,7 +195,7 @@ uint16_t radio_read(char* buf, uint16_t size){
     return 0;
   }
   uint16_t rr=chunkbuf_read(radio_read_buf, buf, size, NL_DELIM);
-  return rr;
+  return rr? rr: -1;
 }
 
 uint16_t radio_write(char* band, char* buf, uint16_t size) {

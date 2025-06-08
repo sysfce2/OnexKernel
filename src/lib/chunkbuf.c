@@ -8,14 +8,16 @@ typedef struct chunkbuf {
   char*       buffer;
   uint16_t    current_write;
   uint16_t    current_read;
+  bool        checksumming;
 } chunkbuf;
 
-chunkbuf* chunkbuf_new(uint16_t buf_size){
+chunkbuf* chunkbuf_new(uint16_t buf_size, bool checksumming){
   chunkbuf* cb=(chunkbuf*)mem_alloc(sizeof(chunkbuf)); if(!cb) return 0;
   cb->buf_size=buf_size;
   cb->buffer=(char*)mem_alloc(buf_size); if(!cb->buffer) return 0;
   cb->current_write=0;
   cb->current_read=0;
+  cb->checksumming=checksumming;
   return cb;
 }
 
@@ -29,7 +31,10 @@ uint16_t chunkbuf_current_size(chunkbuf* cb){
 }
 
 bool chunkbuf_writable(chunkbuf* cb, uint16_t size, int8_t delim){
-  return (delim < 0? size: size+1) <= ((cb->buf_size-1) - chunkbuf_current_size(cb));
+  uint16_t s = (delim < 0?         size:
+                (cb->checksumming? size+2:
+                                   size+1));
+  return s <= ((cb->buf_size-1) - chunkbuf_current_size(cb));
 }
 
 #define INC_CURRENT_WRITE cb->current_write++; if(cb->current_write==cb->buf_size) cb->current_write=0
@@ -38,10 +43,15 @@ void chunkbuf_write(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
 
   if(!chunkbuf_writable(cb, size, delim)) return; // shoulda checked with chunkbuf_writable()!
 
+  uint8_t checksum=0;
   for(uint16_t i=0; i<size; i++){
     cb->buffer[cb->current_write]=buf[i]; INC_CURRENT_WRITE;
+    checksum ^= buf[i];
   }
   if(delim>=0){
+    if(cb->checksumming){
+      cb->buffer[cb->current_write]=checksum; INC_CURRENT_WRITE;
+    }
     cb->buffer[cb->current_write]=delim;    INC_CURRENT_WRITE;
   }
 }
@@ -60,7 +70,7 @@ uint16_t chunkbuf_readable(chunkbuf* cb, int8_t delim){
       if(size_from_read_point(cb,cr) && IS_NL(cb->buffer[cr])){
         continue;
       }
-      return s+1; // including all delims
+      return s+1; // including checksum and all delims
     }
   }
   return 0; // either nothing to read or delim not found in readable
@@ -96,7 +106,15 @@ uint16_t chunkbuf_read(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
     buf[i-1]=0;
     return 0;
   }
-  return i-num_delims;  // delims consumed but zero'd out, so buffer needs to be big enough for zeroes
+  if(!cb->checksumming) return i-num_delims;
+
+  if(i <= 1+num_delims){ buf[0]=0; return 0; }
+
+  uint8_t checksum=0;
+  uint16_t j; for(j=0; j < i-1-num_delims; j++) checksum ^= buf[j];
+  if(checksum != buf[j]){ buf[j]=0; return 0; }
+  buf[j]=0;
+  return j;  // checksum+delims consumed but zero'd out, so buffer needs to be big enough for zeroes
 }
 
 void chunkbuf_clear(chunkbuf* cb){
