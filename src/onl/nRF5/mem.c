@@ -11,6 +11,7 @@
 static bool initialized=false;
 
 static uint8_t* top_alloc=0;
+static char     top_alloc_fmt[128];
 
 #define xGRIND_THE_MEM
 #ifdef GRIND_THE_MEM
@@ -82,6 +83,7 @@ void mem_show_allocated(bool clear){
   }
   log_write("\nmemgrind_top=%d tot=%ld\n", memgrind_top, memgrind_tot);
 #endif
+  log_write("%s\n", top_alloc_fmt);
 }
 
 // --------------------
@@ -95,6 +97,7 @@ void* Mem_alloc(char* func, int line, size_t n) {
     if(LOG_MEM) log_write("****** mem_alloc using calloc %p\n", p);
     if((uint8_t*)p > top_alloc){
       top_alloc=p;
+      snprintf(top_alloc_fmt, 128, "%p @%s:%d", p, func, line);
       if(log_to_gfx){
         if(LOG_MEM) log_write("clc %lu %s:%d %p\n", n, func, line, p);
       }else{
@@ -128,6 +131,7 @@ char* Mem_strdup(char* func, int line, const char* s) {
     if(LOG_MEM) log_write("****** mem_strdup using malloc %p\n", p);
     if((uint8_t*)p > top_alloc){
       top_alloc=p;
+      snprintf(top_alloc_fmt, 128, "%p @%s:%d", p, func, line);
       if(log_to_gfx){
         if(LOG_MEM) log_write("mlc %lu %s:%d %p\n", n, func, line, p);
       }else{
@@ -163,5 +167,9 @@ void mem_strncpy(char* dst, const char* src, size_t count) {
   if(count < 1) return;
   strncpy(dst, src, count);
   dst[count-1] = 0;
+}
+
+char* mem_top(){
+  return top_alloc_fmt;
 }
 

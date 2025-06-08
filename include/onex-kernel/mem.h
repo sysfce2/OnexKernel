@@ -15,6 +15,7 @@ void    Mem_freestr(char* func, int line, char* s);
 #define mem_freestr(s) Mem_freestr((char*)__FUNCTION__, __LINE__, s)
 
 void    mem_strncpy(char* dst, const char* src, size_t count);
+char*   mem_top();
 void    mem_show_allocated(bool clear);
 
 
