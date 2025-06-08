@@ -46,12 +46,13 @@ char* unknown_to_text(char* b);
 }while(0)
 
 #define item_free(i) do{\
-  if(!i)                              ; else \
-  if(item_is_type(i,ITEM_PROPERTIES)) properties_free((properties*)i, true); else \
-  if(item_is_type(i,ITEM_LIST))       list_free((list*)i, true); else \
-  if(item_is_type(i,ITEM_VALUE))      value_free((value*)i); else \
-                                    { log_write("item_free(not an item)! %p\n", i); __builtin_trap(); } \
-}while(0)
+  void* __i__ = (i); \
+  if(!__i__)                              break; else \
+  if(item_is_type(__i__,ITEM_PROPERTIES)) properties_free((properties*)__i__, true); else \
+  if(item_is_type(__i__,ITEM_LIST))       list_free((list*)__i__, true); else \
+  if(item_is_type(__i__,ITEM_VALUE))      value_free((value*)__i__); else \
+  { log_write("item_free(not an item)! %p %s %d\n", __i__, __FUNCTION__, __LINE__); } \
+} while(0)
 
 
 // --------------------------------------------------------------------
