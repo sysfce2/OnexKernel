@@ -289,9 +289,6 @@ static bool recv_object(uint16_t size, char* chansub){
 
 static bool handle_recv(uint16_t size, char* chansub) {
 
-  if(recv_buff[size-1]<=' ') recv_buff[size-1]=0; // REVISIT
-  else                       recv_buff[size  ]=0; // REVISIT
-
   if(size>=5 && !strncmp(recv_buff,"OBS: ",5)) return recv_observe(size, chansub);
   if(size>=5 && !strncmp(recv_buff,"UID: ",5)) return recv_object( size, chansub);
 

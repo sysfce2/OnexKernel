@@ -205,7 +205,9 @@ uint16_t ipv6_read(char* group, char* buf, uint16_t size){
   socklen_t addrLen = sizeof(addr);
   sock_addr* gi = (sock_addr*)properties_get(group_to_sock_addr, group);
   ssize_t n = recvfrom(gi->sock, buf, size, 0, (struct sockaddr*)&addr, &addrLen);
-  return (n>0)? n: 0;
+  if(n < 0) return 0;
+  buf[n]=0;
+  return n;
 }
 
 static uint16_t ipv6_write_gi(sock_addr* gi, char* buf, uint16_t size);
