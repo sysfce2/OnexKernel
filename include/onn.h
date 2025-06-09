@@ -12,7 +12,7 @@
 
 #if defined(NRF5)
 
-#define MAX_LIST_SIZE 256
+#define MAX_LIST_SIZE  32
 #define MAX_TEXT_LEN 1024
 #define MAX_OBJECTS 64
 #define MAX_TO_NOTIFY 64
@@ -28,8 +28,8 @@
 
 #endif
 
-#define OBJECT_MAX_NOTIFIES 8 // REVISIT
-#define OBJECT_MAX_DEVICES  8 // REVISIT
+#define OBJECT_MAX_NOTIFIES 16 // REVISIT
+#define OBJECT_MAX_DEVICES   8 // REVISIT
 
 /** The actual Object. */
 typedef struct object object;
