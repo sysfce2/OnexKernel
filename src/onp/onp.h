@@ -5,8 +5,8 @@
 
 void onp_init(properties* config);
 bool onp_loop();
-void onp_send_observe(char* uid, char* devices);
-void onp_send_object( char* uid, char* devices);
+void onp_send_observe(char* uid, char* device);
+void onp_send_object( char* uid, char* device);
 void onn_recv_observe(observe obs);
 void onn_recv_object(object* n);
 

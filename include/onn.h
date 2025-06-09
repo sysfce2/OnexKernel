@@ -185,8 +185,21 @@ bool is_uid(char* uid);
 /** true if it's a local Object (hosted/animated in this Onex). */
 bool is_local(char* uid);
 
+/** true if it's a local Object (hosted/animated in this Onex). */
+bool object_is_local(object* o);
+
 /** true if it's a remote Object. */
 bool object_is_remote(object* o);
+
+bool is_shell(char* uid);
+
+bool object_is_shell(object* o);
+
+bool object_is_device(object* o);
+
+bool object_is_local_device(object* o);
+
+bool object_is_remote_device(object* o);
 
 /** free Object and properties */
 void object_free(object* n);

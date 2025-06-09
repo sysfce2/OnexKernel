@@ -62,7 +62,6 @@ static void    save_and_notify(object* n);
 static void    show_notifies(object* o);
 static object* new_object(value* uid, value* version, char* evaluator, char* is, uint8_t max_size);
 static object* new_shell(value* uid);
-static bool    object_is_shell(object* o);
 static void    run_evaluators(object* o, void* data, value* alerted, bool timedout);
 static bool    run_any_evaluators();
 static void    set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout);
@@ -128,7 +127,6 @@ bool is_local(char* uid){
 }
 
 bool object_is_remote(object* o){
-
   return o && list_size(o->devices); // REVISIT: o || list_s...?
 }
 
@@ -136,18 +134,20 @@ bool object_is_shell(object* o){
   return object_is_remote(o) && value_is(list_get_n(o->devices,1), "shell");
 }
 
-bool object_is_device(object* o){
+bool is_shell(char* uid){
+  object* o=onex_get_from_cache(uid);
+  return object_is_shell(o);
+}
 
+bool object_is_device(object* o){
   return o && object_property_contains(o, "is", "device");
 }
 
 bool object_is_local_device(object* o){
-
   return object_is_local(o) && object_is_device(o);
 }
 
 bool object_is_remote_device(object* o){
-
   return object_is_remote(o) && object_is_device(o);
 }
 
