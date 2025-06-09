@@ -57,6 +57,7 @@ void test_list()
   onex_assert_equal(             list_get_n(lj,1),         "a",      "list_new_from correct 1st el");
   onex_assert(                   list_get_n(lj,2)     ==    0,       "list_new_from correct 2nd el");
   onex_assert_equal(item_to_text(list_get_n(lj,3),buf,32), "banana", "list_new_from correct 3rd el");
+  list_free(lj, true);
 
   onex_assert_equal_num(         list_items_find( li, (item*)value_new("y")), 1, "y is found at location 1");
   onex_assert_equal_num(         list_items_find( li, (item*)value_new("5")), 2, "5 is found at location 2");

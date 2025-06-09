@@ -1450,11 +1450,13 @@ void onex_un_cache(char* uid) {
 
 static properties* evaluators=0;
 
+#define MAX_EVALS 7
+
 void onex_set_evaluators(char* name, ...) {
   if(!evaluators) evaluators = properties_new(32);
   list* evals = (list*)properties_get(evaluators, name);
   if(!evals){
-    evals = list_new(7);
+    evals = list_new(MAX_EVALS);
     properties_set(evaluators, name, evals);
   }
   else list_clear(evals, false);

@@ -213,6 +213,7 @@ CC_FLAGS = -std=gnu17 -Wall -Werror -Wextra -Wno-unused-parameter -Wno-missing-f
 
 # remove these for thorough linting:
 #CC_FLAGS += -Wno-incompatible-pointer-types
+#CC_FLAGS += -Wno-sign-compare
 CC_FLAGS += -Wno-discarded-qualifiers
 CC_FLAGS += -Wno-array-bounds
 CC_FLAGS += -Wno-char-subscripts

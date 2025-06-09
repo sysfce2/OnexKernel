@@ -4,6 +4,10 @@
 
 #include "boards.h"
 
+// sdk/examples/peripheral/usbd_cdc_acm/main.c
+// mod-sdk/components/libraries/mem_manager/mem_manager.c
+// src/onl/nRF5/magic3/sdk_config.h MEMORY_MANAGER_* MEM_MANAGER_*
+
 #include "app_error.h"
 #include "app_util.h"
 #include "app_usbd_core.h"

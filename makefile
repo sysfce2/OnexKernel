@@ -785,6 +785,7 @@ M4_CC_FLAGS += -fno-omit-frame-pointer
 
 # undo these for thorough linting:
 #M4_CC_FLAGS += -Wno-incompatible-pointer-types
+#M4_CC_FLAGS += -Wno-sign-compare
 M4_CC_FLAGS += -Wno-discarded-qualifiers
 M4_CC_FLAGS += -Wno-array-bounds
 M4_CC_FLAGS += -Wno-char-subscripts
