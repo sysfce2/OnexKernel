@@ -54,6 +54,14 @@ list* list_vals_new_from_fixed(char* text) {
   return list_vals_new_from(text, num_tokens(text));
 }
 
+list* list_new_from_(void** items, uint16_t max_size){
+  list* li=list_new(max_size);
+  for(uint16_t i=0; i< max_size; i++){
+    if(!list_add(li, items[i])) break;
+  }
+  return li;
+}
+
 bool list_add(list* li, void* val) {
   if(!li) return false;
   if(li->size==li->max_size) return false;
