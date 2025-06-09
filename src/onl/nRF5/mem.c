@@ -1,6 +1,7 @@
 
 #include <mem_manager.h>
 #include <string.h>
+
 #include <onex-kernel/mem.h>
 #include <onex-kernel/log.h>
 
@@ -10,11 +11,13 @@
 
 static bool initialized=false;
 
-static uint8_t* top_alloc=0;
-static char     top_alloc_fmt[128];
+bool mem_fillin_up=false;
+
+static void* bot_alloc=0;
+static void* top_alloc=0;
 
 #define xGRIND_THE_MEM
-#ifdef GRIND_THE_MEM
+#ifdef  GRIND_THE_MEM
 #define MEMGRIND_ENTRIES 2048
 static void*    memgrind_pntr[MEMGRIND_ENTRIES];
 static char*    memgrind_file[MEMGRIND_ENTRIES];
@@ -83,7 +86,7 @@ void mem_show_allocated(bool clear){
   }
   log_write("\nmemgrind_top=%d tot=%ld\n", memgrind_top, memgrind_tot);
 #endif
-  log_write("%s\n", top_alloc_fmt);
+  log_write("mem used %ld\n", mem_used());
 }
 
 // --------------------
@@ -92,12 +95,13 @@ void* Mem_alloc(char* func, int line, size_t n) {
   if(!n) return 0;
   if(!initialized){ initialized=true; nrf_mem_init(); }
   void* p=nrf_calloc(1,n);
+  if(!bot_alloc) bot_alloc=p;
   if(!p){
     p=calloc(1,n);
     if(LOG_MEM) log_write("****** mem_alloc using calloc %p\n", p);
-    if((uint8_t*)p > top_alloc){
+    if(p > top_alloc){
       top_alloc=p;
-      snprintf(top_alloc_fmt, 128, "%p @%s:%d", p, func, line);
+      if(top_alloc - bot_alloc > 70000) mem_fillin_up = true;
       if(log_to_gfx){
         if(LOG_MEM) log_write("clc %lu %s:%d %p\n", n, func, line, p);
       }else{
@@ -126,12 +130,13 @@ char* Mem_strdup(char* func, int line, const char* s) {
   if(!initialized){ initialized=true; nrf_mem_init(); }
   size_t n=strlen(s)+1;
   void* p=nrf_malloc(n);
+  if(!bot_alloc) bot_alloc=p;
   if(!p){
     p=malloc(n);
     if(LOG_MEM) log_write("****** mem_strdup using malloc %p\n", p);
-    if((uint8_t*)p > top_alloc){
+    if(p > top_alloc){
       top_alloc=p;
-      snprintf(top_alloc_fmt, 128, "%p @%s:%d", p, func, line);
+      if(top_alloc - bot_alloc > 70000) mem_fillin_up = true;
       if(log_to_gfx){
         if(LOG_MEM) log_write("mlc %lu %s:%d %p\n", n, func, line, p);
       }else{
@@ -169,7 +174,7 @@ void mem_strncpy(char* dst, const char* src, size_t count) {
   dst[count-1] = 0;
 }
 
-char* mem_top(){
-  return top_alloc_fmt;
+uint32_t mem_used(){
+  return top_alloc - bot_alloc;
 }
 

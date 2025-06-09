@@ -198,6 +198,7 @@ int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt,
     r+=    serial_vprintf(fmt, args);
     time_delay_ms(1); // REVISIT
   }
+#ifndef LOG_MEM
   if(log_to_gfx){
     if(!gfx_log_buffer) gfx_log_buffer = list_new(32);
     flush_saved_messages(FLUSH_TO_GFX);
@@ -206,6 +207,7 @@ int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt,
     char* lb=mem_strdup(log_buffer);
     if(!list_add(gfx_log_buffer, lb)) mem_freestr(lb);
   }
+#endif
 #if defined(NRF_LOG_ENABLED)
   if(log_to_rtt){
     flush_saved_messages(FLUSH_TO_RTT);

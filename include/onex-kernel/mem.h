@@ -2,6 +2,7 @@
 #define MEM_H
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 void*   Mem_alloc(  char* func, int line, size_t n);
@@ -14,9 +15,11 @@ void    Mem_freestr(char* func, int line, char* s);
 #define mem_strdup(s)  Mem_strdup ((char*)__FUNCTION__, __LINE__, s)
 #define mem_freestr(s) Mem_freestr((char*)__FUNCTION__, __LINE__, s)
 
-void    mem_strncpy(char* dst, const char* src, size_t count);
-char*   mem_top();
-void    mem_show_allocated(bool clear);
+extern bool mem_fillin_up;
+
+void     mem_strncpy(char* dst, const char* src, size_t count);
+uint32_t mem_used();
+void     mem_show_allocated(bool clear);
 
 
 #endif
