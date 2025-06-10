@@ -1,5 +1,4 @@
 
-#include <mem_manager.h>
 #include <string.h>
 
 #include <onex-kernel/mem.h>
@@ -8,8 +7,6 @@
 #ifndef LOG_MEM
 #define LOG_MEM 0
 #endif
-
-static bool initialized=false;
 
 bool mem_fillin_up=false;
 
@@ -28,6 +25,11 @@ static uint32_t memgrind_tot=0;
 #endif
 
 static void memgrind_alloc(void* pntr, char* file, uint16_t line, uint16_t size){
+  if(!bot_alloc) bot_alloc=pntr;
+  if(pntr > top_alloc){
+    top_alloc=pntr;
+    if(top_alloc - bot_alloc > 50000) mem_fillin_up = true;
+  }
 #ifdef GRIND_THE_MEM
   if(memgrind_top==MEMGRIND_ENTRIES) return;
   uint16_t i=0;
@@ -63,6 +65,10 @@ static void memgrind_free(void* pntr){
 #endif
 }
 
+uint32_t mem_used(){
+  return top_alloc - bot_alloc;
+}
+
 void mem_show_allocated(bool clear){
 #ifdef GRIND_THE_MEM
   for(uint16_t i=0; i<memgrind_top; i++){
@@ -93,22 +99,7 @@ void mem_show_allocated(bool clear){
 
 void* Mem_alloc(char* func, int line, size_t n) {
   if(!n) return 0;
-  if(!initialized){ initialized=true; nrf_mem_init(); }
-  void* p=nrf_calloc(1,n);
-  if(!bot_alloc) bot_alloc=p;
-  if(!p){
-    p=calloc(1,n);
-    if(LOG_MEM) log_write("****** mem_alloc using calloc %p\n", p);
-    if(p > top_alloc){
-      top_alloc=p;
-      if(top_alloc - bot_alloc > 70000) mem_fillin_up = true;
-      if(log_to_gfx){
-        if(LOG_MEM) log_write("clc %lu %s:%d %p\n", n, func, line, p);
-      }else{
-        if(LOG_MEM) log_write("=============== new calloc top: %p %lu %s:%d\n", p, n, func, line);
-      }
-    }
-  }
+  void* p=calloc(1,n);
   if(LOG_MEM) log_write("mem_alloc   %p %lu %s:%d\n", p, n, func, line);
   memgrind_alloc(p, func, line, n);
   return p;
@@ -116,55 +107,25 @@ void* Mem_alloc(char* func, int line, size_t n) {
 
 void Mem_free(char* func, int line, void* p) {
   if(!p) return;
-  if(!initialized){ initialized=true; nrf_mem_init(); }
   if(LOG_MEM) log_write("mem_free    %p %lu %s:%d\n", p, (size_t)0, func, line);
-  if(nrf_free(p)){
-    if(LOG_MEM) log_write("****** mem_free using free %p\n", p);
-    free(p);
-  }
+  free(p);
   memgrind_free(p);
 }
 
 char* Mem_strdup(char* func, int line, const char* s) {
   if(!s) return 0;
-  if(!initialized){ initialized=true; nrf_mem_init(); }
   size_t n=strlen(s)+1;
-  void* p=nrf_malloc(n);
-  if(!bot_alloc) bot_alloc=p;
-  if(!p){
-    p=malloc(n);
-    if(LOG_MEM) log_write("****** mem_strdup using malloc %p\n", p);
-    if(p > top_alloc){
-      top_alloc=p;
-      if(top_alloc - bot_alloc > 70000) mem_fillin_up = true;
-      if(log_to_gfx){
-        if(LOG_MEM) log_write("mlc %lu %s:%d %p\n", n, func, line, p);
-      }else{
-        if(LOG_MEM) log_write("=============== new malloc top: %p %lu %s:%d\n", p, n, func, line);
-      }
-    }
-  }
+  void* p=malloc(n);
   if(p) memcpy(p,s,n);
-  if(LOG_MEM){
-    char b[20]; mem_strncpy(b, s, 20);
-    log_write("mem_strdup  %p %lu [%s] %s:%d\n", p, n, b, func, line);
-  }
+  if(LOG_MEM) log_write("mem_strdup  %p %lu [%.20s] %s:%d\n", p, n, p, func, line);
   memgrind_alloc(p, func, line, n);
   return (char*)p;
 }
 
 void Mem_freestr(char* func, int line, char* p) {
   if(!p) return;
-  if(!initialized){ initialized=true; nrf_mem_init(); }
-  size_t n=strlen(p)+1;
-  if(LOG_MEM){
-    char b[20]; mem_strncpy(b, p, 20);
-    log_write("mem_freestr %p %lu [%s] %s:%d\n", p, n, b, func, line);
-  }
-  if(nrf_free(p)){
-    if(LOG_MEM) log_write("****** mem_freestr using free %p\n", p);
-    free(p);
-  }
+  if(LOG_MEM) log_write("mem_freestr %p %lu [%.20s] %s:%d\n", p, strlen(p)+1, p, func, line);
+  free(p);
   memgrind_free(p);
 }
 
@@ -174,7 +135,4 @@ void mem_strncpy(char* dst, const char* src, size_t count) {
   dst[count-1] = 0;
 }
 
-uint32_t mem_used(){
-  return top_alloc - bot_alloc;
-}
 

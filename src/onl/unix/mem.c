@@ -23,22 +23,15 @@ void Mem_free(char* func, int line, void* p) {
 char* Mem_strdup(char* func, int line, const char* s) {
   if(!s) return 0;
   size_t n=strlen(s)+1;
-  char* p=malloc(n);
+  void* p=malloc(n);
   if(p) memcpy(p,s,n);
-  if(LOG_MEM){
-    char b[20]; mem_strncpy(b, s, 20);
-    log_write("mem_strdup  %p %lu [%s] %s:%d\n", p, n, b, func, line);
-  }
-  return p;
+  if(LOG_MEM) log_write("mem_strdup  %p %lu [%.20s] %s:%d\n", p, n, p, func, line);
+  return (char*)p;
 }
 
 void Mem_freestr(char* func, int line, char* p) {
   if(!p) return;
-  if(LOG_MEM){
-    size_t n=strlen(p)+1;
-    char b[20]; mem_strncpy(b, p, 20);
-    log_write("mem_freestr %p %lu [%s] %s:%d\n", p, n, b, func, line);
-  }
+  if(LOG_MEM) log_write("mem_freestr %p %lu [%.20s] %s:%d\n", p, strlen(p)+1, p, func, line);
   free(p);
 }
 

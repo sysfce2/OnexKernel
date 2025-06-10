@@ -7260,7 +7260,7 @@
  
 
 #ifndef NRF_MEMOBJ_ENABLED
-#define NRF_MEMOBJ_ENABLED 1
+#define NRF_MEMOBJ_ENABLED 0
 #endif
 
 // <e> NRF_PWR_MGMT_ENABLED - nrf_pwr_mgmt - Power management module

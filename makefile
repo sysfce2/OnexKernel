@@ -294,7 +294,6 @@ $(SDK_INCLUDES) \
 
 SDK_INCLUDES = \
 -I./mod-sdk/components/boards \
--I./mod-sdk/components/libraries/mem_manager \
 -I./sdk/components \
 -I./sdk/components/boards \
 -I./sdk/components/libraries/atomic \
@@ -333,7 +332,6 @@ SDK_INCLUDES = \
 -I./sdk/components/libraries/log \
 -I./sdk/components/libraries/log/src \
 -I./sdk/components/libraries/low_power_pwm \
--I./sdk/components/libraries/mem_manager \
 -I./sdk/components/libraries/memobj \
 -I./sdk/components/libraries/mpu \
 -I./sdk/components/libraries/mutex \
@@ -508,7 +506,6 @@ $(SDK_C_SOURCES) \
 
 
 SDK_C_SOURCES = \
-./mod-sdk/components/libraries/mem_manager/mem_manager.c \
 ./mod-sdk/components/boards/boards.c \
 ./sdk/components/libraries/crypto/backend/nrf_hw/nrf_hw_backend_rng.c \
 ./sdk/components/libraries/crypto/backend/nrf_hw/nrf_hw_backend_init.c \
