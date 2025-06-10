@@ -91,7 +91,6 @@ typedef struct object {
   value*      persist;
   value*      timer;
   bool        running_evals;
-  uint64_t    last_observe;
 } object;
 
 // ---------------------------------
@@ -404,20 +403,11 @@ char* object_get_persist(object* n){
 
 // ------------------------------------------------------
 
-static char obstime[64];
-static value* format_obstime(uint64_t lo){
-  if(!lo) return value_new("-");
-  uint32_t t = ((uint32_t)(time_ms() - lo)/1000);
-  snprintf(obstime, 64, "%d", (uint16_t)t);
-  return value_new(obstime); // REVISIT: value not freed; hopefully not called much, with larger numbers
-}
-
 static char* object_property_observe(object* n, char* path, bool notify) {
   if(!n) return 0;
   if(!strcmp(path, "UID"))     return value_string(n->uid);
   if(!strcmp(path, "Ver"))     return value_string(n->version);
   if(!strcmp(path, "Timer"))   return value_string(n->timer);
-  if(!strcmp(path, "Obstime")) return value_string(format_obstime(n->last_observe));
   if(!strcmp(path, "Devices")) return value_string(list_get_n(n->devices, 1));
                      // REVISIT Device<s> but only returns the first!!
 
@@ -478,11 +468,10 @@ char* object_property_values(object* n, char* path) {
 }
 
 item* property_item(object* n, char* path, object* t, bool notify) {
-  // REVISIT: why dupe these here? can't go "x:y:Alerted|Obstime|Timer", or can u?
+  // REVISIT: why dupe these here? can't go "x:y:Alerted|Timer", or can u?
   if(!strcmp(path, "UID"))     return (item*)n->uid;
   if(!strcmp(path, "Ver"))     return (item*)n->version;
   if(!strcmp(path, "Timer"))   return (item*)n->timer;
-  if(!strcmp(path, "Obstime")) return (item*)format_obstime(n->last_observe);
   if(!strcmp(path, ""))        return (item*)n->properties;
   if(!strcmp(path, ":"))       return (item*)n->properties;
   if(!strcmp(path, "Alerted")) return (item*)n->alerted;
@@ -529,14 +518,6 @@ item* nested_property_item(object* n, char* path, object* t, bool notify) {
   return 0;
 }
 
-void obs_or_refresh(char* uid, object* o, uint32_t timeout) {
-  uint64_t curtime = time_ms();
-  if(!o->last_observe || curtime > o->last_observe + timeout){
-    o->last_observe = curtime + 1;
-    onp_send_observe(uid, value_string(list_get_n(o->devices, 1)));
-  }
-}
-
 object* find_object(char* uid, char* nuid, bool notify) {
 
   if(!(is_uid(uid) && is_uid(nuid))) return 0;
@@ -548,16 +529,8 @@ object* find_object(char* uid, char* nuid, bool notify) {
     if(!add_to_cache_and_persist(o)){ object_free(o); return 0; }
   }
   if(notify){
-
     add_notify(o, nuid);
-
-    if(object_is_shell(o)){
-      obs_or_refresh(uid, o, 2000);
-    }
-    else
-    if(object_is_remote(o)){
-      obs_or_refresh(uid, o, 8000);
-    }
+    if(object_is_remote(o)) onp_send_observe(uid, value_string(list_get_n(o->devices, 1)));
   }
   return o;
 }

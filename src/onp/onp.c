@@ -167,46 +167,61 @@ bool handle_connected(){
   return num_waiting_on_connect > 0;
 }
 
-void send_pending_obs(properties* pending_obs){
-  for(uint16_t i=1; i<=properties_size(pending_obs); i++){
-    char*  uid     = properties_key_n(pending_obs,i);
-    value* chansub = properties_get_n(pending_obs,i);
+void send_pending_obs(properties* pending_obs, uint16_t shell_interval, uint16_t interval){
+  for(uint16_t i=1; i <= properties_size(pending_obs); i++){
+
+    char* uid  = properties_key_n(pending_obs,i);
+    list* cslo = properties_get_n(pending_obs,i);
+
+    int64_t ct = time_ms();
+    int64_t* last_observe = list_get_n(cslo,2);
+  ; if(*last_observe < 0) continue;
+  ; if(*last_observe > 0 && ct < (*last_observe + (is_shell(uid)? shell_interval: interval))) continue;
+    *last_observe = - (ct + 1);
+
+    value* chansub = list_get_n(cslo,1);
     observe_uid_to_text(uid, send_buff, SEND_BUFF_SIZE);
     send(value_string(chansub));
   }
-  properties_clear(pending_obs, false);
 }
 
 void send_pending_obj(properties* pending_obj){
-  for(uint16_t i=1; i<=properties_size(pending_obj); i++){
-    char*  uid     = properties_key_n(pending_obj,i);
-    value* chansub = properties_get_n(pending_obj,i);
+  while(properties_size(pending_obj)){
+
+    char*  uid     = properties_key_n(pending_obj,1);
+    value* chansub = properties_get_n(pending_obj,1);
+
     object_uid_to_text( uid, send_buff, SEND_BUFF_SIZE, OBJECT_TO_TEXT_NETWORK);
     send(value_string(chansub));
+
+    properties_del_n(pending_obj,1);
   }
-  properties_clear(pending_obj, false);
 }
 
 static uint32_t serial_lt = 0;
 static uint32_t radio_lt = 0;
 static uint32_t ipv6_lt = 0;
 
+#define SERIAL_SEND_INTERVAL 5
+#define RADIO_SEND_INTERVAL  5
+#define IPV6_SEND_INTERVAL   1
+
 bool handle_all_send(){
   uint32_t ct = time_ms();
   bool ka=false;
-  if(onp_channel_serial && ct > serial_lt + 1){
+  if(onp_channel_serial && ct > serial_lt + SERIAL_SEND_INTERVAL){
     serial_lt = ct;
-    send_pending_obs(serial_pending_obs);
+    send_pending_obs(serial_pending_obs, 2000, 8000);
     send_pending_obj(serial_pending_obj);
   }
-  if(onp_channel_radio && ct > radio_lt + 1){
+  if(onp_channel_radio && ct > radio_lt + RADIO_SEND_INTERVAL){
     radio_lt = ct;
-    send_pending_obs(radio_pending_obs);
+    send_pending_obs(radio_pending_obs, 2000, 8000);
     send_pending_obj(radio_pending_obj);
   }
-  if(onp_channel_ipv6 && ct > ipv6_lt + 1){
+  if(onp_channel_ipv6 && ct > ipv6_lt + IPV6_SEND_INTERVAL){
     ipv6_lt = ct;
-    send_pending_obs(ipv6_pending_obs);
+    send_pending_obs(ipv6_pending_obs, 2000, 8000);
     send_pending_obj(ipv6_pending_obj);
   }
   return ka;
@@ -299,7 +314,7 @@ static bool handle_recv(uint16_t size, char* chansub) {
   return false;
 }
 
-void set_pending(char* channel, properties* p, char* uid, value* chansub){
+void set_pending_obs(char* channel, properties* pending_obs, char* uid, value* chansub){
 
   bool prefix_of_chansub_is_channel = !strncmp(value_string(chansub), channel, strlen(channel));
   bool prefix_of_chansub_is_all     = value_is(chansub, "all-all");
@@ -310,32 +325,64 @@ void set_pending(char* channel, properties* p, char* uid, value* chansub){
 
   if(prefix_of_chansub_is_all) chansub = channel_all; // REVISIT: "all-all" not freed
 
-  value* cs=(value*)properties_get(p, uid);
+  list* cslo=(list*)properties_get(pending_obs, uid);
+
+  if(!cslo){
+    int64_t* lo = mem_alloc(sizeof(int64_t));
+    cslo = list_new_from(chansub, lo);
+    properties_set(pending_obs, uid, cslo);
+    return;
+  }
+  value*   cs = list_get_n(cslo,1);
+  int64_t* lo = list_get_n(cslo,2);
+
+  if(*lo < 0) *lo = -(*lo);  // REVISIT: struct obs_info { last_observe, bool pending }
+
+  if(value_equal(cs, chansub)) return;
+  if(value_equal(cs, channel_all)) return; // will end up being channel all eventually
+
+  list* cslo2 = list_new_from(channel_all, lo);
+  list_free(cslo, false);
+  properties_set(pending_obs, uid, cslo2);
+}
+
+void set_pending_obj(char* channel, properties* pending_obj, char* uid, value* chansub){
+
+  bool prefix_of_chansub_is_channel = !strncmp(value_string(chansub), channel, strlen(channel));
+  bool prefix_of_chansub_is_all     = value_is(chansub, "all-all");
+
+  if(!(prefix_of_chansub_is_channel || prefix_of_chansub_is_all)) return;
+
+  value* channel_all = value_fmt("%s-all", channel); // REVISIT: no value_free/ref count
+
+  if(prefix_of_chansub_is_all) chansub = channel_all; // REVISIT: "all-all" not freed
+
+  value* cs=(value*)properties_get(pending_obj, uid);
 
   if(!cs){
-    properties_set(p, uid, chansub);
+    properties_set(pending_obj, uid, chansub);
     return;
   }
   if(value_equal(cs, chansub)) return;
   if(value_equal(cs, channel_all)) return;
 
-  properties_set(p, uid, channel_all);
+  properties_set(pending_obj, uid, channel_all);
 }
 
 void onp_send_observe(char* uid, char* device) {
   value* chansub = chansub_of_device(device);
-  set_pending("serial", serial_pending_obs, uid, chansub);
-  set_pending("radio",  radio_pending_obs,  uid, chansub);
-  set_pending("ipv6",   ipv6_pending_obs,   uid, chansub);
+  if(onp_channel_serial) set_pending_obs("serial", serial_pending_obs, uid, chansub);
+  if(onp_channel_radio)  set_pending_obs("radio",  radio_pending_obs,  uid, chansub);
+  if(onp_channel_ipv6)   set_pending_obs("ipv6",   ipv6_pending_obs,   uid, chansub);
 }
 
 // REVISIT device<s>?? and send for each chansub in above and below
 void onp_send_object(char* uid, char* device) {
   if(!onp_channel_forward && !is_local(uid)) return;
   value* chansub = chansub_of_device(device);
-  set_pending("serial", serial_pending_obj, uid, chansub);
-  set_pending("radio",  radio_pending_obj,  uid, chansub);
-  set_pending("ipv6",   ipv6_pending_obj,   uid, chansub);
+  if(onp_channel_serial) set_pending_obj("serial", serial_pending_obj, uid, chansub);
+  if(onp_channel_radio)  set_pending_obj("radio",  radio_pending_obj,  uid, chansub);
+  if(onp_channel_ipv6)   set_pending_obj("ipv6",   ipv6_pending_obj,   uid, chansub);
 }
 
 void send(char* chansub){ // return false if *_write() couldn't fit data in, etc
