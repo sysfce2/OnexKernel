@@ -537,6 +537,7 @@ int main() {
   properties* config = properties_new(32);
 #if !defined(NRF5)
   properties_set(config, "dbpath", value_new("tests.ondb"));
+  properties_set(config, "channels", list_vals_new_from_fixed("serial ipv6"));
 #else
 #if !defined(BOARD_MAGIC3)
   properties_set(config, "flags", list_vals_new_from_fixed("debug-on-serial log-to-led"));

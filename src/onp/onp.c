@@ -375,7 +375,7 @@ void log_sent(char* prefix, uint16_t size, char* chansub) {
     }
   }
   else{
-    log_write("%s '%s'", prefix, send_buff);
+    log_write("%ld %s '%s'", (uint32_t)time_ms(), prefix, send_buff);
     if(chansub) log_write(" to chansub %s ", chansub);
     log_write(" (%d bytes)\n", size);
   }
@@ -388,7 +388,7 @@ void log_recv(char* prefix, uint16_t size, char* chansub, object* o, observe obs
     if(obs.uid) log_write("O:%s\n", obs.uid);
   }
   else{
-    log_write("%s '%s'", prefix, recv_buff);
+    log_write("%ld %s '%s'", (uint32_t)time_ms(), prefix, recv_buff);
     if(chansub) log_write(" from chansub %s ", chansub);
     log_write(" (%d bytes)\n", size);
   }

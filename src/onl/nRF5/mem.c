@@ -101,7 +101,7 @@ void* Mem_alloc(char* func, int line, size_t n) {
     if(LOG_MEM) log_write("****** mem_alloc using calloc %p\n", p);
     if(p > top_alloc){
       top_alloc=p;
-      if(top_alloc - bot_alloc > 50000) mem_fillin_up = true;
+      if(top_alloc - bot_alloc > 70000) mem_fillin_up = true;
       if(log_to_gfx){
         if(LOG_MEM) log_write("clc %lu %s:%d %p\n", n, func, line, p);
       }else{
@@ -136,7 +136,7 @@ char* Mem_strdup(char* func, int line, const char* s) {
     if(LOG_MEM) log_write("****** mem_strdup using malloc %p\n", p);
     if(p > top_alloc){
       top_alloc=p;
-      if(top_alloc - bot_alloc > 50000) mem_fillin_up = true;
+      if(top_alloc - bot_alloc > 70000) mem_fillin_up = true;
       if(log_to_gfx){
         if(LOG_MEM) log_write("mlc %lu %s:%d %p\n", n, func, line, p);
       }else{
