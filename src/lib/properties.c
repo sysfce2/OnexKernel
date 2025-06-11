@@ -169,8 +169,11 @@ uint16_t properties_size(properties* op)
 #define PROP_TO_TXT_CHK if(ln>=s){ *b = 0; return b; }
 
 char* properties_to_text(properties* op, char* b, uint16_t s) {
-  if(!op){ *b = 0; return b; }
   int ln=0;
+  if(!op){
+    ln+=snprintf(b+ln, s-ln, "{ }\n");                                     PROP_TO_TXT_CHK
+    return b;
+  }
   ln+=snprintf(b+ln, s-ln, "{\n");                                         PROP_TO_TXT_CHK
   for(uint16_t j=0; j<op->size; j++){
     ln+=snprintf(b+ln, s-ln, "  ");                                        PROP_TO_TXT_CHK
@@ -184,7 +187,6 @@ char* properties_to_text(properties* op, char* b, uint16_t s) {
 }
 
 void properties_log(properties* op) {
-  if(!op) return;
   char buf[4096]; // REVISIT!
   log_write("%s\n", properties_to_text(op,buf,4096));
 }
