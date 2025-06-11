@@ -1,6 +1,8 @@
 
 #include <string.h>
 
+#include <nRF5/m-class-support.h>
+
 #include <onex-kernel/mem.h>
 #include <onex-kernel/log.h>
 
@@ -13,7 +15,6 @@ bool mem_fillin_up=false;
 static void* bot_alloc=0;
 static void* top_alloc=0;
 
-#define xGRIND_THE_MEM
 #ifdef  GRIND_THE_MEM
 #define MEMGRIND_ENTRIES 2048
 static void*    memgrind_pntr[MEMGRIND_ENTRIES];
@@ -25,6 +26,7 @@ static uint32_t memgrind_tot=0;
 #endif
 
 static void memgrind_alloc(void* pntr, char* file, uint16_t line, uint16_t size){
+  if(in_interrupt_context()) log_write("mem_alloc INT CTXT!!\n");
   if(!bot_alloc) bot_alloc=pntr;
   if(pntr > top_alloc){
     top_alloc=pntr;
@@ -37,7 +39,7 @@ static void memgrind_alloc(void* pntr, char* file, uint16_t line, uint16_t size)
   if(i==memgrind_top){
     memgrind_top++;
     if(memgrind_top==MEMGRIND_ENTRIES){
-      // log_write("***** memgrind full!\n");
+      log_write("***** memgrind full!\n");
       return;
     }
   }
@@ -51,6 +53,7 @@ static void memgrind_alloc(void* pntr, char* file, uint16_t line, uint16_t size)
 }
 
 static void memgrind_free(void* pntr){
+  if(in_interrupt_context()) log_write("mem_free INT CTXT!!\n");
 #ifdef GRIND_THE_MEM
   for(uint16_t i=0; i<memgrind_top; i++){
     if(memgrind_pntr[i]==pntr){
@@ -60,7 +63,7 @@ static void memgrind_free(void* pntr){
     }
   }
   if(memgrind_top!=MEMGRIND_ENTRIES){
-    // log_write("***** freeing but not allocated? %p %s\n", pntr, pntr);
+    log_write("***** freeing but not allocated? %p %s\n", pntr, pntr);
   }
 #endif
 }
@@ -73,14 +76,14 @@ void mem_show_allocated(bool clear){
 #ifdef GRIND_THE_MEM
   for(uint16_t i=0; i<memgrind_top; i++){
     if(memgrind_pntr[i]){
-      bool suppress = (!strcmp(memgrind_file[i], "new_object"    )) ||
-                      (!strcmp(memgrind_file[i], "new_shell"     )) ||
-                      (!strcmp(memgrind_file[i], "onex_un_cache" )) ||
-                      (!strcmp(memgrind_file[i], "properties_new")) ||
-                      (!strcmp(memgrind_file[i], "properties_set")) ||
-                      (!strcmp(memgrind_file[i], "list_new"      )) ||
-                      (!strcmp(memgrind_file[i], "value_new"     )) ||
-                      (!strcmp(memgrind_file[i], "chunkbuf_new"  )) ||
+      bool suppress = (!strcmp(memgrind_file[i], "new_object"     )) ||
+                      (!strcmp(memgrind_file[i], "new_shell"      )) ||
+                      (!strcmp(memgrind_file[i], "onex_un_cache"  )) ||
+                      (!strcmp(memgrind_file[i], "properties_new_")) ||
+                      (!strcmp(memgrind_file[i], "properties_set" )) ||
+                      (!strcmp(memgrind_file[i], "list_new"       )) ||
+                      (!strcmp(memgrind_file[i], "value_new"      )) ||
+                      (!strcmp(memgrind_file[i], "chunkbuf_new"   )) ||
                       (!strcmp(memgrind_file[i], "log_write_mode"));
       if(suppress) continue;
       log_write("%p@%s:%ld=%d ", memgrind_pntr[i],
