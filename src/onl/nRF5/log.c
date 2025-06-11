@@ -94,7 +94,11 @@ void log_init(properties* config) {
 #define FLUSH_TO_RTT    2
 #define FLUSH_TO_GFX    3
 
+static bool already_in_log_write = false;
+
+// no logging in here obvs
 static char* get_reason_to_save_logs(){
+  if(already_in_log_write)                   return "LOG ";
   if(time_ms() < LOG_EARLY_MS)               return "ERL ";
   if(in_interrupt_context())                 return "INT ";
   if(debug_on_serial && !serial_connected()) return "SER ";
@@ -111,7 +115,7 @@ static void flush_saved_messages(uint8_t to){
 
     if(to==FLUSH_TO_SERIAL){
       serial_printf("%s", msg);
-      mem_free(msg);
+      free(msg);
     }
     if(to==FLUSH_TO_GFX){
       list_add(gfx_log_buffer, msg);
@@ -119,7 +123,7 @@ static void flush_saved_messages(uint8_t to){
 #if defined(NRF_LOG_ENABLED)
     if(to==FLUSH_TO_RTT){
       NRF_LOG_DEBUG("%s", msg);
-      mem_free(msg);
+      free(msg);
     }
 #endif
   }
@@ -168,7 +172,13 @@ bool log_loop() {
 
 #define LOGCHK if(r >= LOG_BUF_SIZE){ log_flash(1,0,0); return 0; }
 
+static int16_t log_write_mode_main(uint8_t mode, char* file, uint32_t line, const char* fmt, va_list args);
+
 int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt, ...){
+
+  // log_write_mode(): in this function WE ONLY USE STD LIB FUNCTIONS
+  // so g'tee not re-entering via accidental log_write
+  // plus all of this could be in interrupt context, so needs to be light
 
   va_list args;
   va_start(args, fmt);
@@ -176,30 +186,45 @@ int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt,
   bool fl=(mode==1 || mode==3);
   bool nw=(mode==2 || mode==3);
 
-  // if(!nw) return 0; // narrow down logging to only modes 2/3
+  // if(!nw) return 0; // narrow down logging to only modes 2/3 REVISIT: have log levels
 
   int16_t r=0;
 
   char* save_reason=get_reason_to_save_logs();
   if(save_reason){
-#ifndef LOG_MEM
-    if(!saved_messages) saved_messages = list_new(32);
+    if(!saved_messages) saved_messages = list_new(64);
     r+=    snprintf(log_buffer+r, LOG_BUF_SIZE-r, save_reason);                                          LOGCHK
     r+=fl? snprintf(log_buffer+r, LOG_BUF_SIZE-r, "[%ld](%s:%ld) ", (uint32_t)time_ms(), file, line): 0; LOGCHK
     r+=   vsnprintf(log_buffer+r, LOG_BUF_SIZE-r, fmt, args);                                            LOGCHK
-    char* lb=mem_strdup(log_buffer);
-    if(!list_add(saved_messages, lb)) mem_freestr(lb);
-#endif
+    char* lb=strdup(log_buffer);
+    if(!list_add(saved_messages, lb)) free(lb);
     return 0;
   }
+
+  already_in_log_write = true;
+  r = log_write_mode_main(mode, file, line, fmt, args);
+  already_in_log_write = false;
+
+  va_end(args);
+
+  return r;
+}
+
+int16_t log_write_mode_main(uint8_t mode, char* file, uint32_t line, const char* fmt, va_list args){
+
   if(!initialised) return 0;
+
+  bool fl=(mode==1 || mode==3);
+  bool nw=(mode==2 || mode==3);
+
+  int16_t r=0;
+
   if(debug_on_serial){
     flush_saved_messages(FLUSH_TO_SERIAL);
-    r+=fl? serial_printf(                         "[%ld](%s:%ld) ", (uint32_t)time_ms(), file, line): 0;
+    r+=fl? serial_printf("[%ld](%s:%ld) ", (uint32_t)time_ms(), file, line): 0;
     r+=    serial_vprintf(fmt, args);
     time_delay_ms(1); // REVISIT
   }
-#ifndef LOG_MEM
   if(log_to_gfx){
     if(!gfx_log_buffer) gfx_log_buffer = list_new(32);
     flush_saved_messages(FLUSH_TO_GFX);
@@ -209,10 +234,9 @@ int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt,
       r=0;
       r+=snprintf(log_buffer+r, LOG_BUF_SIZE-r, "[%ld](%s:%ld) [blank]", (uint32_t)time_ms(), file, line); LOGCHK
     }
-    char* lb=mem_strdup(log_buffer);
-    if(!list_add(gfx_log_buffer, lb)) mem_freestr(lb);
+    char* lb=strdup(log_buffer);
+    if(!list_add(gfx_log_buffer, lb)) free(lb);
   }
-#endif
 #if defined(NRF_LOG_ENABLED)
   if(log_to_rtt){
     flush_saved_messages(FLUSH_TO_RTT);
@@ -224,7 +248,7 @@ int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt,
     time_delay_ms(2); // REVISIT
   }
 #endif
-  va_end(args);
+
   return r;
 }
 

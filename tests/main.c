@@ -717,7 +717,7 @@ int main() {
           char* msg = list_get_n(gfx_log_buffer, i);
           if(strlen(msg) > 40) msg[40]=0;
           gfx_text(msg);
-          mem_free(msg);
+          free(msg);
         }
         gfx_text_colour(GFX_BLUE);
         list_clear(gfx_log_buffer, false);

@@ -20,6 +20,7 @@ bool log_loop() {
 }
 
 int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt, ...){
+
   va_list args;
   va_start(args, fmt);
 

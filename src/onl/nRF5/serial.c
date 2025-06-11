@@ -231,6 +231,7 @@ bool serial_init(list* ttys, uint32_t baudrate, channel_recv_cb cb) {
     return true;
 }
 
+// don't put any logging in here!
 static uint8_t get_ready_state(){
   bool powered = NRF_POWER->USBREGSTATUS & POWER_USBREGSTATUS_VBUSDETECT_Msk;
   bool ready   = NRF_POWER->USBREGSTATUS & POWER_USBREGSTATUS_OUTPUTRDY_Msk;
