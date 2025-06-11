@@ -11,6 +11,8 @@ typedef struct hash_item hash_item;
 
 typedef struct properties{
   item_type          type;
+  char*              func;
+  uint32_t           line;
   uint16_t           max_size;
   int                buckets;
   uint16_t           size;
@@ -37,15 +39,14 @@ unsigned int string_hash(char* p)
 #define NUM_BUX 256
 #endif
 
-#define WARN_SIZE(h) if((h)->size && !((h)->size % NUM_BUX)) log_write("%s# %d\n", (h)->name, (h)->size);
-#define WARN_SZLG(h) if((h)->size && !((h)->size % NUM_BUX)) properties_log(h)
+#define WARN_SZLG(h,k) if((h)->size && !((h)->size % NUM_BUX)) log_write("{%s:%d %s %d/%d}\n", (h)->func, (h)->line, k, (h)->size, (h)->max_size)
 
-properties* properties_new(uint16_t max_size)
-{
-  char* name="";
+properties* properties_new_(char* func, uint32_t line, uint16_t max_size){
   properties* op=(properties*)mem_alloc(sizeof(properties));
   if(!op) return 0;
   op->type=ITEM_PROPERTIES;
+  op->func=func;
+  op->line=line;
   op->max_size=max_size;
   op->buckets=NUM_BUX;
   op->size=0;
@@ -72,7 +73,7 @@ bool properties_set(properties* op, char* key, void* i) {
     (*lisp)->item=i;
     (*lisp)->next=0;
     op->size++;
-    WARN_SZLG(op);
+    WARN_SZLG(op, key);
   }
   else{
     (*lisp)->item=i;
@@ -188,7 +189,7 @@ char* properties_to_text(properties* op, char* b, uint16_t s) {
 
 void properties_log(properties* op) {
   char buf[4096]; // REVISIT!
-  log_write("%s\n", properties_to_text(op,buf,4096));
+  log_write("%s:%u\n%s\n", op->func, (uint16_t)op->line, properties_to_text(op,buf,4096));
 }
 
 

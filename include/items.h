@@ -59,7 +59,9 @@ char* unknown_to_text(char* b);
 
 /* Assoc array/dictionary/map/hash. */
 
-properties* properties_new(uint16_t max_size);
+#define properties_new(max_size) properties_new_((char*)__FUNCTION__, __LINE__, max_size)
+
+properties* properties_new_(char* func, uint32_t line, uint16_t max_size);
 bool        properties_set(properties* op, char* key, void* i);
 void*       properties_get(properties* op, char* key);
 char*       properties_key_n(properties* op, uint16_t index);

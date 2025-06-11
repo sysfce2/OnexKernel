@@ -86,6 +86,7 @@ void test_properties()
   onex_assert_equal(item_to_text(op, buf, 64), "{\n  x: i\n  3: l m\n}\n", "serialise to string works");
                     properties_clear(op, true);
   onex_assert_equal(item_to_text(op, buf, 64), "{\n}\n",                   "properties_clear empties");
+  onex_assert_equal(properties_to_text(0, buf, 64), "{ }\n",               "properties_to_text shows null");
 
                     properties_log(op);
   properties_free(op, true);
