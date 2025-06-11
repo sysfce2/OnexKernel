@@ -7,6 +7,7 @@
 #include <nRF5/m-class-support.h>
 #include <boards.h>
 
+#include <onex-kernel/lib.h>
 #include <onex-kernel/boot.h>
 #include <onex-kernel/mem.h>
 #include <onex-kernel/serial.h>
@@ -204,6 +205,10 @@ int16_t log_write_mode(uint8_t mode, char* file, uint32_t line, const char* fmt,
     flush_saved_messages(FLUSH_TO_GFX);
     r+=fl? snprintf(log_buffer+r, LOG_BUF_SIZE-r, "[%ld](%s:%ld) ", (uint32_t)time_ms(), file, line): 0; LOGCHK
     r+=   vsnprintf(log_buffer+r, LOG_BUF_SIZE-r, fmt, args);                                            LOGCHK
+    if(string_is_blank(log_buffer)){
+      r=0;
+      r+=snprintf(log_buffer+r, LOG_BUF_SIZE-r, "[%ld](%s:%ld) [blank]", (uint32_t)time_ms(), file, line); LOGCHK
+    }
     char* lb=mem_strdup(log_buffer);
     if(!list_add(gfx_log_buffer, lb)) mem_freestr(lb);
   }
