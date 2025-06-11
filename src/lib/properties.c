@@ -56,8 +56,7 @@ properties* properties_new(uint16_t max_size)
   return op;
 }
 
-bool properties_set(properties* op, char* key, void* i)
-{
+bool properties_set(properties* op, char* key, void* i) {
   if(!(op && key && i)) return false;
   hash_item** lisp;
   lisp=&op->lists[string_hash(key) % op->buckets];
@@ -167,32 +166,26 @@ uint16_t properties_size(properties* op)
   return op->size;
 }
 
+#define PROP_TO_TXT_CHK if(ln>=s){ *b = 0; return b; }
+
 char* properties_to_text(properties* op, char* b, uint16_t s) {
   if(!op){ *b = 0; return b; }
   int ln=0;
-  int j;
-  ln+=snprintf(b+ln, s-ln, "{\n");
-  if(ln>=s){ *b = 0; return b; }
-  for(j=0; j<op->size; j++){
-    ln+=snprintf(b+ln, s-ln, "  ");
-    if(ln>=s){ *b = 0; return b; }
-    ln+=snprintf(b+ln, s-ln, "%s", op->keys[j]);
-    if(ln>=s){ *b = 0; return b; }
-    ln+=snprintf(b+ln, s-ln, ": ");
-    if(ln>=s){ *b = 0; return b; }
-    ln+=strlen(item_to_text(properties_get(op, op->keys[j]), b+ln, s-ln));
-    if(ln>=s){ *b = 0; return b; }
-    ln+=snprintf(b+ln, s-ln, "\n");
-    if(ln>=s){ *b = 0; return b; }
+  ln+=snprintf(b+ln, s-ln, "{\n");                                         PROP_TO_TXT_CHK
+  for(uint16_t j=0; j<op->size; j++){
+    ln+=snprintf(b+ln, s-ln, "  ");                                        PROP_TO_TXT_CHK
+    ln+=snprintf(b+ln, s-ln, "%s", op->keys[j]);                           PROP_TO_TXT_CHK
+    ln+=snprintf(b+ln, s-ln, ": ");                                        PROP_TO_TXT_CHK
+    ln+=strlen(item_to_text(properties_get(op, op->keys[j]), b+ln, s-ln)); PROP_TO_TXT_CHK
+    ln+=snprintf(b+ln, s-ln, "\n");                                        PROP_TO_TXT_CHK
   }
-  ln+=snprintf(b+ln, s-ln, "}\n");
-  if(ln>=s){ *b = 0; return b; }
+  ln+=snprintf(b+ln, s-ln, "}\n");                                         PROP_TO_TXT_CHK
   return b;
 }
 
 void properties_log(properties* op) {
   if(!op) return;
-  char buf[4096];
+  char buf[4096]; // REVISIT!
   log_write("%s\n", properties_to_text(op,buf,4096));
 }
 
