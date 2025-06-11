@@ -7,3 +7,5 @@ static inline bool in_interrupt_context() {
   return ipsr != 0;
 }
 
+extern void HardFault_Handler();
+
