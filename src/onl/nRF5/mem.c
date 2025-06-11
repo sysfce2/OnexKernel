@@ -28,7 +28,7 @@ static void memgrind_alloc(void* pntr, char* file, uint16_t line, uint16_t size)
   if(!bot_alloc) bot_alloc=pntr;
   if(pntr > top_alloc){
     top_alloc=pntr;
-    if(top_alloc - bot_alloc > 50000) mem_fillin_up = true;
+    if(top_alloc - bot_alloc > 70000) mem_fillin_up = true;
   }
 #ifdef GRIND_THE_MEM
   if(memgrind_top==MEMGRIND_ENTRIES) return;
