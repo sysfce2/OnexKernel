@@ -76,15 +76,24 @@ void mem_show_allocated(bool clear){
 #ifdef GRIND_THE_MEM
   for(uint16_t i=0; i<memgrind_top; i++){
     if(memgrind_pntr[i]){
-      bool suppress = (!strcmp(memgrind_file[i], "new_object"     )) ||
-                      (!strcmp(memgrind_file[i], "new_shell"      )) ||
-                      (!strcmp(memgrind_file[i], "onex_un_cache"  )) ||
-                      (!strcmp(memgrind_file[i], "properties_new_")) ||
-                      (!strcmp(memgrind_file[i], "properties_set" )) ||
-                      (!strcmp(memgrind_file[i], "list_new"       )) ||
-                      (!strcmp(memgrind_file[i], "value_new"      )) ||
-                      (!strcmp(memgrind_file[i], "chunkbuf_new"   )) ||
-                      (!strcmp(memgrind_file[i], "log_write_mode"));
+      bool suppress =
+                      (!strcmp(memgrind_file[i], "new_object"          )) ||
+                      (!strcmp(memgrind_file[i], "new_shell"           )) ||
+                      (!strcmp(memgrind_file[i], "onex_un_cache"       )) ||
+                      (!strcmp(memgrind_file[i], "properties_new_"     )) ||
+                      (!strcmp(memgrind_file[i],  "main"               )) ||
+                      (!strcmp(memgrind_file[i],  "onp_init"           )) ||
+                      (!strcmp(memgrind_file[i],  "persistence_init"   )) ||
+                      (!strcmp(memgrind_file[i],  "persist_init"       )) ||
+                      (!strcmp(memgrind_file[i],  "add_to_cache"       )) ||
+                      (!strcmp(memgrind_file[i],  "onex_set_evaluators")) ||
+                      (!strcmp(memgrind_file[i], "properties_set"      )) ||
+                      (!strcmp(memgrind_file[i], "list_new"            )) ||
+                      (!strcmp(memgrind_file[i], "value_new"           )) ||
+                      (!strcmp(memgrind_file[i], "chunkbuf_new"        )) ||
+                      (!strcmp(memgrind_file[i], "log_write_mode"      )) ||
+                      (!strcmp(memgrind_file[i], "set_pending_obs"     )) ||
+                      false;
       if(suppress) continue;
       log_write("%p@%s:%ld=%d ", memgrind_pntr[i],
                                  memgrind_file[i],

@@ -42,7 +42,7 @@ unsigned int string_hash(char* p)
 #define WARN_SZLG(h,k) if((h)->size && !((h)->size % NUM_BUX)) log_write("{%s:%d %s %d/%d}\n", (h)->func, (h)->line, k, (h)->size, (h)->max_size)
 
 properties* properties_new_(char* func, uint32_t line, uint16_t max_size){
-  properties* op=(properties*)mem_alloc(sizeof(properties));
+  properties* op=(properties*)mem_alloc_p(sizeof(properties));
   if(!op) return 0;
   op->type=ITEM_PROPERTIES;
   op->func=func;
@@ -50,8 +50,8 @@ properties* properties_new_(char* func, uint32_t line, uint16_t max_size){
   op->max_size=max_size;
   op->buckets=NUM_BUX;
   op->size=0;
-  op->lists=mem_alloc((op->buckets)*sizeof(hash_item*));
-  op->keys=(char**)mem_alloc(max_size*sizeof(char*));
+  op->lists=mem_alloc_p((op->buckets)*sizeof(hash_item*));
+  op->keys=(char**)mem_alloc_p(max_size*sizeof(char*));
   if(!op->lists || !op->keys) return 0;
   int i; for(i=0; i< op->buckets; i++) op->lists[i]=0;
   return op;
