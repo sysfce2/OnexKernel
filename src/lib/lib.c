@@ -63,5 +63,11 @@ int32_t strto_int32(char* val){
   return r;
 }
 
+bool string_is_blank(char* s){
+  if(!s) return true;
+  while(*s) if(!isspace(*s++)) return false;
+  return true;
+}
+
 
 

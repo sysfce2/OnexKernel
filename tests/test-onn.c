@@ -650,6 +650,17 @@ void test_from_text() {
   onex_assert_equal_num(num_tokens(""),                0, "found 0 tokens");
   onex_assert_equal_num(num_tokens(0),                 0, "found 0 tokens");
 
+  onex_assert(string_is_blank(0),     "null string is blank");
+  onex_assert(string_is_blank(""),    "empty string is blank");
+  onex_assert(string_is_blank(" "),   "single space string is blank");
+  onex_assert(string_is_blank("  "),  "2 space string is blank");
+  onex_assert(string_is_blank("\n "), "newline/space string is blank");
+
+  onex_assert(!string_is_blank("."),     "string is not blank");
+  onex_assert(!string_is_blank(" . "),   "string is not blank");
+  onex_assert(!string_is_blank(" . \n"), "string is not blank");
+  onex_assert(!string_is_blank("\n . "), "string is not blank");
+
   object* n1=onex_get_from_cache("uid-1");
   object* n2=onex_get_from_cache("uid-2");
   object* n3=onex_get_from_cache("uid-3");
