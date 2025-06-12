@@ -1296,7 +1296,7 @@ void object_log(object* o) {
 
 // -----------------------------------------------------------------------
 
-void onex_init(properties* config) {
+void onex_init(properties* config) { // REVISIT: onn_init()?
 
   log_write("Initialising Onex...\n");
 
