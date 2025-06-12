@@ -54,7 +54,7 @@ list* list_vals_new_from_fixed(char* text) {
   return list_vals_new_from(text, num_tokens(text));
 }
 
-list* list_new_from_(void** items, uint16_t max_size){
+list* list_new_from_array(void** items, uint16_t max_size){
   list* li=list_new(max_size);
   for(uint16_t i=0; i< max_size; i++){
     if(!list_add(li, items[i])) break;
@@ -93,7 +93,7 @@ bool list_vals_add(list* li, char* v){
   return list_add(li,value_new(v));
 }
 
-bool list_ins(list* li, uint16_t index, void* val){
+bool list_ins_n(list* li, uint16_t index, void* val){
 
   if(!li) return false;
   if(index==0 || index-1 > li->size) return false;
@@ -113,7 +113,7 @@ bool list_ins(list* li, uint16_t index, void* val){
 bool list_vals_set_ins(list* li, char* v){
   if(!li) return false;
   if(list_vals_has(li,v)) return true;
-  return list_ins(li,1,value_new(v));
+  return list_ins_n(li,1,value_new(v));
 }
 
 bool list_set_n(list* li, uint16_t index, void* val) {

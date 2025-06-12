@@ -67,7 +67,7 @@ void* properties_get_n(properties* op, uint16_t index)
   return op->vals[index-1];
 }
 
-/** Use list_set_ins() on this property key. */
+/** Use list_vals_set_ins() on this property key. */
 void properties_set_ins(properties* op, char* k, char* v){
   if(!op) return;
   list* li = (list*)properties_get(op,k);

@@ -901,7 +901,7 @@ bool property_edit(object* n, char* key, char* val, uint8_t mode){
       list* l=(list*)i;
       switch(mode){
         case LIST_EDIT_MODE_PREPEND: {
-          return list_ins(l,1,value_new(val));
+          return list_ins_n(l,1,value_new(val));
         }
         case LIST_EDIT_MODE_APPEND: {
           return list_add(l,value_new(val));
@@ -955,11 +955,11 @@ bool nested_property_edit(object* n, char* path, uint16_t index, char* val, uint
           break;
         }
         case LIST_EDIT_MODE_PREPEND: {
-          ok=list_ins(l, index, value_new(val));
+          ok=list_ins_n(l, index, value_new(val));
           break;
         }
         case LIST_EDIT_MODE_APPEND: {
-          ok=list_ins(l, index+1, value_new(val));
+          ok=list_ins_n(l, index+1, value_new(val));
           break;
         }
         case LIST_EDIT_MODE_DELETE: {
