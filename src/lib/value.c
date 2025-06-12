@@ -93,14 +93,12 @@ value* value_new(char* val) {
   RETURN_UNLOCKING(ours);
 }
 
-value* value_fmt(char* fmt, ...){
-
+value* value_new_fmt(char* fmt, ...){
   char valbuf[MAX_TEXT_LEN];
   va_list args;
   va_start(args, fmt);
   vsnprintf(valbuf, MAX_TEXT_LEN, fmt, args);
   va_end(args);
-
   return value_new(valbuf);
 }
 

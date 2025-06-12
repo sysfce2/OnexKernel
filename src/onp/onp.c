@@ -321,7 +321,7 @@ void set_pending_obs(char* channel, properties* pending_obs, char* uid, value* c
 
   if(!(prefix_of_chansub_is_channel || prefix_of_chansub_is_all)) return;
 
-  value* channel_all = value_fmt("%s-all", channel); // REVISIT: no value_free/ref count
+  value* channel_all = value_new_fmt("%s-all", channel); // REVISIT: no value_free/ref count
 
   if(prefix_of_chansub_is_all) chansub = channel_all; // REVISIT: "all-all" not freed
 
@@ -353,7 +353,7 @@ void set_pending_obj(char* channel, properties* pending_obj, char* uid, value* c
 
   if(!(prefix_of_chansub_is_channel || prefix_of_chansub_is_all)) return;
 
-  value* channel_all = value_fmt("%s-all", channel); // REVISIT: no value_free/ref count
+  value* channel_all = value_new_fmt("%s-all", channel); // REVISIT: no value_free/ref count
 
   if(prefix_of_chansub_is_all) chansub = channel_all; // REVISIT: "all-all" not freed
 

@@ -1204,7 +1204,7 @@ bool add_notify(object* o, char* notifyuid){ // Persist?? // REVISIT Yess!!
 void save_and_notify(object* o){
   if(object_is_local(o)){
     int32_t v = strto_int32(value_string(o->version)) + 1;
-    value_free(o->version); o->version = value_fmt("%ld", v);
+    value_free(o->version); o->version = value_new_fmt("%ld", v);
   }
   persist_put(o, false);
   for(int i=1; i<=list_size(o->notifies); i++){
