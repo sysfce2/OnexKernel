@@ -62,6 +62,12 @@ value* value_new(char* val) {
   if(ours){
     ours->refs++;
     // prob not being freed if getting big: 65536 refs
+    if(ours->refs > 10 && strncmp(val,"uid-",4)
+                       && strcmp(val,"editable") // static candidates
+                       && strchr(val, ' ')){
+      log_write("V10!%s %d\n", ours->val, ours->refs);
+      value_dump_small();
+    }
     if(ours->refs==0){  log_write("V00!%s\n", ours->val); ours->refs++; }
     RETURN_UNLOCKING(ours);
   }
