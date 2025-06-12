@@ -42,10 +42,10 @@ static void set_chansub_of_device(char* device, char* chansub){
 }
 
 // REVISIT device<s>?? chansub<s>? do each chansub not #1!
-static value* chansub_of_device(char* device){
+static char* chansub_of_device(char* device){
   list* chansubs = (list*)properties_get(device_to_chansub, device);
-  value* chansub = list_get_n(chansubs, 1);
-  return chansub? chansub: value_new("all-all"); // REVISIT all-all not freed
+  value* chansubval = list_get_n(chansubs, 1);
+  return chansubval? value_string(chansubval): "all-all";
 }
 
 static bool onp_channel_serial  = false;
@@ -179,20 +179,20 @@ void send_pending_obs(properties* pending_obs, uint16_t shell_interval, uint16_t
   ; if(*last_observe > 0 && ct < (*last_observe + (is_shell(uid)? shell_interval: interval))) continue;
     *last_observe = - (ct + 1);
 
-    value* chansub = list_get_n(cslo,1);
+    char* chansub = list_get_n(cslo,1);
     observe_uid_to_text(uid, send_buff, SEND_BUFF_SIZE);
-    send(value_string(chansub));
+    send(chansub);
   }
 }
 
 void send_pending_obj(properties* pending_obj){
   while(properties_size(pending_obj)){
 
-    char*  uid     = properties_key_n(pending_obj,1);
-    value* chansub = properties_get_n(pending_obj,1);
+    char* uid     = properties_key_n(pending_obj,1);
+    char* chansub = properties_get_n(pending_obj,1);
 
     object_uid_to_text( uid, send_buff, SEND_BUFF_SIZE, OBJECT_TO_TEXT_NETWORK);
-    send(value_string(chansub));
+    send(chansub);
 
     properties_del_n(pending_obj,1);
   }
@@ -314,18 +314,25 @@ static bool handle_recv(uint16_t size, char* chansub) {
   return false;
 }
 
-void set_pending_obs(char* channel, properties* pending_obs, char* uid, value* chansub){
+char* get_channel_all(char* channel){
+  if(!strcmp(channel, "serial")) return "serial-all";
+  if(!strcmp(channel, "radio" )) return "radio-all";
+  if(!strcmp(channel, "ipv6"  )) return "ipv6-all";
+  return "all-all";
+}
 
-  bool prefix_of_chansub_is_channel = !strncmp(value_string(chansub), channel, strlen(channel));
-  bool prefix_of_chansub_is_all     = value_is(chansub, "all-all");
+void set_pending_obs(char* channel, properties* pending_obs, char* uid, char* chansub){
+
+  bool prefix_of_chansub_is_channel = !strncmp(chansub, channel, strlen(channel));
+  bool prefix_of_chansub_is_all     = !strncmp(chansub, "all-", 4);
 
   if(!(prefix_of_chansub_is_channel || prefix_of_chansub_is_all)) return;
 
-  value* channel_all = value_new_fmt("%s-all", channel); // REVISIT: no value_free/ref count
+  char* channel_all = get_channel_all(channel);
 
-  if(prefix_of_chansub_is_all) chansub = channel_all; // REVISIT: "all-all" not freed
+  if(prefix_of_chansub_is_all) chansub = channel_all;
 
-  list* cslo=(list*)properties_get(pending_obs, uid);
+  list* cslo=properties_get(pending_obs, uid);
 
   if(!cslo){
     int64_t* lo = mem_alloc(sizeof(int64_t));
@@ -333,44 +340,44 @@ void set_pending_obs(char* channel, properties* pending_obs, char* uid, value* c
     properties_set(pending_obs, uid, cslo);
     return;
   }
-  value*   cs = list_get_n(cslo,1);
+  char*    cs = list_get_n(cslo,1);
   int64_t* lo = list_get_n(cslo,2);
 
   if(*lo < 0) *lo = -(*lo);  // REVISIT: struct obs_info { last_observe, bool pending }
 
-  if(value_equal(cs, chansub)) return;
-  if(value_equal(cs, channel_all)) return; // will end up being channel all eventually
+  if(!strcmp(cs, chansub    )) return;
+  if(!strcmp(cs, channel_all)) return; // will end up being channel all eventually
 
-  list* cslo2 = list_new_from(channel_all, lo);
   list_free(cslo, false);
+  list* cslo2 = list_new_from(channel_all, lo);
   properties_set(pending_obs, uid, cslo2);
 }
 
-void set_pending_obj(char* channel, properties* pending_obj, char* uid, value* chansub){
+void set_pending_obj(char* channel, properties* pending_obj, char* uid, char* chansub){
 
-  bool prefix_of_chansub_is_channel = !strncmp(value_string(chansub), channel, strlen(channel));
-  bool prefix_of_chansub_is_all     = value_is(chansub, "all-all");
+  bool prefix_of_chansub_is_channel = !strncmp(chansub, channel, strlen(channel));
+  bool prefix_of_chansub_is_all     = !strncmp(chansub, "all-", 4);
 
   if(!(prefix_of_chansub_is_channel || prefix_of_chansub_is_all)) return;
 
-  value* channel_all = value_new_fmt("%s-all", channel); // REVISIT: no value_free/ref count
+  char* channel_all = get_channel_all(channel);
 
-  if(prefix_of_chansub_is_all) chansub = channel_all; // REVISIT: "all-all" not freed
+  if(prefix_of_chansub_is_all) chansub = channel_all;
 
-  value* cs=(value*)properties_get(pending_obj, uid);
+  char* cs=properties_get(pending_obj, uid);
 
   if(!cs){
     properties_set(pending_obj, uid, chansub);
     return;
   }
-  if(value_equal(cs, chansub)) return;
-  if(value_equal(cs, channel_all)) return;
+  if(!strcmp(cs, chansub    )) return;
+  if(!strcmp(cs, channel_all)) return;
 
   properties_set(pending_obj, uid, channel_all);
 }
 
 void onp_send_observe(char* uid, char* device) {
-  value* chansub = chansub_of_device(device);
+  char* chansub = chansub_of_device(device);
   if(onp_channel_serial) set_pending_obs("serial", serial_pending_obs, uid, chansub);
   if(onp_channel_radio)  set_pending_obs("radio",  radio_pending_obs,  uid, chansub);
   if(onp_channel_ipv6)   set_pending_obs("ipv6",   ipv6_pending_obs,   uid, chansub);
@@ -379,7 +386,7 @@ void onp_send_observe(char* uid, char* device) {
 // REVISIT device<s>?? and send for each chansub in above and below
 void onp_send_object(char* uid, char* device) {
   if(!onp_channel_forward && !is_local(uid)) return;
-  value* chansub = chansub_of_device(device);
+  char* chansub = chansub_of_device(device);
   if(onp_channel_serial) set_pending_obj("serial", serial_pending_obj, uid, chansub);
   if(onp_channel_radio)  set_pending_obj("radio",  radio_pending_obj,  uid, chansub);
   if(onp_channel_ipv6)   set_pending_obj("ipv6",   ipv6_pending_obj,   uid, chansub);
