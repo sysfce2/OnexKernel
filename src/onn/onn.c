@@ -1579,7 +1579,7 @@ void onn_recv_object(object* n) {
     #define ITEM_SWAP(o,n,i) item_free(o->i); o->i = n->i; n->i = 0;
     ITEM_SWAP(o,n,version);
     ITEM_SWAP(o,n,properties);
-    list_items_del(o->devices, (item*)value_new("shell"));
+    item_free(list_vals_del(o->devices, "shell"));
     list_vals_set_add_all(o->devices,  n->devices);  list_free(n->devices,  false); n->devices=0;
     list_vals_set_add_all(o->notifies, n->notifies); list_free(n->notifies, false); n->notifies=0;
     object_free(n);

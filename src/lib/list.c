@@ -146,6 +146,10 @@ void* list_items_del(list* li, item* it){
   return list_del_n(li, list_items_find(li, it));
 }
 
+void* list_vals_del(list* li, char* v){
+  return list_del_n(li, list_vals_has(li, v));
+}
+
 uint16_t list_size(list* li) {
   if(!li) return 0;
   return li->size;
@@ -164,7 +168,7 @@ bool list_vals_equal(list* l1, list* l2){
 
 /** Return index if list has v as a value. */
 uint16_t list_vals_has(list* li, char* v){
-  if(!li) return 0;
+  if(!li || !v) return 0;
   for(uint16_t j=0; j<li->size; j++){
     if(value_is(li->vals[j], v)) return j+1;
   }

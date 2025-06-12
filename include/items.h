@@ -87,6 +87,7 @@ list*    list_new_from_(void** items, uint16_t max_size);
 #define list_new_from(...) list_new_from_((void*[]){__VA_ARGS__}, sizeof((void*[]){__VA_ARGS__}) / sizeof(void*))
 bool     list_add(list* li, void* val);
 bool     list_vals_add(list* li, char* v);
+void*    list_vals_del(list* li, char* v);
 bool     list_vals_set_add(list* li, char* v);
 bool     list_vals_set_add_all(list* li, list* lj);
 bool     list_ins(list* li, uint16_t index, void* val);
