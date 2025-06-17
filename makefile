@@ -554,7 +554,7 @@ SDK_C_SOURCES = \
 
 
 #-------------------------------------------------------------------------------
-# Targets REVISIT ar rcs may be adding
+# Targets
 
 libonex-kernel-magic3.a: ASSEMBLER_LINE=${M4_CPU} $(ASSEMBLER_DEFINES_MAGIC3)
 libonex-kernel-magic3.a: COMPILE_LINE=$(M4_CC_FLAGS) $(COMPILER_DEFINES_MAGIC3) $(INCLUDES_MAGIC3)
