@@ -12,13 +12,9 @@
 #include <onn.h>
 
 bool evaluate_device_logic(object* o, void* d) {
-  if(object_property_contains(o, "Alerted:is", "device")){
-    char* devuid=object_property(o, "Alerted");
-    // REVISIT: no notification of local to remote if "already seen" it
-    if(!object_property_contains(o, "peers", devuid)){
-      object_property_add(o, "peers", devuid);
-    }
-  }
+  if(!object_property_contains(o, "Alerted:is", "device")) return true;
+  char* devuid=object_property(o, "Alerted");
+  object_property_setwise_insert(o, "peers", devuid);
   return true;
 }
 
