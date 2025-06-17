@@ -64,6 +64,7 @@ ONL_VULKAN_DRM_SOURCES = \
 
 ONN_ONP_SOURCES = \
 ./src/onn/onn.c \
+./src/onp/behaviours.c \
 ./src/onp/onp.c \
 
 

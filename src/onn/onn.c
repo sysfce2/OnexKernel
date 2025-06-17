@@ -755,7 +755,8 @@ bool stop_timer(object* n) {
 
 void device_init() {
   if(onex_device_object) return;
-  onex_device_object=object_new(0, 0, "device", 8);
+  onex_set_evaluators("eval_device", evaluate_device_logic, 0);
+  onex_device_object=object_new(0, "eval_device", "device", 8);
   object_set_cache(onex_device_object, "keep-active");
 }
 

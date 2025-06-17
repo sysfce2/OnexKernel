@@ -301,10 +301,23 @@ void test_object_set_up() {
 // ---------------------------------------------------------------------------------
 
 void test_device() {
+
+  log_write("------device behaviour tests-----\n");
+
   object* nd=onex_device_object;
   onex_assert(!!nd,                                             "device object is set");
   onex_assert(object_property_contains(nd, "is", "device"),     "it's a device");
+
+  object_property_set(onex_device_object, "incoming", "uid-incomingdevice");
+  object_property(onex_device_object, "incoming:UID");
+  object* incomingdevice=onex_get_from_cache("uid-incomingdevice");
+  object_property_set(incomingdevice, "is", "device");
+
+  onex_loop();
+
+  onex_assert_equal(object_property(onex_device_object, "peers"), "uid-incomingdevice", "device evaluator adds incoming device to peers");
 }
+
 
 // ---------------------------------------------------------------------------------
 

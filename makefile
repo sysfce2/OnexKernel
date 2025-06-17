@@ -181,6 +181,7 @@ LIB_SOURCES = \
 ./src/lib/value.c \
 ./src/lib/tests.c \
 ./src/lib/properties.c \
+./src/onp/behaviours.c \
 ./src/onp/onp.c \
 ./src/onn/onn.c \
 
