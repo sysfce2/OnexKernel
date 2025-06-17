@@ -73,7 +73,7 @@ static void    persist_flush();
 static void    persist_pull_keep_active();
 
 static void    timer_init();
-static void    device_init(char* prefix);
+static void    device_init();
 
 // ---------------------------------
 
@@ -95,12 +95,22 @@ typedef struct object {
 
 // ---------------------------------
 
+static char* test_uid_prefix=0;
+
 object* onex_device_object=0;
 
 // ---------------------------------
 
 value* generate_uid() {
   char b[24];
+  if(test_uid_prefix && strlen(test_uid_prefix) >= 4)
+  snprintf(b, 24, "uid-%.4s-%02x%02x-%02x%02x-%02x%02x",
+    test_uid_prefix,
+    random_ish_byte(), random_ish_byte(),
+    random_ish_byte(), random_ish_byte(),
+    random_ish_byte(), random_ish_byte()
+  );
+  else
   snprintf(b, 24, "uid-%02x%02x-%02x%02x-%02x%02x-%02x%02x",
     random_ish_byte(), random_ish_byte(),
     random_ish_byte(), random_ish_byte(),
@@ -743,16 +753,10 @@ bool stop_timer(object* n) {
 
 // ----------------------------------------------
 
-void device_init(char* prefix) {
-  if(!onex_device_object){
-    if(prefix){
-      char devuid[128]; snprintf(devuid, 128, "uid-%s-device", prefix);
-      onex_device_object=object_new(devuid, 0, "device", 8);
-    }else{
-      onex_device_object=object_new(0, 0, "device", 8);
-    }
-    object_set_cache(onex_device_object, "keep-active");
-  }
+void device_init() {
+  if(onex_device_object) return;
+  onex_device_object=object_new(0, 0, "device", 8);
+  object_set_cache(onex_device_object, "keep-active");
 }
 
 // ----------------------------------------------
@@ -1300,12 +1304,12 @@ void onex_init(properties* config) { // REVISIT: onn_init()?
 
   log_write("Initialising Onex...\n");
 
-  char* dbpath=value_string(properties_get(config, "dbpath"));
-  char* prefix=value_string(properties_get(config, "test-uid-prefix"));
+  char* dbpath   =value_string(properties_get(config, "dbpath"));
+  test_uid_prefix=value_string(properties_get(config, "test-uid-prefix"));
 
   timer_init();
   persist_init(dbpath);
-  device_init(prefix);
+  device_init();
   onp_init(config);
 }
 
