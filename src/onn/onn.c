@@ -819,6 +819,12 @@ bool object_property_insert(object* n, char* path, char* val) {
   return object_property_edit(n, path, val, LIST_EDIT_MODE_PREPEND);
 }
 
+bool object_property_setwise_insert(object* n, char* path, char* val){
+  if(object_property_contains(n, path, val)) return false;
+  object_property_insert(n, path, val);
+  return true;
+}
+
 // ------------------------------------------------------
 
 bool object_property_edit(object* n, char* path, char* val, uint8_t mode) {
