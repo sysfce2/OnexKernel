@@ -44,8 +44,8 @@ void test_object_set_up() {
   onex_assert(     !object_property(         nr, "is:1:"),           "cannot end in :" );
   onex_assert(     !object_property_is(      nr, "is:2:",  "uid"),   "cannot end in :" );
 
-  onex_set_evaluators("default", evaluate_setup, 0);
-  object* n1=object_new("uid-1", "default", "setup", 4);
+  onex_set_evaluators("eval_default", evaluate_setup, 0);
+  object* n1=object_new("uid-1", "eval_default", "setup", 4);
   // UID: uid-1  is: setup
   onex_assert(      n1,                                      "object_new created an object");
   onex_assert(      onex_get_from_cache("uid-1")==n1,        "onex_get_from_cache can find uid-1");
@@ -256,7 +256,7 @@ void test_object_set_up() {
   onex_assert(     !object_property_key(     n1, ":", 0),          "key of 0th item is 0");
   onex_assert(     !object_property_val(     n1, ":", 0),          "val of 0th item is 0");
 
-  object* nv=object_new("uid-6", "default", "varargs", 4);
+  object* nv=object_new("uid-6", "eval_default", "varargs", 4);
   onex_assert(      object_property_set(     nv, "v", "x"),                  "can set val");
   onex_assert(      object_property_add(     nv, "v", "y"),                  "can add val");
   onex_assert(      object_property_set_list(nv, "v", "a", "b", 0),          "can set two vals using varargs");
@@ -275,7 +275,7 @@ void test_object_set_up() {
   onex_assert(      object_property_length(  nv, "x")==2,                    "property 'x' is a list of two");
   onex_assert(      object_property_is(      nv, "x:1", "(*)"),              "list items are correct");
   onex_assert(      object_property_is(      nv, "x:2", "[20]"),             "list items are correct");
-  // { UID: uid-6  Eval: default  is: varargs  v: a b c d  w: e f  x: (*) [20] }
+  // { UID: uid-6  Eval: eval_default  is: varargs  v: a b c d  w: e f  x: (*) [20] }
   onex_assert(      object_property_set_n(   nv, "w", 1, "E"),          "can set 1st el in list");
   onex_assert(      object_property_is(      nv, "w:1", "E"),           "list items are correct");
   onex_assert(      object_property_set_n(   nv, "v", 3, "C"),          "can set 3rd el in list");
@@ -295,13 +295,12 @@ void test_object_set_up() {
   onex_assert(     !object_property_set(     nv, "v:2", 0),             "can't del 2nd el in non-list");
   onex_assert(     !object_property_get_n(   nv, "v", 2),               "can't get 2nd el in non-list");
   onex_assert(     !object_property(         nv, "v:2"),                "can't get 2nd el in non-list");
-  // { UID: uid-6 Eval: default is: varargs v: d w: E f x: 10 20 }
+  // { UID: uid-6 Eval: eval_default is: varargs v: d w: E f x: 10 20 }
 }
 
 // ---------------------------------------------------------------------------------
 
-void test_device()
-{
+void test_device() {
   object* nd=onex_device_object;
   onex_assert(!!nd,                                             "device object is set");
   onex_assert(object_property_contains(nd, "is", "device"),     "it's a device");
@@ -398,12 +397,12 @@ bool evaluate_local_state_n3(object* n3, void* d)
 
 void test_local_state()
 {
-  onex_set_evaluators("evaluate_local_state_n2", evaluate_local_state_n2, 0);
-  onex_set_evaluators("evaluate_local_state_n3", evaluate_local_state_n3, 0);
+  onex_set_evaluators("eval_local_state_n2", evaluate_local_state_n2, 0);
+  onex_set_evaluators("eval_local_state_n3", evaluate_local_state_n3, 0);
   // UID: uid-2  is: local-state
   // UID: uid-3  is: local-state
-  object* n2=object_new("uid-2", "evaluate_local_state_n2", "local-state", 5);
-  object* n3=object_new("uid-3", "evaluate_local_state_n3", "local-state", 5);
+  object* n2=object_new("uid-2", "eval_local_state_n2", "local-state", 5);
+  object* n3=object_new("uid-3", "eval_local_state_n3", "local-state", 5);
   onex_assert(      onex_get_from_cache("uid-2")==n2,   "onex_get_from_cache can find uid-2");
   onex_assert_equal_num(object_property_int32(  n2, "Ver"), 1,     "version 1");
   onex_assert(      onex_get_from_cache("uid-3")==n3,   "onex_get_from_cache can find uid-3");
@@ -560,10 +559,10 @@ void test_local_notify()
   onex_assert_equal(object_property(n3, "n2"      ), "uid-2",   "uid-3 links to uid-2");
   onex_assert_equal(object_property(n3, "n2:state"), "good",    "can still see through link");
 
-  onex_set_evaluators("evaluate_local_notify_n2", pre_evaluate_n2, evaluate_local_notify_n2, post_evaluate_n2, 0);
-  onex_set_evaluators("evaluate_local_notify_n3", evaluate_local_notify_n3, 0);
-  object_set_evaluator(n2, "evaluate_local_notify_n2");
-  object_set_evaluator(n3, "evaluate_local_notify_n3");
+  onex_set_evaluators("eval_local_notify_n2", pre_evaluate_n2, evaluate_local_notify_n2, post_evaluate_n2, 0);
+  onex_set_evaluators("eval_local_notify_n3", evaluate_local_notify_n3, 0);
+  object_set_evaluator(n2, "eval_local_notify_n2");
+  object_set_evaluator(n3, "eval_local_notify_n3");
 
   onex_run_evaluators("uid-2", "arguments");
 
@@ -584,10 +583,10 @@ void test_to_text()
   object* n3=onex_get_from_cache("uid-3");
   object* n4=onex_get_from_cache("uid-4");
 
-  char* n1text="UID: uid-1 Ver: 37 Eval: evaluate_remote_notify_n1 Notify: uid-3 is: setup state: good mostly 1: a c 2: ok m8";
-  char* n2text="UID: uid-2 Ver: 7 Eval: evaluate_remote_notify_n2 Notify: uid-3 is: local-state state: better\\: n1: uid-1";
-  char* n3text="UID: uid-3 Ver: 10 Eval: evaluate_local_notify_n3 Notify: uid-3 uid-2 uid-4 is: local state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5 state: changed";
-  char* n4text="UID: uid-4 Ver: 322 Eval: evaluate_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 x:y: a :z:q\\: b last: one state: good";
+  char* n1text="UID: uid-1 Ver: 37 Eval: eval_remote_notify_n1 Notify: uid-3 is: setup state: good mostly 1: a c 2: ok m8";
+  char* n2text="UID: uid-2 Ver: 7 Eval: eval_remote_notify_n2 Notify: uid-3 is: local-state state: better\\: n1: uid-1";
+  char* n3text="UID: uid-3 Ver: 10 Eval: eval_local_notify_n3 Notify: uid-3 uid-2 uid-4 is: local state n2: uid-2 self: uid-3 n*: uid-1 uid-2 uid-3 uid-4 uid-5 state: changed";
+  char* n4text="UID: uid-4 Ver: 322 Eval: eval_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 x:y: a :z:q\\: b last: one state: good";
 
   onex_assert_equal(object_to_text(n1,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), n1text, "converts uid-1 to correct text");
   onex_assert_equal(object_to_text(n2,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), n2text, "converts uid-2 to correct text");
@@ -664,13 +663,13 @@ void test_from_text() {
   object* n1=onex_get_from_cache("uid-1");
   object* n2=onex_get_from_cache("uid-2");
   object* n3=onex_get_from_cache("uid-3");
-  onex_set_evaluators("evaluate_remote_notify_n1", evaluate_remote_notify_n1, 0);
-  onex_set_evaluators("evaluate_remote_notify_n2", evaluate_remote_notify_n2, 0);
-  onex_set_evaluators("evaluate_remote_notify_n4", evaluate_remote_notify_n4, 0);
-  object_set_evaluator(n1, "evaluate_remote_notify_n1");
-  object_set_evaluator(n2, "evaluate_remote_notify_n2");
+  onex_set_evaluators("eval_remote_notify_n1", evaluate_remote_notify_n1, 0);
+  onex_set_evaluators("eval_remote_notify_n2", evaluate_remote_notify_n2, 0);
+  onex_set_evaluators("eval_remote_notify_n4", evaluate_remote_notify_n4, 0);
+  object_set_evaluator(n1, "eval_remote_notify_n1");
+  object_set_evaluator(n2, "eval_remote_notify_n2");
 
-  char* text=" UID:   uid-4 Ver: 321  Eval:  evaluate_remote_notify_n4 Notify: uid-1   uid-2   is: remote  state ab: m\\: :c:d\\:  n n3: uid-3 x:y:  a :z:q\\:  b  last: one\n";
+  char* text=" UID:   uid-4 Ver: 321  Eval:  eval_remote_notify_n4 Notify: uid-1   uid-2   is: remote  state ab: m\\: :c:d\\:  n n3: uid-3 x:y:  a :z:q\\:  b  last: one\n";
   object* n4=object_new_from(text, 6);
   onex_assert(!!n4, "input text was parsed into an object 1");
   if(!n4) return;
@@ -695,7 +694,7 @@ void test_from_text() {
 
   onex_assert_equal(object_property(         n4, "last"), "one",      "object_new_from parses last one as single value without newline");
 
-  char* totext="UID: uid-4 Ver: 321 Eval: evaluate_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 x:y: a :z:q\\: b last: one";
+  char* totext="UID: uid-4 Ver: 321 Eval: eval_remote_notify_n4 Notify: uid-1 uid-2 is: remote state ab: m\\: :c:d\\: n n3: uid-3 x:y: a :z:q\\: b last: one";
   onex_assert_equal(object_to_text(        n4,textbuff,TEXTBUFFLEN,OBJECT_TO_TEXT_PERSIST), totext, "gives same text back from reconstruction 1");
 
                     object_property_set(   n4, "state", "good");
@@ -775,11 +774,11 @@ void test_persistence()
 
   object_set_cache(n1, "keep-active");
 
-  onex_set_evaluators("evaluate_persistence_n1", evaluate_persistence_n1, 0);
-  onex_set_evaluators("evaluate_persistence_n4", evaluate_persistence_n4_before, 0);
+  onex_set_evaluators("eval_persistence_n1", evaluate_persistence_n1, 0);
+  onex_set_evaluators("eval_persistence_n4", evaluate_persistence_n4_before, 0);
 
-  object_set_evaluator(n1, "evaluate_persistence_n1");
-  object_set_evaluator(n4, "evaluate_persistence_n4");
+  object_set_evaluator(n1, "eval_persistence_n1");
+  object_set_evaluator(n4, "eval_persistence_n4");
 
   onex_assert_equal(object_property(n4, "n3:n2:n1:state:1"), "good",   "n4 can look through objects in the cache");
   onex_assert_equal(object_property(n4, "n3:n2:n1:state:2"), "mostly", "n4 can look through objects in the cache");
@@ -787,10 +786,10 @@ void test_persistence()
 
   onex_loop();
 
-  onex_set_evaluators("evaluate_persistence_n4", evaluate_persistence_n4_after, 0);
+  onex_set_evaluators("eval_persistence_n4", evaluate_persistence_n4_after, 0);
 
   // not currently testing anything here tbh
-  object* nn=object_new("uid-n", "default", "volatile", 4);
+  object* nn=object_new("uid-n", "eval_default", "volatile", 4);
   object_set_persist(nn, "none");
 
   onex_show_cache();
@@ -827,8 +826,8 @@ void test_timer()
   object* n2=onex_get_from_cache("uid-2");
   object* n4=onex_get_from_cache("uid-4");
 
-  onex_set_evaluators("evaluate_timer_n4", evaluate_timer_n4, 0);
-  object_set_evaluator(n4, "evaluate_timer_n4");
+  onex_set_evaluators("eval_timer_n4", evaluate_timer_n4, 0);
+  object_set_evaluator(n4, "eval_timer_n4");
 
   object_property_set(n2, "n4", "uid-4");
 

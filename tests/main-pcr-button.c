@@ -34,8 +34,8 @@ int main(int argc, char *argv[]) {
 
   log_write("\n------Starting Button Test Server-----\n");
 
-  onex_set_evaluators("evaluate_button", evaluate_button, 0);
-  object* button=object_new("uid-button", "evaluate_button", "button", 4);
+  onex_set_evaluators("eval_button", evaluate_button, 0);
+  object* button=object_new("uid-button", "eval_button", "button", 4);
   object_property_set(button, "state", "up");
   onex_run_evaluators("uid-button", 0);
 

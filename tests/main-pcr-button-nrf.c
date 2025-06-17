@@ -38,8 +38,8 @@ int main() {
 
   log_write("\n------Starting Button Test-----\n");
 
-  onex_set_evaluators("evaluate_button", evaluate_button, 0);
-  object* button=object_new("uid-button", "evaluate_button", "button", 4);
+  onex_set_evaluators("eval_button", evaluate_button, 0);
+  object* button=object_new("uid-button", "eval_button", "button", 4);
   object_property_set(button, "state", "up");
 
   while(1){

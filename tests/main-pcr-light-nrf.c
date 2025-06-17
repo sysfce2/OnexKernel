@@ -57,9 +57,9 @@ int main(){
   gpio_mode(LED_1, OUTPUT);
 #endif
 
-  onex_set_evaluators("evaluate_light",  evaluate_light, 0);
+  onex_set_evaluators("eval_light",  evaluate_light, 0);
 
-  light=object_new("uid-light", "evaluate_light",  "light", 4);
+  light=object_new("uid-light", "eval_light",  "light", 4);
 
   object_property_set(light,  "light", "off");
   object_property_set(light,  "button", "uid-button");

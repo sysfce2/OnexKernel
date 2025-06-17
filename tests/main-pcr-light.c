@@ -36,9 +36,9 @@ int main(int argc, char *argv[]){
 
   log_write("\n------Starting Light Test Server-----\n");
 
-  onex_set_evaluators("evaluate_light",  evaluate_light, 0);
+  onex_set_evaluators("eval_light",  evaluate_light, 0);
 
-  object* light=object_new("uid-light", "evaluate_light",  "light", 4);
+  object* light=object_new("uid-light", "eval_light",  "light", 4);
 
   object_property_set(light,  "light", "off");
   object_property_set(light,  "button", "uid-button");

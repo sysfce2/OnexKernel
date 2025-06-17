@@ -114,6 +114,7 @@ ONT_VULKAN_SHADERS = \
 
 
 #-------------------------------------------------------------------------------
+# REVISIT: ar rcs may be adding to instead of rebuilding
 
 libonex-kernel-xcb.a: COMPILE_LINE=$(X86_FLAGS) $(CC_FLAGS) $(XCB_CC_SYMBOLS) $(INCLUDES)
 libonex-kernel-xcb.a: CC=/usr/bin/gcc
