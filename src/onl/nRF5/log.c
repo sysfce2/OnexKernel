@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <string.h>
 #include <stdarg.h>
 
 #include "nrf_log_default_backends.h"

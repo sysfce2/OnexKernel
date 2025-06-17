@@ -14,8 +14,7 @@ typedef struct properties {
   uint16_t  size;
 } properties;
 
-properties* properties_new(uint16_t max_size)
-{
+properties* properties_new_(char* func, uint32_t line, uint16_t max_size) {
   properties* op=(properties*)mem_alloc(sizeof(properties));
   if(!op) return 0;
   op->type=ITEM_PROPERTIES;
