@@ -765,7 +765,7 @@ device-erase:
 #-------------------------------:
 
 DEBUG_FLAGS = -g -O0
-OPTIM_FLAGS = -g3 -O3
+OPTIM_FLAGS = -g3 -O3 # REVISIT: buggy? O2?
 
 #-------------------------------:
 

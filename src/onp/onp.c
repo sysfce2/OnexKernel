@@ -133,7 +133,16 @@ bool handle_all_recv(){
     while(true){
       int16_t size = radio_read(recv_buff, RECV_BUFF_SIZE);
     ; if(size==0) break;
-      if(size<0){ log_write("**\n"); continue; }
+      if(size<0){
+        char* isp = strstr(recv_buff, "is:");
+#if defined(BOARD_MAGIC3)
+        if(strlen(recv_buff) < 48) log_write("**/%s/\n",           recv_buff);
+        else                       log_write("**/%.16s//%.32s/\n", recv_buff, isp? isp: "");
+#else
+        ;                          log_write("**/%s/\n",           recv_buff);
+#endif
+        continue;
+      }
       pkts++;
       ka = handle_recv(size,"radio") || ka;
     }
@@ -422,10 +431,10 @@ void log_sent(char* prefix, uint16_t size, char* chansub) {
     if(size>=5 && !strncmp(send_buff,"OBS: ",5)){
       log_write("[%s]%d\n", send_buff, size);
     }
+    else
     if(size>=5 && !strncmp(send_buff,"UID: ",5)){
       char* isp=strstr(send_buff, "is:"); if(!isp) return;
-      isp[60]=0;
-      log_write("[%s]%d\n", isp, size);
+      log_write("[%.60s]%d\n", isp, size);
     }
   }
   else{

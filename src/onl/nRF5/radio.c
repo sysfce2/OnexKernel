@@ -252,7 +252,7 @@ void RADIO_IRQHandler(void){
       size = rx_buffer[0];
     }
     else{
-      #define CORRUPTION_MAGIC " 🍌 banana!\n"
+      #define CORRUPTION_MAGIC "{ banana: 🍌 }\n"
       size = strlen(CORRUPTION_MAGIC);
       mem_strncpy(rx_buffer+1, CORRUPTION_MAGIC, size);
     }

@@ -148,7 +148,7 @@ int16_t serial_read(char* buf, uint16_t size) {
             uint16_t s=size<ss? size: ss;
             memcpy(buf, ser_buff[nt], s);
             nt++; if(nt==MAX_TTYS) nt=0;
-            return s;
+            return s-1;
           }
         }
       }

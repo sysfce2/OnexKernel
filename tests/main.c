@@ -51,6 +51,8 @@ extern void run_list_tests();
 extern void run_value_tests();
 extern void run_onn_tests(properties* config);
 
+void run_chunkbuf_tests();
+
 #if defined(NRF5)
 static volatile bool display_state_prev= LEDS_ACTIVE_STATE;
 static volatile bool display_state     =!LEDS_ACTIVE_STATE;
@@ -292,6 +294,7 @@ void run_tests_maybe(properties* config) {
   run_list_tests();
   run_properties_tests();
   run_onn_tests(config);
+  run_chunkbuf_tests();
 
 #if defined(NRF5)
   int failures=onex_assert_summary();
@@ -363,43 +366,55 @@ static void loop_serial(void*){ serial_loop(); }
 #endif
 
 void run_chunkbuf_tests(){
+
   log_write("-------- chunkbuf tests ---------\n");
+
   chunkbuf* wside = chunkbuf_new(100, true);
   chunkbuf* rside = chunkbuf_new(100, true);
-  log_write("wside writable %s\n", chunkbuf_writable(wside, strlen("1234567890123456789"), '\n')? "yes": "no");
+
+  onex_assert(chunkbuf_writable(wside, strlen("1234567890123456789"), '\n'), "wside writable");
   chunkbuf_write(wside, "1234567890123456789", strlen("1234567890123456789"), '\n');
-  log_write("wside writable %s\n", chunkbuf_writable(wside, strlen("5678901234567891234"), '\n')? "yes": "no");
+
+  onex_assert(chunkbuf_writable(wside, strlen("5678901234567891234"), '\n'), "wside writable");
   chunkbuf_write(wside, "5678901234567891234", strlen("5678901234567891234"), '\n');
-  log_write("wside writable %s\n", chunkbuf_writable(wside, strlen("1234567890123456789"), '\n')? "yes": "no");
+  onex_assert(chunkbuf_writable(wside, strlen("1234567890123456789"), '\n'), "wside writable");
   chunkbuf_write(wside, "1234567890123456789", strlen("1234567890123456789"), '\n');
-  log_write("wside writable %s\n", chunkbuf_writable(wside, strlen("5678901234567891234"), '\n')? "yes": "no");
+  onex_assert(chunkbuf_writable(wside, strlen("5678901234567891234"), '\n'), "wside writable");
   chunkbuf_write(wside, "5678901234567891234", strlen("5678901234567891234"), '\n');
-  log_write("wside writable for 15 more no delim? %s\n", chunkbuf_writable(wside, 15,   -1)? "yes": "no");
-  log_write("wside writable for 15 more delim?    %s\n", chunkbuf_writable(wside, 15, '\n')? "yes": "no");
-  log_write("-------- chunkbuf written -------\n");
+  onex_assert( chunkbuf_writable(wside, 15,   -1), "wside writable for 15 more no delim");
+  onex_assert(!chunkbuf_writable(wside, 15, '\n'), "wside not writable for 15 more w. delim");
+
+  log_write("-------- chunkbuf written -----------\n");
+
   for(int i=0; ; i++){
     char pkt[7];
-    log_write("wside readable %d\n", chunkbuf_readable(wside, -1));
+    int n= 84-i*7;
+    if(n>0) onex_assert_equal_num(chunkbuf_readable(wside, -1), n, "wside readable");
     uint16_t rn = chunkbuf_read(wside, pkt, 7, -1);
   ; if(!rn) break;
     if(i==4){ log_write("ohh nooo! packet loossss!! %^#!&*~ (%.7s)\n", pkt); continue; }
 //  if(i==5){ log_write("ohh nooo! packet loossss!! %^#!&*~ (%.7s)\n", pkt); continue; } // has NL
     if(i==7){ log_write("ohh nooo! corrupptiooion!! %^#!&*~\n"); pkt[1]='#'; }
-    log_write("---- rside writable %s\n", chunkbuf_writable(rside, rn, -1)? "yes": "no");
+    onex_assert(chunkbuf_writable(rside, rn, -1), "---- rside writable");
     chunkbuf_write(rside, pkt, rn, -1);
   }
-  log_write("---- rside writable 15+7 more %s\n", chunkbuf_writable(rside, 15+7, -1)? "yes": "no");
-  log_write("---- rside writable 15+8 more %s\n", chunkbuf_writable(rside, 15+8, -1)? "yes": "no");
+  onex_assert( chunkbuf_writable(rside, 15+7, -1), "---- rside writable 15+7 more");
+  onex_assert(!chunkbuf_writable(rside, 15+8, -1), "---- rside not writable 15+8 more");
+
   log_write("-------- chunkbuf transferred ---\n");
-  while(true){
+
+  for(int l=1; ; l++){
     char line[32];
     uint16_t rd = chunkbuf_readable(rside, '\n');
-    log_write("---- rside readable %d\n", rd);
   ; if(!rd) break;
+    onex_assert_equal_num(rd, l==2? 14: 21, "---- rside readable 14 for corrupt or 21");
     uint16_t rn = chunkbuf_read(rside, line, 32, '\n');
+    onex_assert_equal_num(rn, l==2 || l==3? 0: 19,  "read either 0 for corrupt or 19");
     log_write("rn=%d line: \"%s\" len: %d\n", rn, line, strlen(line));
   }
+
   log_write("-------- chunkbuf done ----------\n");
+
   chunkbuf_free(rside);
   chunkbuf_free(wside);
 }
@@ -604,7 +619,6 @@ int main() {
     if(char_recvd){
       log_write(">%c<----------\n", char_recvd);
       if(char_recvd=='t') run_tests++;
-      if(char_recvd=='k') run_chunkbuf_tests();
       if(char_recvd=='l') run_colour_tests();
       if(char_recvd=='s') send_big_radio_data(true);
 #if defined(BOARD_FEATHER_SENSE)
@@ -630,7 +644,7 @@ int main() {
       if(char_recvd=='p') gpio_show_power_status();
       if(char_recvd=='r') boot_reset(false);
       if(char_recvd=='b') boot_reset(true);
-      if(char_recvd=='h') log_write("t.ests chun.k.buf co.l.our s.end-radio i.nputs | object c.ache n.otifies Vv.alues m.em p.ower r.eset b.ootloader\n");
+      if(char_recvd=='h') log_write("t.ests co.l.our s.end-radio i.nputs | object c.ache n.otifies Vv.alues m.em p.ower r.eset b.ootloader\n");
 
       if(char_recvd=='i') time_delay_ms(100);
       else char_recvd=0;
@@ -744,7 +758,6 @@ int main() {
   serial_cb(false, "tty");
   if(char_recvd=='t') run_tests++;
   run_tests_maybe(config);
-  run_chunkbuf_tests();
   run_colour_tests();
   time_end();
 #endif
