@@ -53,6 +53,7 @@ void chunkbuf_write(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
   }
   if(delim>=0){
     if(cb->checksumming){
+      if(IS_DELIM(checksum)) checksum ^= (uint8_t)0x80;
       cb->buffer[cb->current_write]=checksum; INC_CURRENT_WRITE;
     }
     cb->buffer[cb->current_write]=delim; INC_CURRENT_WRITE;
@@ -109,6 +110,7 @@ uint16_t chunkbuf_read(chunkbuf* cb, char* buf, uint16_t size, int8_t delim){
 
   char checksum=0;
   uint16_t j; for(j=0; j < i-1-num_delims; j++) checksum ^= buf[j];
+  if(IS_DELIM(checksum)) checksum ^= 0x80;
   bool ok = (checksum==buf[j]);
   buf[j]=0;
   return ok? j: 0;
