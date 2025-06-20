@@ -176,8 +176,9 @@ bool handle_connected(){
   return num_waiting_on_connect > 0;
 }
 
-void send_pending_obs(properties* pending_obs, uint16_t shell_interval, uint16_t interval){
-  for(uint16_t i=1; i <= properties_size(pending_obs); i++){
+bool send_pending_obs(properties* pending_obs, uint8_t max_num, uint16_t shell_interval, uint16_t interval){
+  uint16_t num_sent=0;
+  for(uint16_t i=1; num_sent < max_num && i <= properties_size(pending_obs); i++){
 
     char* uid  = properties_key_n(pending_obs,i);
     list* cslo = properties_get_n(pending_obs,i);
@@ -190,21 +191,24 @@ void send_pending_obs(properties* pending_obs, uint16_t shell_interval, uint16_t
 
     char* chansub = list_get_n(cslo,1);
     observe_uid_to_text(uid, send_buff, SEND_BUFF_SIZE);
+
     send(chansub);
+    num_sent++;
   }
+  return num_sent > 0;
 }
 
-void send_pending_obj(properties* pending_obj){
-  while(properties_size(pending_obj)){
-
+bool send_pending_obj(properties* pending_obj, uint8_t max_num){
+  uint16_t num_sent=0;
+  while(num_sent < max_num && properties_size(pending_obj)){
     char* uid     = properties_key_n(pending_obj,1);
     char* chansub = properties_get_n(pending_obj,1);
-
-    object_uid_to_text( uid, send_buff, SEND_BUFF_SIZE, OBJECT_TO_TEXT_NETWORK);
+    object_uid_to_text(uid, send_buff, SEND_BUFF_SIZE, OBJECT_TO_TEXT_NETWORK);
     send(chansub);
-
+    num_sent++;
     properties_del_n(pending_obj,1);
   }
+  return num_sent > 0;
 }
 
 static uint32_t serial_lt = 0;
@@ -220,18 +224,18 @@ bool handle_all_send(){
   bool ka=false;
   if(onp_channel_serial && ct > serial_lt + SERIAL_SEND_INTERVAL){
     serial_lt = ct;
-    send_pending_obs(serial_pending_obs, 2000, 8000);
-    send_pending_obj(serial_pending_obj);
+    send_pending_obs(serial_pending_obs, 20, 2000, 8000);
+    send_pending_obj(serial_pending_obj, 20);
   }
   if(onp_channel_radio && ct > radio_lt + RADIO_SEND_INTERVAL){
     radio_lt = ct;
-    send_pending_obs(radio_pending_obs, 2000, 8000);
-    send_pending_obj(radio_pending_obj);
+    send_pending_obs(radio_pending_obs, 20, 2000, 8000);
+    send_pending_obj(radio_pending_obj, 20);
   }
   if(onp_channel_ipv6 && ct > ipv6_lt + IPV6_SEND_INTERVAL){
     ipv6_lt = ct;
-    send_pending_obs(ipv6_pending_obs, 2000, 8000);
-    send_pending_obj(ipv6_pending_obj);
+    send_pending_obs(ipv6_pending_obs, 20, 2000, 8000);
+    send_pending_obj(ipv6_pending_obj, 20);
   }
   return ka;
 }
