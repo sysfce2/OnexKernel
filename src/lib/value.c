@@ -144,6 +144,10 @@ bool value_equal(value* v1, value* v2)
   return v1->val == v2->val;
 }
 
+int32_t value_int32(value* v){
+  return strto_int32(value_string(v));
+}
+
 bool value_num_greater(value* v1, value* v2){
   int32_t i1 = strto_int32(value_string(v1));
   int32_t i2 = strto_int32(value_string(v2));
