@@ -222,7 +222,7 @@ void serial_cb(bool connect, char* tty){
 #endif
 }
 
-#if defined(BOARD_MAGIC3)
+#if defined(BOARD_MAGIC3) && defined(NRF_DO_FLASH)
 
 #define FLASH_TEST_DATA_START 0x31000
 #define FLASH_TEST_DATA_SIZE  4096
@@ -272,7 +272,7 @@ void run_tests_maybe(properties* config) {
 
   log_write("-----------------OnexKernel tests------------------------\n");
 
-#if defined(BOARD_MAGIC3)
+#if defined(BOARD_MAGIC3) && defined(NRF_DO_FLASH)
   char allids[64];
   char* flash_result=run_flash_tests(allids);
 
@@ -729,7 +729,7 @@ int main() {
 #endif
     if (display_state_prev != display_state){
       display_state_prev = display_state;
-      //gpio_set(LCD_BACKLIGHT, display_state);
+      gpio_set(LCD_BACKLIGHT, display_state);
     }
     if(log_to_gfx){
       if(gfx_log_buffer){

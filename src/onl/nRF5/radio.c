@@ -254,7 +254,7 @@ void RADIO_IRQHandler(void){
     else{
       #define CORRUPTION_MAGIC "{ banana: 🍌 }\n"
       size = strlen(CORRUPTION_MAGIC);
-      mem_strncpy(rx_buffer+1, CORRUPTION_MAGIC, size);
+      mem_strncpy(rx_buffer+1, CORRUPTION_MAGIC, size+1);
     }
     int8_t rssi = -NRF_RADIO->RSSISAMPLE;
     received(rx_buffer+1, size, rssi);

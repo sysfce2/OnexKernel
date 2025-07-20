@@ -42,6 +42,10 @@ unsigned int string_hash(char* p)
 #define WARN_SZLG(h,k) if((h)->size && !((h)->size % NUM_BUX)) log_write("{%s:%d %s %d/%d}\n", (h)->func, (h)->line, k, (h)->size, (h)->max_size)
 
 properties* properties_new_(char* func, uint32_t line, uint16_t max_size){
+  if(max_size < 3){
+    max_size=3;
+    log_write("properties_new setting max_size=%d\n", max_size);
+  }
   properties* op=(properties*)mem_alloc_p(sizeof(properties));
   if(!op) return 0;
   op->type=ITEM_PROPERTIES;
@@ -65,7 +69,7 @@ bool properties_set(properties* op, char* key, void* i) {
     lisp=&(*lisp)->next;
   }
   if(!(*lisp)){
-    if(op->size==op->max_size) return false;
+    if(op->size==op->max_size){ log_write("properties hit max_size %d\n", op->size); return false; }
     (*lisp)=mem_alloc(sizeof(hash_item));
     if(!(*lisp)) return false;
     (*lisp)->key=mem_strdup(key);
@@ -118,9 +122,8 @@ void properties_set_ins(properties* op, char* k, char* v){
   else    list_vals_set_ins(li,v);
 }
 
-void* properties_delete(properties* op, char* key)
-{
-  if(!op) return 0;
+void* properties_delete(properties* op, char* key) {
+  if(!(op && key)) return 0;
   void* v=0;
   hash_item** lisp;
   lisp=&op->lists[string_hash(key) % op->buckets];

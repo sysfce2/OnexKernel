@@ -9,7 +9,7 @@ properties* persistence_objects_text=0;
 
 void persistence_init(char* db) {
 
-#if defined(BOARD_MAGIC3)
+#if defined(BOARD_MAGIC3) && defined(NRF_DO_FLASH)
   char* err;
 
   char allids[64];
@@ -26,7 +26,7 @@ void persistence_put(char* uid, char* text) {
 
   if(!persistence_objects_text) return;
 
-#if defined(PERSIST_BOARD_MAGIC3)
+#if defined(BOARD_MAGIC3) && defined(NRF_DO_FLASH)
 
   char* err;
 
