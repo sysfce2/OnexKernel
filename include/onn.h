@@ -7,14 +7,18 @@
 #include <items.h> // only for list
 
 // -----------------------------------------------------------------------
+// REVISIT: check these are enough!
 
 #define MAX_UID_LEN 128
+#define MAX_VER_LEN  16
+#define MAX_CCH_LEN  32
 
 #if defined(NRF5)
 
 #define MAX_LIST_SIZE  32
 #define MAX_TEXT_LEN 1024
 #define MAX_OBJECTS 64
+#define MAX_DB_OBJECTS 1024
 #define MAX_TO_NOTIFY 64
 #define MAX_OBJECT_SIZE 16
 
@@ -23,6 +27,7 @@
 #define MAX_LIST_SIZE 256
 #define MAX_TEXT_LEN 2048
 #define MAX_OBJECTS 4096
+#define MAX_DB_OBJECTS 32767
 #define MAX_TO_NOTIFY 1024
 #define MAX_OBJECT_SIZE 32
 

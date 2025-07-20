@@ -1245,8 +1245,17 @@ char* object_to_text(object* n, char* b, uint16_t s, int target) {
 
   int ln=0;
 
+  // UID, Ver, Cache must be first in that order
   ln+=snprintf(b+ln, s-ln, "UID: %s", value_string(n->uid)); BUFCHK
   ln+=snprintf(b+ln, s-ln, " Ver: %s", value_string(n->version)); BUFCHK
+
+  if(n->cache && target!=OBJECT_TO_TEXT_NETWORK){
+    ln+=snprintf(b+ln, s-ln, " Cache: %s", value_string(n->cache)); BUFCHK
+  }
+
+  if(n->persist && target!=OBJECT_TO_TEXT_NETWORK){
+    ln+=snprintf(b+ln, s-ln, " Persist: %s", value_string(n->persist)); BUFCHK
+  }
 
   if(target==OBJECT_TO_TEXT_NETWORK){
     ln+=snprintf(b+ln, s-ln, " Devices: %s", value_string(onex_device_object->uid)); BUFCHK
@@ -1258,14 +1267,6 @@ char* object_to_text(object* n, char* b, uint16_t s, int target) {
 
   if(n->evaluator && target!=OBJECT_TO_TEXT_NETWORK){
     ln+=snprintf(b+ln, s-ln, " Eval: %s", value_string(n->evaluator)); BUFCHK
-  }
-
-  if(n->cache && target!=OBJECT_TO_TEXT_NETWORK){
-    ln+=snprintf(b+ln, s-ln, " Cache: %s", value_string(n->cache)); BUFCHK
-  }
-
-  if(n->persist && target!=OBJECT_TO_TEXT_NETWORK){
-    ln+=snprintf(b+ln, s-ln, " Persist: %s", value_string(n->persist)); BUFCHK
   }
 
   int j;

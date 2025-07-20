@@ -51,6 +51,8 @@ extern void run_list_tests();
 extern void run_value_tests();
 extern void run_onn_tests(properties* config);
 
+extern void run_database_tests();
+
 void run_chunkbuf_tests();
 
 #if defined(NRF5)
@@ -294,6 +296,7 @@ void run_tests_maybe(properties* config) {
   run_list_tests();
   run_properties_tests();
   run_onn_tests(config);
+  run_database_tests();
   run_chunkbuf_tests();
 
 #if defined(NRF5)

@@ -27,6 +27,7 @@ LIB_SOURCES = \
 ./src/lib/lib.c \
 ./src/lib/colours.c \
 ./src/lib/chunkbuf.c \
+./src/lib/database.c \
 ./src/lib/list.c \
 ./src/lib/value.c \
 ./src/lib/tests.c \
@@ -87,6 +88,7 @@ TESTS_SOURCES = \
 ./tests/test-properties.c \
 ./tests/test-list.c \
 ./tests/test-value.c \
+./tests/test-database.c \
 ./tests/test-onn.c \
 ./tests/main.c \
 

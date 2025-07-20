@@ -715,7 +715,7 @@ void test_from_text() {
   onex_assert_equal(object_property(       n4, "state"), "good",          "object_new_from creates usable object");
                     object_property_set(   n3, "is", "local state");
 
-  text="UID: uid-nx Ver: 543 Devices: uid-x Cache: keep-active Notify: uid-1 uid-2 is: remote state n3: uid-3";
+  text="UID: uid-nx Ver: 543 Cache: keep-active Devices: uid-x Notify: uid-1 uid-2 is: remote state n3: uid-3";
   object* nx=object_new_from(text, 4);  // note object_new_from isn't meant for parsing remote object text!
 
   onex_assert(!!nx, "input text was parsed into an object 2");
