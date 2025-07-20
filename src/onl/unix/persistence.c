@@ -5,18 +5,67 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+#include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/mman.h>
 
 #include <items.h>
 
 #include <onex-kernel/mem.h>
 #include <onex-kernel/log.h>
+#include <onex-kernel/database.h>
 
 #include <persistence.h>
 
-static FILE* db=0;
+#define MMAP_DB_SECTOR_SIZE  4096
+#define MMAP_DB_SECTOR_COUNT 1024
+#define MMAP_SIZE (MMAP_DB_SECTOR_SIZE * MMAP_DB_SECTOR_COUNT)
 
-properties* persistence_objects_text=0;
+uint8_t* mmap_db;
+
+static void mmap_db_init(database_storage* db){
+}
+
+static void mmap_db_format(database_storage* db){
+
+  for(uint32_t i=0; i < MMAP_SIZE; i++) mmap_db[i]=0xff;
+
+  for(uint16_t s=0; s < db->sector_count; s++){
+    database_sector_info* dsi = (database_sector_info*)(mmap_db + MMAP_DB_SECTOR_SIZE * s);
+    (*dsi).erase_count = (s==0? 2: 1);
+    (*dsi).zero_term = 0;
+  }
+}
+
+static void mmap_db_erase(database_storage* db, uint32_t address, uint16_t size, void (*cb)()){
+  for(uint16_t i=0; i<size; i++) mmap_db[address+i]=0xff;
+}
+
+static void mmap_db_write(database_storage* db, uint32_t address, uint8_t* buf, uint16_t size, void (*cb)()){
+  for(uint16_t i=0; i<size; i++) mmap_db[address+i]=buf[i];
+}
+
+static void mmap_db_read(database_storage* db, uint32_t address, uint8_t* buf, uint16_t size, void (*cb)()){
+  for(uint16_t i=0; i<size; i++) buf[i]=mmap_db[address+i];
+}
+
+static database_storage* mmap_db_storage_new(){
+
+  database_storage* db=mem_alloc(sizeof(database_storage));
+  if(!db) return 0;
+
+  (*db).sector_size  = MMAP_DB_SECTOR_SIZE;
+  (*db).sector_count = MMAP_DB_SECTOR_COUNT;
+
+  (*db).init   = mmap_db_init;
+  (*db).format = mmap_db_format;
+  (*db).erase  = mmap_db_erase;
+  (*db).write  = mmap_db_write;
+  (*db).read   = mmap_db_read;
+
+  return db;
+}
 
 bool mkdir_p(char* filename) {
 
@@ -31,59 +80,62 @@ bool mkdir_p(char* filename) {
   return true;
 }
 
-void persistence_init(char* filename) {
+static database_storage* db;
 
-  if(!filename || !*filename) return;
+list* persistence_init(char* filename) {
+
+  if(!filename || !*filename) return 0;
 
   log_write("Using DB file %s\n", filename);
 
   if(!mkdir_p(filename)){
     log_write("Couldn't make directory for '%s' errno=%d\n", filename, errno);
-    return;
+    return 0;
   }
-  db=fopen(filename, "a+");
-  if(!db){
-    log_write("Couldn't open DB file '%s' errno=%d\n", filename, errno);
-    return;
+  int fd = open(filename, O_RDWR | O_CREAT, 0644);
+  if(fd== -1){
+    log_write("Couldn't open %s for DB: %s\n", filename, strerror(errno));
+    return 0;
   }
-  fseek(db, 0, SEEK_END);
-  long len = ftell(db);
-  fseek(db, 0, SEEK_SET);
-  char* alldbtext=mem_alloc(len*sizeof(char)+1);
-  if(!alldbtext) {
-    fclose(db); db=0;
-    log_write("Can't allocate space for DB file %s\n", filename);
-    return;
-  }
-  persistence_objects_text=properties_new(MAX_OBJECTS);
+  ftruncate(fd, MMAP_SIZE);
+  mmap_db = mmap(0, MMAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
 
-  long n=fread(alldbtext, sizeof(char), len, db);
-  alldbtext[n] = '\0';
-  char* text=strtok(alldbtext, "\n"); // REVISIT use strtok_r
-  while(text){
-    if(!strncmp(text, "UID: ", 5)){
-      char* u=text+5;
-      char* e=strchr(u, ' ');
-      if(e) *e=0;
-      char uid[MAX_UID_LEN]; size_t m=snprintf(uid, MAX_UID_LEN, "%s", u);
-      if(e) *e=' ';
-      if(m<MAX_UID_LEN){
-        mem_freestr(properties_delete(persistence_objects_text, uid));
-        properties_set(persistence_objects_text, uid, mem_strdup(text));
-      }
-    }
-    text=strtok(0, "\n"); // REVISIT use strtok_r
-  }
-  mem_free(alldbtext);
+  db = mmap_db_storage_new();
+
+  list* keep_actives = database_init(db);
+  return keep_actives;
 }
 
-void persistence_put(char* uid, char* text) {
-
-  if(!persistence_objects_text) return;
-
-  fprintf(db, "%s\n", text);
-  fflush(db);
+// for testing
+list* persistence_reload(){
+  database_free(db);
+  list* keep_actives = database_init(db);
+  return keep_actives;
 }
+
+char obj_text[2048];
+
+char* persistence_get(char* uid){
+  uint16_t s = database_get(db, uid, 0, (uint8_t*)obj_text, 2048);
+  return obj_text;
+}
+
+void persistence_put(char* uid, uint32_t ver, char* text){
+  if(!text || !(*text)) return;
+  bool ok=database_put(db, uid, ver, (uint8_t*)text, strlen(text)+1);
+}
+
+/*
+  database_show(db);
+  mem_free(db);
+*/
+
+
+
+
+
+
+
 
 
 

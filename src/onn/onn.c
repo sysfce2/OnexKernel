@@ -70,7 +70,7 @@ static void    persist_init(char* dbpath);
 static void    persist_put(object* o, bool saving_metadata);
 static bool    persist_loop();
 static void    persist_flush();
-static void    persist_pull_keep_active();
+static void    persist_pull_keep_active(list* keep_actives);
 
 static void    timer_init();
 static void    device_init();
@@ -1387,9 +1387,8 @@ object* onex_get_from_cache(char* uid) {
   object* o=properties_get(objects_cache, uid);
   if(o) return o;
 
-  if(!persistence_objects_text) return 0;
-  char* text=properties_get(persistence_objects_text, uid);
-  if(!text) return 0; // <-- now pull from persistence!
+  char* text=persistence_get(uid);
+  if(!text || !(*text)) return 0;
 
   o=object_from_text(text, true, MAX_OBJECT_SIZE);
 
@@ -1397,7 +1396,6 @@ object* onex_get_from_cache(char* uid) {
     object_free(o);
     return 0;
   }
-  mem_freestr(properties_delete(persistence_objects_text, uid));
   return o;
 }
 
@@ -1417,24 +1415,11 @@ void onex_show_cache() {
   log_write("+---------------------------------\n");
 }
 
+// currently only exists to give some testability of persistence
+// but still leaves database as text serialisations
 void onex_un_cache(char* uid) {
-
-  // currently only exists to give some testability of persistence
-  // but still hides a text serialisation instead of using backing store
   persist_flush();
-  if(!uid || !(*uid)) return;
-
-  object* o=properties_delete(objects_cache, uid);
-  if(o){
-    char buff[MAX_TEXT_LEN];
-    char* text=object_to_text(o,buff,MAX_TEXT_LEN,OBJECT_TO_TEXT_PERSIST);
-    mem_freestr(properties_delete(persistence_objects_text, uid));
-    properties_set(persistence_objects_text, uid, mem_strdup(text));
-    object_free(o);
-  }
-
-  //?? tests depend on this - uid-1 being bounced right back in again
-  persist_pull_keep_active();
+  object_free(properties_delete(objects_cache, uid));
 }
 
 static properties* evaluators=0;
@@ -1490,8 +1475,13 @@ static properties* objects_to_save=0;
 
 void persist_init(char* dbpath){
   objects_to_save=properties_new(MAX_OBJECTS);
-  persistence_init(dbpath);
-  persist_pull_keep_active();
+  list* keep_actives = persistence_init(dbpath);
+  persist_pull_keep_active(keep_actives);
+}
+
+void persist_reload(){
+  list* keep_actives = persistence_reload();
+  persist_pull_keep_active(keep_actives);
 }
 
 static uint32_t lasttime=0;
@@ -1535,36 +1525,25 @@ void persist_flush() {
   for(int j=1; j<=sz; j++){
     char* uid=properties_get_n(objects_to_save, j);
     object* o=onex_get_from_cache(uid);
+    int32_t ver = value_int32(o->version);
     char* text=object_to_text(o,buff,MAX_TEXT_LEN,OBJECT_TO_TEXT_PERSIST);
-    persistence_put(uid, text);
+    persistence_put(uid, ver, text);
   }
   properties_clear(objects_to_save, false);
 }
 
-void persist_pull_keep_active() {
-  if(!persistence_objects_text) return;
-  for(int n=1; n<=properties_size(persistence_objects_text); n++){
-    char* uid=0;
-    char* p=properties_get_n(persistence_objects_text, n);
-    char* key=0; char* val=0;
-    #define FREE_BREAK_2 { mem_freestr(key); mem_freestr(val); break; }
-    while(true){
-      key=get_key(&p); if(!key) break; if(!*key) FREE_BREAK_2;
-      val=get_val(&p); if(!val     ||     !*val) FREE_BREAK_2;
-      if(!isupper((unsigned char)(*key)))        FREE_BREAK_2;
-      if(!strcmp(key,"Cache") && !strcmp(val,"keep-active")){
-        uid=properties_key_n(persistence_objects_text, n);
-        FREE_BREAK_2;
-      }
-      mem_freestr(key); key=0;
-      mem_freestr(val); val=0;
-    }
-    if(uid){
-      object* o=onex_get_from_cache(uid);
-      if(object_is_local_device(o)) onex_device_object = o;
-      set_to_notify(o->uid, 0, 0, 0);
-    }
+void persist_pull_keep_active(list* keep_actives) {
+
+  if(!keep_actives) return;
+
+  for(uint16_t n=1; n<=list_size(keep_actives); n++){
+    char* uid = value_string(list_get_n(keep_actives, n));
+    log_write("keep_active: %s\n", uid);
+    object* o=onex_get_from_cache(uid);
+    if(object_is_local_device(o)) onex_device_object = o;
+    set_to_notify(o->uid, 0, 0, 0);
   }
+  list_free(keep_actives, false);
 }
 
 // -----------------------------------------------------------------------

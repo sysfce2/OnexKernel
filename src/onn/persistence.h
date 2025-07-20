@@ -1,9 +1,10 @@
 
 #include <onn.h>
 
-extern properties* persistence_objects_text;
+list* persistence_init(char* filename);
+list* persistence_reload();
 
-void  persistence_init(char* filename);
-void  persistence_put(char* uid, char* text);
+char* persistence_get(char* uid);
+void  persistence_put(char* uid, uint32_t ver, char* text);
 
 

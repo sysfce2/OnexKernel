@@ -5,9 +5,9 @@
 #include <onex-kernel/spi-flash.h>
 #include <persistence.h>
 
-properties* persistence_objects_text=0;
+static properties* persistence_objects_text=0;
 
-void persistence_init(char* db) {
+list* persistence_init(char* db) {
 
 #if defined(BOARD_MAGIC3) && defined(NRF_DO_FLASH)
   char* err;
@@ -20,9 +20,18 @@ void persistence_init(char* db) {
   persistence_objects_text=properties_new(MAX_OBJECTS);
 
   // : read it all in to persistence_objects_text
+  return 0;
 }
 
-void persistence_put(char* uid, char* text) {
+list* persistence_reload(){
+  return 0;
+}
+
+char* persistence_get(char* uid){
+  return 0;
+}
+
+void persistence_put(char* uid, uint32_t ver, char* text) {
 
   if(!persistence_objects_text) return;
 
@@ -62,8 +71,5 @@ void persistence_put(char* uid, char* text) {
 //log_write("=> %s\n", text);
 #endif
 }
-
-
-
 
 

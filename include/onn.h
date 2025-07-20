@@ -79,6 +79,9 @@ void object_set_persist(object* n, char* persist);
 /** read persist prop */
 char* object_get_persist(object* n);
 
+/** for testing */
+void persist_reload();
+
 /** set property value. only use inside an evaluator for 'n' */
 bool  object_property_set(object* n, char* path, char* val);
 

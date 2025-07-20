@@ -816,7 +816,7 @@ void test_persistence()
 
   onex_show_cache();
 
-  onex_un_cache(0); // flushes
+  persist_reload();
 }
 
 uint8_t evaluate_timer_n4_called=0;
