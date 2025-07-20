@@ -20,12 +20,12 @@ typedef struct properties properties;
 typedef struct list       list;
 typedef struct value      value;
 
-char* unknown_to_text(char* b);
+char* unknown_to_text(void* u, char* b, uint16_t s);
 
 #define item_to_text(i,b,n) (\
   item_is_type(i,ITEM_PROPERTIES)? properties_to_text((properties*)i,b,n): (\
   item_is_type(i,ITEM_LIST)      ? list_to_text((list*)i,b,n): (\
-  item_is_type(i,ITEM_VALUE)     ? value_to_text((value*)i,b,n): unknown_to_text(b) \
+  item_is_type(i,ITEM_VALUE)     ? value_to_text((value*)i,b,n): unknown_to_text(i,b,n) \
 )))
 
 // REVISIT: properties_equal

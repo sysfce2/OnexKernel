@@ -18,7 +18,29 @@
 #include <onex-kernel/lib.h>
 #include <onex-kernel/log.h>
 
-char* unknown_to_text(char* b){ *b='?'; *(b+1)=0; return b; }
+#define UNK_TO_TXT_CHK if(ln>=s){ *b = 0; return b; }
+
+static bool decent_string(char* u){
+  for(uint16_t i=0; i<512; i++){
+;   if(u[i]==0) return true;
+;   if(u[i] < ' ' || u[i] > '~') return false;
+  }
+  return false;
+}
+
+char* unknown_to_text(void* u, char* b, uint16_t s){
+
+  int ln=0;
+
+  if(decent_string(u)){
+    ln+=snprintf(b+ln, s-ln, "(%s)", (char*)u);              UNK_TO_TXT_CHK
+  }
+  else{
+    ln+=snprintf(b+ln, s-ln, "??");                          UNK_TO_TXT_CHK
+  }
+
+  return b;
+}
 
 typedef struct value {
   item_type type;
