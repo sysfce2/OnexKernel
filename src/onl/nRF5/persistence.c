@@ -7,6 +7,8 @@
 
 static properties* persistence_objects_text=0;
 
+static volatile list* keep_actives = 0;
+
 list* persistence_init(char* db) {
 
 #if defined(BOARD_MAGIC3) && defined(NRF_DO_FLASH)
@@ -18,22 +20,31 @@ list* persistence_init(char* db) {
 #endif
 
   persistence_objects_text=properties_new(MAX_OBJECTS);
+  keep_actives = list_new(64);
 
-  // : read it all in to persistence_objects_text
   return 0;
 }
 
 list* persistence_reload(){
-  return 0;
+  return keep_actives;
 }
 
 char* persistence_get(char* uid){
-  return 0;
+
+  if(!persistence_objects_text) return 0;
+
+  return properties_get(persistence_objects_text, uid);
 }
 
 void persistence_put(char* uid, uint32_t ver, char* text) {
 
   if(!persistence_objects_text) return;
+
+  mem_freestr(properties_delete(persistence_objects_text, uid));
+  properties_set(persistence_objects_text, uid, mem_strdup(text));
+
+  bool ka = strstr(text, "Cache: keep-active");
+  if(ka) list_vals_set_add(keep_actives, uid);
 
 #if defined(BOARD_MAGIC3) && defined(NRF_DO_FLASH)
 
@@ -67,8 +78,6 @@ void persistence_put(char* uid, uint32_t ver, char* text) {
   snprintf(res, len32, ok? "=%s=": "#%s#", veris);
   log_write(res);
 */
-#else
-//log_write("=> %s\n", text);
 #endif
 }
 
