@@ -35,6 +35,12 @@
  - if complete loop done without finding space, you're full up, and every object has just one latest version
  - you may go on to write a newer version of an object that was saved of course
 
+Still to do:
+
+ - power-fail/crash recovery:
+    - CRCs (for that and for wear-out)
+    - detecting head/tail anomalies
+ - tenancy/GC/etc refinements
 */
 
 bool get_next_uid_ver_cache(char* p, char* uid, char* ver, char* cch){

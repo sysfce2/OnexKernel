@@ -230,6 +230,7 @@ FEATHER_SENSE_SOURCES = \
 ./src/onl/nRF5/i2c.c \
 ./src/onl/nRF5/seesaw.c \
 ./src/onl/nRF5/spi.c \
+./src/onl/nRF5/spi-flash.c \
 ./src/onl/drivers/neopixel.c \
 ./src/onl/drivers/feather-dotstar.c \
 ./src/onl/drivers/compass-lis3mdl.c \
@@ -484,6 +485,7 @@ $(SDK_C_SOURCES) \
 ./sdk/modules/nrfx/drivers/src/nrfx_uarte.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_usbd.c \
 ./sdk/modules/nrfx/drivers/src/nrfx_twi.c \
+./sdk/modules/nrfx/drivers/src/nrfx_qspi.c \
 ./sdk/modules/nrfx/mdk/system_nrf52840.c \
 
 

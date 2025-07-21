@@ -17,7 +17,7 @@
 #include <onex-kernel/led-matrix.h>
 #endif
 
-#if defined(BOARD_MAGIC3)
+#if (defined(BOARD_MAGIC3) || defined(BOARD_FEATHER_SENSE)) && defined(NRF_DO_FLASH)
 #include <onex-kernel/spi-flash.h>
 #endif
 
@@ -225,7 +225,7 @@ void serial_cb(bool connect, char* tty){
 #endif
 }
 
-#if defined(BOARD_MAGIC3) && defined(NRF_DO_FLASH)
+#if (defined(BOARD_MAGIC3) || defined(BOARD_FEATHER_SENSE)) && defined(NRF_DO_FLASH)
 
 #define FLASH_TEST_DATA_START 0x31000
 #define FLASH_TEST_DATA_SIZE  4096
@@ -299,6 +299,13 @@ void run_tests_maybe(properties* config) {
   run_onn_tests(config);
   run_database_tests();
   run_chunkbuf_tests();
+
+#if defined(BOARD_FEATHER_SENSE) && defined(NRF_DO_FLASH)
+  char allids[64];
+  char* flash_result=run_flash_tests(allids);
+  log_write("flash tests: %s %s\n", flash_result, allids);
+  // flash tests: 30ms 1f:1d:b2:67==1f:1d:b2:67 (ef,40,15)(ef,14)
+#endif
 
 #if defined(NRF5)
   int failures=onex_assert_summary();

@@ -37,6 +37,8 @@ static bool initialised=false;
 
 char* spi_flash_init(char* allids) {
 
+  *allids=0;
+
   if(initialised) return 0;
 
   uint32_t err_code;
