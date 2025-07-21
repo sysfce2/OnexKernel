@@ -113,6 +113,10 @@ list* persistence_reload(){
   return keep_actives;
 }
 
+void persistence_show_db(){
+  database_dump(db);
+}
+
 char obj_text[2048];
 
 char* persistence_get(char* uid){

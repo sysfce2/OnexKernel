@@ -39,6 +39,7 @@
 #include <onex-kernel/time.h>
 #include <onex-kernel/log.h>
 
+#include "persistence.h"
 #include <onn.h>
 
 #include <tests.h>
@@ -651,6 +652,7 @@ int main() {
       if(char_recvd=='n') onex_show_notify();
       if(char_recvd=='v') value_dump_small();
       if(char_recvd=='V') value_dump();
+      if(char_recvd=='f') persistence_show_db();
       if(char_recvd=='m') mem_show_allocated(true);
       if(char_recvd=='p') gpio_show_power_status();
       if(char_recvd=='r') boot_reset(false);

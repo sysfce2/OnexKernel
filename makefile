@@ -176,6 +176,7 @@ TESTS_SOURCES = \
 
 LIB_SOURCES = \
 ./src/lib/lib.c \
+./src/lib/show_bytes_n_chars.c \
 ./src/lib/colours.c \
 ./src/lib/chunkbuf.c \
 ./src/lib/database.c \

@@ -7,6 +7,7 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/lib.h>
 #include <onex-kernel/mem.h>
+#include <onex-kernel/show_bytes_n_chars.h>
 #include <onex-kernel/database.h>
 
 #include <onn.h>
@@ -345,6 +346,13 @@ void database_show(database_storage* db){
 
 }
 
+void database_dump(database_storage* db){
+  for(uint16_t s = 0; s < db->sector_count; s++){
+    uint8_t buf[db->sector_size];
+    db->read(db, db->sector_size * s, buf, db->sector_size, 0);
+    show_bytes_and_chars(db->sector_size * s, buf, db->sector_size);
+  }
+}
 
 
 

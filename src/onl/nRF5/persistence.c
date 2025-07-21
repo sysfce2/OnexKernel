@@ -29,6 +29,10 @@ list* persistence_reload(){
   return keep_actives;
 }
 
+void persistence_show_db(){
+  log_write("persistence_show_db...\n");
+}
+
 char* persistence_get(char* uid){
 
   if(!persistence_objects_text) return 0;
