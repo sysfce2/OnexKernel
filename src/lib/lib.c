@@ -69,5 +69,13 @@ bool string_is_blank(char* s){
   return true;
 }
 
+bool decent_string(char* u){
+  for(uint16_t i=0; i<512; i++){
+;   if(u[i]==0) return true;
+;   if(u[i] < ' ' || u[i] > '~') return false;
+  }
+  return false;
+}
+
 
 

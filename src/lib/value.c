@@ -20,14 +20,6 @@
 
 #define UNK_TO_TXT_CHK if(ln>=s){ *b = 0; return b; }
 
-static bool decent_string(char* u){
-  for(uint16_t i=0; i<512; i++){
-;   if(u[i]==0) return true;
-;   if(u[i] < ' ' || u[i] > '~') return false;
-  }
-  return false;
-}
-
 char* unknown_to_text(void* u, char* b, uint16_t s){
 
   int ln=0;
