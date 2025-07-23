@@ -139,11 +139,16 @@ void* properties_del_n(properties* op, uint16_t index) {
 /** Use list_vals_set_ins() on this property key. */
 void properties_set_ins(properties* op, char* k, char* v){
   if(!op) return;
-  list* li = (list*)properties_get(op,k);
+  list* li = (list*)properties_get(op,k); // REVISIT: check type
   if(!li) properties_set(op,k,list_vals_new_from(v,16));
   else    list_vals_set_ins(li,v);
 }
 
+void properties_set_del(properties* op, char* k, char* v){
+  if(!op) return;
+  list* li = (list*)properties_get(op,k); // REVISIT: check type
+  list_vals_set_del(li,v);
+}
 
 void properties_clear(properties* op, bool free_items)
 {

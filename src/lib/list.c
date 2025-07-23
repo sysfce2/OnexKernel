@@ -116,6 +116,10 @@ bool list_vals_set_ins(list* li, char* v){
   return list_ins_n(li,1,value_new(v));
 }
 
+bool list_vals_set_del(list* li, char* v){
+  return !!list_del_n(li, list_vals_has(li,v));
+}
+
 bool list_set_n(list* li, uint16_t index, void* val) {
   if(!li) return false;
   if(index<=0 || index>li->size) return false;
