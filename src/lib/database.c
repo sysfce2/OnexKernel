@@ -94,15 +94,12 @@ static list* get_uid_to_obj_info(database_storage* db){
     char ver[MAX_VER_LEN];
     char cch[MAX_CCH_LEN];
 
-    uint16_t o;
-    for(o=0; o<size && b[o] != 0xff; ){
+    uint16_t o=0;
+    while(o < size && *(b+o)!=0xff){
 
       char* obj = (char*)(b+o);
 
     ; if(!get_next_uid_ver_cache(obj, uid, ver, cch)) break;
-
-      uint16_t size = strlen(obj) + 1;
-      uint32_t vers = strto_int32(ver);
 
       obj_info* oi = properties_get(db->uid_to_obj_info, uid);
 
@@ -111,16 +108,19 @@ static list* get_uid_to_obj_info(database_storage* db){
         properties_set(db->uid_to_obj_info, uid, oi);
         (*oi).ver = 0;
       }
+      uint32_t vers = strto_int32(ver);
+      uint16_t obj_size_aligned = ALIGN_RH_TO_32_BIT(strlen(obj) + 1);
+
       if((*oi).ver < vers){
         (*oi).ver           = vers;
         (*oi).sector        = s;
         (*oi).sector_offset = o + sizeof(database_sector_info);
-        (*oi).size          = size;
+        (*oi).size          = obj_size_aligned;
 
         if(*cch && !strcmp(cch, "keep-active")) list_vals_set_add(keep_actives, uid);
         else                                    list_vals_del(    keep_actives, uid);
       }
-      o += size;
+      o += obj_size_aligned;
     }
     if(o==0){
       log_write("no objects found in sector %d\n", s);
@@ -231,7 +231,11 @@ void write_to_db_and_record_info(database_storage* db, char* uid, uint32_t ver, 
 
   uint32_t w_point = db->sector_size * db->head_sector + db->head_sector_offset;
 
-  db->write(db, w_point, buf, size, 0);
+  uint16_t                    size_aligned = ALIGN_RH_TO_32_BIT(size);
+  ALIGN_LH_TO_32_BIT(uint8_t) buf_aligned[size_aligned];     // REVISIT: ensure size on stack is OK
+  mem_strncpy((char*)buf_aligned, (char*)buf, size_aligned); // pads with zeroes up to size_aligned
+
+  db->write(db, w_point, buf_aligned, size_aligned, 0);
 
   obj_info* oi = properties_get(db->uid_to_obj_info, uid);
 
@@ -242,9 +246,9 @@ void write_to_db_and_record_info(database_storage* db, char* uid, uint32_t ver, 
   (*oi).ver           = ver;
   (*oi).sector        = db->head_sector;
   (*oi).sector_offset = db->head_sector_offset;
-  (*oi).size          = size;
+  (*oi).size          = size_aligned;
 
-  db->head_sector_offset += size;
+  db->head_sector_offset += size_aligned;
 }
 
 void save_latest_versions(database_storage* db){
@@ -269,11 +273,15 @@ void save_latest_versions(database_storage* db){
 
     char oi_ver[16]; snprintf(oi_ver, 16, "%"FMT_UINT32, (*oi).ver);
 
-    if((*oi).sector == tail_sector &&
-       !strcmp(ver, oi_ver)        &&
-        strlen(obj) + 1 == (*oi).size){
+    if((*oi).sector==tail_sector && !strcmp(oi_ver, ver)){
 
-      write_to_db_and_record_info(db, uid, (*oi).ver, (uint8_t*)obj, (*oi).size);
+      uint16_t size_aligned = ALIGN_RH_TO_32_BIT(strlen(obj)+1);
+      if(size_aligned==(*oi).size){
+        write_to_db_and_record_info(db, uid, (*oi).ver, (uint8_t*)obj, (*oi).size);
+      }
+      else{
+        log_write("sizes differ! len in db=%d info size=%d\n", size_aligned, (*oi).size);
+      }
     }
     obj += (*oi).size;
   }
@@ -332,10 +340,12 @@ void database_show(database_storage* db){
     uint16_t size       = db->sector_size - sizeof(database_sector_info);
     uint8_t b[size]; db->read(db, data_start, b, size, 0);
 
-    for(uint16_t o=0; o<size && b[o] != 0xff; ){
+    uint16_t o=0;
+    while(o < size && *(b+o)!=0xff){
       char* obj = (char*)(b+o);
-      log_write("|   [%s][%d]\n", obj, strlen(obj)+1);
-      o+=strlen(obj)+1;
+      uint16_t size_aligned = ALIGN_RH_TO_32_BIT(strlen(obj)+1);
+      log_write("|   [%s][%d/%d]\n", obj, strlen(obj)+1, size_aligned);
+      o+=size_aligned;
     }
     log_write("+-------------------------------------------------------------------------------\n");
   }

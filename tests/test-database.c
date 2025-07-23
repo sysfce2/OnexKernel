@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <onex-kernel/lib.h>
 #include <onex-kernel/mem.h>
 #include <onex-kernel/database.h>
 #include <onex-kernel/log.h>
@@ -98,7 +99,7 @@ void run_database_tests(properties* config){
 
   log_write("----------- database tests --------------------\n");
 
-  char* test_object_123_1 = "UID: uid-123 Ver: 1 is: x"; // length 25 or 26 with 0
+  char* test_object_123_1 = "UID: uid-123 Ver: 1 is: x"; // length 25 or 26 with 0; 28 aligned to 32bits
   char* test_object_456_1 = "UID: uid-456 Ver: 1 is: x"; // these don't update
 
   char* test_object_abc_1 = "UID: uid-abc Ver: 1 is: x";
@@ -121,6 +122,8 @@ void run_database_tests(properties* config){
   char* test_object_ccc_1 = "UID: uid-ccc Ver: 1 is: x";
 
   uint8_t test_object_len = strlen(test_object_123_1) + 1;
+  uint8_t test_object_len_aligned = ALIGN_RH_TO_32_BIT(test_object_len);
+
 
   // ----- Initialisation
   database_storage* db = test_stub_storage_new();
@@ -136,7 +139,7 @@ void run_database_tests(properties* config){
 
   // ----- Sector 0 Object 2
   database_put(db, "uid-abc", 1, (uint8_t*)test_object_abc_1, test_object_len);
-  w_point = test_object_len;
+  w_point = TEST_SECTOR_SIZE * 0 + test_object_len_aligned;
   onex_assert_equal(base + w_point, test_object_abc_1, "uid-abc/1 written to correct place");
 
   // ----- Sector 1 Object 1
@@ -146,7 +149,7 @@ void run_database_tests(properties* config){
 
   // ----- Sector 1 Object 2
   database_put(db, "uid-def", 1, (uint8_t*)test_object_def_1, test_object_len);
-  w_point = TEST_SECTOR_SIZE + test_object_len;
+  w_point = TEST_SECTOR_SIZE * 1 + test_object_len_aligned;
   onex_assert_equal(base + w_point, test_object_def_1, "uid-def/1 written to correct place");
 
   // ----- Sector 2 Object 1
@@ -156,21 +159,21 @@ void run_database_tests(properties* config){
 
   // ----- Sector 2 Object 2
   database_put(db, "uid-def", 2, (uint8_t*)test_object_def_2, test_object_len);
-  w_point = TEST_SECTOR_SIZE * 2 + test_object_len;
+  w_point = TEST_SECTOR_SIZE * 2 + test_object_len_aligned;
   onex_assert_equal(base + w_point, test_object_def_2, "uid-def/2 written to correct place");
 
   // ----- Sector 3 Object 1
   database_put(db, "uid-abc", 3, (uint8_t*)test_object_abc_3, test_object_len);
   w_point = TEST_SECTOR_SIZE * 3;
   onex_assert_equal(base + w_point, test_object_123_1, "uid-123 safe from erase");
-  w_point = TEST_SECTOR_SIZE * 3 + test_object_len;
+  w_point = TEST_SECTOR_SIZE * 3 + test_object_len_aligned;
   onex_assert_equal(base + w_point, test_object_abc_3, "uid-abc/3 written to correct place");
 
   // ----- Sector 0 Object 1
   database_put(db, "uid-def", 3, (uint8_t*)test_object_def_3, test_object_len);
   w_point = 0;
   onex_assert_equal(base + w_point, test_object_456_1, "uid-456 safe from erase");
-  w_point = test_object_len;
+  w_point = TEST_SECTOR_SIZE * 0 + test_object_len_aligned;
   onex_assert_equal(base + w_point, test_object_def_3, "uid-def/3 written to correct place");
 
   // ----- Sector 1 Object 1
@@ -188,21 +191,21 @@ void run_database_tests(properties* config){
 
   // ----- Sector 1 Object 2
   database_put(db, "uid-def", 4, (uint8_t*)test_object_def_4, test_object_len);
-  w_point = TEST_SECTOR_SIZE + test_object_len;
+  w_point = TEST_SECTOR_SIZE * 1 + test_object_len_aligned;
   onex_assert_equal(base + w_point, test_object_def_4, "uid-def/4 written to correct place");
 
   // ----- Sector 2 Object 1
   database_put(db, "uid-abc", 5, (uint8_t*)test_object_abc_5, test_object_len);
   w_point = TEST_SECTOR_SIZE * 2;
   onex_assert_equal(base + w_point, test_object_123_1, "uid-123 safe from erase");
-  w_point = TEST_SECTOR_SIZE * 2 + test_object_len;
+  w_point = TEST_SECTOR_SIZE * 2 + test_object_len_aligned;
   onex_assert_equal(base + w_point, test_object_abc_5, "uid-abc/5 written to correct place");
 
   // ----- Sector 3 Object 1
   database_put(db, "uid-def", 5, (uint8_t*)test_object_def_5, test_object_len);
   w_point = TEST_SECTOR_SIZE * 3;
   onex_assert_equal(base + w_point, test_object_456_1, "uid-456 safe from erase");
-  w_point = TEST_SECTOR_SIZE * 3 + test_object_len;
+  w_point = TEST_SECTOR_SIZE * 3 + test_object_len_aligned;
   onex_assert_equal(base + w_point, test_object_def_5, "uid-def/5 written to correct place");
 
   // -------------------------------------------------------
@@ -212,19 +215,19 @@ void run_database_tests(properties* config){
 
   s=database_get(db, "uid-123", 0, (uint8_t*)b, 128);
   onex_assert_equal(b, "UID: uid-123 Ver: 1 is: x", "can get uid-123");
-  onex_assert_equal_num(s, 26, "length correct");
+  onex_assert_equal_num(s, test_object_len_aligned, "length correct");
 
   s=database_get(db, "uid-456", 0, (uint8_t*)b, 128);
   onex_assert_equal(b, "UID: uid-456 Ver: 1 is: x", "can get uid-456");
-  onex_assert_equal_num(s, 26, "length correct");
+  onex_assert_equal_num(s, test_object_len_aligned, "length correct");
 
   s=database_get(db, "uid-abc", 0, (uint8_t*)b, 128);
   onex_assert_equal(b, "UID: uid-abc Ver: 5 is: x", "can get uid-abc");
-  onex_assert_equal_num(s, 26, "length correct");
+  onex_assert_equal_num(s, test_object_len_aligned, "length correct");
 
   s=database_get(db, "uid-def", 0, (uint8_t*)b, 128);
   onex_assert_equal(b, "UID: uid-def Ver: 5 is: x", "can get uid-def");
-  onex_assert_equal_num(s, 26, "length correct");
+  onex_assert_equal_num(s, test_object_len_aligned, "length correct");
 
   // ------------------------------------------
 
