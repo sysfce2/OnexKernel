@@ -1519,13 +1519,13 @@ void persist_flush() {
 
   if(!objects_to_save) return;
 
-  char buff[MAX_TEXT_LEN];
   uint16_t sz=properties_size(objects_to_save);
   if(!sz) return;
   for(int j=1; j<=sz; j++){
     char* uid=properties_get_n(objects_to_save, j);
     object* o=onex_get_from_cache(uid);
     int32_t ver = value_int32(o->version);
+    static char buff[MAX_TEXT_LEN];
     char* text=object_to_text(o,buff,MAX_TEXT_LEN,OBJECT_TO_TEXT_PERSIST);
     persistence_put(uid, ver, text);
   }

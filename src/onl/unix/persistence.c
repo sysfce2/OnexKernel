@@ -31,7 +31,7 @@ static void mmap_db_format(database_storage* db){
 
   for(uint32_t i=0; i < MMAP_SIZE; i++) mmap_db[i]=0xff;
 
-  for(uint16_t s=0; s < db->sector_count; s++){
+  for(uint16_t s=0; s < MMAP_DB_SECTOR_COUNT; s++){
     database_sector_info* dsi = (database_sector_info*)(mmap_db + MMAP_DB_SECTOR_SIZE * s);
     (*dsi).erase_count = (s==0? 2: 1);
     (*dsi).zero_term = 0;
@@ -117,11 +117,10 @@ void persistence_show_db(){
   database_dump(db);
 }
 
-char obj_text[2048];
-
 char* persistence_get(char* uid){
+  static char obj_text[2048];
   uint16_t s = database_get(db, uid, 0, (uint8_t*)obj_text, 2048);
-  return obj_text;
+  return obj_text; // REVISIT: hmmmmm
 }
 
 void persistence_put(char* uid, uint32_t ver, char* text){

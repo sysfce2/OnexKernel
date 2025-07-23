@@ -85,8 +85,7 @@ bool properties_set(properties* op, char* key, void* i) {
   return true;
 }
 
-void* properties_get(properties* op, char* key)
-{
+void* properties_get(properties* op, char* key) {
   if(!(op && key)) return 0;
   hash_item* list;
   list=op->lists[string_hash(key) % op->buckets];
@@ -191,6 +190,7 @@ char* properties_to_text(properties* op, char* b, uint16_t s) {
 }
 
 void properties_log(properties* op) {
+  if(!op) return;
   char buf[4096]; // REVISIT!
   log_write("%s:%u\n%s\n", op->func, (uint16_t)op->line, properties_to_text(op,buf,4096));
 }

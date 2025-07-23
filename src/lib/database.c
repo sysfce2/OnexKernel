@@ -353,11 +353,13 @@ void database_show(database_storage* db){
 }
 
 void database_dump(database_storage* db){
+  log_write("+-------------------------------------------------------------------------------\n");
   for(uint16_t s = 0; s < db->sector_count; s++){
     uint8_t buf[db->sector_size];
     db->read(db, db->sector_size * s, buf, db->sector_size, 0);
     show_bytes_and_chars(db->sector_size * s, buf, db->sector_size);
   }
+  log_write("+-------------------------------------------------------------------------------\n");
 }
 
 

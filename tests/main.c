@@ -47,12 +47,13 @@
 static volatile int16_t run_tests= -1;
 static volatile char    char_recvd= 0;
 
-extern void run_properties_tests();
-extern void run_list_tests();
 extern void run_value_tests();
-extern void run_onn_tests(properties* config);
+extern void run_list_tests();
+extern void run_properties_tests();
 
 extern void run_database_tests();
+
+extern void run_onn_tests(properties* config);
 
 void run_chunkbuf_tests();
 
@@ -296,9 +297,11 @@ void run_tests_maybe(properties* config) {
   run_value_tests();
   run_list_tests();
   run_properties_tests();
-  run_onn_tests(config);
+
   run_database_tests();
   run_chunkbuf_tests();
+
+  run_onn_tests(config);
 
 #if defined(BOARD_FEATHER_SENSE) && defined(NRF_DO_FLASH)
   char allids[64];
