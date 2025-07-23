@@ -820,7 +820,6 @@ clean:
 	find . -name onex.ondb | xargs rm -f
 	find ./sdk/ -name '*.o' | xargs -r rm
 	rm -rf onex-kernel*.??? dfu.zip core oko
-	rm -f ,*
 	@echo "------------------------------"
 	@echo "files not cleaned:"
 	@git ls-files --others --exclude-from=.git/info/exclude | xargs -r ls -Fla

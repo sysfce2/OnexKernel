@@ -17,7 +17,7 @@
 #include <onex-kernel/led-matrix.h>
 #endif
 
-#if (defined(BOARD_MAGIC3) || defined(BOARD_FEATHER_SENSE)) && defined(NRF_DO_FLASH)
+#if (defined(BOARD_MAGIC3) || defined(BOARD_FEATHER_SENSE)) && defined(NRF_DO_FLASH_TESTS)
 #include <onex-kernel/spi-flash.h>
 #endif
 
@@ -226,9 +226,9 @@ void serial_cb(bool connect, char* tty){
 #endif
 }
 
-#if (defined(BOARD_MAGIC3) || defined(BOARD_FEATHER_SENSE)) && defined(NRF_DO_FLASH)
+#if (defined(BOARD_MAGIC3) || defined(BOARD_FEATHER_SENSE)) && defined(NRF_DO_FLASH_TESTS)
 
-#define FLASH_TEST_DATA_START 0x31000
+#define FLASH_TEST_DATA_START 0x34000
 #define FLASH_TEST_DATA_SIZE  4096
 #define FLASH_TEST_ERASE_LEN  SPI_FLASH_ERASE_LEN_4KB
 
@@ -239,7 +239,7 @@ char* run_flash_tests(char* allids) {
 
   char* err;
 
-  err=spi_flash_init(allids);
+  err = spi_flash_init(allids);
   if(err) return err;
 
   err = spi_flash_erase(FLASH_TEST_DATA_START, FLASH_TEST_ERASE_LEN, 0);
@@ -276,7 +276,7 @@ void run_tests_maybe(properties* config) {
 
   log_write("-----------------OnexKernel tests------------------------\n");
 
-#if defined(BOARD_MAGIC3) && defined(NRF_DO_FLASH)
+#if defined(BOARD_MAGIC3) && defined(NRF_DO_FLASH_TESTS)
   char allids[64];
   char* flash_result=run_flash_tests(allids);
 
@@ -303,11 +303,10 @@ void run_tests_maybe(properties* config) {
 
   run_onn_tests(config);
 
-#if defined(BOARD_FEATHER_SENSE) && defined(NRF_DO_FLASH)
+#if defined(BOARD_FEATHER_SENSE) && defined(NRF_DO_FLASH_TESTS)
   char allids[64];
   char* flash_result=run_flash_tests(allids);
   log_write("flash tests: %s %s\n", flash_result, allids);
-  // flash tests: 30ms 1f:1d:b2:67==1f:1d:b2:67 (ef,40,15)(ef,14)
 #endif
 
 #if defined(NRF5)

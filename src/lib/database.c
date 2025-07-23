@@ -111,7 +111,12 @@ static list* get_uid_to_obj_info(database_storage* db){
       uint32_t vers = strto_int32(ver);
       uint16_t obj_size_aligned = ALIGN_RH_TO_32_BIT(strlen(obj) + 1);
 
-      if((*oi).ver < vers){
+      if((*oi).ver <= vers){
+
+        if((*oi).ver==vers) log_write("two objects same version! %s %s\n", uid, ver);
+        // if two same version, take later; chances are reasonable that it's newer
+        // REVISIT: need to update version and save on metadata updates too!
+
         (*oi).ver           = vers;
         (*oi).sector        = s;
         (*oi).sector_offset = o + sizeof(database_sector_info);

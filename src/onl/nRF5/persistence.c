@@ -79,7 +79,7 @@ static properties* persistence_objects_text=0;
 #endif
 
 static list* keep_actives = 0;
-//
+
 list* persistence_init(properties* config){
 
 #if defined(FLASH_NOT_FAKE)
