@@ -82,19 +82,21 @@ bool mkdir_p(char* filename) {
 
 static database_storage* db;
 
-list* persistence_init(char* filename) {
+list* persistence_init(properties* config){
 
-  if(!filename || !*filename) return 0;
+  char* db_path=value_string(properties_get(config, "db-path"));
 
-  log_write("Using DB file %s\n", filename);
+  if(!db_path || !*db_path) return 0;
 
-  if(!mkdir_p(filename)){
-    log_write("Couldn't make directory for '%s' errno=%d\n", filename, errno);
+  log_write("Using DB file %s\n", db_path);
+
+  if(!mkdir_p(db_path)){
+    log_write("Couldn't make directory for '%s' errno=%d\n", db_path, errno);
     return 0;
   }
-  int fd = open(filename, O_RDWR | O_CREAT, 0644);
+  int fd = open(db_path, O_RDWR | O_CREAT, 0644);
   if(fd== -1){
-    log_write("Couldn't open %s for DB: %s\n", filename, strerror(errno));
+    log_write("Couldn't open %s for DB: %s\n", db_path, strerror(errno));
     return 0;
   }
   ftruncate(fd, MMAP_SIZE);
@@ -102,14 +104,14 @@ list* persistence_init(char* filename) {
 
   db = mmap_db_storage_new();
 
-  list* keep_actives = database_init(db);
+  list* keep_actives = database_init(db,config);
   return keep_actives;
 }
 
 // for testing
 list* persistence_reload(){
   database_free(db);
-  list* keep_actives = database_init(db);
+  list* keep_actives = database_init(db,0);
   return keep_actives;
 }
 

@@ -51,7 +51,7 @@ extern void run_value_tests();
 extern void run_list_tests();
 extern void run_properties_tests();
 
-extern void run_database_tests();
+extern void run_database_tests(properties* config);
 
 extern void run_onn_tests(properties* config);
 
@@ -298,7 +298,7 @@ void run_tests_maybe(properties* config) {
   run_list_tests();
   run_properties_tests();
 
-  run_database_tests();
+  run_database_tests(config);
   run_chunkbuf_tests();
 
   run_onn_tests(config);
@@ -573,13 +573,14 @@ int main() {
 
   properties* config = properties_new(32);
 #if !defined(NRF5)
-  properties_set(config, "dbpath", value_new("tests.ondb"));
+  properties_set(config, "db-path", value_new("tests.ondb"));
   properties_set(config, "channels", list_vals_new_from_fixed("serial ipv6"));
+  properties_set(config, "flags", list_vals_new_from_fixed("db-format"));
 #else
 #if !defined(BOARD_MAGIC3)
-  properties_set(config, "flags", list_vals_new_from_fixed("debug-on-serial log-to-led"));
+  properties_set(config, "flags", list_vals_new_from_fixed("debug-on-serial log-to-led db-format"));
 #else
-  properties_set(config, "flags", list_vals_new_from_fixed("log-to-gfx"));
+  properties_set(config, "flags", list_vals_new_from_fixed("log-to-gfx db-format"));
 #endif
 #endif
   properties_set(config, "test-uid-prefix", value_new("tests"));

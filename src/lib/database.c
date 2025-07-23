@@ -168,27 +168,25 @@ static void find_head_sector_offset(database_storage* db){
 
 #define MIN_OBJ_SIZE_ROUGHLY 32
 
-list* database_init(database_storage* db){
+list* database_init(database_storage* db, properties* config){
+
+  bool db_format=list_vals_has(properties_get(config, "flags"), "db-format");
 
   (*db).init(db);
 
   uint32_t max_objects = (db->sector_size * db->sector_count) / MIN_OBJ_SIZE_ROUGHLY;
-
   if(max_objects > MAX_DB_OBJECTS) max_objects = MAX_DB_OBJECTS;
-
   log_write("database max_objects=%d\n", max_objects);
 
   db->uid_to_obj_info = properties_new(max_objects);
 
-  list* keep_actives = get_uid_to_obj_info(db);
-
-  uint16_t n = properties_size(db->uid_to_obj_info);
-
-  log_write("number of objects in DB: %d\n", n);
-
-  if(!n){
-    log_write("DB empty: formatting it!\n");
+  list* keep_actives = 0;
+  if(db_format){
+    log_write("formatting DB!\n");
     db->format(db);
+  } else {
+    keep_actives=get_uid_to_obj_info(db);
+    log_write("number of objects in DB: %d\n", properties_size(db->uid_to_obj_info));
   }
 
   find_head_sector(db);

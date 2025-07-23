@@ -9,7 +9,8 @@ static properties* persistence_objects_text=0;
 
 static volatile list* keep_actives = 0;
 
-list* persistence_init(char* db) {
+list* persistence_init(properties* config){
+
 
 #if defined(BOARD_MAGIC3) && defined(NRF_DO_FLASH)
   char* err;

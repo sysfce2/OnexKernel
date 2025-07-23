@@ -66,7 +66,7 @@ static void    run_evaluators(object* o, void* data, value* alerted, bool timedo
 static bool    run_any_evaluators();
 static void    set_to_notify(value* uid, void* data, value* alerted, uint64_t timeout);
 
-static void    persist_init(char* dbpath);
+static void    persist_init(properties* config);
 static void    persist_put(object* o, bool saving_metadata);
 static bool    persist_loop();
 static void    persist_flush();
@@ -1316,11 +1316,10 @@ void onex_init(properties* config) { // REVISIT: onn_init()?
 
   log_write("Initialising Onex...\n");
 
-  char* dbpath   =value_string(properties_get(config, "dbpath"));
   test_uid_prefix=value_string(properties_get(config, "test-uid-prefix"));
 
   timer_init();
-  persist_init(dbpath);
+  persist_init(config);
   device_init();
   onp_init(config);
 }
@@ -1473,9 +1472,9 @@ void run_evaluators(object* o, void* data, value* alerted, bool timedout){
 
 static properties* objects_to_save=0;
 
-void persist_init(char* dbpath){
+void persist_init(properties* config){
   objects_to_save=properties_new(MAX_OBJECTS);
-  list* keep_actives = persistence_init(dbpath);
+  list* keep_actives = persistence_init(config);
   persist_pull_keep_active(keep_actives);
 }
 

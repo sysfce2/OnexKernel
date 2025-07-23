@@ -53,7 +53,7 @@ typedef struct database_sector_info {
 
 // ----------------------
 
-list*    database_init(database_storage* db);
+list*    database_init(database_storage* db, properties* config);
 bool     database_put( database_storage* db, char* uid, uint32_t ver, uint8_t* buf, uint16_t size);
 uint16_t database_get( database_storage* db, char* uid, uint32_t ver, uint8_t* buf, uint16_t size);
 void     database_show(database_storage* db);

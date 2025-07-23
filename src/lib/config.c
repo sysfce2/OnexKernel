@@ -14,7 +14,7 @@ properties* get_config(int argc, char *argv[], char* name, char* flags){
   properties* config = properties_new(32);
 
   char dbname[128]; snprintf(dbname, 128, "%s.ondb", name);
-  properties_set(config, "dbpath", value_new(dbname));
+  properties_set(config, "db-path", value_new(dbname));
 
   list* chans  = list_new(2);
   list* groups = 0;

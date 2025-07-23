@@ -222,7 +222,7 @@ extern object* onex_device_object;
 
 /** set things up. example config:
                {
-                 dbpath: ./my.ondb
+                 db-path: ./my.ondb
                  channels: serial ipv6
                  ipv6_groups: ff12::1234 ff12::4321
                }
