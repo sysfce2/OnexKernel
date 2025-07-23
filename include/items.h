@@ -64,6 +64,7 @@ char* unknown_to_text(void* u, char* b, uint16_t s);
 properties* properties_new_(char* func, uint32_t line, uint16_t max_size);
 bool        properties_set(properties* op, char* key, void* i);
 void*       properties_get(properties* op, char* key);
+void*       properties_del(properties* op, char* key);
 char*       properties_key_n(properties* op, uint16_t index);
 void*       properties_get_n(properties* op, uint16_t index);
 void*       properties_del_n(properties* op, uint16_t index);
@@ -71,7 +72,6 @@ void        properties_set_ins(properties* op, char* k, char* v);
 uint16_t    properties_size(properties* op);
 char*       properties_to_text(properties* op, char* b, uint16_t s);
 void        properties_log(properties* op);
-void*       properties_delete(properties* op, char* key);
 void        properties_clear(properties* op, bool free_items);
 void        properties_free(properties* op, bool free_items);
 // only set free_items if you've only saved items objects and only you have used them!

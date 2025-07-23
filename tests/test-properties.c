@@ -69,11 +69,11 @@ void test_properties()
 
   onex_assert_equal(item_to_text(op, buf, 64), "{\n  x: i\n  3: l m\n  *: +\n}\n", "serialise to string works");
 
-                    properties_delete(op,"3");
+                    properties_del(op,"3");
   onex_assert(      properties_size(op)==2,                               "after delete size should now be 2");
-                    properties_delete(op,"x");
+                    properties_del(op,"x");
   onex_assert(      properties_size(op)==1,                               "after delete size should now be 1");
-                    properties_delete(op,"*");
+                    properties_del(op,"*");
   onex_assert(      properties_size(op)==0,                               "after delete size should now be 0");
   onex_assert_equal(item_to_text(op, buf, 64), "{\n}\n",                  "serialise to string works");
 

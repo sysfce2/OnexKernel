@@ -74,7 +74,7 @@ void properties_set_ins(properties* op, char* k, char* v){
   else    list_vals_set_ins(li,v);
 }
 
-void* properties_delete(properties* op, char* key)
+void* properties_del(properties* op, char* key)
 {
   if(!op) return 0;
   void* v=0;
@@ -100,7 +100,7 @@ void properties_clear(properties* op, bool free_items)
   if(!op) return;
   int sz=op->size;
   for(int j=0; j<sz; j++){
-    void* v=properties_delete(op, op->keys[0]);
+    void* v=properties_del(op, op->keys[0]);
     if(free_items) item_free((item*)v);
   }
 }

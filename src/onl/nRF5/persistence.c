@@ -44,7 +44,7 @@ void persistence_put(char* uid, uint32_t ver, char* text) {
 
   if(!persistence_objects_text) return;
 
-  mem_freestr(properties_delete(persistence_objects_text, uid));
+  mem_freestr(properties_del(persistence_objects_text, uid));
   properties_set(persistence_objects_text, uid, mem_strdup(text));
 
   bool ka = strstr(text, "Cache: keep-active");

@@ -877,7 +877,7 @@ bool property_edit(object* n, char* key, char* val, uint8_t mode){
   }
 
   if(mode==LIST_EDIT_MODE_DELETE){
-    item* i=properties_delete(n->properties, key);
+    item* i=properties_del(n->properties, key);
     item_free(i);
     return !!i;
   }
@@ -1419,7 +1419,7 @@ void onex_show_cache() {
 // but still leaves database as text serialisations
 void onex_un_cache(char* uid) {
   persist_flush();
-  object_free(properties_delete(objects_cache, uid));
+  object_free(properties_del(objects_cache, uid));
 }
 
 static properties* evaluators=0;

@@ -95,33 +95,7 @@ void* properties_get(properties* op, char* key) {
   return list? list->item: 0;
 }
 
-char* properties_key_n(properties* op, uint16_t index) {
-  if(!op) return 0;
-  if(index<=0 || index>op->size) return 0;
-  return op->keys[index-1];
-}
-
-void* properties_get_n(properties* op, uint16_t index) {
-  if(!op) return 0;
-  if(index<=0 || index>op->size) return 0;
-  return properties_get(op, op->keys[index-1]);
-}
-
-void* properties_del_n(properties* op, uint16_t index) {
-  if(!op) return 0;
-  if(index<=0 || index>op->size) return 0;
-  return properties_delete(op, op->keys[index-1]);
-}
-
-/** Use list_vals_set_ins() on this property key. */
-void properties_set_ins(properties* op, char* k, char* v){
-  if(!op) return;
-  list* li = (list*)properties_get(op,k);
-  if(!li) properties_set(op,k,list_vals_new_from(v,16));
-  else    list_vals_set_ins(li,v);
-}
-
-void* properties_delete(properties* op, char* key) {
+void* properties_del(properties* op, char* key) {
   if(!(op && key)) return 0;
   void* v=0;
   hash_item** lisp;
@@ -144,12 +118,39 @@ void* properties_delete(properties* op, char* key) {
   return 0;
 }
 
+char* properties_key_n(properties* op, uint16_t index) {
+  if(!op) return 0;
+  if(index<=0 || index>op->size) return 0;
+  return op->keys[index-1];
+}
+
+void* properties_get_n(properties* op, uint16_t index) {
+  if(!op) return 0;
+  if(index<=0 || index>op->size) return 0;
+  return properties_get(op, op->keys[index-1]);
+}
+
+void* properties_del_n(properties* op, uint16_t index) {
+  if(!op) return 0;
+  if(index<=0 || index>op->size) return 0;
+  return properties_del(op, op->keys[index-1]);
+}
+
+/** Use list_vals_set_ins() on this property key. */
+void properties_set_ins(properties* op, char* k, char* v){
+  if(!op) return;
+  list* li = (list*)properties_get(op,k);
+  if(!li) properties_set(op,k,list_vals_new_from(v,16));
+  else    list_vals_set_ins(li,v);
+}
+
+
 void properties_clear(properties* op, bool free_items)
 {
   if(!op) return;
   int sz=op->size;
   for(int j=0; j<sz; j++){
-    void* v=properties_delete(op, op->keys[0]);
+    void* v=properties_del(op, op->keys[0]);
     if(free_items) item_free((item*)v);
   }
 }

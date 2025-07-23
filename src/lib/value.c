@@ -146,7 +146,7 @@ void value_free(value* v)
   if(v->refs){
     RETURN_UNLOCKING();
   }
-  properties_delete(all_values, v->val);
+  properties_del(all_values, v->val);
   mem_freestr(v->val);
   mem_free(v);
   RETURN_UNLOCKING();
