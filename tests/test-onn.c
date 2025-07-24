@@ -6,8 +6,11 @@
 #include <onex-kernel/lib.h>
 #include <onex-kernel/log.h>
 #include <onex-kernel/time.h>
-#include <tests.h>
+
+#include <persistence.h>
 #include <onn.h>
+
+#include <tests.h>
 
 // ---------------------------------------------------------------------------------
 
@@ -776,8 +779,8 @@ bool evaluate_persistence_n4_after(object* n4, void* d)
   return true;
 }
 
-void test_persistence()
-{
+void test_persistence() {
+
   log_write("\n------------ Persistence ----------------\n\n");
 
   onex_show_cache();
@@ -912,6 +915,7 @@ void run_onn_tests(properties* config) {
   onex_assert_equal_num(evaluate_local_notify_n3_called, 6,       "evaluate_local_notify_n3 was called six times");
 
   onex_show_cache();
+  persistence_dump();
 
   uint32_t s=(uint32_t)time_ms();
   uint32_t e;
