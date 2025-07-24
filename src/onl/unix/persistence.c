@@ -115,6 +115,10 @@ list* persistence_reload(){
   return keep_actives;
 }
 
+void  persistence_wipe(){
+  database_wipe(db);
+}
+
 void persistence_show_db(){
   database_dump(db);
 }

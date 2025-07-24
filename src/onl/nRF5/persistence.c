@@ -109,6 +109,15 @@ list* persistence_reload(){
   return keep_actives;
 }
 
+void  persistence_wipe(){
+#if defined(FLASH_NOT_FAKE)
+  if(db) database_wipe(db);
+  else log_write("persistence_wipe but no db\n");
+#else
+  log_write("persistence_wipe...\n");
+#endif
+}
+
 void persistence_show_db(){
 #if defined(FLASH_NOT_FAKE)
   if(db) database_dump(db);

@@ -138,10 +138,11 @@ static list* get_uid_to_obj_info(database_storage* db){
       }
     }
   }
+  log_write("number of objects in DB: %d\n", properties_size(db->uid_to_obj_info));
   return keep_actives;
 }
 
-static void find_head_sector(database_storage* db){
+static void find_head_sector_and_offset(database_storage* db){
 
   database_sector_info dbsi_0;
   db->read(db, 0, (uint8_t*)(&dbsi_0), sizeof(database_sector_info), 0);
@@ -153,9 +154,6 @@ static void find_head_sector(database_storage* db){
   ; if(dbsi_s.erase_count < dbsi_0.erase_count) break;
   }
   db->head_sector = s-1;
-}
-
-static void find_head_sector_offset(database_storage* db){
 
   uint32_t start = db->head_sector * db->sector_size + sizeof(database_sector_info);
   uint16_t size  = db->sector_size - sizeof(database_sector_info);
@@ -169,41 +167,20 @@ static void find_head_sector_offset(database_storage* db){
 ;     return;
     }
   }
+  log_write("head sector is        %d\n", db->head_sector);
+  log_write("head sector offset is %d\n", db->head_sector_offset);
 }
 
 #define MIN_OBJ_SIZE_ROUGHLY 32
 
-list* database_init(database_storage* db, properties* config){
-
-  bool db_format=list_vals_has(properties_get(config, "flags"), "db-format");
-
-  (*db).init(db);
-
+static void new_uid_to_obj_info(database_storage* db){
   uint32_t max_objects = (db->sector_size * db->sector_count) / MIN_OBJ_SIZE_ROUGHLY;
   if(max_objects > MAX_DB_OBJECTS) max_objects = MAX_DB_OBJECTS;
-  log_write("database max_objects=%d\n", max_objects);
-
+  log_write("database max objects=%d\n", max_objects);
   db->uid_to_obj_info = properties_new(max_objects);
-
-  list* keep_actives = 0;
-  if(db_format){
-    log_write("formatting DB!\n");
-    db->format(db);
-  } else {
-    keep_actives=get_uid_to_obj_info(db);
-    log_write("number of objects in DB: %d\n", properties_size(db->uid_to_obj_info));
-  }
-
-  find_head_sector(db);
-  find_head_sector_offset(db);
-
-  log_write("head sector is        %d\n", db->head_sector);
-  log_write("head sector offset is %d\n", db->head_sector_offset);
-
-  return keep_actives;
 }
 
-void database_free(database_storage* db){
+static void free_uid_to_obj_info(database_storage* db){
   properties* p = db->uid_to_obj_info;
   if(!p) return;
   uint16_t n = properties_size(p);
@@ -213,6 +190,42 @@ void database_free(database_storage* db){
   }
   properties_free(p, false);
   db->uid_to_obj_info=0;
+}
+
+list* database_init(database_storage* db, properties* config){
+
+  bool db_format=list_vals_has(properties_get(config, "flags"), "db-format");
+
+  (*db).init(db);
+
+  if(db_format){
+    database_wipe(db);
+;   return 0;
+  }
+  new_uid_to_obj_info(db);
+
+  list* keep_actives = get_uid_to_obj_info(db);
+
+  find_head_sector_and_offset(db);
+
+  return keep_actives;
+}
+
+void database_wipe(database_storage* db){
+
+  log_write("formatting DB!\n");
+
+  free_uid_to_obj_info(db);
+
+  db->format(db);
+
+  new_uid_to_obj_info(db);
+
+  find_head_sector_and_offset(db);
+}
+
+void database_free(database_storage* db){
+  free_uid_to_obj_info(db);
 }
 
 void erase_tail_for_new_head(database_storage* db){
