@@ -16,6 +16,8 @@
 #include <onex-kernel/log.h>
 #include <onex-kernel/gpio.h>
 
+#include <persistence.h>
+
 #include <onn.h>
 
 bool log_to_gfx=false;
@@ -149,11 +151,13 @@ bool log_loop() {
       if(char_recvd=='n') onex_show_notify();
       if(char_recvd=='v') value_dump_small();
       if(char_recvd=='V') value_dump();
+      if(char_recvd=='f') persistence_dump();
+      if(char_recvd=='F') persistence_wipe();
       if(char_recvd=='m') mem_show_allocated(true);
       if(char_recvd=='p') gpio_show_power_status();
       if(char_recvd=='r') boot_reset(false);
       if(char_recvd=='b') boot_reset(true);
-      if(char_recvd=='h') log_write("object c.ache n.otifies Vv.alues m.em p.ower r.eset b.ootloader\n");
+      if(char_recvd=='h') log_write("c.ache n.otifies Vv.alues f.lash F.ormat m.em p.ower r.eset b.ootloader\n");
       char_recvd=0;
     }
   }

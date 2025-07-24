@@ -118,12 +118,12 @@ void  persistence_wipe(){
 #endif
 }
 
-void persistence_show_db(){
+void persistence_dump(){
 #if defined(FLASH_NOT_FAKE)
   if(db) database_dump(db);
-  else log_write("persistence_show_db but no db\n");
+  else log_write("persistence_dump but no db\n");
 #else
-  log_write("persistence_show_db...\n");
+  log_write("persistence_dump...\n");
 #endif
 }
 

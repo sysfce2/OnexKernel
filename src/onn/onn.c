@@ -34,7 +34,7 @@ __attribute__((weak)) void _write() { while (1); }
 #include <onex-kernel/serial.h>
 #include <items.h>
 
-#include "persistence.h"
+#include <persistence.h>
 
 #include <onp.h>
 #include <onn.h>

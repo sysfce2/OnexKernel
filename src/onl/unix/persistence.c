@@ -119,7 +119,7 @@ void  persistence_wipe(){
   database_wipe(db);
 }
 
-void persistence_show_db(){
+void persistence_dump(){
   database_dump(db);
 }
 
