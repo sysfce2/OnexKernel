@@ -157,6 +157,7 @@ bool log_loop() {
       if(char_recvd=='p') gpio_show_power_status();
       if(char_recvd=='r') boot_reset(false);
       if(char_recvd=='b') boot_reset(true);
+      if(char_recvd=='*') log_flash(1,1,1);
       if(char_recvd=='h') log_write("c.ache n.otifies Vv.alues f.lash F.ormat m.em p.ower r.eset b.ootloader\n");
       char_recvd=0;
     }
@@ -257,17 +258,34 @@ int16_t log_write_mode_main(uint8_t mode, char* file, uint32_t line, const char*
   return r;
 }
 
-static volatile bool flash_on=false;
+static volatile bool    flash_on=false;
+static volatile uint8_t flash_nm=0;
+static volatile uint8_t flash_r=0;
+static volatile uint8_t flash_g=0;
+static volatile uint8_t flash_b=0;
+
+static void set_flash_state(){
+#if defined(BOARD_PCA10059)
+  if(flash_r) gpio_set(LED2_R, flash_on? LEDS_ACTIVE_STATE: !LEDS_ACTIVE_STATE);
+  if(flash_g) gpio_set(LED2_G, flash_on? LEDS_ACTIVE_STATE: !LEDS_ACTIVE_STATE);
+  if(flash_b) gpio_set(LED2_B, flash_on? LEDS_ACTIVE_STATE: !LEDS_ACTIVE_STATE);
+#elif defined(BOARD_FEATHER_SENSE)
+  ;           gpio_set(LED_1,  flash_on? LEDS_ACTIVE_STATE: !LEDS_ACTIVE_STATE);
+#endif
+}
+
+#define FLASHES_NUM 3
+#define FLASHES_TMS 100
 
 void flash_time_cb(void*) {
-#if defined(BOARD_PCA10059)
-  gpio_set(LED2_R, !LEDS_ACTIVE_STATE);
-  gpio_set(LED2_G, !LEDS_ACTIVE_STATE);
-  gpio_set(LED2_B, !LEDS_ACTIVE_STATE);
-#elif defined(BOARD_FEATHER_SENSE)
-  gpio_set(LED_1,  !LEDS_ACTIVE_STATE);
-#endif
-  flash_on=false;
+  flash_on=!flash_on;
+  flash_nm++;
+  set_flash_state();
+  if(flash_nm == 2 * FLASHES_NUM){
+    flash_nm=0;
+    return;
+  }
+  time_start_timer(flash_id, FLASHES_TMS);
 }
 
 void log_flash_current_file_line(char* file, uint32_t line, uint8_t r, uint8_t g, uint8_t b){
@@ -275,19 +293,15 @@ void log_flash_current_file_line(char* file, uint32_t line, uint8_t r, uint8_t g
   if(r+g+b != 3) return;
 #endif
   if(!initialised) return;
-  if(!strstr(file, "serial") && !strstr(file, "log")){
+  if(!strstr(file, "log")){
     log_write_mode(1, file, line, "log_flash\n");
   }
-  if(!log_to_led || flash_on) return;
-#if defined(BOARD_PCA10059)
-  if(r) gpio_set(LED2_R, LEDS_ACTIVE_STATE);
-  if(g) gpio_set(LED2_G, LEDS_ACTIVE_STATE);
-  if(b) gpio_set(LED2_B, LEDS_ACTIVE_STATE);
-#elif defined(BOARD_FEATHER_SENSE)
-  gpio_set(LED_1,  LEDS_ACTIVE_STATE);
-#endif
+  if(!log_to_led || flash_nm) return;
+  flash_r=r; flash_g=g; flash_b=b;
   flash_on=true;
-  time_start_timer(flash_id, 250);
+  flash_nm=1;
+  set_flash_state();
+  time_start_timer(flash_id, FLASHES_TMS);
 }
 
 void log_flush() {

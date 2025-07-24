@@ -634,6 +634,8 @@ int main() {
 
   log_write("----------nRF52 tests----------------\n");
 
+  log_flash(1,0,0);
+
   while(1){
 
     log_loop();
@@ -667,6 +669,7 @@ int main() {
       if(char_recvd=='p') gpio_show_power_status();
       if(char_recvd=='r') boot_reset(false);
       if(char_recvd=='b') boot_reset(true);
+      if(char_recvd=='*') log_flash(1,1,1);
       if(char_recvd=='h') log_write("t.ests co.l.our s.end-radio i.nputs | object c.ache n.otifies Vv.alues f.lash m.em p.ower r.eset b.ootloader\n");
 
       if(char_recvd=='i') time_delay_ms(100);
