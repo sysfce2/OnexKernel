@@ -39,7 +39,12 @@ unsigned int string_hash(char* p)
 #define NUM_BUX 256
 #endif
 
-#define WARN_SZLG(h,k) if((h)->size && !((h)->size % NUM_BUX)) log_write("{%s:%d %s %d/%d}\n", (h)->func, (h)->line, k, (h)->size, (h)->max_size)
+#define WARN_SZLG(op,key) \
+ static uint16_t warned_size=0; \
+ if(op->size > warned_size && (op->size % NUM_BUX)==0){ \
+   warned_size=op->size; \
+   log_write("%s:%d{%s:%d/%d}\n", op->func, op->line, key, op->size, op->max_size); \
+ }
 
 properties* properties_new_(char* func, uint32_t line, uint16_t max_size){
   if(max_size < 3){
