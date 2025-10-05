@@ -489,7 +489,7 @@ bool set_up_scene_begin(float** vertices) {
 
   ONL_VK_CHECK_EXIT(vkMapMemory(onl_vk_device,
                                 vertex_buffer_memory,
-                                0, vertex_size, 0, vertices));
+                                0, vertex_size, 0, (void**)vertices));
   return true;
 }
 
@@ -599,8 +599,8 @@ static VkShaderModule load_c_shader(bool load_frag) {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .codeSize = load_frag? tests_ont_examples_vulkan_onx_frag_spv_len:
                                tests_ont_examples_vulkan_onx_vert_spv_len,
-        .pCode = load_frag? tests_ont_examples_vulkan_onx_frag_spv:
-                            tests_ont_examples_vulkan_onx_vert_spv,
+        .pCode = load_frag? (const uint32_t*) tests_ont_examples_vulkan_onx_frag_spv:
+                            (const uint32_t*) tests_ont_examples_vulkan_onx_vert_spv,
         .flags = 0,
         .pNext = 0,
     };
