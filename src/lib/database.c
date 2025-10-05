@@ -382,12 +382,12 @@ void database_dump(database_storage* db){
   uint8_t empty_sectors=0;
   log_write("+-------- database: %d sectors --------------------------------------------\n", db->sector_count);
   uint8_t buf[db->sector_size];
-  for(uint16_t s = 0; s < db->sector_count; s++){
+  for(uint16_t s=0; s < db->sector_count; s++){
+    log_write("------ sector %d -------\n", s);
     db->read(db, db->sector_size * s, buf, db->sector_size, 0);
-    log_write("-------- sector %d --------\n", s);
     show_bytes_and_chars(db->sector_size * s, buf, db->sector_size);
     if(*(buf+sizeof(database_sector_info))==0xff) empty_sectors++;
-;   if(empty_sectors==2) return;
+  ; if(empty_sectors==2) break;
   }
   log_write("+------------------------------------------------------------------------------\n");
 }

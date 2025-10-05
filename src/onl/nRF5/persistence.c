@@ -8,6 +8,7 @@
 
 #include <items.h>
 #include <onex-kernel/lib.h>
+#include <onex-kernel/boot.h>
 #include <onex-kernel/mem.h>
 #include <onex-kernel/log.h>
 #if defined(FLASH_NOT_FAKE)
@@ -16,6 +17,8 @@
 #endif
 
 #include <persistence.h>
+
+#define MAX_OBJECTS 64
 
 #if defined(FLASH_NOT_FAKE)
 
@@ -52,8 +55,10 @@ static void flash_db_format(database_storage* db){
     dsi.erase_count = (s==0? 2: 1);
     dsi.zero_term = 0;
     flash_db_write(db, db->sector_size * s, (uint8_t*)&dsi, sizeof(database_sector_info), 0);
+    boot_feed_watchdog(); // REVISIT: use the callbacks, duh
+    log_write(".");
   }
-  log_write("flash_db_format done\n");
+  log_write("\nflash_db_format done\n");
 }
 
 static database_storage* flash_db_storage_new(){

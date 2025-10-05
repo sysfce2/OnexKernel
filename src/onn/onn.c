@@ -1486,7 +1486,7 @@ void persist_reload(){
 static uint32_t lasttime=0;
 
 #if defined(NRF5)
-#define FLUSH_RATE_MS 200
+#define FLUSH_RATE_MS 1000
 #else
 #define FLUSH_RATE_MS 100
 #endif

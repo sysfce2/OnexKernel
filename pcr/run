@@ -1,0 +1,1 @@
+rm -f pcr-.ondb ; valgrind --leak-check=yes --undef-value-errors=no ../test-pcr ff12::1234 ff12::4321

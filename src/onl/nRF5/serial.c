@@ -327,6 +327,9 @@ int16_t serial_vprintf(const char* fmt, va_list args) {
 }
 
 static uint16_t serial_write_delim(char* tty, char* buf, uint16_t size, bool delim) {
+
+  app_usbd_event_queue_process();
+
   if(!chunkbuf_writable(serial_write_buf, size, delim? NL_DELIM: -1)){
     log_flash(1,0,0); // no room for this size
     return 0;

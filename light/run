@@ -1,0 +1,1 @@
+rm -f light.ondb ; ../test-pcr-light ff12::4321

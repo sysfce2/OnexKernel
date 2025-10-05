@@ -13,8 +13,7 @@ static bool initialised=false;
 
 uint64_t startus;
 
-uint64_t get_time_us()
-{
+uint64_t get_time_us() {
   struct timespec t;
   clock_gettime(CLOCK_REALTIME, &t);
   return t.tv_sec*1000000+t.tv_nsec/1000;
@@ -24,37 +23,32 @@ static pthread_t thread_id;
 static volatile bool thread_running=true;
 static void* timer_thread(void*);
 
-void time_init()
-{
+void time_init() {
   if(initialised) return;
   startus=get_time_us();
   pthread_create(&thread_id, 0, timer_thread, 0);
   initialised=true;
 }
 
-uint64_t time_us()
-{
+uint64_t time_us() {
   time_init();
   return get_time_us()-startus;
 }
 
-uint64_t time_ms()
-{
+uint64_t time_ms() {
   time_init();
   return time_us()/1000;
 }
 
 static uint32_t offset=0;
 
-uint64_t time_es()
-{
+uint64_t time_es() {
   struct timespec t;
   clock_gettime(CLOCK_REALTIME, &t);
   return t.tv_sec-offset;
 }
 
-void time_es_set(uint64_t es)
-{
+void time_es_set(uint64_t es) {
   struct timespec t;
   clock_gettime(CLOCK_REALTIME, &t);
   offset=t.tv_sec-es;
@@ -82,8 +76,7 @@ typedef struct timer_node {
 
 static timer_node* timer_list = 0;
 
-timer_node* timer_by_fd(int fd)
-{
+timer_node* timer_by_fd(int fd) {
   timer_node* timer = timer_list;
   while(timer) {
     if(timer->fd==fd) return timer;
@@ -92,8 +85,7 @@ timer_node* timer_by_fd(int fd)
   return 0;
 }
 
-timer_node* timer_by_id(uint16_t id)
-{
+timer_node* timer_by_id(uint16_t id) {
   timer_node* timer = timer_list;
   while(timer) {
     if(timer->id==id) return timer;
@@ -102,8 +94,8 @@ timer_node* timer_by_id(uint16_t id)
   return 0;
 }
 
-uint16_t create_timer(time_up_cb cb, void* arg, t_timer type)
-{
+uint16_t create_timer(time_up_cb cb, void* arg, t_timer type) {
+
   timer_node* timer = (timer_node*)malloc(sizeof(timer_node));
 
   if(!timer) return 0;
@@ -122,20 +114,18 @@ uint16_t create_timer(time_up_cb cb, void* arg, t_timer type)
   return timer->id;
 }
 
-uint16_t time_ticker(time_up_cb cb, void* arg, uint32_t every)
-{
+uint16_t time_ticker(time_up_cb cb, void* arg, uint32_t every) {
   uint32_t id=create_timer(cb, arg, TIMER_PERIODIC);
   time_start_timer(id, every);
   return id;
 }
 
-uint16_t time_timeout(time_up_cb cb, void* arg)
-{
+uint16_t time_timeout(time_up_cb cb, void* arg) {
   return create_timer(cb, arg, TIMER_SINGLE_SHOT);
 }
 
-void time_start_timer(uint16_t id, uint32_t timeout)
-{
+void time_start_timer(uint16_t id, uint32_t timeout) {
+
   timer_node* timer=timer_by_id(id);
   if(!timer) return;
 
@@ -155,13 +145,11 @@ void time_start_timer(uint16_t id, uint32_t timeout)
   timerfd_settime(timer->fd, 0, &timerspec, 0);
 }
 
-void time_stop_timer(uint16_t id)
-{
+void time_stop_timer(uint16_t id) {
   time_start_timer(id, 0);
 }
 
-static void remove_timer(timer_node* timer)
-{
+static void remove_timer(timer_node* timer) {
   if(!timer) return;
   close(timer->fd);
   if(timer == timer_list) {
@@ -174,15 +162,14 @@ static void remove_timer(timer_node* timer)
   free(timer);
 }
 
-void time_end()
-{
+void time_end() {
   while(timer_list){ remove_timer(timer_list); }
   thread_running=false;
   pthread_join(thread_id, 0);
 }
 
-void* timer_thread(void*)
-{
+void* timer_thread(void*) {
+
   struct pollfd ufds[MAX_TIMER_COUNT] = {{0}};
   int fdn = 0;
   timer_node* timer = 0;

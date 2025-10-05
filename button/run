@@ -1,0 +1,1 @@
+rm -f button.ondb ; ../test-pcr-button ff12::1234
