@@ -6,6 +6,7 @@
 
 #include <onex-kernel/log.h>
 #include <onex-kernel/lib.h>
+#include <onex-kernel/boot.h>
 #include <onex-kernel/mem.h>
 #include <onex-kernel/show_bytes_n_chars.h>
 #include <onex-kernel/database.h>
@@ -385,7 +386,17 @@ void database_dump(database_storage* db){
   for(uint16_t s=0; s < db->sector_count; s++){
     log_write("------ sector %d -------\n", s);
     db->read(db, db->sector_size * s, buf, db->sector_size, 0);
+#if defined(NRF5)
+    #define NUM_CHUNKS 16
+    uint16_t chunk_size=db->sector_size/NUM_CHUNKS;
+    for(uint16_t c=0; c<NUM_CHUNKS; c++){
+      uint16_t offset = c * chunk_size;
+      show_bytes_and_chars(db->sector_size * s + offset, buf + offset, chunk_size);
+      boot_feed_watchdog(); // REVISIT: why is serial print so slowww?
+    }
+#else
     show_bytes_and_chars(db->sector_size * s, buf, db->sector_size);
+#endif
     if(*(buf+sizeof(database_sector_info))==0xff) empty_sectors++;
   ; if(empty_sectors==2) break;
   }

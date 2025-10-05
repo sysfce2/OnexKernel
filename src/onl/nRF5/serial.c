@@ -70,8 +70,13 @@ static bool do_usb_write_block(bool first_write){
     return true;
   }
 
-  ret_code_t e=app_usbd_cdc_acm_write(&m_app_cdc_acm, block, s);
 
+  ret_code_t e;
+  for(int i=0; i< 3; i++){
+    e=app_usbd_cdc_acm_write(&m_app_cdc_acm, block, s);
+  ; if(e==NRF_SUCCESS) break;
+    time_delay_ms(1);
+  }
   if(e!=NRF_SUCCESS){
     log_flash(1,0,0);
     write_loop_in_progress = false;
